@@ -1,31 +1,15 @@
 {
-  // Use IntelliSense to learn about possible attributes.
-  // Hover to view descriptions of existing attributes.
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
-  <%- if @jekyll -%>
     {
-      "args": [
-        "serve",
-        "--livereload_port", "35721",
-        "--force_polling",
-        "--host", "0.0.0.0",
-        "--port", "4001",
-        "--future",
-        "--incremental",
-        "--livereload",
-        "--drafts",
-        "--unpublished"
-      ],
-      "cwd": "${workspaceRoot}/demo",
+      "args": ["/mnt/c/media/Ableton/Projects/fu Project/fu.als"],
       "debugPort": "0",
-      "name": "Debug Demo",
+      "name": "Debug live_set with rdbg",
+      "script": "lib/live_set.rb",
       "request": "launch",
-      "script": "${workspaceRoot}/binstub/jekyll",
       "type": "rdbg",
+      "useBundler": true,
     },
-    <%- end -%>
     {
       "args": [],
       "debugPort": "0",

@@ -7,8 +7,7 @@ Gem::Specification.new do |spec|
   spec.bindir                = 'exe'
   spec.executables           = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.description           = <<~END_DESC
-    Write a longer description of the gem.
-    Use as many lines as you like.
+    Reports the version of an Ableton Live set, and optionally changes it to v11 format.
   END_DESC
   spec.email                 = ['mslinn@mslinn.com']
   spec.files                 = Dir['.rubocop.yml', 'LICENSE.*', 'Rakefile', '{lib,spec}/**/*', '*.gemspec', '*.md']
@@ -28,8 +27,7 @@ Gem::Specification.new do |spec|
 
   END_MESSAGE
   spec.require_paths         = ['lib']
-  spec.required_ruby_version = '>= 3.1.0'
-  spec.summary               = 'Write summary of what the gem is for'
+  spec.required_ruby_version = '>= 2.7'
+  spec.summary               = 'Reports the version of an Ableton Live set, and optionally changes it to v11 format.'
   spec.version               = LiveSet::VERSION
-  spec.add_dependency 'thor', '~> 1.2.2'
 end
