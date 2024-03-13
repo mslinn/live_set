@@ -40,9 +40,9 @@ xml_doc.xpath('//ExpressionLanes').remove
 
 new_contents = xml_doc.to_xml.to_s
 new_contents.gsub! 'AudioOut/Main', 'AudioOut/Master'
-# puts new_contents
 
 set_path = File.dirname set_name
 new_set_name = File.basename set_name, '.als'
 new_set_path = File.join set_path, "#{new_set_name}_11", '.als'
+puts "Writing #{new_set_path}"
 Zlib::GzipWriter.open(new_set_path) { |gz| gz.write new_contents }

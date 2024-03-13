@@ -21,7 +21,7 @@ $ live_set path/to/my_set.als
 ```
 
 
-Make the Live 12 set compatible with Live 11:
+Make the Live 12 set compatible with Live 11 and save as `path/to/my_set_11.als`:
 
 ```shell
 $ live_set -11 path/to/my_set.als
