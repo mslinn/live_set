@@ -1,0 +1,22 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=827846 to learn about workspace recommendations.
+  // Extension identifier format: ${publisher}.${name}. Example: vscode.csharp
+
+  // List of extensions which should be recommended for users of this workspace.
+  "recommendations": [
+    "DavidAnson.vscode-markdownlint",
+    "devonray.snippet",
+    "KoichiSasada.vscode-rdbg",
+    "misogi.ruby-rubocop",
+    "redhat.vscode-yaml",
+    "shd101wyy.markdown-preview-enhanced",
+    "Shopify.ruby-lsp",
+    "timonwong.shellcheck",
+  ],
+  // List of extensions recommended by VS Code that should not be recommended for users of this workspace.
+  "unwantedRecommendations": [
+    "castwide.solargraph",
+    "rebornix.Ruby",
+    "wingrunr21.vscode-ruby",
+  ]
+}

@@ -1,0 +1,4 @@
+#!/bin/bash
+
+git checkout . # restores project
+git clean -fd  # Nukes untracked files and directories

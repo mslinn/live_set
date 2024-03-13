@@ -1,0 +1,5 @@
+{
+  "ruby.rubocop.configFilePath": ".rubocop.yml",
+  "ruby.rubocop.useBundler": true,
+  "ruby.rubocop.executePath": "./binstub/"
+}

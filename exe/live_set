@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+require 'live_set/cli'
+
+LiveSet::Cli.start

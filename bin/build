@@ -1,0 +1,7 @@
+#!/bin/bash
+
+NAME="$( basename -s .git "$( git remote get-url origin )" )"
+
+gem uninstall "$NAME" -aIx --user-install --force
+
+bundle exec rake install
