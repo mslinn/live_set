@@ -20,9 +20,15 @@ help "#{set_name} does not exist" unless File.exist? set_name
 help "#{set_name} is a directory" if File.directory? set_name
 
 contents = Zlib::GzipReader.open(set_name, &:readlines)
-xml_header = puts contents[1]
-puts xml_header
+xml_doc = Nokogiri::Slop contents.join("\n")
 
-xml_doc = Nokogiri::XML contents.join('\n')
-thing = xml_doc.at_xpath('//things')
-puts thing
+ableton = xml_doc.Ableton
+minor_version = ableton['MinorVersion']
+
+puts "Version was #{minor_version}"
+
+ableton['Creator'] = 'Ableton Live 11.3.21'
+ableton['MajorVersion'] = '5'
+ableton['MinorVersion'] = '11.0_11300'
+ableton['Revision'] = '5ac24cad7c51ea0671d49e6b4885371f15b57c1e'
+ableton['SchemaChangeCount'] = '3'

@@ -1,6 +1,6 @@
 # `Live_set` [![Gem Version](https://badge.fury.io/rb/live_set.svg)](https://badge.fury.io/rb/live_set)
 
-Reports version of an Ableton Live set, and optionally changes it to v11 format.
+Reports the version of an Ableton Live set, and optionally changes it to v11 format.
 
 
 ## Installation
