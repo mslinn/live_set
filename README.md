@@ -14,8 +14,17 @@ $ gem install live_set
 
 ## Usage
 
+Report the version of the Ableton Live set:
+
 ```shell
 $ live_set path/to/my_set.als
+```
+
+
+Make the Live 12 set compatible with Live 11:
+
+```shell
+$ live_set -11 path/to/my_set.als
 ```
 
 
