@@ -19,4 +19,5 @@ help "#{set_name} does not exist" unless File.exist? set_name
 help "#{set_name} is a directory" if File.directory? set_name
 
 contents = Zlib::GzipReader.open(set_name) { |gz| gz.readlines }
-puts contents
+xml_header = puts contents[1]
+puts xml_header
