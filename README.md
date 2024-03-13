@@ -1,32 +1,22 @@
 # `Live_set` [![Gem Version](https://badge.fury.io/rb/live_set.svg)](https://badge.fury.io/rb/live_set)
 
-Reports version of an Ableton Live set, and optionally change it to v11 format.
+Reports version of an Ableton Live set, and optionally changes it to v11 format.
 
 
 ## Installation
 
-Either add this line to your application&rsquo;s `Gemfile`:
-
-```ruby
-gem 'live_set'
-```
-
-... or add the following to your application&rsquo;s `.gemspec`:
-
-```ruby
-spec.add_dependency 'live_set'
-```
-
-And then execute:
+Once this gem is released, you will just need to type:
 
 ```shell
-$ bundle
+$ gem install live_set
 ```
 
 
 ## Usage
 
-Describe how to use this gem
+```shell
+$ live_set path/to/my_set.als
+```
 
 
 ## Development
