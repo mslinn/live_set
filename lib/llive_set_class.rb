@@ -16,10 +16,11 @@ class LiveSet
   def show
     puts <<~END_SHOW
       #{@set_name}
-        Created by #{@ableton['Creator']}, Minor version v#{@minor_version}
-        Major version #{@ableton['MinorVersion']}
-        Revision #{@ableton['Revision']}
+        Created by #{@ableton['Creator']}
+        Major version #{@ableton['MajorVersion']}
+        Minor version v#{@minor_version}
         SchemaChangeCount #{@ableton['SchemaChangeCount']}
+        Revision #{@ableton['Revision']}
     END_SHOW
     track_names = @ableton.LiveSet.Tracks.AudioTrack.map do |track|
       track.Name.EffectiveName['Value']
@@ -27,7 +28,7 @@ class LiveSet
     track_msg = if track_names.empty?
                   'No tracks'
                 else
-                  "Tracks:\n  " + track_names.join("\n  ") # rubocop:disable Style/StringConcatenation
+                  "#{track_names.count} tracks:\n  " + track_names.join("\n  ") # rubocop:disable Style/StringConcatenation
                 end
     puts track_msg
   end

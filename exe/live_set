@@ -11,5 +11,5 @@ require_relative '../lib/options'
 
 def common(command)
   @options = parse_options command
-  help_stabilize 'Ableton Live set name must be provided.' if ARGV.empty?
+  help_show 'Ableton Live set name must be provided.' if ARGV.empty?
 end
