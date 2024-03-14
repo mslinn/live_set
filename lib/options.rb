@@ -14,9 +14,9 @@ def help_show(msg = nil)
   exit 1
 end
 
-def parse_options(command)
-  options = option_defaults command
-  opts = do_parse command
+def parse_options
+  options = { loglevel: 'warning' }
+  opts = do_parse
   opts.order!(into: options)
 
   help_show "Invalid verbosity value (#{options[:verbose]}), must be one of one of: #{VERBOSITY.join ', '}." \
@@ -25,13 +25,10 @@ def parse_options(command)
   options
 end
 
+
 private
 
-def option_defaults(_command)
-  { loglevel: 'warning' }
-end
-
-def do_parse(command)
+def do_parse
   OptionParser.new do |parser|
     parser.program_name = File.basename __FILE__
     @parser = parser
@@ -42,7 +39,7 @@ def do_parse(command)
     parser.on('-v', '--verbose VERBOSE', 'Zoom percentage')
 
     parser.on_tail('-h', '--help', 'Show this message') do
-      command == :stabilize ? help_stabilize : help_rotate
+      help_show
     end
   end
 end
