@@ -43,7 +43,10 @@ class LiveSet
   end
 
   def modify_als
-    exit if minor_version.start_with? '11.'
+    if @minor_version.start_with? '11.'
+      puts 'The Live set is already compatible with Live 11.'
+      exit
+    end
 
     @ableton['Creator'] = 'Ableton Live 11.3.21'
     @ableton['MajorVersion'] = '5'

@@ -2,7 +2,10 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "args": ["$ableton_media/Projects/fu Project/fu.als"],
+      "args": [
+        "-11",
+        "$ableton_media/Projects/fu Project/fu.als"
+      ],
       "debugPort": "0",
       "env": {"VO_DEBUGGING": true},
       "name": "Debug live_set with rdbg",

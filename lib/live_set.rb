@@ -21,6 +21,9 @@ help_show "#{set_name} does not exist" unless File.exist? set_name
 help_show "#{set_name} is a directory" if File.directory? set_name
 
 live_set = LiveSet.new set_name, **@options
-live_set.show
 
-# live_set.modify_als if modify
+if @options[:convert11]
+  live_set.modify_als
+else
+  live_set.show
+end
