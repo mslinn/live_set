@@ -6,7 +6,7 @@ VERBOSITY = %w[trace debug verbose info warning error fatal panic quiet].freeze
 def help_show(msg = nil)
   printf "Error: #{msg}\n\n".yellow unless msg.nil?
   msg = <<~END_HELP
-    show: Displays information about a Live set.
+    Displays information about a Live set or converts a Live 12 set to Live 11 format.
 
     Syntax: live_set OPTIONS PATH_TO_ALS_FILE
 

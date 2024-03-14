@@ -19,6 +19,23 @@ $ gem install live_set
 
 The path to the Able Live set can incorporate environment variables.
 
+```shell
+$ live_set -h
+Displays information about a Live set or converts a Live 12 set to Live 11 format.
+
+Syntax: live_set OPTIONS PATH_TO_ALS_FILE
+
+Environment variables used in PATH_TO_ALS_FILE are expanded.
+
+Options are:
+  -11 Convert the Live 12 set to Live 11 format.
+  -f Overwrite any existing Live 11 set.
+  -h Display this help message.
+
+Example:
+  live_set -11 -f $path/to/my_set.als
+```
+
 ### Report
 
 Report the version of the Ableton Live set:
