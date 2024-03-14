@@ -88,7 +88,7 @@ class LiveSet
     puts "Warning: '#{api_path}' is not present".red unless File.exist? api_path
     puts "Warning: '#{api_path}' is not a directory".red unless Dir.exist? api_path
 
-    cur_dir = Pathname.new(api_directory).parent
+    cur_dir = Pathname.new(set_directory).parent
     while cur_dir
       if File.exist? File.join(cur_dir, 'Ableton Project Info')
         puts "Warning: 'Ableton Project Info' exists in parent directory '#{cur_dir.to_path}'".red
