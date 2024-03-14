@@ -14,6 +14,7 @@ class LiveSet
   def initialize(set_name, **options)
     @loglevel  = "-loglevel #{options[:loglevel]}"
     @loglevel += ' -stats' unless options[:loglevel] == 'quiet'
+    @overwrite = options[:force]
     @set_name = set_name
     @contents = Zlib::GzipReader.open(set_name, &:readlines)
     @xml_doc = Nokogiri::Slop @contents.join("\n")
@@ -54,16 +55,21 @@ class LiveSet
     @ableton['Revision'] = '5ac24cad7c51ea0671d49e6b4885371f15b57c1e'
     @ableton['SchemaChangeCount'] = '3'
 
-    @xml_doc.xpath('//ContentLanes').remove
-    @xml_doc.xpath('//ExpressionLanes').remove
-
+    ['//ContentLanes', '//ExpressionLanes', '//InstrumentMeld', '//Roar', '//MxPatchRef'].each do |element|
+      @xml_doc.xpath(element).remove
+    end
     new_contents = @xml_doc.to_xml.to_s
     new_contents.gsub! 'AudioOut/Main', 'AudioOut/Master'
 
     set_path = File.dirname @set_name
     new_set_name = File.basename @set_name, '.als'
-    new_set_path = File.join set_path, "#{new_set_name}_11", '.als'
-    puts "Writing #{new_set_path}"
+    new_set_path = File.join set_path, "#{new_set_name}_11.als"
+    if @overwrite
+      puts "Overwriting existing #{new_set_path}"
+      File.delete new_set_path
+    else
+      puts "Writing #{new_set_path}"
+    end
     Zlib::GzipWriter.open(new_set_path) { |gz| gz.write new_contents }
   end
 

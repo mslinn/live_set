@@ -2,10 +2,12 @@
 
 Reports the version of an Ableton Live set, and optionally changes it to v11 format.
 
+This program has successfully converted the Ableton Live 12 demo project to Live 11.
+
 
 ## Installation
 
-Once this gem is released, you will just need to type:
+Simply type:
 
 ```shell
 $ gem install live_set
@@ -22,10 +24,6 @@ Report the version of the Ableton Live set:
 
 ```shell
 $ live_set $path/to/my_set.als
-Requiring /mnt/c/work/ruby/my_gems/live_set/lib/common.rb
-Requiring /mnt/c/work/ruby/my_gems/live_set/lib/live_set.rb
-Requiring /mnt/c/work/ruby/my_gems/live_set/lib/llive_set_class.rb
-Requiring /mnt/c/work/ruby/my_gems/live_set/lib/options.rb
 /mnt/c/media/Ableton/Projects/fu Project/fu.als
   Created by Live v11.0_11300
   Major version 11.0_11300
@@ -48,7 +46,7 @@ Tracks:
 Make the Live 12 set compatible with Live 11 and save as `path/to/my_set_11.als`:
 
 ```shell
-$ live_set -11 path/to/my_set.als
+$ live_set -11 -f path/to/my_set.als
 ```
 
 

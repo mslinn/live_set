@@ -34,6 +34,7 @@ def do_parse
     @parser = parser
 
     parser.on('-11', '--convert11', 'Make a copy of the set that is compatible with Live 11')
+    parser.on('-f', '--force', 'Overwrite the output set if it already exists')
     parser.on('-s', '--show', 'Display information about the Ableton Live set')
     parser.on('-l', '--loglevel LOGLEVEL', Integer, "Logging level (#{VERBOSITY.join ', '})")
     parser.on('-v', '--verbose VERBOSE', 'Zoom percentage')

@@ -4,7 +4,7 @@
     {
       "args": [
         "-11",
-        "$ableton_media/Projects/fu Project/fu.als"
+        "$ableton_media/Projects/Ableton Live 12 Demo Project/Ableton Live 12 Demo.als"
       ],
       "debugPort": "0",
       "env": {"VO_DEBUGGING": true},
