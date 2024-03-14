@@ -8,7 +8,17 @@ def help_show(msg = nil)
   msg = <<~END_HELP
     show: Displays information about a Live set.
 
-    Syntax: live_set PATH_TO_ALS_FILE
+    Syntax: live_set OPTIONS PATH_TO_ALS_FILE
+
+    Environment variables used in PATH_TO_ALS_FILE are expanded.
+
+    Options are:
+      -11 Convert the Live 12 set to Live 11 format.
+      -f Overwrite any existing Live 11 set.
+      -h Display this help message.
+
+    Example:
+      live_set -11 -f $path/to/my_v12_set.als
   END_HELP
   printf msg.cyan
   exit 1
