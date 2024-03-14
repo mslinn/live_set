@@ -17,10 +17,8 @@ $ gem install live_set
 
 ## Usage
 
-The path to the Able Live set can incorporate environment variables.
-
 ```shell
-$ live_set -h
+$ live_set
 Displays information about a Live set or converts a Live 12 set to Live 11 format.
 
 Syntax: live_set OPTIONS PATH_TO_ALS_FILE
