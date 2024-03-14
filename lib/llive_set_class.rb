@@ -1,6 +1,14 @@
 require 'nokogiri'
 require 'zlib'
 
+class String
+  def to_bool
+      return true if self.downcase == "true"
+      return false if self.downcase == "false"
+      return nil
+  end
+end
+
 class LiveSet
   def initialize(set_name, **options)
     @loglevel  = "-loglevel #{options[:loglevel]}"
@@ -22,15 +30,19 @@ class LiveSet
         SchemaChangeCount #{@ableton['SchemaChangeCount']}
         Revision #{@ableton['Revision']}
     END_SHOW
-    track_names = @ableton.LiveSet.Tracks.AudioTrack.map do |track|
-      track.Name.EffectiveName['Value']
-    end
-    track_msg = if track_names.empty?
+    tracks = @ableton.LiveSet.Tracks.AudioTrack
+    track_msg = if tracks.empty?
                   'No tracks'
                 else
-                  "#{track_names.count} tracks:\n  " + track_names.join("\n  ") # rubocop:disable Style/StringConcatenation
+                  "#{tracks.count} tracks:\n  " + tracks.map { |x| show_track x}.join("\n  ") # rubocop:disable Style/StringConcatenation
                 end
     puts track_msg
+  end
+
+  def show_track(audio_track)
+    name = audio_track.Name.EffectiveName['Value']
+    frozen = audio_track.Freeze['Value'].to_bool ? ' **frozen**' : ''
+    "#{name}#{frozen}"
   end
 
   def modify_als
