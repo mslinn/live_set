@@ -23,6 +23,8 @@ If the above does not work because you need to install Ruby, please
 ```shell
 $ live_set
 Displays information about a Live set or converts a Live 12 set to Live 11 format.
+Also verifies that 'Ableton Project Info' is in the same directory as the .als file,
+and there is no parent directory with a directory of that name.
 
 Syntax: live_set OPTIONS PATH_TO_ALS_FILE
 
