@@ -7,6 +7,8 @@ def help_show(msg = nil)
   printf "Error: #{msg}\n\n".yellow unless msg.nil?
   msg = <<~END_HELP
     Displays information about a Live set or converts a Live 12 set to Live 11 format.
+    If the special folder called 'Ableton Project Info' is not present in the same folder as the .als file, a warning is generated.
+    Similarly, if 'Ableton Project Info' is present in any parent folder, a warning is issued.
 
     Syntax: live_set OPTIONS PATH_TO_ALS_FILE
 
@@ -34,7 +36,6 @@ def parse_options
 
   options
 end
-
 
 private
 

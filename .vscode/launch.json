@@ -3,12 +3,24 @@
   "configurations": [
     {
       "args": [
+        "$ableton_media/Projects/Ableton Live 12 Demo Project/Ableton Live 12 Demo.als"
+      ],
+      "debugPort": "0",
+      "env": {"VO_DEBUGGING": true},
+      "name": "Show live_set",
+      "script": "lib/live_set.rb",
+      "request": "launch",
+      "type": "rdbg",
+      "useBundler": true,
+    },
+    {
+      "args": [
         "-11",
         "$ableton_media/Projects/Ableton Live 12 Demo Project/Ableton Live 12 Demo.als"
       ],
       "debugPort": "0",
       "env": {"VO_DEBUGGING": true},
-      "name": "Debug live_set with rdbg",
+      "name": "Convert set from Live 12 to 11",
       "script": "lib/live_set.rb",
       "request": "launch",
       "type": "rdbg",
