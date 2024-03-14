@@ -2,7 +2,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "args": ["/mnt/c/media/Ableton/Projects/fu Project/fu.als"],
+      "args": ["$ableton_media/Projects/fu Project/fu.als"],
       "debugPort": "0",
       "env": {"VO_DEBUGGING": true},
       "name": "Debug live_set with rdbg",

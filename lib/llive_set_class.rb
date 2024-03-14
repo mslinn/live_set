@@ -34,15 +34,11 @@ class LiveSet
     track_msg = if tracks.empty?
                   'No tracks'
                 else
-                  "#{tracks.count} tracks:\n  " + tracks.map { |x| show_track x}.join("\n  ") # rubocop:disable Style/StringConcatenation
+                  all_frozen = all_tracks_frozen(tracks)
+                  track_summary(tracks) +
+                    tracks.map { |x| show_track x, all_frozen }.join("\n  ")
                 end
     puts track_msg
-  end
-
-  def show_track(audio_track)
-    name = audio_track.Name.EffectiveName['Value']
-    frozen = audio_track.Freeze['Value'].to_bool ? ' **frozen**' : ''
-    "#{name}#{frozen}"
   end
 
   def modify_als
@@ -65,5 +61,26 @@ class LiveSet
     new_set_path = File.join set_path, "#{new_set_name}_11", '.als'
     puts "Writing #{new_set_path}"
     Zlib::GzipWriter.open(new_set_path) { |gz| gz.write new_contents }
+  end
+
+  private
+
+  def all_tracks_frozen(tracks)
+    tracks.all? { |track| track_is_frozen track }
+  end
+
+  def track_is_frozen(track)
+    track.Freeze['Value'].to_bool
+  end
+
+  def track_summary(tracks)
+    all_frozen_msg = all_tracks_frozen(tracks) ? ' (All are frozen)' : ''
+    "#{tracks.count} tracks#{all_frozen_msg}:\n  "
+  end
+
+  def show_track(audio_track, all_frozen)
+    name = audio_track.Name.EffectiveName['Value']
+    frozen = !all_frozen && track_is_frozen(audio_track) ? ' **frozen**' : ''
+    "#{name}#{frozen}"
   end
 end

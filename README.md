@@ -14,12 +14,14 @@ $ gem install live_set
 
 ## Usage
 
+The path to the Able Live set can incorporate environment variables.
+
 ### Report
 
 Report the version of the Ableton Live set:
 
 ```shell
-$ live_set path/to/my_set.als
+$ live_set $path/to/my_set.als
 Requiring /mnt/c/work/ruby/my_gems/live_set/lib/common.rb
 Requiring /mnt/c/work/ruby/my_gems/live_set/lib/live_set.rb
 Requiring /mnt/c/work/ruby/my_gems/live_set/lib/llive_set_class.rb

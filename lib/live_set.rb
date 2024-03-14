@@ -14,7 +14,7 @@ end
 
 help_show if ARGV.empty?
 
-set_name = ARGV.join ' '
+set_name = expand_env ARGV.join(' ')
 help_show "#{set_name} does not exist" unless File.exist? set_name
 help_show "#{set_name} is a directory" if File.directory? set_name
 
