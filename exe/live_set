@@ -1,1 +1,15 @@
 #!/usr/bin/env ruby
+
+if ENV['VO_DEBUGGING']
+  require_relative '../lib/live_set'
+else
+  require 'live_set'
+end
+
+require 'colorator'
+require_relative '../lib/options'
+
+def common(command)
+  @options = parse_options command
+  help_stabilize 'Ableton Live set name must be provided.' if ARGV.empty?
+end

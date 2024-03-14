@@ -12,13 +12,13 @@ def help(msg = nil)
   exit 1
 end
 
-help if ARGV.empty?
-
-modify = ARGV[0] == '-11'
+help_show if ARGV.empty?
 
 set_name = ARGV.join ' '
-help "#{set_name} does not exist" unless File.exist? set_name
-help "#{set_name} is a directory" if File.directory? set_name
+help_show "#{set_name} does not exist" unless File.exist? set_name
+help_show "#{set_name} is a directory" if File.directory? set_name
 
 live_set = LiveSet.new set_name
-live_set.modify_als if modify
+live_set.show
+
+# live_set.modify_als if modify

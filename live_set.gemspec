@@ -29,6 +29,8 @@ Gem::Specification.new do |spec|
   spec.require_paths         = ['lib']
   spec.required_ruby_version = '>= 2.7'
   spec.summary               = 'Reports the version of an Ableton Live set, and optionally changes it to v11 format.'
-  spec.version               = LiveSet::VERSION
+  spec.version               = LiveSetVersion::VERSION
+
+  spec.add_dependency 'colorator'
   spec.add_dependency 'nokogiri'
 end

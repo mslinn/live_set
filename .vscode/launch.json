@@ -4,6 +4,7 @@
     {
       "args": ["/mnt/c/media/Ableton/Projects/fu Project/fu.als"],
       "debugPort": "0",
+      "env": {"VO_DEBUGGING": true},
       "name": "Debug live_set with rdbg",
       "script": "lib/live_set.rb",
       "request": "launch",
@@ -13,6 +14,7 @@
     {
       "args": [],
       "debugPort": "0",
+      "env": {"VO_DEBUGGING": true},
       "name": "Debug current file with rdbg",
       "script": "${file}",
       "request": "launch",
