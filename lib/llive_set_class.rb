@@ -3,9 +3,10 @@ require 'zlib'
 
 class String
   def to_bool
-      return true if self.downcase == "true"
-      return false if self.downcase == "false"
-      return nil
+    return true if casecmp('true').zero?
+    return false if casecmp('false').zero?
+
+    nil
   end
 end
 
