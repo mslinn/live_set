@@ -76,13 +76,14 @@ $ live_set -11 -f path/to/my_set.als
 
 ## Development
 
-After checking out this git repository, install dependencies by typing:
+After checking out this git repository, install dependencies by running `bin/setup`:
 
 ```shell
+$ git clone https://github.com/mslinn/live_set
+$ cd live_set
 $ bin/setup
+$ code .  # Run Visual Studio Code
 ```
-
-You should do the above before running Visual Studio Code.
 
 
 ### Run the Tests
