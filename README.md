@@ -2,8 +2,8 @@
 
 This program can:
 
-1. Report the version of an Ableton Live set.
-2. Change an Ableton Live set from Live 12 format to Live 11 format.
+1. Report the version compatibility of an Ableton Live set.
+2. Makes a copy of an Ableton Live 12 set and save to Live 11 format.
 3. Detect environmental problems, for example unwanted directories called `Ableton Project Info` in parent directories.
 
 This program has successfully converted the Ableton Live 12 demo project to Live 11.
@@ -25,7 +25,7 @@ If the above does not work because you need to install Ruby, please
 
 ```text
 $ live_set
-Displays information about a Live set or converts a Live 12 set to Live 11 format.
+Displays information about a Live set or converts a copy of a Live 12 set in Live 11 format.
 Also verifies that 'Ableton Project Info' is in the same directory as the .als file,
 and there is no parent directory with a directory of that name.
 
@@ -34,7 +34,7 @@ Syntax: live_set OPTIONS PATH_TO_ALS_FILE
 Environment variables used in PATH_TO_ALS_FILE are expanded.
 
 Options are:
-  -11 Convert the Live 12 set to Live 11 format.
+  -11 Convert a copy of the Live 12 set to Live 11 format.
   -f Overwrite any existing Live 11 set.
   -h Display this help message.
 
