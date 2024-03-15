@@ -1,7 +1,10 @@
 # `Live_set` [![Gem Version](https://badge.fury.io/rb/live_set.svg)](https://badge.fury.io/rb/live_set)
 
-This program can report the version of an Ableton Live set,
-and it can changes an Ableton Live set from Live 12 format to Live 11 format.
+This program can:
+
+1. Report the version of an Ableton Live set.
+2. Change an Ableton Live set from Live 12 format to Live 11 format.
+3. Detect environmental problems, for example unwanted directories called `Ableton Project Info` in parent directories.
 
 This program has successfully converted the Ableton Live 12 demo project to Live 11.
 
