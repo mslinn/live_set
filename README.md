@@ -23,7 +23,7 @@ If the above does not work because you need to install Ruby, please
 
 ## Usage
 
-```shell
+```text
 $ live_set
 Displays information about a Live set or converts a Live 12 set to Live 11 format.
 Also verifies that 'Ableton Project Info' is in the same directory as the .als file,
@@ -46,7 +46,7 @@ Example:
 
 Report the version of the Ableton Live set:
 
-```shell
+```text
 $ live_set $path/to/my_set.als
 /mnt/c/media/Ableton/Projects/fu Project/fu.als
   Created by Live v11.0_11300
@@ -78,7 +78,7 @@ $ live_set -11 -f path/to/my_set.als
 
 After checking out this git repository, install dependencies by running `bin/setup`:
 
-```shell
+```text
 $ git clone https://github.com/mslinn/live_set
 $ cd live_set
 $ bin/setup
@@ -88,7 +88,7 @@ $ code .  # Run Visual Studio Code
 
 ### Run the Tests
 
-```shell
+```text
 $ bundle exec rake test
 ```
 
@@ -115,7 +115,7 @@ $ bin/console
 
 To install this gem onto your local machine, type:
 
-```shell
+```text
 $ bundle exec rake install
 ```
 
