@@ -3,7 +3,7 @@
 This program can:
 
 1. Report the version compatibility of an Ableton Live set.
-2. Makes a copy of an Ableton Live 12 set and save to Live 11 format.
+2. Make a copy of an Ableton Live 12 set and save to Live 11 format.
 3. Detect environmental problems, for example unwanted directories called `Ableton Project Info` in parent directories.
 
 This program has successfully converted the Ableton Live 12 demo project to Live 11.
