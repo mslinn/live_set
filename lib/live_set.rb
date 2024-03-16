@@ -1,10 +1,13 @@
-require_relative 'live_set/version'
-
 # Require all Ruby files in 'lib/', except this file
-Dir[File.join(__dir__, '*.rb')].sort.each do |file|
-  # puts "Requiring #{file}"
-  require file unless file.end_with?('/live_set.rb')
+def require_directory(dir)
+  Dir[File.join(dir, '*.rb')].sort.each do |file|
+    # puts "Requiring #{file}"
+    require file unless file.end_with? File.basename __FILE__
+  end
 end
+
+require_directory __dir__
+require_directory "#{__dir__}/live_set"
 
 def help(msg = nil)
   puts "Error: #{msg}" if msg

@@ -1,15 +1,8 @@
+require 'bytesize'
 require 'nokogiri'
 require 'pathname'
 require 'zlib'
-
-class String
-  def to_bool
-    return true if casecmp('true').zero?
-    return false if casecmp('false').zero?
-
-    nil
-  end
-end
+require_relative '../util'
 
 class LiveSet
   def initialize(set_name, **options)
@@ -22,10 +15,11 @@ class LiveSet
 
     @ableton = @xml_doc.Ableton
     @minor_version = @ableton['MinorVersion']
+    @tracks = AllTracks.new @ableton.LiveSet.Tracks.AudioTrack
   end
 
   def show
-    check_ableteon_project_info
+    check_abelton_project_info
     puts <<~END_SHOW
       #{@set_name}
         Created by #{@ableton['Creator']}
@@ -33,17 +27,8 @@ class LiveSet
         Minor version v#{@minor_version}
         SchemaChangeCount #{@ableton['SchemaChangeCount']}
         Revision #{@ableton['Revision']}
+      #{@tracks.message}
     END_SHOW
-
-    tracks = @ableton.LiveSet.Tracks.AudioTrack
-    track_msg = if tracks.empty?
-                  'No tracks'
-                else
-                  all_frozen = all_tracks_frozen(tracks)
-                  track_summary(tracks) +
-                    tracks.map { |x| show_track x, all_frozen }.join("\n  ")
-                end
-    puts track_msg
   end
 
   def modify_als
@@ -74,43 +59,5 @@ class LiveSet
       puts "Writing #{new_set_path}"
     end
     Zlib::GzipWriter.open(new_set_path) { |gz| gz.write new_contents }
-  end
-
-  private
-
-  def all_tracks_frozen(tracks)
-    tracks.all? { |track| track_is_frozen track }
-  end
-
-  def check_ableteon_project_info
-    set_directory = File.realpath(File.dirname(@set_name))
-    api_path = File.join(set_directory, 'Ableton Project Info')
-    puts "Warning: '#{api_path}' is not present".red unless File.exist? api_path
-    puts "Warning: '#{api_path}' is not a directory".red unless Dir.exist? api_path
-
-    cur_dir = Pathname.new(set_directory).parent
-    while cur_dir
-      if File.exist? File.join(cur_dir, 'Ableton Project Info')
-        puts "Warning: 'Ableton Project Info' exists in parent directory '#{cur_dir.to_path}'".red
-      end
-      break if cur_dir.to_path == '/'
-
-      cur_dir = cur_dir.parent
-    end
-  end
-
-  def track_is_frozen(track)
-    track.Freeze['Value'].to_bool
-  end
-
-  def track_summary(tracks)
-    all_frozen_msg = all_tracks_frozen(tracks) ? ' (All are frozen)' : ''
-    "#{tracks.count} tracks#{all_frozen_msg}:\n  "
-  end
-
-  def show_track(audio_track, all_frozen)
-    name = audio_track.Name.EffectiveName['Value']
-    frozen = !all_frozen && track_is_frozen(audio_track) ? ' **frozen**' : ''
-    "#{name}#{frozen}"
   end
 end

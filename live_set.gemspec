@@ -31,6 +31,7 @@ Gem::Specification.new do |spec|
   spec.summary               = 'Reports the version of an Ableton Live set, and optionally changes it to v11 format.'
   spec.version               = LiveSetVersion::VERSION
 
+  spec.add_dependency 'bytesize'
   spec.add_dependency 'colorator'
   spec.add_dependency 'nokogiri'
 end

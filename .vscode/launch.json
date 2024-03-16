@@ -3,11 +3,23 @@
   "configurations": [
     {
       "args": [
+        "$ableton_media/Projects/fu Project/fu.als"
+      ],
+      "debugPort": "0",
+      "env": {"VO_DEBUGGING": true},
+      "name": "Show fu Project",
+      "script": "lib/live_set.rb",
+      "request": "launch",
+      "type": "rdbg",
+      "useBundler": true,
+    },
+    {
+      "args": [
         "$ableton_media/Projects/Ableton Live 12 Demo Project/Ableton Live 12 Demo.als"
       ],
       "debugPort": "0",
       "env": {"VO_DEBUGGING": true},
-      "name": "Show live_set",
+      "name": "Show Ableton Live 12 Demo",
       "script": "lib/live_set.rb",
       "request": "launch",
       "type": "rdbg",
