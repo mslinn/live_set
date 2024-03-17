@@ -22,7 +22,7 @@ class LiveSet
 
     @live_set = @ableton.LiveSet
     @tracks = AllTracks.new @live_set.Tracks.AudioTrack
-    @scenes = @live_set.Scenes.map(&:LiveScene.new)
+    @scenes = @live_set.Scenes.map { |scene| LiveScene.new scene }
   end
 
   def show

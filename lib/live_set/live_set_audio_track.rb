@@ -1,4 +1,6 @@
 class LiveAudioTrack
+  attr_reader :frozen
+
   # @param audio_track is an <AudioTrack/> element from an Ableton Live .als file as parsed by Nokogiri
   def initialize(audio_track)
     @audio_track = audio_track
@@ -6,10 +8,14 @@ class LiveAudioTrack
 
     @frozen = @audio_track.Freeze['Value'].to_bool
 
-    @audio_clips = @audio_track.DeviceChain.MainSequencer.ClipSlotList.ClipSlot.map do |clip_slot|
-      clip_slot.map(&:LiveAudioClip.new)
+    @clip_slots = @audio_track.DeviceChain.MainSequencer.ClipSlotList
+    @audio_clips = @clip_slots.ClipSlot.map do |clip_slot|
+      clip_slot_id = clip_slot['Id']
+      need_refreeze = clip_slot.NeedRefreeze['Value'].to_bool
+      inner_clip_slot = clip_slot.ClipSlot
+      LiveAudioClip.new clip_slot_id, need_refreeze, inner_clip_slot if inner_clip_slot.respond_to?(:Value) && !inner_clip_slot.Value.children.empty?
     end
-    @track_size = @audio_clips.sum(&:file_size) || 0
+    @track_size = @audio_clips.compact.sum(&:file_size) || 0
   end
 
   def show_track(all_frozen)
