@@ -39,6 +39,7 @@ $ zcat '/mnt/e/media/Ableton/Projects/fu Project/fu.als' | less -N
     ClipSlot.Value.children. # Passed to LiveAudioClip
       SampleRef.FileRef
         Path['Value']  # Absolute path
+        RelativePath['Value']
         OriginalFileSize['Value'] # Bytes
 ```
 

@@ -3,7 +3,7 @@ class LiveAudioTrack
   def initialize(audio_track)
     @audio_track = audio_track
     @audio_clips = @audio_track.DeviceChain.MainSequencer.ClipSlotList.ClipSlot.map do |clip_slot|
-      clip_slot.ClipSlot.Value.map { |clip| LiveAudioClip.new clip }
+      clip_slot.map(&:LiveAudioClip.new)
     end
     @track_size = @audio_clips.sum(&:file_size) || 0
   end
