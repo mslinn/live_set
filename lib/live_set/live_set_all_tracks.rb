@@ -5,7 +5,7 @@ class AllTracks
   end
 
   def all_frozen
-    @track_instances.all?(&:frozen?)
+    @track_instances.all?(&:frozen)
   end
 
   def message

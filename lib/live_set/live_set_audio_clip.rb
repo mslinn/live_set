@@ -6,8 +6,8 @@ class LiveAudioClip
     @need_refreeze      = clip_slot.NeedRefreeze['Value']
     @audio_clip         = clip_slot.ClipSlot['Value']
 
-    @freeze_end         = @audio_clip.FreezeEnd['Value']
-    @freeze_start       = @audio_clip.FreezeStart['Value']
+    @id                 = @audio_clip['Id']
+
     @file_ref           = @audio_clip.SampleRef.FileRef
 
     @last_modified      = Time.at(@audio_clip.SampleRef.LastModDate['Value']).utc.to_datetime

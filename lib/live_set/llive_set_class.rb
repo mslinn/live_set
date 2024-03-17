@@ -19,7 +19,10 @@ class LiveSet
 
     @ableton = @xml_doc.Ableton
     @minor_version = @ableton['MinorVersion']
-    @tracks = AllTracks.new @ableton.LiveSet.Tracks.AudioTrack
+
+    @live_set = @ableton.LiveSet
+    @tracks = AllTracks.new @live_set.Tracks.AudioTrack
+    @scenes = @live_set.Scenes.map(&:LiveScene.new)
   end
 
   def show
