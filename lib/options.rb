@@ -6,7 +6,7 @@ VERBOSITY = %w[trace debug verbose info warning error fatal panic quiet].freeze
 def help_show(msg = nil)
   printf "Error: #{msg}\n\n".yellow unless msg.nil?
   msg = <<~END_HELP
-    Displays information about a Live set or converts a Live 12 set to Live 11 format.
+    Live_sete displays information about an Ableton Live set or converts a Live 12 set to Live 11 format.
     If the special folder called 'Ableton Project Info' is not present in the same folder as the .als file, a warning is generated.
     Similarly, if 'Ableton Project Info' is present in any parent folder, a warning is issued.
 
@@ -16,7 +16,7 @@ def help_show(msg = nil)
 
     Options are:
       -11 Convert the Live 12 set to Live 11 format.
-      -f Overwrite any existing Live 11 set.
+      -f If -11 is specified, overwrite any existing Live 11 set.
       -h Display this help message.
 
     Example:
