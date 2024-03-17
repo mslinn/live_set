@@ -18,6 +18,6 @@ class AllTracks
 
   def summary
     all_frozen_msg = all_frozen ? ' (All are frozen)' : ''
-    "#{@tracks.count} tracks#{all_frozen_msg}:\n  "
+    "#{@track_instances.count} tracks#{all_frozen_msg}:\n  "
   end
 end
