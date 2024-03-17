@@ -4,6 +4,10 @@ require 'pathname'
 require 'zlib'
 require_relative '../util'
 
+# See https://www.ionos.ca/digitalguide/websites/web-development/xpath-tutorial/
+# See https://www.scrapingbee.com/webscraping-questions/selenium/how-to-find-elements-by-xpath-selenium
+# See https://nokogiri.org/tutorials/searching_a_xml_html_document.html#slop-1
+
 class LiveSet
   def initialize(set_name, **options)
     @loglevel  = "-loglevel #{options[:loglevel]}"
