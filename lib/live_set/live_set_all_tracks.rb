@@ -12,7 +12,10 @@ class AllTracks
     if @tracks.empty?
       'No tracks'
     else
-      summary + @track_instances.map { |x| x.show_track(all_frozen) }.join("\n  ")
+      total_size = @track_instances.sum(&:track_size)
+      size_warning = total_size >= 2_000_000_000 ? "\nWarning: This set is too large to be frozen.".red : ''
+      summary + @track_instances.map { |x| x.show_track(all_frozen) }.join("\n  ") +
+        "\n\nTotal set size: #{human_file_size total_size}" + size_warning
     end
   end
 

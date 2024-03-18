@@ -1,5 +1,5 @@
 class LiveAudioTrack
-  attr_reader :frozen
+  attr_reader :frozen, :track_size
 
   # @param audio_track is an <AudioTrack/> element from an Ableton Live .als file as parsed by Nokogiri
   def initialize(audio_track)
