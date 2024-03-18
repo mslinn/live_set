@@ -21,7 +21,7 @@ class LiveAudioTrack
 
   def show_track(all_frozen)
     name = @audio_track.Name.EffectiveName['Value']
-    frozen = !all_frozen && @audio_track.frozen ? ' **frozen**' : ''
+    frozen = !all_frozen && @audio_track.frozen? ? ' **frozen**' : ''
     "Track '#{name}'#{frozen} (total #{human_file_size @track_size})\n      " + show_clips
   end
 

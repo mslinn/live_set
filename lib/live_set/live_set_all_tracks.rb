@@ -13,9 +13,14 @@ class AllTracks
       'No tracks'
     else
       total_size = @track_instances.sum(&:track_size)
-      size_warning = total_size >= 2_000_000_000 ? "\nWarning: This set is too large to be frozen.".red : ''
+      size_warning = if total_size >= 2_000_000_000
+                       "\nWarning: This set is too large to be frozen and too large too large to transfer to Push 3 Standalone.".red
+                     else
+                       ''
+                     end
+      push_warning = all_frozen ? '' : "\nWarning: some tracks are not frozen, so this set should not be transferred to Push 3 Standalone.".red
       summary + @track_instances.map { |x| x.show_track(all_frozen) }.join("\n  ") +
-        "\n\nTotal set size: #{human_file_size total_size}" + size_warning
+        "\n\nTotal set size: #{human_file_size total_size}" + size_warning + push_warning
     end
   end
 
