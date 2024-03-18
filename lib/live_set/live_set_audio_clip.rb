@@ -21,6 +21,6 @@ class LiveAudioClip
   end
 
   def show_clip
-    "#{@relative_path}  | #{human_file_size @file_size} | #{@last_modified.strftime '%Y%m/%d %H:%M:%S'}"
+    "'#{@relative_path}' | #{human_file_size @file_size} | #{@last_modified.strftime '%Y-%m-%d %H:%M:%S'}"
   end
 end

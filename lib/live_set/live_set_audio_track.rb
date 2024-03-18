@@ -15,13 +15,14 @@ class LiveAudioTrack
       inner_clip_slot = clip_slot.ClipSlot
       LiveAudioClip.new clip_slot_id, need_refreeze, inner_clip_slot if inner_clip_slot.respond_to?(:Value) && !inner_clip_slot.Value.children.empty?
     end
-    @track_size = @audio_clips.compact.sum(&:file_size) || 0
+    @audio_clips.compact!
+    @track_size = @audio_clips.sum(&:file_size) || 0
   end
 
   def show_track(all_frozen)
     name = @audio_track.Name.EffectiveName['Value']
     frozen = !all_frozen && @audio_track.frozen ? ' **frozen**' : ''
-    "#{name}#{frozen}" + show_clips
+    "Track '#{name}'#{frozen} (total #{human_file_size @track_size})\n      " + show_clips
   end
 
   def show_clips

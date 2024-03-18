@@ -19,7 +19,7 @@ help_show if ARGV.empty?
 
 @options = parse_options
 
-set_name = expand_env ARGV.join(' ')
+set_name = ARGV.join(' ').expand_env
 help_show "#{set_name} does not exist" unless File.exist? set_name
 help_show "#{set_name} is a directory" if File.directory? set_name
 
