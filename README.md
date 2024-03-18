@@ -6,6 +6,7 @@ This program can:
 2. Make a copy of an Ableton Live 12 set and save to Live 11 format.
 3. Detect environmental problems, for example unwanted directories called `Ableton Project Info` in parent directories.
 4. Detect sets that are too large to be frozen, which means they are too large to transfer to Push 3 Standalone.
+5. Detect tracks that are not frozen, which means they should not be transferred to Push 3 Standalone.
 
 This program has successfully converted the Ableton Live 12 demo project to Live 11.
 
