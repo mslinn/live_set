@@ -14,6 +14,7 @@ def help_show(msg = nil)
     Environment variables used in PATH_TO_ALS_FILE are expanded.
 
     Options are:
+      -k Keep each backup (default is to delete them)
       -h Display this help message.
 
     Example:
@@ -24,7 +25,7 @@ def help_show(msg = nil)
 end
 
 def parse_options
-  options = { loglevel: 'warning' }
+  options = { keep: false, loglevel: 'warning' }
   opts = do_parse
   opts.order!(into: options)
 
@@ -41,8 +42,9 @@ def do_parse
     parser.program_name = File.basename __FILE__
     @parser = parser
 
+    parser.on('-k', '--keep', 'Keep all backups')
     parser.on('-l', '--loglevel LOGLEVEL', Integer, "Logging level (#{VERBOSITY.join ', '})")
-    parser.on('-v', '--verbose VERBOSE', 'Zoom percentage')
+    parser.on('-v', '--verbose VERBOSE', 'Verbosity')
 
     parser.on_tail('-h', '--help', 'Show this message') do
       help_show

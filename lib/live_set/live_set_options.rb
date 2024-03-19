@@ -48,7 +48,7 @@ def do_parse
     parser.on('-f', '--force', 'Overwrite the output set if it already exists')
     parser.on('-s', '--show', 'Display information about the Ableton Live set')
     parser.on('-l', '--loglevel LOGLEVEL', Integer, "Logging level (#{VERBOSITY.join ', '})")
-    parser.on('-v', '--verbose VERBOSE', 'Zoom percentage')
+    parser.on('-v', '--verbose VERBOSE', 'Verbosity')
 
     parser.on_tail('-h', '--help', 'Show this message') do
       help_show

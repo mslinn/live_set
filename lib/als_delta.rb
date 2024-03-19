@@ -15,5 +15,11 @@ set_name = ARGV.join(' ').expand_env
 help_show "#{set_name} does not exist" unless File.exist? set_name
 help_show "#{set_name} is a directory" if File.directory? set_name
 
-als_delta = AlsDelta.new set_name, **@options
-als_delta.show
+trap('SIGINT') { throw :ctrl_c }
+
+catch :ctrl_c do
+  als_delta = AlsDelta.new set_name, **@options
+  als_delta.show
+rescue Exception # rubocop:disable Lint/RescueException
+  als_delta.cleanup
+end
