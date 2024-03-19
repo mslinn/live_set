@@ -16,3 +16,10 @@ end
 def human_file_size(number)
   ByteSize.new(number).to_s
 end
+
+def require_directory(dir)
+  Dir[File.join(dir, '*.rb')].sort.each do |file|
+    # puts "Requiring #{file}"
+    require file
+  end
+end

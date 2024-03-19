@@ -5,7 +5,7 @@ Gem::Specification.new do |spec|
 
   spec.authors               = ['Mike Slinn']
   spec.bindir                = 'exe'
-  spec.executables           = %w[live_set]
+  spec.executables           = %w[als_delta live_set]
   spec.description           = <<~END_DESC
     Reports the version of an Ableton Live set, and optionally changes it to v11 format.
   END_DESC

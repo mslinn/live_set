@@ -1,0 +1,7 @@
+#!/bin/env ruby
+
+if ENV['VO_DEBUGGING']
+  require_relative '../lib/als_delta'
+else
+  require 'live_set'
+end
