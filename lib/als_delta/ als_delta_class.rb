@@ -1,8 +1,9 @@
 require 'date'
 require 'fileutils'
+require_relative '../common/run'
 
 class AlsDelta
-  extend Run
+  include Run
 
   def initialize(set_name, **options)
     @options = options
@@ -41,7 +42,7 @@ class AlsDelta
     if output.empty?
       puts 'There were no changes to the saved live set.'
     else
-      puts output
+      puts output.join("\n")
     end
   end
 end
