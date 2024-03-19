@@ -18,9 +18,7 @@ def human_file_size(number)
 end
 
 def require_directory(dir)
-  puts File.join(dir, '*.rb')
   Dir[File.join(dir, '*.rb')].sort.each do |file|
-    # puts "Requiring #{file}"
     require file
   end
 end

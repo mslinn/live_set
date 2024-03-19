@@ -20,9 +20,11 @@ def als_delta
 
   trap('SIGINT') { throw :ctrl_c }
 
+  als_delta = AlsDelta.new set_name, **@options
   catch :ctrl_c do
-    als_delta = AlsDelta.new set_name, **@options
+    als_delta.backup_set
     als_delta.show
+    als_delta.cleanup
   rescue Exception # rubocop:disable Lint/RescueException
     als_delta.cleanup
   end

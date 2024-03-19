@@ -1,37 +1,35 @@
 require 'date'
+require 'fileutils'
 
 class AlsDelta
   extend Run
 
   def initialize(set_name, **options)
-    @loglevel  = "-loglevel #{options[:loglevel]}"
-    @loglevel += ' -stats' unless options[:loglevel] == 'quiet'
+    @options = options
+    @loglevel  = "-loglevel #{@options[:loglevel]}"
+    @loglevel += ' -stats' unless @options[:loglevel] == 'quiet'
     @set_name = set_name
 
     @set_dir = File.dirname set_name
     @set_name_only = File.basename set_name, '.als'
-    backup_set
-
-    @contents = Zlib::GzipReader.open(set_name, &:readlines)
-
-    at_exit { cleanup }
   end
 
   def backup_name
-    @backup_name = if options[:keep]
+    @backup_name = if @options[:keep]
                      timestamp = Time.now.getutc.strftime '%Y-%m-%d_%H:%M:%S'
-                     "#{@backup_dir}/#{backup_name_only}_#{timestamp}.als"
+                     "#{@set_dir}/#{@set_name_only}_#{timestamp}.als"
                    else
-                     "#{@backup_dir}/#{backup_name_only}_backup.als"
+                     "#{@set_dir}/#{@set_name_only}_backup.als"
                    end
   end
 
   def backup_set
-    File.cp @set_name, @backup
+    @backup_name = backup_name
+    FileUtils.cp @set_name, @backup_name
   end
 
   def cleanup
-    return if options[:keep]
+    return if @options[:keep] || !@backup_name
     return unless File.exist? @backup_name
 
     puts "Deleting #{@backup_name}"
@@ -39,6 +37,11 @@ class AlsDelta
   end
 
   def show
-    run "zdiff '#{@set_name}' '#{@backup_name}'"
+    output = run_capture_stdout "zdiff '#{@backup_name}' '#{@set_name}'"
+    if output.empty?
+      puts 'There were no changes to the saved live set.'
+    else
+      puts output
+    end
   end
 end
