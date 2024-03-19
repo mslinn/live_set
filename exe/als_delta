@@ -1,7 +1,8 @@
 #!/bin/env ruby
 
 if ENV['VO_DEBUGGING']
-  require_relative '../lib/als_delta'
+  require_relative '../lib/live_set'
 else
   require 'live_set'
 end
+als_delta

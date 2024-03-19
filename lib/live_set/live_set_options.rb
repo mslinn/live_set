@@ -3,7 +3,7 @@ require 'optparse'
 
 VERBOSITY = %w[trace debug verbose info warning error fatal panic quiet].freeze
 
-def help_show(msg = nil)
+def live_set(msg = nil)
   printf "Error: #{msg}\n\n".yellow unless msg.nil?
   msg = <<~END_HELP
     Live_sete displays information about an Ableton Live set or converts a Live 12 set to Live 11 format.
@@ -31,7 +31,7 @@ def parse_options
   opts = do_parse
   opts.order!(into: options)
 
-  help_show "Invalid verbosity value (#{options[:verbose]}), must be one of one of: #{VERBOSITY.join ', '}." \
+  live_set "Invalid verbosity value (#{options[:verbose]}), must be one of one of: #{VERBOSITY.join ', '}." \
     if options[:verbose] && !options[:verbose] in VERBOSITY
 
   options
@@ -51,7 +51,7 @@ def do_parse
     parser.on('-v', '--verbose VERBOSE', 'Verbosity')
 
     parser.on_tail('-h', '--help', 'Show this message') do
-      help_show
+      live_set
     end
   end
 end

@@ -3,12 +3,49 @@
   "configurations": [
     {
       "args": [
+        "$ableton_media/Projects/Ableton Live 12 Demo Project/Ableton Live 12 Demo.als"
+      ],
+      "debugPort": "0",
+      "env": {"VO_DEBUGGING": true},
+      "name": "Show changes to Ableton Live 12 Demo Project",
+      "script": "exe/als_delta",
+      "request": "launch",
+      "type": "rdbg",
+      "useBundler": true,
+    },
+    {
+      "args": [
+        "-k",
+        "$ableton_media/Projects/Ableton Live 12 Demo Project/Ableton Live 12 Demo.als"
+      ],
+      "debugPort": "0",
+      "env": {"VO_DEBUGGING": true},
+      "name": "Show preserved changes to Ableton Live 12 Demo Project",
+      "script": "exe/als_delta",
+      "request": "launch",
+      "type": "rdbg",
+      "useBundler": true,
+    },
+    {
+      "args": [
+        "$ableton_media/Projects/fu Project/fu.als"
+      ],
+      "debugPort": "0",
+      "env": {"VO_DEBUGGING": true},
+      "name": "Show changes to fu Project",
+      "script": "exe/als_delta",
+      "request": "launch",
+      "type": "rdbg",
+      "useBundler": true,
+    },
+    {
+      "args": [
         "$ableton_media/Projects/fu Project/fu.als"
       ],
       "debugPort": "0",
       "env": {"VO_DEBUGGING": true},
       "name": "Show fu Project",
-      "script": "lib/live_set.rb",
+      "script": "exe/live_set",
       "request": "launch",
       "type": "rdbg",
       "useBundler": true,
@@ -20,7 +57,7 @@
       "debugPort": "0",
       "env": {"VO_DEBUGGING": true},
       "name": "Show Ableton Live 12 Demo",
-      "script": "lib/live_set.rb",
+      "script": "exe/live_set",
       "request": "launch",
       "type": "rdbg",
       "useBundler": true,
@@ -33,7 +70,7 @@
       "debugPort": "0",
       "env": {"VO_DEBUGGING": true},
       "name": "Convert set from Live 12 to 11",
-      "script": "lib/live_set.rb",
+      "script": "exe/live_set",
       "request": "launch",
       "type": "rdbg",
       "useBundler": true,

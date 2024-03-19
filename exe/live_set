@@ -5,3 +5,4 @@ if ENV['VO_DEBUGGING']
 else
   require 'live_set'
 end
+live_set

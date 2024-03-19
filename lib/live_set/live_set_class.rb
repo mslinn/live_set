@@ -2,7 +2,6 @@ require 'bytesize'
 require 'nokogiri'
 require 'pathname'
 require 'zlib'
-require_relative '../util'
 
 # See https://www.ionos.ca/digitalguide/websites/web-development/xpath-tutorial/
 # See https://www.scrapingbee.com/webscraping-questions/selenium/how-to-find-elements-by-xpath-selenium
