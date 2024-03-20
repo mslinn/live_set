@@ -48,24 +48,53 @@ Example:
 
 ### Report
 
-Report the version of the Ableton Live set:
+Report the version of the [Ableton Live 12 Demo Project](https://help.ableton.com/hc/en-us/articles/209774005-Location-of-the-default-Demo-Set):
 
 ```text
-$ live_set $path/to/my_set.als
-/mnt/c/media/Ableton/Projects/fu Project/fu.als
-  Created by Live v11.0_11300
-  Major version 11.0_11300
-  Revision 5ac24cad7c51ea0671d49e6b4885371f15b57c1e
-  SchemaChangeCount 3
-Tracks:
-  Drums / complete
-  Bass
-  Guitar
-  Horns
-  Keys
-  Vocal Backing
-  Vocal Lead
-  Strings
+$ live_set "$ableton_media/Projects/Ableton Live 12 Demo Project/Ableton Live 12 Demo.als"
+/mnt/e/media/Ableton/Projects/Ableton Live 12 Demo Project/Ableton Live 12 Demo.als
+  Created by Ableton Live 12.0
+  Major version 5
+  Minor version v12.0_12049
+  SchemaChangeCount 7
+  Revision 5094b92fa547974769f44cf233f1474777d9434a
+Total set size: 312.5 MB
+Warning: some tracks are not frozen, so this set should not be transferred to Push 3 Standalone.
+4 tracks:
+  Track 'Vocal Main' (12 clips, totaling 154.0 MB)
+    Samples/Imported/Vocal Patience Main.wav   12.8 MB  2024-01-31 22:00:34
+    Samples/Imported/Vocal Patience Main.wav   12.8 MB  2024-01-31 22:00:34
+    Samples/Imported/Vocal Patience Main.wav   12.8 MB  2024-01-31 22:00:34
+    Samples/Imported/Vocal Patience Main.wav   12.8 MB  2024-01-31 22:00:34
+    Samples/Imported/Vocal Patience Main.wav   12.8 MB  2024-01-31 22:00:34
+    Samples/Imported/Vocal Patience Main.wav   12.8 MB  2024-01-31 22:00:34
+    Samples/Imported/Vocal Patience Main.wav   12.8 MB  2024-01-31 22:00:34
+    Samples/Imported/Vocal Patience Main.wav   12.8 MB  2024-01-31 22:00:34
+    Samples/Imported/Vocal Patience Main.wav   12.8 MB  2024-01-31 22:00:34
+    Samples/Imported/Vocal Patience Main.wav   12.8 MB  2024-01-31 22:00:34
+    Samples/Imported/Vocal Patience Main.wav   12.8 MB  2024-01-31 22:00:34
+    Samples/Imported/Vocal Patience Main.wav   12.8 MB  2024-01-31 22:00:34
+
+  Track 'Vocal Harmony' (12 clips, totaling 154.0 MB)
+    Samples/Imported/Vocal Patience Harmony.wav   12.8 MB  2024-01-31 22:00:04
+    Samples/Imported/Vocal Patience Harmony.wav   12.8 MB  2024-01-31 22:00:04
+    Samples/Imported/Vocal Patience Harmony.wav   12.8 MB  2024-01-31 22:00:04
+    Samples/Imported/Vocal Patience Harmony.wav   12.8 MB  2024-01-31 22:00:04
+    Samples/Imported/Vocal Patience Harmony.wav   12.8 MB  2024-01-31 22:00:04
+    Samples/Imported/Vocal Patience Harmony.wav   12.8 MB  2024-01-31 22:00:04
+    Samples/Imported/Vocal Patience Harmony.wav   12.8 MB  2024-01-31 22:00:04
+    Samples/Imported/Vocal Patience Harmony.wav   12.8 MB  2024-01-31 22:00:04
+    Samples/Imported/Vocal Patience Harmony.wav   12.8 MB  2024-01-31 22:00:04
+    Samples/Imported/Vocal Patience Harmony.wav   12.8 MB  2024-01-31 22:00:04
+    Samples/Imported/Vocal Patience Harmony.wav   12.8 MB  2024-01-31 22:00:04
+    Samples/Imported/Vocal Patience Harmony.wav   12.8 MB  2024-01-31 22:00:04
+
+  Track 'Vocal Hum' (1 clips, totaling 2.9 MB)
+    Samples/Imported/Vocal Patience Hum.wav    2.9 MB  2024-01-31 22:03:22
+
+  Track 'Vocal Adlib' (2 clips, totaling 1.7 MB)
+    Samples/Imported/Vocal Patience Adlib.wav  827.9 kB  2024-01-31 22:00:22
+    Samples/Imported/Vocal Patience Adlib.wav  827.9 kB  2024-01-31 22:00:22
 ```
 
 
