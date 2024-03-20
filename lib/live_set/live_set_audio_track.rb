@@ -22,12 +22,13 @@ class LiveAudioTrack
   def show_track(all_frozen)
     name = @audio_track.Name.EffectiveName['Value']
     frozen = !all_frozen && @audio_track.frozen? ? ' **frozen**' : ''
-    "Track '#{name}'#{frozen} (total #{human_file_size @track_size})\n      " + show_clips
+    "Track '#{name}'#{frozen} (#{@audio_clips.length} clips, totaling #{human_file_size @track_size})\n" + show_clips
   end
 
   def show_clips
     return '' if @track_size.zero?
 
-    @audio_clips.map(&:show_clip).join("\n      ")
+    result = @audio_clips.map(&:show_clip)
+    result.columnize '  '
   end
 end
