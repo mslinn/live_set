@@ -5,13 +5,13 @@ VERBOSITY = %w[trace debug verbose info warning error fatal panic quiet].freeze
 
 def common(command)
   @options = parse_options command
-  help_als_delta 'Ableton Live set name must be provided.' if ARGV.empty?
+  help_als_delta 'An Ableton Live set name must be provided.' if ARGV.empty?
 end
 
 def help_als_delta(msg = nil)
   printf "Error: #{msg}\n\n".yellow unless msg.nil?
   msg = <<~END_HELP
-    ls_delta: Shows changes to .als file.
+    ls_delta: Shows changes to an .als file.
     Press enter to compare with previous version.
 
     Syntax: ls_delta OPTIONS PATH_TO_ALS_FILE
