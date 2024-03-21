@@ -1,7 +1,8 @@
 require 'date'
 
 class LiveAudioClip
-  attr_reader :file_size
+  attr_reader :absolute_path, :file_ref, :file_size, :file_type, :id, :last_modified, :live_pack_name, :need_refreeze, :relative_path,
+              :relative_path_type
 
   # @param audio_clip is an inner <ClipSlot/> element from an Ableton Live .als file as parsed by Nokogiri
   def initialize(id, need_refreeze, clip_slot)

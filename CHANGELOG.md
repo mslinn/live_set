@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.2.3
+
+* Improved warning messages.
+
+
 ## 0.2.2
 
 * Displays `Ready for transfer to Push 3 Standalone` in green if Live set is ready,
