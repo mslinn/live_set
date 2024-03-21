@@ -3,7 +3,7 @@ require 'optparse'
 
 VERBOSITY = %w[trace debug verbose info warning error fatal panic quiet].freeze unless defined? VERBOSITY
 
-def live_set(msg = nil)
+def help_live_set(msg = nil)
   printf "Error: #{msg}\n\n".yellow unless msg.nil?
   msg = <<~END_HELP
     Live_sete displays information about an Ableton Live set or converts a Live 12 set to Live 11 format.
