@@ -1,6 +1,7 @@
 require 'date'
 require 'fileutils'
 require 'highline'
+require 'shellwords'
 require_relative '../common/run'
 
 class AlsDelta
@@ -44,15 +45,16 @@ class AlsDelta
     loop do
       puts 'Press any key to display the changes to the Live set XML file, or press Esc to exit.'
       character = $stdin.getch
-      # puts "character.ord=#{character.ord}"
       exit if character.ord == 27
-      output = run_capture_stdout "zdiff '#{@backup_name}' '#{@set_name}'"
+      output = run_capture_stdout "GZIP=--no-name zdiff #{@set_name.shellescape} #{@backup_name.shellescape}"
       if output.empty?
         puts 'There were no changes to the saved live set.'
       else
         puts output.join("\n")
         backup_set
       end
+    rescue StandardError => e
+      puts e
     end
   end
 end
