@@ -27,6 +27,7 @@ class AlsDelta
 
   def backup_set
     @backup_name = backup_name
+    puts "Backing up Live set to '#{@backup_name}'"
     FileUtils.cp @set_name, @backup_name
   end
 
@@ -34,25 +35,23 @@ class AlsDelta
     return if @options[:keep] || !@backup_name
     return unless File.exist? @backup_name
 
-    puts "Deleting #{@backup_name}"
+    puts "Deleting '#{@backup_name}'"
     File.delete @backup_name
   end
 
   def show
+    backup_set
     loop do
-      backup_set
-      exit if HighLine.ask('Press any key to display the changes to the Live set XML file, or CTRL-D to exit.') do |q|
-        q.echo = false
-        q.character = true
-        q.validate = lambda { |p|
-          exit if p.ord == 27
-        }
-      end
+      puts 'Press any key to display the changes to the Live set XML file, or press Esc to exit.'
+      character = $stdin.getch
+      # puts "character.ord=#{character.ord}"
+      exit if character.ord == 27
       output = run_capture_stdout "zdiff '#{@backup_name}' '#{@set_name}'"
       if output.empty?
         puts 'There were no changes to the saved live set.'
       else
         puts output.join("\n")
+        backup_set
       end
     end
   end
