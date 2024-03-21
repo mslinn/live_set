@@ -20,6 +20,10 @@ class LiveAudioClip
     @relative_path_type = @file_ref.RelativePathType['Value'] # What do these values mean?
   end
 
+  def collected?
+    @relative_path.start_with? 'Samples/Imported/'
+  end
+
   def show_clip
     ["    #{@relative_path}", human_file_size(@file_size).rjust(8, ' '), @last_modified.strftime('%Y-%m-%d %H:%M:%S')]
   end

@@ -19,6 +19,10 @@ class LiveAudioTrack
     @track_size = @audio_clips.sum(&:file_size) || 0
   end
 
+  def clips_collected?
+    @audio_clips.all?(&:collected?)
+  end
+
   def show_track(all_frozen)
     name = @audio_track.Name.EffectiveName['Value']
     frozen = !all_frozen && @audio_track.frozen? ? ' **frozen**' : ''

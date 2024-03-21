@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.2.2
+
+* Displays `Ready for transfer to Push 3 Standalone` in green if Live set is ready,
+  or displays the reasons for not being ready in red.
 
 ## 0.2.1
 

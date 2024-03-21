@@ -6,9 +6,9 @@ VERBOSITY = %w[trace debug verbose info warning error fatal panic quiet].freeze 
 def help_live_set(msg = nil)
   printf "Error: #{msg}\n\n".yellow unless msg.nil?
   msg = <<~END_HELP
-    Live_sete displays information about an Ableton Live set or converts a Live 12 set to Live 11 format.
+    Live_set displays information about an Ableton Live set or converts a Live 12 set to Live 11 format.
     If the special folder called 'Ableton Project Info' is not present in the same folder as the .als file, a warning is generated.
-    Similarly, if 'Ableton Project Info' is present in any parent folder, a warning is issued.
+    Similarly, if 'Ableton Project Info' is present in any parent folder, a warning is issued and the user is asked if the directory should be renamed.
 
     Syntax: live_set OPTIONS PATH_TO_ALS_FILE
 
