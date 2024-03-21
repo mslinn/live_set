@@ -1,7 +1,9 @@
 # Change Log
 
-## 0.3.0
 
+## 0.2.1
+
+* Corrected missing help method for the `live_set` command.
 * Prompts user if they want the extra directory renamed to `Ableton Project Info-`.
 
 
