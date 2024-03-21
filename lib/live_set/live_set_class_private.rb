@@ -1,3 +1,6 @@
+require 'colorator'
+require 'highline'
+
 class LiveSet
   private
 
@@ -9,12 +12,18 @@ class LiveSet
 
     cur_dir = Pathname.new(set_directory).parent
     while cur_dir
-      if File.exist? File.join(cur_dir, 'Ableton Project Info')
-        puts "Warning: 'Ableton Project Info' exists in parent directory '#{cur_dir.to_path}'".red
-      end
+      project_info_path = File.join(cur_dir, 'Ableton Project Info')
+      add_dash_suffix(project_info_path) if File.exist? project_info_path
       break if cur_dir.to_path == '/'
 
       cur_dir = cur_dir.parent
     end
+  end
+
+  def add_dash_suffix(cur_dir, path)
+    puts "Warning: 'Ableton Project Info' exists in parent directory '#{cur_dir.to_path}'".red
+    return unless HighLine.agree("\nDo you want the directory to be disabled by suffixing a dash to its name? ", character = true)
+
+    File.rename path, "#{path}-"
   end
 end
