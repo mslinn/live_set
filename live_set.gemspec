@@ -33,5 +33,6 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'bytesize'
   spec.add_dependency 'colorator'
+  spec.add_dependency 'highline'
   spec.add_dependency 'nokogiri'
 end

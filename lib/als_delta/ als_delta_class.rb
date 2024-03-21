@@ -1,5 +1,6 @@
 require 'date'
 require 'fileutils'
+require 'highline'
 require_relative '../common/run'
 
 class AlsDelta
@@ -38,11 +39,21 @@ class AlsDelta
   end
 
   def show
-    output = run_capture_stdout "zdiff '#{@backup_name}' '#{@set_name}'"
-    if output.empty?
-      puts 'There were no changes to the saved live set.'
-    else
-      puts output.join("\n")
+    loop do
+      backup_set
+      exit if HighLine.ask('Press any key to display the changes to the Live set XML file, or CTRL-D to exit.') do |q|
+        q.echo = false
+        q.character = true
+        q.validate = lambda { |p|
+          exit if p.ord == 27
+        }
+      end
+      output = run_capture_stdout "zdiff '#{@backup_name}' '#{@set_name}'"
+      if output.empty?
+        puts 'There were no changes to the saved live set.'
+      else
+        puts output.join("\n")
+      end
     end
   end
 end

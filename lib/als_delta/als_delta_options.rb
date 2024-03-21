@@ -1,7 +1,7 @@
 require 'colorator'
 require 'optparse'
 
-VERBOSITY = %w[trace debug verbose info warning error fatal panic quiet].freeze
+VERBOSITY = %w[trace debug verbose info warning error fatal panic quiet].freeze unless defined? VERBOSITY
 
 def common(command)
   @options = parse_options command

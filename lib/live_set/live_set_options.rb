@@ -1,7 +1,7 @@
 require 'colorator'
 require 'optparse'
 
-VERBOSITY = %w[trace debug verbose info warning error fatal panic quiet].freeze
+VERBOSITY = %w[trace debug verbose info warning error fatal panic quiet].freeze unless defined? VERBOSITY
 
 def live_set(msg = nil)
   printf "Error: #{msg}\n\n".yellow unless msg.nil?
