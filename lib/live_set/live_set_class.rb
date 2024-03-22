@@ -9,6 +9,7 @@ require 'zlib'
 
 class LiveSet
   def initialize(set_name, **options)
+    @set_directory = File.dirname(File.realpath(set_name))
     @loglevel  = "-loglevel #{options[:loglevel]}"
     @loglevel += ' -stats' unless options[:loglevel] == 'quiet'
     @overwrite = options[:force]
@@ -20,7 +21,7 @@ class LiveSet
     @minor_version = @ableton['MinorVersion']
 
     @live_set = @ableton.LiveSet
-    @tracks = AllTracks.new @live_set.Tracks.AudioTrack
+    @tracks = AllTracks.new @set_directory, @live_set.Tracks.AudioTrack
     @scenes = @live_set.Scenes.map { |scene| LiveScene.new scene }
   end
 

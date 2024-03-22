@@ -1,7 +1,7 @@
 class AllTracks
-  def initialize(tracks)
+  def initialize(set_directory, tracks)
     @tracks = tracks
-    @track_instances = tracks.map { |track| LiveAudioTrack.new track }
+    @track_instances = tracks.map { |track| LiveAudioTrack.new set_directory, track }
   end
 
   def all_frozen

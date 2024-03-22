@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.2.4
+
+* Reports the absolute directory of errant audio clips.
+
+
 ## 0.2.3
 
 * Improved warning messages.
