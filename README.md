@@ -33,6 +33,15 @@ If the above does not work because you need to install Ruby, please
 [follow these instructions](https://www.mslinn.com/ruby/1000-ruby-setup.html).
 
 
+## Upgrading
+
+Simply type:
+
+```shell
+$ gem upgrade live_set
+```
+
+
 ## Usage
 
 ```text
