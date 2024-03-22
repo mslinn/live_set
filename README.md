@@ -2,13 +2,21 @@
 
 This program can:
 
-1. Report the version compatibility of an Ableton Live set.
-2. Display the location and size of the samples in each track.
-3. Shows frozen tracks.
-4. Make a copy of an Ableton Live 12 set and save to Live 11 format.
-5. Detect environmental problems, for example unwanted directories called `Ableton Project Info` in parent directories.
-6. Detect sets that are too large to be frozen, which means they are too large to transfer to Push 3 Standalone.
-7. Detect tracks that are not frozen, which means they are not ready to be transferred to Push 3 Standalone.
+1. Make a copy of an Ableton Live 12 set and save to Live 11 format.
+
+2. Report the version compatibility of an Ableton Live set.
+
+3. Detect environmental problems, for example unwanted directories called `Ableton Project Info` in parent directories.
+
+4. Display the location and size of the samples in each track.
+
+5. Clearly show if a Live set is ready to be transferred to a Push 3 Standalone, and what needs to be changed if not.
+
+   a. Detect sets that are too large to be frozen, which means they are too large to transfer to Push 3 Standalone.
+
+   b. Detect tracks that are not frozen, which means they are not ready to be transferred to Push 3 Standalone.
+
+   c. Shows clips that are have not been collected within the set&rsquo;s project directory.
 
 This program has successfully converted the Ableton Live 12 demo project to Live 11.
 
