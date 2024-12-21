@@ -1,5 +1,10 @@
 # Change Log
 
+## (in progress)
+
+* Added `spec.platform` to `live_set.gemspec` because `RubyGems.org` now requires it
+
+
 ## 0.2.4
 
 * Reports the absolute directory of errant audio clips.
