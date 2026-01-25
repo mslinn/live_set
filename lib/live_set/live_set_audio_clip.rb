@@ -1,3 +1,4 @@
+require 'colorator'
 require 'date'
 
 class LiveAudioClip
@@ -19,6 +20,19 @@ class LiveAudioClip
     @live_pack_name     = @file_ref.LivePackName['Value']
     @relative_path      = @file_ref.RelativePath['Value']
     @relative_path_type = @file_ref.RelativePathType['Value'] # What do these values mean?
+<<<<<<< HEAD
+=======
+
+    # Resolve absolute path, handling cases where file doesn't exist (e.g., from different system)
+    constructed_path = Pathname.new(set_directory).join(@relative_path)
+    @absolute_path = begin
+                       constructed_path.realpath.to_s
+                     rescue Errno::ENOENT, Errno::ELOOP => e
+                       # Path doesn't exist (likely from source system) - use constructed path and warn
+                       puts "Warning: File path does not exist (from source system): #{constructed_path}".yellow
+                       constructed_path.to_s
+                     end
+>>>>>>> 6b293b9 (processing MidiTrack and not existing paths fixes)
   end
 
   def collected?
