@@ -2,7 +2,9 @@
 
 ## 0.2.5 2025-10-17
 
-* Added `spec.platform` to `live_set.gemspec` because `RubyGems.org` now requires it
+* Added `spec.platform` to `live_set.gemspec` because `RubyGems.org` now
+  requires it
+* Updated `bin/setup` so it complies with changes to `bundle`
 * @uones pull request merged small fixes:
 
   * Handling MidiTrack
