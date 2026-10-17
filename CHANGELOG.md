@@ -1,9 +1,13 @@
 # Change Log
 
-## (in progress)
+## 0.2.5 2025-10-17
 
 * Added `spec.platform` to `live_set.gemspec` because `RubyGems.org` now requires it
+* @uones pull request merged small fixes:
 
+  * Handling MidiTrack
+  * Ignoring missing sample paths
+  * Improved logging
 
 ## 0.2.4
 
