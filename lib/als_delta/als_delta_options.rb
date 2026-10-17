@@ -11,7 +11,7 @@ end
 def help_als_delta(msg = nil)
   printf "Error: #{msg}\n\n".yellow unless msg.nil?
   msg = <<~END_HELP
-    ls_delta: Shows changes to an .als file.
+    ls_delta: Shows changes to an .als file each time a session file is saved.
     Press enter to compare with previous version.
 
     Syntax: ls_delta OPTIONS PATH_TO_ALS_FILE
@@ -22,7 +22,7 @@ def help_als_delta(msg = nil)
       -k Keep each backup (default is to delete them)
       -h Display this help message.
 
-    Example:
+    Example (references an environment variable called `path`):
     ls_delta $path/to/my_v12_set.als
   END_HELP
   printf msg.cyan

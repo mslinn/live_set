@@ -10,7 +10,9 @@ This program can:
 
 4. Display the location and size of the samples in each track.
 
-5. Clearly show if a Live set is ready to be transferred to a Push 3 Standalone, and what needs to be changed if not.
+5. Show changes that are made to a Live set.
+
+6. Clearly show if a Live set is ready to be transferred to a Push 3 Standalone, and what needs to be changed if not.
 
    a. Detect sets that are too large to be frozen, which means they are too large to transfer to Push 3 Standalone.
 
@@ -44,6 +46,13 @@ $ gem upgrade live_set
 
 ## Usage
 
+Two commands are provided:
+
+* `live_set` reports status of a session file, or converts a Live 12 session file to
+  Live 11 format.
+* `als_delta` (used when Live is running) shows changes to a session file each
+  time the session is saved.
+
 ```text
 $ live_set
 Displays information about a Live set or converts a copy of a Live 12 set in Live 11 format.
@@ -62,6 +71,24 @@ Options are:
 Example:
   live_set -11 -f $path/to/my_set.als
 ```
+
+```text
+$ als_delta
+ls_delta: Shows changes to an .als file each time a session file is saved.
+Press enter to compare with previous version.
+
+Syntax: ls_delta OPTIONS PATH_TO_ALS_FILE
+
+Environment variables used in PATH_TO_ALS_FILE are expanded.
+
+Options are:
+  -k Keep each backup (default is to delete them)
+  -h Display this help message.
+
+Example:
+ls_delta $path/to/my_v12_set.als
+```
+
 
 ### Report
 
