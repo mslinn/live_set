@@ -17,7 +17,7 @@ class LiveAudioTrack
         inner_clip_slot.respond_to?(:Value) && !inner_clip_slot.Value.children.empty?
     end
     @audio_clips.compact!
-    @track_size = @audio_clips.sum(&:file_size) || 0
+    @track_size = @audio_clips&.sum { |clip| clip.file_size.to_i } || 0 # Handle nil clip sizes
   end
 
   def clips_collected?

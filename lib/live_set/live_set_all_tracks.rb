@@ -27,7 +27,8 @@ class AllTracks
     response << ' - Some tracks are not frozen.'.red unless all_frozen
     @track_instances.each do |track|
       track.audio_clips.each do |clip|
-        response << " - Clip '#{clip.absolute_path}' has not been collected.".red unless clip.relative_path.start_with?('Samples/Imported/')
+        # Use the collected? method instead of checking relative_path directly
+        response << " - Clip '#{clip.absolute_path}' has not been collected.".red unless clip.collected?
       end
     end
     response.reverse!

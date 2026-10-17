@@ -25,13 +25,13 @@ class LiveSet
     @overwrite = options[:force]
     @set_name = set_name
 
-    debug "Reading ALS file..."
+    debug 'Reading ALS file...'
     @contents = Zlib::GzipReader.open(set_name, &:readlines)
     debug "File read, #{@contents.length} lines"
 
-    debug "Parsing XML..."
+    debug 'Parsing XML...'
     @xml_doc = Nokogiri::Slop @contents.join("\n")
-    debug "XML parsed successfully"
+    debug 'XML parsed successfully'
 
     @ableton = @xml_doc.Ableton
     @minor_version = @ableton['MinorVersion']
@@ -40,33 +40,33 @@ class LiveSet
     debug "SchemaChangeCount: #{@ableton['SchemaChangeCount']}"
 
     @live_set = @ableton.LiveSet
-    debug "LiveSet element found"
+    debug 'LiveSet element found'
 
     # Get AudioTrack elements safely - returns empty NodeSet if none exist
-    debug "Searching for AudioTrack elements..."
+    debug 'Searching for AudioTrack elements...'
     audio_tracks = begin
-                     # Use XPath directly on the document to avoid Slop method_missing issues
-                     result = @xml_doc.xpath('//AudioTrack')
-                     debug "Found #{result.length} AudioTrack element(s)"
-                     result
-                   rescue StandardError => e
-                     debug "Error accessing AudioTrack elements: #{e.message}"
-                     []
-                   end
+      # Use XPath directly on the document to avoid Slop method_missing issues
+      result = @xml_doc.xpath('//AudioTrack')
+      debug "Found #{result.length} AudioTrack element(s)"
+      result
+    rescue StandardError => e
+      debug "Error accessing AudioTrack elements: #{e.message}"
+      []
+    end
     @tracks = AllTracks.new @set_directory, audio_tracks
     debug "AllTracks initialized with #{audio_tracks.length} track(s)"
 
-    debug "Processing scenes..."
-    @scenes = @live_set.Scenes.map { |scene| LiveScene.new scene }
+    debug 'Processing scenes...'
+    @scenes = @live_set.search('Scenes/Scene').map { |scene| LiveScene.new(scene) }
     debug "Found #{@scenes.length} scene(s)"
-    verbose "Initialization complete"
+    verbose 'Initialization complete'
   end
 
   def show
-    debug "Starting show method"
+    debug 'Starting show method'
     check_abelton_project_info
-    debug "Project info checked"
-    debug "Generating output..."
+    debug 'Project info checked'
+    debug 'Generating output...'
     puts <<~END_SHOW
       #{@set_name}
         Created by #{@ableton['Creator']}
@@ -76,37 +76,37 @@ class LiveSet
         Revision #{@ableton['Revision']}
       #{@tracks.message}
     END_SHOW
-    debug "Show method complete"
+    debug 'Show method complete'
   end
 
   def modify_als
-    debug "Starting modify_als method"
+    debug 'Starting modify_als method'
     if @minor_version.start_with? '11.'
-      debug "Set is already Live 11 compatible"
+      debug 'Set is already Live 11 compatible'
       puts 'The Live set is already compatible with Live 11.'
       exit
     end
 
-    debug "Converting Live 12 set to Live 11 format"
+    debug 'Converting Live 12 set to Live 11 format'
     @ableton['Creator'] = 'Ableton Live 11.3.21'
     @ableton['MajorVersion'] = '5'
     @ableton['MinorVersion'] = '11.0_11300'
     @ableton['Revision'] = '5ac24cad7c51ea0671d49e6b4885371f15b57c1e'
     @ableton['SchemaChangeCount'] = '3'
-    debug "Updated Ableton version attributes"
+    debug 'Updated Ableton version attributes'
 
-    debug "Removing Live 12 specific elements..."
+    debug 'Removing Live 12 specific elements...'
     ['//ContentLanes', '//ExpressionLanes', '//InstrumentMeld', '//Roar', '//MxPatchRef', '//Oversampling'].each do |element|
       count = @xml_doc.xpath(element).length
       @xml_doc.xpath(element).remove
       debug "Removed #{count} element(s) matching #{element}" if count > 0
     end
 
-    debug "Converting XML to string..."
+    debug 'Converting XML to string...'
     new_contents = @xml_doc.to_xml.to_s
-    debug "Replacing AudioOut/Main with AudioOut/Master..."
+    debug 'Replacing AudioOut/Main with AudioOut/Master...'
     new_contents.gsub! 'AudioOut/Main', 'AudioOut/Master'
-    debug "Replacement complete"
+    debug 'Replacement complete'
 
     set_path = File.dirname @set_name
     new_set_name = File.basename @set_name, '.als'
@@ -116,15 +116,15 @@ class LiveSet
     if @overwrite
       puts "Overwriting existing #{new_set_path}"
       File.delete new_set_path if File.exist?(new_set_path)
-      debug "Deleted existing file"
+      debug 'Deleted existing file'
     else
       puts "Writing #{new_set_path}"
     end
 
-    debug "Writing compressed ALS file..."
+    debug 'Writing compressed ALS file...'
     Zlib::GzipWriter.open(new_set_path) { |gz| gz.write new_contents }
     debug "File written successfully: #{new_set_path}"
-    verbose "Conversion complete"
+    verbose 'Conversion complete'
   end
 
   private
