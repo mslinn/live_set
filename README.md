@@ -1,6 +1,6 @@
 # `Live_set` [![Gem Version](https://badge.fury.io/rb/live_set.svg)](https://badge.fury.io/rb/live_set)
 
-This program can:
+This software can:
 
 1. Make a copy of an Ableton Live 12 set and save to Live 11 format.
 
@@ -11,16 +11,18 @@ This program can:
 4. Display the location and size of the samples in each track.
 
 5. Show changes that are made to a Live set.
+   
+7. Show changes persisted to file storage each time a Live session is saved in real time.
 
-6. Clearly show if a Live set is ready to be transferred to a Push 3 Standalone, and what needs to be changed if not.
+8. Clearly show if a Live set is ready to be transferred to a Push 3 Standalone, and what needs to be changed if not.
 
    a. Detect sets that are too large to be frozen, which means they are too large to transfer to Push 3 Standalone.
 
-   b. Detect tracks that are not frozen, which means they are not ready to be transferred to Push 3 Standalone.
+   b. Detect tracks that have non-Ableton plugins are not frozen, which means they are not ready to be transferred to Push 3 Standalone.
 
    c. Shows clips that are have not been collected within the set&rsquo;s project directory.
 
-This program has successfully converted the Ableton Live 12 demo project to Live 11.
+This program has successfully converted the Ableton Live 12 demo project to Live 11. Also tested with Live 8.6 session files.
 
 
 ## Installation
