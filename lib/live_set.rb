@@ -1,5 +1,5 @@
-require_relative 'live_set/live_set_options'
 require_relative 'common/util'
+require_relative 'live_set/live_set_options'
 require_directory "#{__dir__}/common"
 
 def common(command)

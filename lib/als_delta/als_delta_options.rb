@@ -1,7 +1,8 @@
 require 'colorator'
+require 'logger'
 require 'optparse'
 
-VERBOSITY = %w[trace debug verbose info warning error fatal panic quiet].freeze unless defined? VERBOSITY
+@loglevels = Logger::Severity.constants.sort_by { |name| Logger::Severity.const_get(name) } unless defined?(@loglevels)
 
 def common(command)
   @options = parse_options command
@@ -30,17 +31,19 @@ def help_als_delta(msg = nil)
 end
 
 def parse_options
-  options = { keep: false, loglevel: 'warning' }
+  options = { keep: false, loglevel: 'WARN' }
   opts = do_parse
   opts.order!(into: options)
 
-  help_als_delta "Invalid verbosity value (#{options[:verbose]}), must be one of one of: #{VERBOSITY.join ', '}." \
-    if options[:verbose] && !options[:verbose] in VERBOSITY
+  # Normalize loglevel to uppercase string
+  options[:loglevel] = options[:loglevel].to_s.upcase if options[:loglevel]
+  @loglevel = options[:loglevel]
+
+  msg = "Invalid verbosity value (#{@loglevel}), must be one of one of: #{@loglevels.join ', '}."
+  help_als_delta msg if @loglevel && !@loglevels.include?(@loglevel.upcase.to_sym)
 
   options
 end
-
-private
 
 def do_parse
   OptionParser.new do |parser|
@@ -48,9 +51,7 @@ def do_parse
     @parser = parser
 
     parser.on('-k', '--keep', 'Keep all backups')
-    parser.on('-l', '--loglevel LOGLEVEL', Integer, "Logging level (#{VERBOSITY.join ', '})")
-    parser.on('-v', '--verbose VERBOSE', 'Verbosity')
-
+    parser.on('-l', '--loglevel LOGLEVEL', Integer, "Log level (#{@loglevels.join ', '})")
     parser.on_tail('-h', '--help', 'Show this message') do
       help_als_delta
     end

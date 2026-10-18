@@ -1,7 +1,8 @@
 require 'colorator'
+require 'logger'
 require 'optparse'
 
-VERBOSITY = %w[trace debug verbose info warning error fatal panic quiet].freeze unless defined? VERBOSITY
+@loglevels = Logger::Severity.constants.sort_by { |name| Logger::Severity.const_get(name) } unless defined?(@loglevels)
 
 def help_live_set(msg = nil)
   printf "Error: #{msg}\n\n".yellow unless msg.nil?
@@ -27,24 +28,21 @@ def help_live_set(msg = nil)
 end
 
 def parse_options
-  options = { loglevel: 'warning' }
+  options = { loglevel: 'WARN' }
   opts = do_parse
   opts.order!(into: options)
 
-  # Normalize loglevel to lowercase string
-  options[:loglevel] = options[:loglevel].to_s.downcase if options[:loglevel]
+  # Normalize loglevel to uppercase string
+  options[:loglevel] = options[:loglevel].to_s.upcase if options[:loglevel]
 
-  live_set "Invalid verbosity value (#{options[:verbose]}), must be one of one of: #{VERBOSITY.join ', '}." \
-    if options[:verbose] && !options[:verbose] in VERBOSITY
+  @loglevel = options[:loglevel]
 
-  if options[:loglevel] && !VERBOSITY.include?(options[:loglevel].to_s)
-    live_set "Invalid loglevel value (#{options[:loglevel]}), must be one of: #{VERBOSITY.join ', '}."
-  end
+  msg = "Invalid verbosity value (#{@loglevel}), must be one of one of: #{@loglevels.join ', '}."
+
+  live_set msg if @loglevel && !@loglevels.include?(@loglevel.upcase.to_sym)
 
   options
 end
-
-private
 
 def do_parse
   OptionParser.new do |parser|
@@ -53,9 +51,8 @@ def do_parse
 
     parser.on('-11', '--convert11', 'Make a copy of the set that is compatible with Live 11')
     parser.on('-f', '--force', 'Overwrite the output set if it already exists')
+    parser.on('-l', '--loglevel LOGLEVEL', String, "Logging level (#{@loglevels.join ', '})")
     parser.on('-s', '--show', 'Display information about the Ableton Live set')
-    parser.on('-l', '--loglevel LOGLEVEL', String, "Logging level (#{VERBOSITY.join ', '})")
-    parser.on('-v', '--verbose VERBOSE', 'Verbosity')
 
     parser.on_tail('-h', '--help', 'Show this message') do
       live_set

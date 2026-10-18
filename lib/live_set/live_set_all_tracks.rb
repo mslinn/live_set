@@ -4,7 +4,7 @@ class AllTracks
     @track_instances = tracks.map { |track| LiveAudioTrack.new set_directory, track }
   end
 
-  def all_frozen
+  def all_frozen?
     @track_instances.all?(&:frozen)
   end
 
@@ -12,33 +12,55 @@ class AllTracks
     if @tracks.empty?
       'No tracks'
     else
-      summary + '  ' + @track_instances.map { |x| x.show_track(all_frozen) }.join("\n  ") # rubocop:disable Style/StringConcatenation
+      all_frozen = all_frozen?
+      msg = @track_instances.map { |x| x.show_track(all_frozen) }.join("\n  ")
+      "#{summary}  #{msg}"
     end
   end
 
-  def ready_for_p3s
-    @track_instances.all?(&:clips_collected?) && all_frozen
+  # This method is not used at present, but it should be because it is a neat test that is easier to write unit tests
+  # for than p3s_tx_msg.
+  # The only requirement for transfer to a P3S is that all audio files are collected and no missing raw devices are referenced.
+  # Freezing is recommended for tracks with 3rd party plugins, but are not required for native devices.
+  def ready_for_p3s?
+    @track_instances.all?(&:clips_collected?) &&
+      @track_instances.none? { |track| track.blocking_devices.any? }
   end
 
   def p3s_tx_msg
-    return 'Ready for transfer to Push 3 Standalone'.green if ready_for_p3s
+    lines = []
+    has_errors = false
 
-    response = []
-    response << ' - Some tracks are not frozen.'.red unless all_frozen
     @track_instances.each do |track|
       track.audio_clips.each do |clip|
-        # Use the collected? method instead of checking relative_path directly
-        response << " - Clip '#{clip.absolute_path}' has not been collected.".red unless clip.collected?
+        next unless clip.absolute_path && !clip.collected?
+
+        lines << " - Clip '#{clip.absolute_path}' has not been collected.".red
+        has_errors = true
       end
+
+      track.blocking_devices.each do |device|
+        lines << " - Track '#{track.name}' is unfrozen and uses #{device.label}, " \
+                 'which Push 3 Standalone cannot run. Freeze or render this track.'.red
+        has_errors = true
+      end
+
+      next if track.frozen? || track.audio_clips.empty? || track.device_summary.empty?
+
+      lines << " - Track '#{track.name}' is unfrozen; devices: #{track.device_summary}".yellow
     end
-    response.reverse!
-    response << 'Warning: This set should not be transferred to Push 3 Standalone.'.red
-    response.reverse!
-    response.join "\n"
+
+    verdict = if has_errors
+                'Warning: This set should not be transferred to Push 3 Standalone.'.red
+              else
+                'Ready for transfer to Push 3 Standalone'.green
+              end
+
+    ([verdict] + lines).join("\n")
   end
 
   def summary
-    all_frozen_msg = all_frozen ? ' (All are frozen)'.yellow : ''
+    all_frozen_msg = all_frozen? ? ' (All are frozen)'.yellow : ''
     total_size = @track_instances.sum(&:track_size)
     size_warning = if total_size >= 2_000_000_000
                      "\nWarning: This set is too large to be frozen and too large too large to transfer to Push 3 Standalone.".red

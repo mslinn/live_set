@@ -2,14 +2,20 @@
 
 ## 0.2.5 2025-10-17
 
+* Improved `README.md`.
+* Made parsing of sessions from Ableton Live 8.2.6 more robust.
 * Added `spec.platform` to `live_set.gemspec` because `RubyGems.org` now
-  requires it
-* Updated `bin/setup` so it complies with changes to `bundle`
-* @uones pull request merged small fixes:
+  requires it.
+* Updated `bin/setup` so it complies with changes to `bundle`.
+* Improved output so it is more compact and more precise.
+* Merged pull request from @uones regarding:
 
   * Handling MidiTrack
   * Ignoring missing sample paths
-  * Improved logging
+  * logging changes
+
+* Replaced logging changes from @uones with standard Ruby logging and removed
+  unnecessary messages
 
 ## 0.2.4
 

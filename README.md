@@ -24,6 +24,59 @@ This software can:
 
 This program has successfully converted the Ableton Live 12 demo project to Live 11. Also tested with Live 8.6 session files.
 
+##  Push 3 Standalone (P3S)
+
+An unfrozen track will cause a error (or fail to produce sound) on a P3S if and
+only if it relies on software or routing that the P3S does not support.
+
+The scenarios where an unfrozen track will break on the P3S:
+
+1. Third-Party Plugins (VST / AU) - The #1 Cause
+
+    The Push 3 Standalone runs a customized version of Ableton Live that does not
+    support third-party VST3, Audio Units (AU), or CLAP plugins.
+
+    If an unfrozen track uses a plugin like Serum, Kontakt, FabFilter, or Valhalla,
+    the Push 3 will throw a "Missing Plugin" or "Plugin not available" error when
+    loading the set. The track will either be completely silent or replaced by a
+    blank placeholder device.
+
+    Freezing renders the track to a temporary audio file, baking the plugin's sound
+    into the waveform. The P3S only needs to play back the audio file, completely
+    bypassing the need for the missing plugin.
+
+2. Desktop-Specific External Audio Routing
+
+    If a track's Audio From is set to "Ext. In" and routed to a specific channel of
+    a desktop audio interface (e.g., "Ext. In: 3/4" from a Focusrite Scarlett), that
+    routing will not exist on the P3S.
+
+    The track will load, but it will be silent because the expected input hardware
+    isn't there.
+
+    If the external audio was already recorded into a clip, freezing the track
+    converts that external input dependency into a self-contained audio clip.
+
+3. Incompatible or Overloaded Max for Live (M4L) Devices
+
+    While the P3S does support Max for Live, it has less CPU headroom than a modern desktop computer.
+
+    Complex M4L devices might fail to load, throw DSP overload errors, or cause the
+    entire set to crash on the standalone unit.
+
+    Freezing an M4L device renders its output to audio, removing the CPU load and
+    the need for the Max runtime to process it in real-time.  What is perfectly safe
+    to leave unfrozen?
+
+    You do not need to freeze tracks that only use:
+
+    - Native Ableton Instruments: Simpler, Sampler, Drum Rack, Wavetable, Operator,
+      etc. (These are built into the Push 3 OS).
+    - Native Ableton Effects: EQ Eight, Compressor, Reverb, Delay, etc.
+    - External MIDI Hardware: If a track is set to "MIDI To" an external hardware
+      synth connected to the Push 3's MIDI out ports, it will work perfectly. The
+      Push 3 will just send the MIDI notes out to your gear.
+
 
 ## Installation
 

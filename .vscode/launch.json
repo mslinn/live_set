@@ -3,6 +3,20 @@
   "configurations": [
     {
       "args": [
+        "$after_real_pain/daw/live/after_real_pain/after_real_pain.als"
+      ],
+      "debugPort": "0",
+      "env": {
+        "VO_DEBUGGING": true
+      },
+      "name": "Show after_real_pain Project",
+      "script": "exe/live_set",
+      "request": "launch",
+      "type": "rdbg",
+      "useBundler": true,
+    },
+    {
+      "args": [
         "$ableton_media/Projects/Ableton Live 12 Demo Project/Ableton Live 12 Demo.als"
       ],
       "debugPort": "0",
