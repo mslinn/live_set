@@ -20,6 +20,10 @@ class LiveAudioClip
   # - MIDI clips do not have audio files.
   # - Empty clip slots have no associated files.
   # - Internal devices and resampled clips reference internal Ableton data rather than external files.
+  #
+  # Live 12 moved <AudioClip> elements out of <ClipSlot>. Instead, they're in:
+  # - TakeLanes/TakeLane/ClipAutomation/Events/AudioClip (for take lanes)
+  # - DeviceChain/MainSequencer/Sample/ArrangerAutomation/Events/AudioClip (for the main arrangement)
   def initialize(set_directory, id, need_refreeze, clip_slot)
     @id                 = id
     @need_refreeze      = need_refreeze

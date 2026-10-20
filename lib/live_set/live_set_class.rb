@@ -24,6 +24,7 @@ class LiveSet
 
     @ableton = @xml_doc.Ableton
     @minor_version = @ableton['MinorVersion']
+
     puts <<~TEXT
       Ableton version: #{@ableton['MajorVersion']}.#{@minor_version}
       Creator: #{@ableton['Creator']}
@@ -45,6 +46,7 @@ class LiveSet
     @scenes = @live_set.Scenes.map { |scene| LiveScene.new scene }
   end
 
+  # @return multiline string containing Live session metadata
   def show
     check_ableton_project_info
     puts <<~END_SHOW
@@ -58,6 +60,7 @@ class LiveSet
     END_SHOW
   end
 
+  # Writes out a Live 11 session
   def modify_als
     if @minor_version.start_with? '11.'
       puts 'The Live set is already compatible with Live 11.'.yellow

@@ -4,6 +4,7 @@ require 'optparse'
 
 @loglevels = Logger::Severity.constants.sort_by { |name| Logger::Severity.const_get(name) } unless defined?(@loglevels)
 
+# Display help message for live_set
 def help_live_set(msg = nil)
   printf "Error: #{msg}\n\n".yellow unless msg.nil?
   msg = <<~END_HELP
@@ -27,6 +28,7 @@ def help_live_set(msg = nil)
   exit 1
 end
 
+# Parse options for live_set executable
 def parse_options
   options = { loglevel: 'WARN' }
   opts = do_parse

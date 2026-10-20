@@ -1,14 +1,8 @@
 require 'open3'
 
 module Run
-  # @return true if the command succeeded
-  def run(command)
-    # printf "Run #{command}\n".yellow
-    $stdout.sync = true
-    system(*command)
-  end
-
-  # @return String array containing resulting lines of running command
+  # Run command passed as a string. Die with a message if an error occurs.
+  # @return String array containing lines resulting from running command
   def run_capture_stdout(command)
     # printf "Run #{command}\n".yellow
     stdout_str, status = Open3.capture2 command

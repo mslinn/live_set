@@ -19,13 +19,28 @@ class LiveAudioTrack
     @track_size = @audio_clips.sum { |clip| clip.file_size.to_i }
   end
 
+  # In Live 8, the XML was nested:
+  # <ClipSlot Id="1">
+  #   <ClipSlot>
+  #     <Value>...</Value>
+  #   </ClipSlot>
+  # </ClipSlot>
+  #
+  # But in Live 12, the structure is flat:
+  # <ClipSlot Id="1">
+  #   <Value>...</Value>
+  # </ClipSlot>
   def define_audio_clips(clip_slots, set_directory)
     clip_slots.ClipSlot.filter_map do |clip_slot|
-      inner = clip_slot.ClipSlot
-      next unless inner.respond_to?(:Value) && !inner.Value.children.empty?
+      # Fallback to clip_slot itself if there is no nested ClipSlot (Live 12)
+      inner = clip_slot.ClipSlot || clip_slot
 
-      LiveAudioClip.new(set_directory, clip_slot['Id'],
-                        clip_slot.NeedRefreeze['Value'].to_bool, inner)
+      next unless inner.respond_to?(:Value) && inner.Value && !inner.Value.children.empty?
+
+      # Safely handle NeedRefreeze in case it's missing
+      need_refreeze = clip_slot.at('NeedRefreeze')&.[]('Value') == 'true'
+
+      LiveAudioClip.new(set_directory, clip_slot['Id'], need_refreeze, inner)
     end
   end
 

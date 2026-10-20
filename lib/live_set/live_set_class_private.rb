@@ -4,6 +4,7 @@ require 'highline'
 class LiveSet
   private
 
+  # Verify that the Ableton Live project is valid
   def check_ableton_project_info
     set_directory = File.realpath(File.dirname(@set_name))
     Log.debug "Set directory: #{set_directory}"
@@ -33,9 +34,11 @@ class LiveSet
     end
   end
 
+  # Ask user if they want to disable an extra 'Ableton Project Info' directory in a parent.
+  # These directories can mess up Ableton Live.
   def add_dash_suffix(cur_dir, path)
     puts "Warning: 'Ableton Project Info' exists in parent directory '#{cur_dir.to_path}'".red
-    return unless HighLine.agree("\nDo you want the directory to be disabled by suffixing a dash to its name? ", character = true)
+    return unless HighLine.agree("\nDo you want the directory to be disabled by suffixing a dash to its name? ")
 
     Log.debug "Renaming #{path} to #{path}-"
     File.rename path, "#{path}-"

@@ -1,6 +1,7 @@
 require 'colorator'
 require 'logger'
 
+# Define singleton for logging. Logs are color-coded by severity.
 unless Object.const_defined?(:Log, false)
   Log = Logger.new($stdout)
   Log.level = Logger::WARN # Can set with a string ('WARN') or an int (Logger::WARN is 2)

@@ -4,10 +4,12 @@ class AllTracks
     @track_instances = tracks.map { |track| LiveAudioTrack.new set_directory, track }
   end
 
+  # @return true if all tracks are frozen
   def all_frozen?
     @track_instances.all?(&:frozen)
   end
 
+  # @return message summarizing the state of all tracks
   def message
     if @tracks.empty?
       'No tracks'
@@ -18,15 +20,9 @@ class AllTracks
     end
   end
 
-  # This method is not used at present, but it should be because it is a neat test that is easier to write unit tests
-  # for than p3s_tx_msg.
-  # The only requirement for transfer to a P3S is that all audio files are collected and no missing raw devices are referenced.
-  # Freezing is recommended for tracks with 3rd party plugins, but are not required for native devices.
-  def ready_for_p3s?
-    @track_instances.all?(&:clips_collected?) &&
-      @track_instances.none? { |track| track.blocking_devices.any? }
-  end
+  private
 
+  # @return message regarding the Live session compatibility with Push 3 Standalone
   def p3s_tx_msg
     lines = []
     has_errors = false
@@ -59,6 +55,16 @@ class AllTracks
     ([verdict] + lines).join("\n")
   end
 
+  # This method is not used at present, but it should be because it is a neat test that is easier to write unit tests
+  # for than p3s_tx_msg.
+  # The only requirement for transfer to a P3S is that all audio files are collected and no missing raw devices are referenced.
+  # Freezing is recommended for tracks with 3rd party plugins, but are not required for native devices.
+  def ready_for_p3s?
+    @track_instances.all?(&:clips_collected?) &&
+      @track_instances.none? { |track| track.blocking_devices.any? }
+  end
+
+  # @return multiline message showing the status of all tracks in the Live session
   def summary
     all_frozen_msg = all_frozen? ? ' (All are frozen)'.yellow : ''
     total_size = @track_instances.sum(&:track_size)
