@@ -2,6 +2,7 @@
 
 ## 0.2.5 2026-10-21
 
+* Changed licence from MIT to source-available non-commercial.
 * Improved `README.md`.
 * Made parsing of sessions from Ableton Live 8.2.6 more robust.
 * Added `spec.platform` to `live_set.gemspec` because `RubyGems.org` now
