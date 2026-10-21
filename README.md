@@ -11,7 +11,7 @@ This software can:
 4. Display the location and size of the samples in each track.
 
 5. Show changes that are made to a Live set.
-   
+
 7. Show changes persisted to file storage each time a Live session is saved in real time.
 
 8. Clearly show if a Live set is ready to be transferred to a Push 3 Standalone, and what needs to be changed if not.
@@ -270,4 +270,6 @@ Bug reports and pull requests are welcome at https://github.com/mslinn/live_set.
 
 ## License
 
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+The gem is provided as [source-available, noncommercial license](LICENCE.txt).
+Commercial use and use in court-case investigations requires a separate
+license..

@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.2.5 2025-10-17
+## 0.2.5 2026-10-21
 
 * Improved `README.md`.
 * Made parsing of sessions from Ableton Live 8.2.6 more robust.
