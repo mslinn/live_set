@@ -11,5 +11,4 @@ if ARGV.empty?
   exit
 end
 
-# Output XSD to STDOUT
-puts XsdFromXml.new(&ARGV).generate
+generate_xsd

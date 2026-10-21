@@ -1,5 +1,7 @@
-require 'nokogiri'
 require 'cgi'
+require 'colorator'
+require 'nokogiri'
+require 'zlib'
 
 # This program ignores attributes and namespaces, treats text as strings, and assumes consistent child ordering. The
 # generated XSD is a starting point, not a complete description of every XML document the format might allow.
@@ -8,28 +10,35 @@ require 'cgi'
 # optional if it never sees another instance of the same parent without that child. Multiple representative files help
 # infer that.
 #
-# Usage:
-# generate_xsd sample1.xml sample2.xml # Output XSD to STDOUT
+# Usage: generate_xsd sample1.xml sample2.xml
 #
 class XsdFromXml
-  def initialize(*files)
-    raise ArgumentError, 'Provide at least one XML file' if files.empty?
+  def initialize(xsd_file, xml_files, **options)
+    raise ArgumentError, 'Provide at least one XML file' if xml_files.empty?
 
-    @roots = files.map do |file|
-      document = Nokogiri::XML(File.read(file)) { |config| config.strict.nonet }
-      document.root || raise(ArgumentError, "#{file} has no root element")
+    @overwrite = options[:force]
+
+    @xsd_file = xsd_file
+    @overwrite = options[:force]
+    @xml_docs = []
+    @roots = xml_files.map do |xml_file|
+      contents = Zlib::GzipReader.open(xml_file, &:readlines)
+      xml_doc = Nokogiri::Slop contents.join("\n")
+      xml_doc.root || raise(ArgumentError, "#{xml_file} has no root element")
+      @xml_docs << xml_doc
+      xml_doc.root
     end
 
-    root_names = @roots.map(&:name).uniq
-    raise ArgumentError, "XML files have different root elements: #{root_names.join(', ')}" if root_names.size > 1
+    @root_names = @roots.map(&:name).uniq
+    raise ArgumentError, "XML files have different root elements: #{@root_names.join(', ')}" if @root_names.size > 1
   end
 
   def generate
-    root = @roots.first
+    root_name = @root_names.first
     <<~XSD
       <?xml version="1.0" encoding="UTF-8"?>
       <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
-      #{element_declaration(root.name, @roots, 1, root: true)}
+      #{element_declaration(root_name, @roots, 1, root: true)}
       </xs:schema>
     XSD
   end
@@ -42,7 +51,7 @@ class XsdFromXml
     max  = options.fetch(:max, 1)
 
     indent = '  ' * depth
-    occurrence = +''
+    occurrence = + ''
     occurrence << %( minOccurs="#{min}") unless root || min == 1
     occurrence << %( maxOccurs="unbounded") if !root && max > 1
 
@@ -61,7 +70,7 @@ class XsdFromXml
     ordered_names = instances.flat_map { |node| node.element_children.map(&:name) }.uniq
 
     ordered_names.each do |child_name|
-      lines << process_child(instances, child_name)
+      lines << process_child(instances, child_name, depth)
     end
 
     lines.push(%(#{indent}    </xs:sequence>),
@@ -71,7 +80,7 @@ class XsdFromXml
     lines.join("\n")
   end
 
-  def process_child(instances, child_name)
+  def process_child(instances, child_name, depth)
     matches_by_parent = instances.map do |parent|
       parent.element_children.select { |child| child.name == child_name }
     end

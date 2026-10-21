@@ -34,7 +34,10 @@ end
 
 # Require all Ruby source files in a directory
 def require_directory(dir)
-  Dir[File.join(dir, '*.rb')].each do |file|
+  path = File.join(dir, '*.rb')
+  # puts "Requiring directory #{path}"
+  Dir[path].each do |file|
+    # puts "  Requiring #{file}"
     require file
   end
 end

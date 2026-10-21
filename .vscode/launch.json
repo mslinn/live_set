@@ -3,6 +3,21 @@
   "configurations": [
     {
       "args": [
+        "after_real_pain.xsd",
+        "$after_real_pain/daw/live/after_real_pain/after_real_pain.als"
+      ],
+      "debugPort": "0",
+      "env": {
+        "VO_DEBUGGING": true
+      },
+      "name": "generate_xsd from after_real_pain",
+      "script": "exe/generate_xsd",
+      "request": "launch",
+      "type": "rdbg",
+      "useBundler": true,
+    },
+    {
+      "args": [
         "$after_real_pain/daw/live/after_real_pain/after_real_pain.als"
       ],
       "debugPort": "0",

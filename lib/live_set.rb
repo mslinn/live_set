@@ -1,3 +1,4 @@
+require 'colorator'
 require_relative 'common/util'
 require_relative 'live_set/live_set_options'
 require_directory "#{__dir__}/common"
@@ -26,6 +27,32 @@ def als_delta
     als_delta.cleanup
   rescue Exception # rubocop:disable Lint/RescueException
     als_delta.cleanup
+  end
+end
+
+def generate_xsd
+  require_directory "#{__dir__}/generate_xsd"
+
+  help_generate_xsd if ARGV.empty?
+
+  @options = parse_options
+
+  @als_files = @als_files.map do |file|
+    expanded_file = file.expand_env
+    help_generate_xsd("ALS file does not exist: #{expanded_file}") unless File.exist?(expanded_file)
+    help_generate_xsd "#{expanded_file} is a directory" if File.directory? expanded_file
+    expanded_file
+  end
+
+  trap('SIGINT') { throw :ctrl_c }
+
+  generate_xsd = XsdFromXml.new @xsd_file, @als_files, **@options
+  catch :ctrl_c do
+    content = generate_xsd.generate
+    File.write(@xsd_file, content)
+    puts "Wrote '#{File.expand_path @xsd_file}'".green
+  rescue Exception => e # rubocop:disable Lint/RescueException
+    puts e.full_message
   end
 end
 

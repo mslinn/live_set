@@ -5,7 +5,7 @@ Gem::Specification.new do |spec|
 
   spec.authors               = ['Mike Slinn']
   spec.bindir                = 'exe'
-  spec.executables           = %w[als_delta live_set]
+  spec.executables           = %w[als_delta generate_xsd live_set]
   spec.description           = <<~END_DESC
     This software can:
       - Make a copy of an Ableton Live 12 set and save to Live 11 format.
@@ -22,7 +22,7 @@ Gem::Specification.new do |spec|
   spec.email                 = ['mslinn@mslinn.com']
   spec.files                 = Dir['.rubocop.yml', 'LICENSE.*', 'Rakefile', '{lib,spec}/**/*', '*.gemspec', '*.md']
   spec.homepage              = 'https://mslinn.com/av_studio/553-live_set.html'
-  spec.license               = 'Source-available, noncommercial license. Commercial use and use in court-case investigations requires a separate license.'
+  spec.license               = 'Source-available, noncommercial license.'
   spec.metadata = {
     'allowed_push_host' => 'https://rubygems.org',
     'bug_tracker_uri'   => "#{host}/issues",
