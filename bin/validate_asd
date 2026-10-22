@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# This is clunky. The ruby version should not require a temporary file
+
 if [[ $# -ne 2 ]]; then
   echo "Usage: $0 SET.als SCHEMA.xsd" >&2
   exit 2
@@ -18,7 +20,6 @@ if [[ ! -f "$xsd" ]]; then
   exit 2
 fi
 
-if ! command -v xmllint >/dev/null 2>&1; then sudo apt install libxml2-utils; fi
 if ! command -v gzip    >/dev/null 2>&1; then sudo apt install gzip; fi
 if ! command -v xmllint >/dev/null 2>&1; then sudo apt install libxml2-utils; fi
 
