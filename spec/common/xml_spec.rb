@@ -10,71 +10,58 @@ RSpec.describe Xml do
   end
 
   describe '#xml_value' do
-    context 'when the value is in a Value attribute' do
+    context 'when the element has a Value attribute' do
       it 'returns the attribute value' do
         el = element('<EffectiveName Value="My Track"/>')
 
         expect(reader.xml_value(el)).to eq('My Track')
       end
 
-      it 'ignores the element text when the attribute is present' do
+      it 'returns a value that looks like a number' do
+        el = element('<OriginalFileSize Value="3626186"/>')
+
+        expect(reader.xml_value(el)).to eq('3626186')
+      end
+
+      it 'ignores the element text' do
         el = element('<EffectiveName Value="My Track">ignored</EffectiveName>')
 
         expect(reader.xml_value(el)).to eq('My Track')
       end
     end
 
-    context 'when the value is the element text' do
-      it 'returns the text' do
-        el = element('<EffectiveName>My Track</EffectiveName>')
+    context 'when the element has an empty Value attribute' do
+      # <RelativePath Value="" /> means the sample is not in the project folder.
+      it 'returns nil' do
+        el = element('<RelativePath Value=""/>')
 
-        expect(reader.xml_value(el)).to eq('My Track')
+        expect(reader.xml_value(el)).to be_nil
       end
 
-      it 'strips surrounding whitespace' do
-        el = element("<EffectiveName>\n  My Track\n</EffectiveName>")
+      it 'returns nil even when the element has text' do
+        el = element('<RelativePath Value="">ignored</RelativePath>')
 
-        expect(reader.xml_value(el)).to eq('My Track')
-      end
-    end
-
-    context 'when the value is nested text' do
-      # Nokogiri's Node#text recurses into child elements, so a single read covers this shape.
-      it 'returns the innermost text' do
-        el = element('<Path><Path>E:/media/song.mp3</Path></Path>')
-
-        expect(reader.xml_value(el)).to eq('E:/media/song.mp3')
+        expect(reader.xml_value(el)).to be_nil
       end
     end
 
-    context 'when there is no value' do
-      it 'returns nil for a nil element' do
-        expect(reader.xml_value(nil)).to be_nil
-      end
-
-      it 'returns nil for an empty element' do
+    context 'when the element has no Value attribute' do
+      it 'returns nil' do
         el = element('<EffectiveName/>')
 
         expect(reader.xml_value(el)).to be_nil
       end
 
-      it 'returns nil for an element with only whitespace' do
-        el = element("<EffectiveName>  \n </EffectiveName>")
+      it 'returns nil even when the element has text' do
+        el = element('<EffectiveName>My Track</EffectiveName>')
 
         expect(reader.xml_value(el)).to be_nil
       end
+    end
 
-      it 'returns nil for an element with an empty Value attribute' do
-        el = element('<EffectiveName Value=""/>')
-
-        expect(reader.xml_value(el)).to be_nil
-      end
-
-      it 'returns nil for an element with an empty Value attribute but some text' do
-        # An empty Value attribute is treated as absent, so the text is used instead.
-        el = element('<EffectiveName Value="">My Track</EffectiveName>')
-
-        expect(reader.xml_value(el)).to eq('My Track')
+    context 'when there is no element' do
+      it 'returns nil' do
+        expect(reader.xml_value(nil)).to be_nil
       end
     end
   end
@@ -82,6 +69,13 @@ RSpec.describe Xml do
   describe '#xml_first_value' do
     it 'returns the value of the first element that has one' do
       first = element('<EffectiveName/>')
+      second = element('<UserName Value="My Track"/>')
+
+      expect(reader.xml_first_value(first, second)).to eq('My Track')
+    end
+
+    it 'skips an element with an empty value' do
+      first = element('<EffectiveName Value=""/>')
       second = element('<UserName Value="My Track"/>')
 
       expect(reader.xml_first_value(first, second)).to eq('My Track')
@@ -107,33 +101,21 @@ RSpec.describe Xml do
 
   describe '#xml_bool?' do
     context 'when the value is true' do
-      it 'returns true for element text' do
-        el = element('<IsTempoEnabled>true</IsTempoEnabled>')
-
-        expect(reader.xml_bool?(el)).to be true
-      end
-
-      it 'returns true for a Value attribute' do
+      it 'returns true' do
         el = element('<IsTempoEnabled Value="true"/>')
 
         expect(reader.xml_bool?(el)).to be true
       end
 
       it 'is case insensitive' do
-        el = element('<IsTempoEnabled>True</IsTempoEnabled>')
+        el = element('<IsTempoEnabled Value="True"/>')
 
         expect(reader.xml_bool?(el)).to be true
       end
     end
 
     context 'when the value is false' do
-      it 'returns false for element text' do
-        el = element('<IsTempoEnabled>false</IsTempoEnabled>')
-
-        expect(reader.xml_bool?(el)).to be false
-      end
-
-      it 'returns false for a Value attribute' do
+      it 'returns false' do
         el = element('<IsTempoEnabled Value="false"/>')
 
         expect(reader.xml_bool?(el)).to be false
@@ -145,7 +127,7 @@ RSpec.describe Xml do
         expect(reader.xml_bool?(nil)).to be false
       end
 
-      it 'returns false for an empty element' do
+      it 'returns false for an element with no value' do
         el = element('<IsTempoEnabled/>')
 
         expect(reader.xml_bool?(el)).to be false
@@ -154,13 +136,13 @@ RSpec.describe Xml do
 
     context 'when the value is not a boolean' do
       it 'returns false' do
-        el = element('<IsTempoEnabled>maybe</IsTempoEnabled>')
+        el = element('<IsTempoEnabled Value="maybe"/>')
 
         expect(reader.xml_bool?(el)).to be false
       end
 
       it 'warns about the unrecognized value' do
-        el = element('<IsTempoEnabled>maybe</IsTempoEnabled>')
+        el = element('<IsTempoEnabled Value="maybe"/>')
         allow(Log).to receive(:warn)
 
         reader.xml_bool?(el, description: 'Scene 1 IsTempoEnabled')
@@ -169,25 +151,4 @@ RSpec.describe Xml do
       end
     end
   end
-
-  # CAVEAT: the shapes exercised above are the ones this project has evidence for:
-  #
-  #   * The `Value` attribute shape comes from `als_notes.md`, which shows Live 8 writing
-  #     `<RelativePath Value="Samples/Imported/song1.mp3" />`.
-  #   * The text shape comes from `after_real_pain.xsd`, the schema this project generated from a
-  #     real Live 12 set, in which `EffectiveName`, `UserName` and `Annotation` are `xs:string`
-  #     elements (text, not attributes).
-  #
-  # Two things have NOT been confirmed against a real Live 12 set:
-  #
-  #   1. Whether every value in a Live 12 set uses the text shape. A Live 12 set may mix shapes
-  #      within one file, or use a shape not represented here.
-  #   2. Whether `UserName` should be preferred over `EffectiveName` for a track's display name,
-  #      and whether `Annotation` ever serves that purpose. Ableton's `EffectiveName` is the
-  #      "resolved" name (it accounts for renames and duplicate-track numbering), so it is
-  #      preferred; the fallback order beyond that is an assumption.
-  #
-  # If a real set turns out to use a shape these tests do not cover, add the shape here first.
-  # The helper is deliberately shape-agnostic: it prefers a `Value` attribute and falls back to
-  # text, so most new shapes need no code change, only a test.
 end

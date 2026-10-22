@@ -1,18 +1,24 @@
 require 'colorator'
 require 'date'
 require 'pathname'
+require_relative '../common/xml'
 
 class LiveAudioClip
+  include Xml
+
   attr_reader :absolute_path, :file_size, :last_modified, :relative_path
 
-  # Ableton Live 8.2.6's XML structure has a quirk depending on the data type:
-  # - Integers/Booleans use attributes: <HasRelativePath Value="true" /> (['Value'] code works for these).
-  # - Strings/Paths use nested text nodes: <Path><Path>C:\Music\sample.wav</Path></Path>
-  # Because paths are stored as text inside nested tags, calling ['Value'] on them returns nil.
-  # We must use .text to extract the actual path string.
-  # Additionally, in older versions of Live (like Live 8), the file size tag is often <FileSize> instead of <OriginalFileSize>.
+  # Every value in an .als file is stored in a Value attribute, e.g.
+  # <RelativePath Value="Samples/Imported/song1.mp3" />. This holds for every Live version from
+  # 8.2 to 12.4.
   #
-  # Sometimes Ableton stores the absolute path in a <Path> node instead of <RelativePath>.
+  # The file size tag is <OriginalFileSize> in newer versions of Live, and <FileSize> in older
+  # ones (like Live 8).
+  #
+  # Ableton stores the absolute path in a <Path> element and the path relative to the set's
+  # directory in a <RelativePath> element. Either may be empty, meaning the file is not in the
+  # project folder.
+  #
   # @param audio_clip is an inner <ClipSlot/> element from an Ableton Live .als file as parsed by Nokogiri
   # @return the absolute path to a referenced clip, or nil if the clip is not stored in a file.
   # Not all clips contain audio samples:
@@ -30,15 +36,11 @@ class LiveAudioClip
 
     # File size: Check both OriginalFileSize (newer Live) and FileSize (Live 8)
     size_node = @file_ref.at('OriginalFileSize') || @file_ref.at('FileSize')
-    @file_size = size_node ? (size_node['Value'] || size_node.text).to_i : 0
+    @file_size = xml_value(size_node).to_i
 
-    # PATHS: Ableton stores paths as text inside nested tags (e.g., <Path><Path>actual/path</Path></Path>).
-    # We must use `.text` instead of `['Value']` to extract them.
-    rel_path_node = @file_ref.at('RelativePath/RelativePath/Path') || @file_ref.at('RelativePath')
-    @relative_path = rel_path_node&.text
-
-    abs_path_node = @file_ref.at('Path/Path') || @file_ref.at('Path')
-    absolute_path_xml = abs_path_node&.text
+    # PATHS: Ableton stores the path in the Value attribute of a RelativePath or Path element.
+    @relative_path = xml_value(@file_ref.at('RelativePath'))
+    absolute_path_xml = xml_value(@file_ref.at('Path'))
 
     @absolute_path = compute_absolute_path absolute_path_xml, @relative_path, set_directory
   end

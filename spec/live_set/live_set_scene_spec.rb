@@ -12,9 +12,9 @@ RSpec.describe LiveScene do
       let(:scene) do
         scene_from(<<~XML)
           <Scene Id="1">
-            <Name>Scene 1</Name>
-            <Tempo>120</Tempo>
-            <IsTempoEnabled>true</IsTempoEnabled>
+            <Name Value="Scene 1"/>
+            <Tempo Value="120"/>
+            <IsTempoEnabled Value="true"/>
           </Scene>
         XML
       end
@@ -52,9 +52,9 @@ RSpec.describe LiveScene do
       let(:scene) do
         scene_from(<<~XML)
           <Scene Id="3">
-            <Name>Scene 3</Name>
-            <Tempo>120</Tempo>
-            <IsTempoEnabled>false</IsTempoEnabled>
+            <Name Value="Scene 3"/>
+            <Tempo Value="120"/>
+            <IsTempoEnabled Value="false"/>
           </Scene>
         XML
       end

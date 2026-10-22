@@ -17,6 +17,8 @@ class LiveTrack
     Log.debug "  ClipSlotList exists: #{!@audio_track.DeviceChain.MainSequencer.ClipSlotList.nil?}" if @audio_track.DeviceChain&.MainSequencer
 
     # Audit the whole chain, including devices nested inside racks.
+    # TODO.md N16: this matches no real set. A survey of 40 sets in $songs found zero <Device/>
+    # elements; plugins live in <PluginDevice/> elements instead.
     @devices = @audio_track.search('.//Device').map { |node| LiveDevice.new(node) }
 
     @clip_slots = @audio_track.DeviceChain.MainSequencer.ClipSlotList
@@ -46,10 +48,16 @@ class LiveTrack
     end
   end
 
+  # The name to display for this track.
+  #
+  # EffectiveName is the name Ableton resolved, which accounts for renames and for the numbering
+  # it adds to duplicate tracks. UserName is the raw name the user typed, and is the only one
+  # present in Live 8. Annotation and MemorizedFirstClipName are not names of the track.
   def name
-    @audio_track.at('Name/EffectiveName')&.[]('Value') ||
-      @audio_track.at('Name')&.text ||
-      "##{@id}"
+    xml_first_value(
+      @audio_track.at('Name/EffectiveName'),
+      @audio_track.at('Name/UserName')
+    ) || "##{@id}"
   end
 
   def frozen?
@@ -70,7 +78,7 @@ class LiveTrack
   end
 
   def show_track(all_frozen)
-    name = @audio_track.Name.EffectiveName['Value']
+    name = self.name
     frozen = frozen? ? ' frozen'.green : ' **not frozen**'.yellow unless all_frozen || @audio_clips.empty?
     size = ", totaling #{human_file_size @track_size}" unless @audio_clips.empty?
 

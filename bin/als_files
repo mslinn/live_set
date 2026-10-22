@@ -1,0 +1,97 @@
+#!/usr/bin/env ruby
+
+# Summarizes a directory of .als files: the Live versions they came from, and the shapes of the
+# elements this project reads.
+#
+# Usage: bin/als_files [DIRECTORY] [MAX_FILES]
+#
+# The directory defaults to $songs. Files are found recursively. MAX_FILES limits how many are
+# read; it defaults to 25, because reading every file in a large collection takes minutes. Pass 0
+# to read them all.
+
+require 'nokogiri'
+require 'zlib'
+
+directory = ARGV[0] || ENV.fetch('songs', nil)
+abort 'Usage: bin/als_files [DIRECTORY] [MAX_FILES]' if directory.nil?
+abort "Not a directory: #{directory}" unless File.directory?(directory)
+
+max_files = ARGV[1] ? Integer(ARGV[1]) : 25
+
+all_files = Dir.glob(File.join(directory, '**', '*.als'))
+files = max_files.positive? ? all_files.first(max_files) : all_files
+puts "Directory: #{directory}"
+puts "Files:     #{files.size} of #{all_files.size}"
+puts
+
+# Counts the Live versions found in the sets. The Ableton element's MajorVersion and MinorVersion
+# attributes are Ableton's internal set-format numbers, not the Live version the user sees. The
+# Creator attribute holds the real version, e.g. "Ableton Live 12.2.1".
+versions = Hash.new(0)
+# Counts how each read element is stored, keyed by element name and shape.
+shapes = Hash.new(0)
+# Counts the sets that could not be read.
+errors = Hash.new(0)
+
+# The elements this project reads, and the attribute or text each one uses.
+ELEMENTS = %w[
+  EffectiveName UserName Annotation MemorizedFirstClipName
+  Freeze IsTempoEnabled
+  RelativePath Path OriginalFileSize FileSize
+].freeze
+
+# Describes how an element stores its value: 'attr', 'text', or 'nil' if the element is absent.
+def shape_of(element)
+  return 'nil' if element.nil?
+  return 'attr' unless element['Value'].nil?
+
+  element.text.strip.empty? ? 'empty' : 'text'
+end
+
+files.each do |file|
+  doc = begin
+    Nokogiri::XML(Zlib::GzipReader.open(file, &:read))
+  rescue StandardError => e
+    errors["#{e.class}: #{e.message[0, 40]}"] += 1
+    next
+  end
+
+  ableton = doc.at('Ableton')
+  if ableton.nil?
+    errors['no Ableton element'] += 1
+    next
+  end
+
+  versions[ableton['Creator']] += 1
+
+  # Examine the Name element of every track, since they may differ.
+  doc.xpath('//AudioTrack|//GroupTrack|//MidiTrack').each do |track|
+    track.xpath('Name/*').each do |child|
+      shapes["Name/#{child.name} = #{shape_of(child)}"] += 1
+    end
+  end
+
+  # Examine the sample references, which every set has.
+  doc.xpath('//FileRef').first(20).each do |file_ref|
+    file_ref.element_children.each do |child|
+      shapes["FileRef/#{child.name} = #{shape_of(child)}"] += 1
+    end
+  end
+
+  doc.xpath('//Freeze|//IsTempoEnabled').each do |bool|
+    shapes["#{bool.parent.name}/#{bool.name} = #{shape_of(bool)}"] += 1
+  end
+end
+
+puts '=== Live versions (from the Creator attribute) ==='
+versions.sort_by { |_k, v| -v }.each { |k, v| puts format('  %-34<name>s %<count>d', name: k, count: v) }
+puts
+
+puts '=== Element shapes ==='
+shapes.sort.each { |k, v| puts format('  %-52<name>s %<count>d', name: k, count: v) }
+puts
+
+unless errors.empty?
+  puts '=== Problems ==='
+  errors.sort_by { |_k, v| -v }.each { |k, v| puts format('  %-52<name>s %<count>d', name: k, count: v) }
+end

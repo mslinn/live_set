@@ -401,6 +401,60 @@ anchored to the start of the whole string, so a manufacturer/name like "X Max" w
 `lib/generate_xsd/generate_xsd_options.rb:16` — "Options are: -f overwrite any existing xsd." The
 other commands list options with a leading dash and consistent capitalisation.
 
+### N21. `LiveDevice` targets elements that do not exist in real sets — **LOW PRIORITY**
+
+`LiveDevice` never matches anything, so the Push 3 Standalone "blocking device" check never runs.
+
+`lib/live_set/live_set_track.rb` finds devices with `@audio_track.search('.//Device')`. A survey of
+40 sets in `$songs` found **zero** `<Device>` elements. The elements that exist are `<PluginDevice>`
+(229 in 23 of the 40 files), which is a different element.
+
+The rest of the class is written against a structure that these files do not use:
+
+| What `LiveDevice` looks for | Occurrences in 40 sets |
+| --- | --- |
+| `<Device>` | 0 |
+| `<PresetManifestV1>` | 0 |
+| `<CurrentPreset>` | 0 |
+| `<VstPlugin>`, `<VstPluginCategory>`, `<VstId>` | 0 |
+| `<AudioUnitPlugin>`, `<AudioUnitPreset>`, `<AudioComponent>` | 0 |
+| `<ClapPlugin>`, `<PluginId>` | 0 |
+| `<VstPreset>` | 10, in one file |
+
+The plugin name is not where the class looks for it. In a real set the name lives under
+`PluginDesc`:
+
+```xml
+<PluginDevice Id="6">
+  <Name Value=""/>
+  <UserName Value=""/>
+  <PluginDesc>
+    <VstPluginInfo Id="0">
+      <Path Value="C:/Program Files/VstPlugins/MeldaProduction/Pitch Shift/MAutoPitch.dll"/>
+      <PlugName Value="MAutoPitch"/>
+```
+
+76 `VstPluginInfo` elements were found in the sample, with `PlugName` values such as
+`"TDR VOS SlickEQ"` (38), `"MAutoPitch"` (24) and `"GTune"` (4). There is no `Manufacturer`
+element at all — 76 of 76 are absent — so the current `@manufacturer` logic has no source.
+
+**The fix:** rewrite the class against the real structure.
+
+1. Find devices with `PluginDevice` rather than `Device`.
+2. Get the name from `PluginDesc/VstPluginInfo/PlugName`.
+3. Establish whether a `PluginDevice` is by definition a third-party plugin, or whether native
+   Ableton devices also appear as `PluginDevice` elements. This is the crux: `blocking?` currently
+   means "not made by Ableton", and if native devices also appear as `PluginDevice` then the whole
+   Push 3 check is wrong, not just the element name. **This needs checking against sets that use
+   native devices.**
+4. With the manufacturer question settled, `value_of` can collapse into `xml_value` (see
+   `lib/common/xml.rb`) plus at most one nested lookup.
+
+`LiveDevice#value_of` keeps its own rules for now, and is the one reader of XML values that does not
+use `xml_value`.
+
+
+
 
 ### N22. `exe/` scripts use a `VO_DEBUGGING` environment variable
 

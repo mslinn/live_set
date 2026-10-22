@@ -32,7 +32,6 @@ RSpec.describe LiveTrack, 'clip slot parsing (see TODO.md S3)' do
     end
 
     it 'reads the sample path from each clip' do
-      pending 'TODO.md M9: LiveAudioClip reads RelativePath with .text, but the Value attribute holds the path'
       track = track_for(slot_count: 2, nested: true)
 
       expect(track.audio_clips.map(&:relative_path))
