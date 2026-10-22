@@ -106,12 +106,13 @@ $ gem upgrade live_set
 
 ## Usage
 
-Two commands are provided:
+Three commands are provided:
 
 * `live_set` reports status of a session file, or converts a Live 12 session file to
   Live 11 format.
 * `als_delta` (used when Live is running) shows changes to a session file each
   time the session is saved.
+* `validate_asd` checks that a session file conforms to an XSD schema.
 
 ```text
 $ live_set
@@ -147,6 +148,18 @@ Options are:
 
 Example:
 ls_delta $path/to/my_v12_set.als
+```
+
+```text
+$ validate_asd
+Validate_asd checks that an Ableton Live set conforms to an XSD schema.
+
+Syntax: validate_asd PATH_TO_ALS_FILE SCHEMA.xsd
+
+Environment variables used in PATH_TO_ALS_FILE are expanded.
+
+Example:
+  validate_asd $path/to/my_v12_set.als schema.xsd
 ```
 
 

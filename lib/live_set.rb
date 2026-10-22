@@ -56,6 +56,24 @@ def generate_xsd
   end
 end
 
+def validate_asd
+  require_directory "#{__dir__}/validate_asd"
+
+  help_validate_asd if ARGV.empty?
+
+  set_name = ARGV.shift
+  xsd_name = ARGV.shift
+
+  help_validate_asd 'An XSD file name must be provided.' if xsd_name.nil?
+  help_validate_asd "#{set_name} does not exist" unless File.exist? set_name
+  help_validate_asd "#{set_name} is a directory" if File.directory? set_name
+  help_validate_asd "#{xsd_name} does not exist" unless File.exist? xsd_name
+  help_validate_asd "#{xsd_name} is a directory" if File.directory? xsd_name
+
+  validate_asd = ValidateAsd.new set_name, xsd_name
+  exit 1 unless validate_asd.validate
+end
+
 def live_set
   require_directory "#{__dir__}/live_set"
 

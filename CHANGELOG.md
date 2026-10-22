@@ -4,6 +4,7 @@
 
 * Changed license from MIT to source-available non-commercial.
 * Added `bin/validate_asd`
+* Added `validate_asd` command, a Ruby implementation of `bin/validate_asd`
 * Added `generate_xsd` command
 * Improved `README.md`.
 * Made parsing of sessions from Ableton Live 8.2.6 more robust.
