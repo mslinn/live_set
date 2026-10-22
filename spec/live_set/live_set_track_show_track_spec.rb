@@ -3,14 +3,13 @@ require 'live_set/live_set_track'
 
 RSpec.describe LiveTrack, '#show_track' do
   # Builds a track without running #initialize, so that the frozen state can be
-  # exercised independently of the clip-slot parsing discussed in TODO.md S3.
+  # exercised independently of the clip parsing discussed in TODO.md S3.
   def track_with(frozen:, clip_count:)
     track = described_class.allocate
     track.instance_variable_set(:@audio_track, audio_track_element(freeze: frozen.to_s))
     track.instance_variable_set(:@id, '3')
     track.instance_variable_set(:@frozen, frozen)
-    track.instance_variable_set(:@audio_clips, Array.new(clip_count) { FakeClip.new(0) })
-    track.instance_variable_set(:@track_size, 0)
+    track.instance_variable_set(:@audio_clips, { 'Session view' => Array.new(clip_count) { FakeClip.new(0) } })
     track
   end
 

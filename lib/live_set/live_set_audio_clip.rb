@@ -10,14 +10,14 @@ class LiveAudioClip
 
   # Every value in an .als file is stored in a Value attribute, e.g.
   # <RelativePath Value="Samples/Imported/song1.mp3" />. This holds for every Live version from
-  # 8.2 to 12.4.
+  # 8.2 to 12.4. See als_format.md section 3.
   #
   # The file size tag is <OriginalFileSize> in newer versions of Live, and <FileSize> in older
   # ones (like Live 8).
   #
   # Ableton stores the absolute path in a <Path> element and the path relative to the set's
   # directory in a <RelativePath> element. Either may be empty, meaning the file is not in the
-  # project folder.
+  # project folder. See als_format.md section 7.
   #
   # @param audio_clip is an inner <ClipSlot/> element from an Ableton Live .als file as parsed by Nokogiri
   # @return the absolute path to a referenced clip, or nil if the clip is not stored in a file.
@@ -26,11 +26,13 @@ class LiveAudioClip
   # - Empty clip slots have no associated files.
   # - Internal devices and resampled clips reference internal Ableton data rather than external files.
   #
-  # Live 12 moved <AudioClip> elements out of <ClipSlot>. Instead, they're in:
-  # - TakeLanes/TakeLane/ClipAutomation/Events/AudioClip (for take lanes)
-  # - DeviceChain/MainSequencer/Sample/ArrangerAutomation/Events/AudioClip (for the main arrangement)
-  def initialize(set_directory, clip_slot)
-    @audio_clip         = clip_slot.Value.AudioClip
+  # An <AudioClip> is not always inside a <ClipSlot>. Live 12 moved most of them into the
+  # arrangement and the take lanes. See als_format.md section 6.
+  #
+  # @param set_directory [String] the directory holding the set
+  # @param audio_clip [Nokogiri::XML::Element] an <AudioClip> element from an Ableton Live .als file
+  def initialize(set_directory, audio_clip)
+    @audio_clip         = audio_clip
     @file_ref           = @audio_clip.SampleRef.FileRef
     @last_modified      = Time.at(@audio_clip.SampleRef.LastModDate['Value'].to_i).utc.to_datetime
 
@@ -43,6 +45,21 @@ class LiveAudioClip
     absolute_path_xml = xml_value(@file_ref.at('Path'))
 
     @absolute_path = compute_absolute_path absolute_path_xml, @relative_path, set_directory
+    @file_size = disk_size if @file_size.zero? && !@absolute_path.nil?
+  end
+
+  # The size of the file on disk.
+  #
+  # The size in the XML is the size of the source file as Live saw it, and it is sometimes zero even
+  # when the file exists and is not empty. See als_format.md section 7.1.
+  #
+  # @return [Integer] the size in bytes, or zero if the file cannot be found
+  def disk_size
+    return 0 if @absolute_path.nil?
+
+    File.size(@absolute_path)
+  rescue SystemCallError
+    0
   end
 
   def compute_absolute_path(absolute_path_xml, relative_path, set_directory)

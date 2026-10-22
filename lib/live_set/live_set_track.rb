@@ -4,7 +4,7 @@ require_relative '../common/xml'
 class LiveTrack
   include Xml
 
-  attr_reader :audio_clips, :clip_slots, :id, :track_size
+  attr_reader :audio_clips, :clip_slots, :id
 
   def initialize(set_directory, audio_track)
     @audio_track = audio_track
@@ -23,29 +23,39 @@ class LiveTrack
 
     @clip_slots = @audio_track.DeviceChain.MainSequencer.ClipSlotList
     @audio_clips = define_audio_clips @clip_slots, set_directory
-    @track_size = @audio_clips.sum { |clip| clip.file_size.to_i }
   end
 
-  # In Live 8, the XML was nested:
-  # <ClipSlot Id="1">
-  #   <ClipSlot>
-  #     <Value>...</Value>
-  #   </ClipSlot>
-  # </ClipSlot>
+  # The clips in this track, grouped by where they come from.
   #
-  # But in Live 12, the structure is flat:
-  # <ClipSlot Id="1">
-  #   <Value>...</Value>
-  # </ClipSlot>
+  # A track's audio can be in the session view, in the arrangement, and in the take lanes. They are
+  # separate clips with separate ids, and the same file can be referenced from more than one of
+  # them. See als_format.md section 6.
   def define_audio_clips(clip_slots, set_directory)
-    clip_slots.ClipSlot.filter_map do |clip_slot|
-      # Fallback to clip_slot itself if there is no nested ClipSlot (Live 12)
-      inner = clip_slot.ClipSlot || clip_slot
+    {
+      'Session view' => session_view_clips(clip_slots, set_directory),
+      'Arrangement'  => arrangement_clips(set_directory),
+      'Take lanes'   => take_lane_clips(set_directory),
+    }
+  end
 
-      next unless inner.respond_to?(:Value) && inner.Value && !inner.Value.children.empty?
+  # The clips in the track's row of session-view slots.
+  def session_view_clips(clip_slots, set_directory)
+    return [] if clip_slots.nil?
 
-      LiveAudioClip.new(set_directory, inner)
-    end
+    clip_slots.xpath('./ClipSlot/ClipSlot/Value/AudioClip')
+              .map { |node| LiveAudioClip.new(set_directory, node) }
+  end
+
+  # The clips on the arrangement timeline.
+  def arrangement_clips(set_directory)
+    @audio_track.xpath('./DeviceChain/MainSequencer/Sample/ArrangerAutomation/Events/AudioClip')
+                .map { |node| LiveAudioClip.new(set_directory, node) }
+  end
+
+  # The clips recorded onto the take lanes.
+  def take_lane_clips(set_directory)
+    @audio_track.xpath('./TakeLanes/TakeLanes/TakeLane/ClipAutomation/Events/AudioClip')
+                .map { |node| LiveAudioClip.new(set_directory, node) }
   end
 
   # The name to display for this track.
@@ -74,27 +84,56 @@ class LiveTrack
   end
 
   def clips_collected?
-    @audio_clips.all?(&:collected?)
+    distinct_clips.all?(&:collected?)
   end
 
   def show_track(all_frozen)
     name = self.name
-    frozen = frozen? ? ' frozen'.green : ' **not frozen**'.yellow unless all_frozen || @audio_clips.empty?
-    size = ", totaling #{human_file_size @track_size}" unless @audio_clips.empty?
+    clips = distinct_clips
+    frozen = frozen? ? ' frozen'.green : ' **not frozen**'.yellow unless all_frozen || clips.empty?
+    size = ", totaling #{human_file_size track_size}" unless clips.empty?
+    count = " (#{clips.length} clips, #{distinct_file_count} files#{size})"
 
-    track_line = "Track '#{name}'#{frozen} (#{@audio_clips.length} clips#{size})"
+    track_line = "Track '#{name}'#{frozen}#{count}"
 
-    # Only add clips if there are any
-    if @audio_clips.empty?
-      track_line
-    else
-      "#{track_line}\n#{show_clips}"
-    end
+    return track_line if clips.empty?
+
+    "#{track_line}\n#{show_clips}"
   end
 
+  # The clips in the track, grouped by where they come from.
+  #
+  # @return [String] a multiline report of the track's clips
   def show_clips
-    return '' if @track_size.zero?
+    @audio_clips.filter_map do |source, clips|
+      next if clips.empty?
 
-    @audio_clips.map(&:show_clip).columnize '  '
+      heading = "  #{source}: #{clips.length} clips, #{clips.uniq(&:absolute_path).length} files"
+      [heading, clips.map(&:show_clip).columnize('  ')]
+    end.join("\n")
+  end
+
+  # The number of distinct files the track's clips refer to.
+  #
+  # @return [Integer] the number of distinct files
+  def distinct_file_count
+    distinct_clips.length
+  end
+
+  # The size of the track's audio, counting each file once.
+  #
+  # The same file can be referenced from the session view, the arrangement and the take lanes at the
+  # same time. It occupies space once, so it is counted once. See als_format.md section 6.4.
+  #
+  # @return [Integer] the size in bytes
+  def track_size
+    distinct_clips.sum(&:file_size)
+  end
+
+  # The track's clips, with each file counted once.
+  #
+  # @return [Array<LiveAudioClip>] the distinct clips
+  def distinct_clips
+    @audio_clips.values.flatten.uniq(&:absolute_path)
   end
 end

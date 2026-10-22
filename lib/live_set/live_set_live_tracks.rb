@@ -28,10 +28,10 @@ class LiveTracks
     has_errors = false
 
     @track_instances.each do |track|
-      track.audio_clips.each do |clip|
-        next unless clip.absolute_path && !clip.collected?
-
-        lines << " - Clip '#{clip.absolute_path}' has not been collected.".red
+      # Name each uncollected file once, however many clips refer to it.
+      uncollected = track.distinct_clips.reject(&:collected?).filter_map(&:absolute_path).uniq
+      uncollected.each do |path|
+        lines << " - Clip '#{path}' has not been collected.".red
         has_errors = true
       end
 
@@ -41,7 +41,7 @@ class LiveTracks
         has_errors = true
       end
 
-      next if track.frozen? || track.audio_clips.empty? || track.device_summary.empty?
+      next if track.frozen? || track.distinct_clips.empty? || track.device_summary.empty?
 
       lines << " - Track '#{track.name}' is unfrozen; devices: #{track.device_summary}".yellow
     end
