@@ -114,19 +114,21 @@ alphabetised, and `ClapPlugin`/`PluginId` are on a shared line while the rest ar
 ### N17. `LiveDevice#max_for_live?` regex mixes anchors and alternation
 
 `lib/live_set/live_device.rb:46` — `/max\s*for\s*live|\bM4L\b|^Max\b/i`. The `^Max\b` alternative is
-anchored to the start of the whole string, so a manufacturer/name like "X Max" will not match, while
-`max for live` matches anywhere. Intent is unclear.
+anchored to the start of the whole string, so a manufacturer/name like "X Max"
+will not match, while `max for live` matches anywhere. Intent is unclear.
 
 ### N18. `generate_xsd` help text lists `-f` in the wrong format
 
-`lib/generate_xsd/generate_xsd_options.rb:16` — "Options are: -f overwrite any existing xsd." The
-other commands list options with a leading dash and consistent capitalisation.
+`lib/generate_xsd/generate_xsd_options.rb:16` — "Options are: -f overwrite any
+existing xsd." The other commands list options with a leading dash and
+consistent capitalisation.
 
 ### N21. `LiveDevice` targets elements that do not exist in real sets — **LOW PRIORITY**
 
-`LiveDevice` never matches anything, so the Push 3 Standalone "blocking device" check never runs.
-`lib/live_set/live_set_track.rb` finds devices with `@audio_track.search('.//Device')`, but no real
-set has a `<Device>` element. See `als_format.md` section 8 for the evidence and the real structure.
+`LiveDevice` never matches anything, so the Push 3 Standalone "blocking device"
+check never runs.  `lib/live_set/live_set_track.rb` finds devices with
+`@audio_track.search('.//Device')`, but no real set has a `<Device>` element.
+See `docs/als_format.md` section 8 for the evidence and the real structure.
 
 **The fix:** rewrite the class against the real structure.
 

@@ -241,8 +241,9 @@ $ code .  # Run Visual Studio Code
 
 ### The File Format
 
-[als_format.md](als_format.md) documents the parts of the Ableton Live `.als` format that this
-project reads, based on a survey of 460 real sets. `bin/als_files` re-runs the survey.
+[docs/als_format.md](docs/als_format.md) documents the parts of the Ableton Live
+`.als` format that this project reads, based on a survey of 460 real sets.
+`bin/als_files` re-runs the survey.
 
 
 ### Run the Tests

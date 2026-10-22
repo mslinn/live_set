@@ -29,7 +29,7 @@ class LiveTrack
   #
   # A track's audio can be in the session view, in the arrangement, and in the take lanes. They are
   # separate clips with separate ids, and the same file can be referenced from more than one of
-  # them. See als_format.md section 6.
+  # them. See docs/als_format.md section 6.
   def define_audio_clips(clip_slots, set_directory)
     {
       'Session view' => session_view_clips(clip_slots, set_directory),
@@ -122,8 +122,8 @@ class LiveTrack
 
   # The size of the track's audio, counting each file once.
   #
-  # The same file can be referenced from the session view, the arrangement and the take lanes at the
-  # same time. It occupies space once, so it is counted once. See als_format.md section 6.4.
+  # The same file can be referenced from the session view, the arrangement and the take lanes at the same time. It
+  # occupies space once, so it is counted once. See docs/ section 6.4.
   #
   # @return [Integer] the size in bytes
   def track_size
