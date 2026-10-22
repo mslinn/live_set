@@ -66,7 +66,9 @@ RSpec/SpecFilePathFormat:
   CustomTransform:
     LiveScene: live_set_scene
     LiveTrack: live_set_track
+    LiveTracks: live_tracks
     Run: common/run
+    String: string
   Exclude:
     - spec/live_set/live_set_track_clip_slots_spec.rb
 

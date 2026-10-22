@@ -34,7 +34,7 @@ class LiveAudioClip
   def initialize(set_directory, audio_clip)
     @audio_clip         = audio_clip
     @file_ref           = @audio_clip.SampleRef.FileRef
-    @last_modified      = Time.at(@audio_clip.SampleRef.LastModDate['Value'].to_i).utc.to_datetime
+    @last_modified      = last_modified_date
 
     # File size: Check both OriginalFileSize (newer Live) and FileSize (Live 8)
     size_node = @file_ref.at('OriginalFileSize') || @file_ref.at('FileSize')
@@ -60,6 +60,16 @@ class LiveAudioClip
     File.size(@absolute_path)
   rescue SystemCallError
     0
+  end
+
+  # The time the sample was last modified.
+  #
+  # @return [DateTime, nil] the time, or nil if the clip has no LastModDate
+  def last_modified_date
+    seconds = xml_value(@audio_clip.at('SampleRef/LastModDate'))&.to_i
+    return nil if seconds.nil? || seconds.zero?
+
+    Time.at(seconds).utc.to_datetime
   end
 
   def compute_absolute_path(absolute_path_xml, relative_path, set_directory)
@@ -88,6 +98,7 @@ class LiveAudioClip
   end
 
   def show_clip
-    ["    #{@relative_path}", human_file_size(@file_size).rjust(8, ' '), @last_modified.strftime('%Y-%m-%d %H:%M:%S')]
+    modified = @last_modified&.strftime('%Y-%m-%d %H:%M:%S') || ''
+    ["    #{@relative_path}", human_file_size(@file_size).rjust(8, ' '), modified]
   end
 end

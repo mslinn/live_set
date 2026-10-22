@@ -15,11 +15,11 @@ def help_generate_xsd(msg = nil)
     Environment variables used in XSD_FILE_NAME and PATH_TO_ALS_FILE are expanded.
 
     Options are:
-      -f overwrite any existing xsd.
+      -f Overwrite any existing xsd.
       -h Display this help message.
 
     Example:
-      generate_xsd xsd_file_name -f $path/to/my_v12_set.als
+      generate_xsd -f xsd_file_name $path/to/my_v12_set.als
   END_HELP
   printf msg.cyan
   exit 1
@@ -36,6 +36,9 @@ def parse_options
 
   help_generate_xsd('No ALS file names provided.') if remaining.empty?
   @als_files = remaining
+
+  xsd_directory = File.dirname(File.expand_path(@xsd_file))
+  help_generate_xsd("Directory does not exist: #{xsd_directory}") unless Dir.exist?(xsd_directory)
 
   # Normalize loglevel to uppercase string
   options[:loglevel] = options[:loglevel].to_s.upcase if options[:loglevel]

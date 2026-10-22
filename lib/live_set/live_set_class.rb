@@ -57,6 +57,10 @@ class LiveSet
   end
 
   # Writes out a Live 11 session
+  #
+  # The version strings below are the Live 11.3.21 schema, and they are fixed rather than
+  # configurable. A user can ask for "Live 11 format", but cannot ask for a particular
+  # sub-version, so every set this command writes uses the same schema.
   def modify_als
     if @minor_version.start_with? '11.'
       puts 'The Live set is already compatible with Live 11.'.yellow

@@ -23,36 +23,38 @@ class LiveTracks
   private
 
   # @return message regarding the Live session compatibility with Push 3 Standalone
+  #
+  # Two kinds of message are reported. An error stops a set from being transferred: a clip that is
+  # not collected, and a third-party device on an unfrozen track. Advice is not an error and does not
+  # change the verdict: an unfrozen track that uses only native devices.
   def p3s_tx_msg
-    lines = []
-    has_errors = false
+    errors = []
+    advice = []
 
     @track_instances.each do |track|
       # Name each uncollected file once, however many clips refer to it.
       uncollected = track.distinct_clips.reject(&:collected?).filter_map(&:absolute_path).uniq
       uncollected.each do |path|
-        lines << " - Clip '#{path}' has not been collected.".red
-        has_errors = true
+        errors << " - Clip '#{path}' has not been collected.".red
       end
 
       track.blocking_devices.each do |device|
-        lines << " - Track '#{track.name}' is unfrozen and uses #{device.label}, " \
-                 'which Push 3 Standalone cannot run. Freeze or render this track.'.red
-        has_errors = true
+        errors << " - Track '#{track.name}' is unfrozen and uses #{device.label}, " \
+                  'which Push 3 Standalone cannot run. Freeze or render this track.'.red
       end
 
       next if track.frozen? || track.distinct_clips.empty? || track.device_summary.empty?
 
-      lines << " - Track '#{track.name}' is unfrozen; devices: #{track.device_summary}".yellow
+      advice << " - Track '#{track.name}' is unfrozen; devices: #{track.device_summary}".yellow
     end
 
-    verdict = if has_errors
-                'Warning: This set should not be transferred to Push 3 Standalone.'.red
-              else
+    verdict = if errors.empty?
                 'Ready for transfer to Push 3 Standalone'.green
+              else
+                'Warning: This set should not be transferred to Push 3 Standalone.'.red
               end
 
-    ([verdict] + lines).join("\n")
+    ([verdict] + errors + advice).join("\n")
   end
 
   # This method is not used at present, but it should be because it is a neat test that is easier to write unit tests

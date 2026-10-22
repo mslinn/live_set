@@ -42,6 +42,27 @@ The corpus spans these versions:
 | 11.3.21 – 11.3.22 | 32 |
 | 12.0.1 – 12.4.6 | 407 |
 
+### 2.1 Converting a set to Live 11 uses a fixed schema
+
+`live_set -11` writes a set in the Live 11 format, and the version strings it writes are fixed:
+
+```ruby
+@ableton['Creator'] = 'Ableton Live 11.3.21'
+@ableton['MajorVersion'] = '5'
+@ableton['MinorVersion'] = '11.0_11300'
+@ableton['Revision'] = '5ac24cad7c51ea0671d49e6b4885371f15b57c1e'
+@ableton['SchemaChangeCount'] = '3'
+```
+
+These are not configurable, and that is deliberate. A user can ask for "Live 11 format", but
+cannot ask for a particular sub-version, so every set the command writes uses the same schema.
+The `MajorVersion` and `MinorVersion` values are the internal set-format numbers described above,
+not the Live version — which is why `MajorVersion` is `5` for a Live 11 set.
+
+Note that `MinorVersion` here is `11.0_11300` while `Creator` says `11.3.21`. The two are
+different numbering schemes: `Creator` is the version of Live that wrote the set, and
+`MinorVersion` identifies the set format that Live 11.3.21 reads.
+
 ---
 
 ## 3. Every value is in a `Value` attribute

@@ -6,8 +6,7 @@ require 'tmpdir'
 
 require 'live_set'
 
-# A stand-in for a LiveAudioClip. Only the methods that the reporting code calls
-# are needed.
+# A stand-in for a LiveAudioClip. Only the methods that the reporting code calls are needed.
 FakeClip = Struct.new(:file_size, :absolute_path) do
   def collected?
     true
@@ -17,6 +16,19 @@ FakeClip = Struct.new(:file_size, :absolute_path) do
     ['    sample.wav', human_file_size(file_size).rjust(8, ' '), '2024-01-01 00:00:00']
   end
 end
+
+# A stand-in for a LiveTrack, for testing LiveTracks.
+FakeTrack = Struct.new(:name, :distinct_clips, :blocking_devices, :device_summary) do
+  def frozen?
+    false
+  end
+end
+
+# A stand-in for a LiveAudioClip, for testing LiveTracks.
+FakeTrackClip = Struct.new(:absolute_path, :collected?)
+
+# A stand-in for a LiveDevice, for testing LiveTracks.
+FakeDevice = Struct.new(:label)
 
 # Builds a Slop-decorated document containing a single AudioTrack.
 #

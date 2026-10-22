@@ -226,6 +226,10 @@ Make the Live 12 set compatible with Live 11 and save as `path/to/my_set_11.als`
 $ live_set -11 -f path/to/my_set.als
 ```
 
+The converted set uses the Live 11.3.21 schema. The sub-version is not configurable, because
+there is no way to ask for a particular one — see
+[docs/als_format.md](docs/als_format.md#21-converting-a-set-to-live-11-uses-a-fixed-schema).
+
 
 ## Development
 
