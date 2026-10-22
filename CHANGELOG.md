@@ -3,9 +3,9 @@
 ## 0.2.5 2026-10-21
 
 * Changed license from MIT to source-available non-commercial.
-* Added `bin/validate_asd`
-* Added `validate_asd` command, a Ruby implementation of `bin/validate_asd`
-* Added `generate_xsd` command
+* Added `bin/validate_asd`.
+* Added `generate_xsd` command.
+* Added `validate_asd` command.
 * Improved `README.md`.
 * Made parsing of sessions from Ableton Live 8.2.6 more robust.
 * Added `spec.platform` to `live_set.gemspec` because `RubyGems.org` now
