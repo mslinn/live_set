@@ -43,16 +43,6 @@ or should report only the sequencer that is currently in effect: the `MainSequen
 unfrozen track, the `FreezeSequencer` for a frozen one. See `docs/als_format.md` section 11.
 
 
-### N38. A group's devices are reported, but its members are not named
-
-`lib/live_set/live_set_live_tracks.rb` reports a blocking device in a group's chain as an error
-naming the group, but it does not say which tracks in the group are affected. A group can contain
-many tracks, and the message does not tell the user which ones to freeze.
-
-The group knows its members — `LiveGroup#member_tracks` finds them from the `TrackGroupId`
-attribute — so the error could name the tracks, or at least say how many there are.
-
-
 ### N39. The `-11` conversion does not check that the result can be read by Live 11
 
 `lib/live_set/live_set_class.rb` writes the Live 11 version strings and removes the Live 12-only
@@ -63,3 +53,25 @@ not check the schema of the result.
 there is no Live 11 schema in the repository to check against. The `after_real_pain.xsd` file
 describes a Live 12 set and is known to be wrong about the shape of values — see
 `docs/als_format.md` section 3.
+
+
+### N40. A group's device chain is reported on the group, but the group is not reported on its members
+
+A group track's devices are in its members' signal path, so a plug-in in a group's chain blocks a
+transfer to Push 3 Standalone. `live_set` reports that as an error naming the group and the
+tracks it affects.
+
+It does not report the group on the member tracks. A track that is in a group with a plug-in is
+reported as having no devices of its own, and the reader has to notice the separate error about
+the group to know that the track is affected. The per-track advice line — "Track 'VOX 2' is
+unfrozen; devices: ..." — omits the group's devices.
+
+Whether the group's devices should also be listed against each member is a question about how the
+report should read. See `docs/als_format.md` section 9.3.
+
+
+### N41. A blocking device on a track that is in a group is reported twice
+
+If a member track has a plug-in of its own, and its group has one too, the report has two errors
+for the same track: one naming the track, and one naming the group. That is accurate, but it does
+not make the relationship between them clear.

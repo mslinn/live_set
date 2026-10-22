@@ -399,8 +399,37 @@ doubled: `DeviceChain` (the track's) contains a `DeviceChain` (the chain) which 
 | `OriginalSimpler` | 2 |
 | `AutoFilter` | 2 |
 
-`AudioEffectGroupDevice` is not a device that processes audio itself — it is a **reference** to a
-group's device chain. See section 9.3.
+`AudioEffectGroupDevice` is not a device that processes audio itself — it **holds** a group's device
+chain, in its branches. See section 9.3.
+
+### 8.2 A device chain can be nested
+
+A chain is not always one level deep. An `AudioEffectGroupDevice` holds a chain in its branches,
+at this path:
+
+```
+DeviceChain / DeviceChain / Devices / AudioEffectGroupDevice / Branches / AudioEffectBranch /
+  DeviceChain / AudioToAudioDeviceChain / Devices
+```
+
+The devices inside it are the ones that actually run. A reader that looks only at the top level
+of the chain misses them: in a 40-set sample, **14 of the 87 tracks that have a plug-in** hold
+their plug-ins only inside a group branch, and no plug-in appears at the top level of their chain.
+
+The same applies to a `DrumGroupDevice`, which holds a drum rack, and an
+`InstrumentGroupDevice`, which holds a rack.
+
+**So the devices to report are every device in any `Devices` element, at any depth.** The
+container devices themselves are not reported — they are not devices that process audio — but
+their contents are.
+
+| Container | Occurrences in 40 sets |
+| --- | --- |
+| `AudioEffectGroupDevice` | 68 |
+| `DrumGroupDevice` | 16 |
+| `InstrumentGroupDevice` | 4 |
+
+All 68 of the `AudioEffectGroupDevice` elements in the sample contain devices in their branches.
 
 ---
 
@@ -476,13 +505,18 @@ In a 40-set sample:
 | `AudioOut/Main` | 136 |
 | `AudioOut/Track.8/TrackIn` | 2 |
 
+Almost every member is routed into its group: across the whole corpus, **6761 of 6775** group
+members route to `AudioOut/GroupTrack`. The 14 that do not are routed to an external output
+(`AudioOut/External/S0` and the like), so their audio does not pass through the group.
+
 A group's own output then goes to `AudioOut/Main` (110 groups) or to a parent group (8 groups), so
 audio flows up the tree.
 
-The devices on the group are **not** copied onto its members. Group 43 in `Urban_Agony.als` owns
-`FilterEQ3`, `Limiter`, `PluginDevice` and `Reverb`; its five member tracks have device chains of
-their own containing only an `AudioEffectGroupDevice`, whose `ChainsListWrapper` is **empty** — it
-is a reference to the group's chain, not a copy of it.
+A member track holds an `AudioEffectGroupDevice`, and that device holds the group's chain in its
+branches. The member's own top-level chain does **not** repeat the group's devices — group 43 in
+`Urban_Agony.als` owns `FilterEQ3`, `Limiter`, `PluginDevice` and `Reverb`, and its member tracks
+have chains of their own that contain only the `AudioEffectGroupDevice` and, sometimes, a
+native device.
 
 | | Group 43 | Member track 30 |
 | --- | --- | --- |
@@ -491,13 +525,35 @@ is a reference to the group's chain, not a copy of it.
 | `Reverb` | 1 | 0 |
 | `PluginDevice` | 1 | 0 |
 
+The devices inside the branch are the ones that run. A member's branch holds the group's chain
+together with the member's own devices, so the devices to report are at every depth — see
+section 8.2.
+
 **Consequence for the Push 3 Standalone check:** a third-party plugin in a group's chain blocks
 transfer just as much as one on a track, because the member's audio passes through it. A report
 that only inspects member tracks would say "no blocking devices" when the group blocks transfer.
 `live_set` therefore checks a group's devices and reports a blocking group device as an error
-naming the group.
+naming the group and the tracks whose audio it affects.
 
 Across the corpus, 151 group tracks have a `PluginDevice` in their chain.
+
+### 9.3.1 Freezing a member does not get the group's device out of the way
+
+A group track cannot be frozen, so the device cannot be rendered away by freezing the group.
+Nor does freezing a member help: a frozen member stays routed into its group, so the group's
+device is still in the signal path. All 21 frozen members in the corpus are still routed to
+`AudioOut/GroupTrack`.
+
+The remedy is to remove the device from the group's chain, or to bounce the group.
+
+> Note that while Group Tracks cannot be frozen, they can be bounced to audio, which can help
+> reduce their CPU load.
+
+— Live 12 manual, section 38.1.4. Bouncing a group is a different operation from bouncing an
+individual track: the manual notes that "Group Tracks are bounced post-mixer", so the bounced
+audio includes the group's mixer settings and its effects, whereas an individual track is bounced
+pre-mixer.
+
 
 ### 9.4 A group track cannot be frozen
 
@@ -596,7 +652,9 @@ rather than under `MainSequencer`.
 | `ClipSlotList/ClipSlot/ClipSlot/Value/AudioClip` | `xpath`, then `xml_value` for the values |
 | `ArrangerAutomation/Events/AudioClip`, `TakeLane/ClipAutomation/Events/AudioClip` | `xpath`, then `xml_value` for the values |
 | `PluginDesc/VstPluginInfo/PlugName`, `PluginDesc/Vst3PluginInfo/Name` | `xml_value` |
-| `DeviceChain/DeviceChain/Devices/*` | `xpath`, then the device's own element name |
+| The devices in a chain | `xml_chain_devices`, which looks in every `Devices` element at any depth |
+| `TrackGroupId` | `xml_value`, to find a track's group |
+| `AudioOutputRouting/Target` | `xml_value`, to see whether a member is routed into its group |
 
 Do not use `Nokogiri::Slop` accessors for these. A Slop accessor returns a single `Element` for
 one match, a `NodeSet` for two or more, and raises `NoMethodError` for none — so the same expression

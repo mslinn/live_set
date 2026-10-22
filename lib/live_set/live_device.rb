@@ -30,6 +30,16 @@ class LiveDevice
   # The element names that mean "this device is a Max for Live device".
   MAX_FOR_LIVE_ELEMENTS = %w[MxDeviceAudioEffect].freeze
 
+  # The element names that mean "this device holds other devices".
+  #
+  # An AudioEffectGroupDevice holds a group's device chain, in its branches. A DrumGroupDevice
+  # holds a drum rack, and an InstrumentGroupDevice holds a rack. They are not devices that
+  # process audio themselves, so they are not reported — but the devices they hold are, because
+  # those are the devices that actually run.
+  #
+  # See docs/als_format.md sections 8.1 and 9.3.
+  CONTAINER_ELEMENTS = %w[AudioEffectGroupDevice DrumGroupDevice InstrumentGroupDevice].freeze
+
   def initialize(node)
     @node = node
     @name         = device_name

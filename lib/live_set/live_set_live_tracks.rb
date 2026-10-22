@@ -2,7 +2,7 @@ class LiveTracks
   def initialize(set_directory, tracks, groups = [])
     @tracks = tracks
     @track_instances = tracks.map { |track| LiveTrack.new set_directory, track }
-    @group_instances = groups.map { |group| LiveGroup.new group }
+    @group_instances = groups.map { |group| LiveGroup.new group, tracks }
   end
 
   # @return true if all tracks are frozen
@@ -84,19 +84,48 @@ class LiveTracks
   #
   # A group track's members are routed to the group, so the group's devices process the members'
   # audio. A plug-in in a group's chain therefore blocks a transfer to Push 3 Standalone just as
-  # much as one on a track. A group track cannot be frozen — only tracks that hold clips can be —
-  # so the tracks inside the group have to be frozen individually to render the device away.
+  # much as one on a track.
+  #
+  # A group track cannot be frozen — only tracks that hold clips can be — so the device cannot be
+  # rendered away by freezing the group. Freezing a member does not help either: a frozen member
+  # stays routed into its group, so the group's device is still in the signal path. The remedy is
+  # to remove the device from the group's chain.
+  #
+  # The error names the tracks whose audio the device affects, so the user knows which ones are
+  # involved.
   #
   # See docs/als_format.md section 9.3.
   #
   # @return [Array<String>] the errors
   def group_errors
     @group_instances.flat_map do |group|
+      affected = affected_track_names group
       group.blocking_devices.map do |device|
-        " - Group '#{group.name}' uses #{device.label}, which Push 3 Standalone cannot run. " \
-          'Freeze the tracks in this group to render it away.'
+        message = " - Group '#{group.name}' uses #{device.label}, which Push 3 Standalone cannot run. " \
+                  "Remove it from the group's device chain, or bounce the group."
+        message += " It affects #{affected}." unless affected.empty?
+        message
       end
     end
+  end
+
+  # The names of the tracks whose audio passes through a group.
+  #
+  # A member track's output is routed to the group, so the group's devices process its audio. A
+  # member that has been routed somewhere else — to an external output, say — is not affected.
+  #
+  # The names are de-duplicated, because the tracks in a group often share a name. Ableton numbers
+  # a track's name when it is duplicated, but a group of clips recorded from the same source can
+  # end up with the same name on every track.
+  #
+  # @param group [LiveGroup] the group
+  # @return [String] a comma-separated list of track names
+  def affected_track_names(group)
+    group.members
+         .select { |track| track.at('DeviceChain/AudioOutputRouting/Target')&.[]('Value') == 'AudioOut/GroupTrack' }
+         .filter_map { |track| group.track_name track }
+         .uniq
+         .join(', ')
   end
 
   # @return multiline message showing the status of all tracks in the Live session

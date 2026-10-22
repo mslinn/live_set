@@ -31,9 +31,21 @@ FakeTrackClip = Struct.new(:absolute_path, :collected?)
 FakeDevice = Struct.new(:label)
 
 # A stand-in for a LiveGroup, for testing LiveTracks.
-FakeGroup = Struct.new(:name, :blocking_devices) do
+#
+# The field is called member_tracks rather than members, because Struct#members already exists.
+FakeGroup = Struct.new(:name, :blocking_devices, :member_tracks) do
   def device_summary
     ''
+  end
+
+  # The tracks in the group.
+  def members
+    member_tracks || []
+  end
+
+  # The name of a track.
+  def track_name(track)
+    track.at('Name/EffectiveName')&.[]('Value') || track.at('Name/UserName')&.[]('Value')
   end
 end
 
@@ -186,6 +198,27 @@ end
 # @return [Nokogiri::XML::Element] the AudioTrack element
 def track_with_group(group_id)
   xml = "<AudioTrack Id=\"1\"><TrackGroupId Value=\"#{group_id}\"/></AudioTrack>"
+  Nokogiri::Slop(xml).xpath('//AudioTrack').first
+end
+
+# Builds a track element that belongs to a group and is routed to it.
+#
+# A member track's output is routed to its group, so the group's devices process its audio.
+#
+# @param name [String] the track's name
+# @param group_id [String] the Id of the group the track belongs to
+# @param target [String] where the track's output is routed
+# @return [Nokogiri::XML::Element] the AudioTrack element
+def member_track_element(name: 'Member', group_id: '34', target: 'AudioOut/GroupTrack')
+  xml = <<~XML
+    <AudioTrack Id="1">
+      <Name><EffectiveName Value="#{name}"/></Name>
+      <TrackGroupId Value="#{group_id}"/>
+      <DeviceChain>
+        <AudioOutputRouting><Target Value="#{target}"/></AudioOutputRouting>
+      </DeviceChain>
+    </AudioTrack>
+  XML
   Nokogiri::Slop(xml).xpath('//AudioTrack').first
 end
 

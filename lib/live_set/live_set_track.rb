@@ -27,10 +27,10 @@ class LiveTrack
       Log.debug "  #{sequencer} exists: #{!device_chain&.at(sequencer).nil?}"
     end
 
-    # The devices in the track's chain. The path is doubled: the track's DeviceChain contains a
-    # DeviceChain, which contains Devices. See docs/als_format.md section 8.1.
-    @devices = @audio_track.xpath('./DeviceChain/DeviceChain/Devices/*')
-                           .map { |node| LiveDevice.new node }
+    # The devices in the track's chain, at any depth. A track in a group holds the group's chain
+    # in an AudioEffectGroupDevice, several levels down. See docs/als_format.md sections 8.1
+    # and 9.3.
+    @devices = xml_chain_devices(@audio_track).map { |node| LiveDevice.new node }
 
     @audio_clips = define_audio_clips set_directory
   end

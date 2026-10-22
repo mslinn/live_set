@@ -68,8 +68,11 @@ RSpec.describe LiveTracks, '#p3s_tx_msg' do
 
   context 'when a group uses a third-party device' do
     # A group's members are routed to the group, so the group's devices process the members' audio.
-    # A plug-in in a group's chain blocks a transfer just as much as one on a track. A group track
-    # cannot be frozen, so the tracks inside it have to be frozen individually.
+    # A plug-in in a group's chain blocks a transfer just as much as one on a track.
+    #
+    # A group track cannot be frozen, and freezing a member does not help: a frozen member stays
+    # routed into its group, so the device is still in the signal path. The remedy is to remove
+    # the device from the group's chain, or to bounce the group.
     it 'reports that the set is not ready' do
       group = FakeGroup.new('VOZ', [FakeDevice.new('OTT')])
       tracks = tracks_with(groups: [group])
@@ -95,7 +98,38 @@ RSpec.describe LiveTracks, '#p3s_tx_msg' do
       group = FakeGroup.new('VOZ', [FakeDevice.new('OTT')])
       tracks = tracks_with(groups: [group])
 
-      expect(tracks.send(:p3s_tx_msg)).to include('Freeze the tracks in this group')
+      expect(tracks.send(:p3s_tx_msg)).to include("Remove it from the group's device chain")
+    end
+
+    it 'offers bouncing the group as another way to render it away' do
+      group = FakeGroup.new('VOZ', [FakeDevice.new('OTT')])
+      tracks = tracks_with(groups: [group])
+
+      expect(tracks.send(:p3s_tx_msg)).to include('bounce the group')
+    end
+
+    it 'names the tracks whose audio the device affects' do
+      member = member_track_element(name: 'VOX 1')
+      group = FakeGroup.new('VOZ', [FakeDevice.new('OTT')], [member])
+      tracks = tracks_with(groups: [group])
+
+      expect(tracks.send(:p3s_tx_msg)).to include('It affects VOX 1.')
+    end
+
+    it 'does not name a member that is routed somewhere other than the group' do
+      member = member_track_element(name: 'VOX 1', target: 'AudioOut/Main')
+      group = FakeGroup.new('VOZ', [FakeDevice.new('OTT')], [member])
+      tracks = tracks_with(groups: [group])
+
+      expect(tracks.send(:p3s_tx_msg)).not_to include('It affects')
+    end
+
+    it 'names a track once when several tracks share its name' do
+      members = [member_track_element(name: 'VOX 2'), member_track_element(name: 'VOX 2')]
+      group = FakeGroup.new('VOZ', [FakeDevice.new('OTT')], members)
+      tracks = tracks_with(groups: [group])
+
+      expect(tracks.send(:p3s_tx_msg)).to include('It affects VOX 2.')
     end
   end
 

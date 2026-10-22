@@ -27,7 +27,9 @@ This software can:
    c. Detect group tracks that have non-Ableton plugins. A group&rsquo;s tracks are
    routed through the group&rsquo;s device chain, so a plugin in a group blocks a
    transfer just as much as a plugin on a track. A group track cannot be frozen,
-   so the tracks inside the group have to be frozen individually.
+   and freezing the tracks inside it does not help, because they stay routed
+   through the group. The plugin has to be removed from the group&rsquo;s chain, or
+   the group has to be bounced.
 
    d. Shows clips that are have not been collected within the set&rsquo;s project directory.
 

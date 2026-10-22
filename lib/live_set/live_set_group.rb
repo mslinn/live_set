@@ -18,25 +18,26 @@ require_relative '../common/xml'
 class LiveGroup
   include Xml
 
-  attr_reader :id, :name
+  attr_reader :id, :name, :members
 
-  def initialize(group_track)
+  def initialize(group_track, tracks = [])
     @group_track = group_track
     @id          = @group_track['Id']
     @name        = xml_first_value(
       @group_track.at('Name/EffectiveName'),
       @group_track.at('Name/UserName')
     ) || "##{@id}"
+    @members = member_tracks tracks
   end
 
   # The devices in the group's chain.
   #
   # The path is doubled: the track's DeviceChain contains a DeviceChain, which contains Devices.
+  # A group can itself be in a group, so its chain can be nested too.
   #
   # @return [Array<LiveDevice>] the devices
   def devices
-    @devices ||= @group_track.xpath('./DeviceChain/DeviceChain/Devices/*')
-                             .map { |node| LiveDevice.new node }
+    @devices ||= xml_chain_devices(@group_track).map { |node| LiveDevice.new node }
   end
 
   # The group's devices that Push 3 Standalone cannot run.
@@ -65,5 +66,20 @@ class LiveGroup
   # @return [Array<Nokogiri::XML::Element>] the member tracks
   def member_tracks(tracks)
     tracks.select { |track| track.at('TrackGroupId')&.[]('Value') == @id }
+  end
+
+  # The names of the tracks in this group.
+  #
+  # @return [Array<String>] the names
+  def member_names
+    @members.filter_map { |track| track_name track }
+  end
+
+  # The name of a track.
+  #
+  # @param track [Nokogiri::XML::Element] the track
+  # @return [String, nil] the name, or nil if the track has no name
+  def track_name(track)
+    xml_first_value(track.at('Name/EffectiveName'), track.at('Name/UserName'))
   end
 end

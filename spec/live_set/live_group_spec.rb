@@ -56,4 +56,26 @@ RSpec.describe LiveGroup do
 
     expect(group.member_tracks(tracks).length).to eq(1)
   end
+
+  context 'when it is given the tracks in the set' do
+    it 'keeps the tracks that belong to it as its members' do
+      tracks = [member_track_element(name: 'VOX 1'), member_track_element(group_id: '27')]
+      group = described_class.new group_track_element(id: '34'), tracks
+
+      expect(group.members.length).to eq(1)
+    end
+
+    it 'names its members' do
+      tracks = [member_track_element(name: 'VOX 1')]
+      group = described_class.new group_track_element(id: '34'), tracks
+
+      expect(group.member_names).to eq(['VOX 1'])
+    end
+
+    it 'has no members when the set has no tracks' do
+      group = described_class.new group_track_element(id: '34'), []
+
+      expect(group.members).to be_empty
+    end
+  end
 end
