@@ -2,12 +2,14 @@
 
 ## 0.2.5 2026-10-21
 
-* Changed licence from MIT to source-available non-commercial.
+* Changed license from MIT to source-available non-commercial.
+* Added `bin/validate_asd`
+* Added `generate_xsd` command
 * Improved `README.md`.
 * Made parsing of sessions from Ableton Live 8.2.6 more robust.
 * Added `spec.platform` to `live_set.gemspec` because `RubyGems.org` now
   requires it.
-* Updated `bin/setup` so it complies with changes to `bundle`.
+* Updated `bin/setup` so it complies with recent changes to `bundle`.
 * Improved output so it is more compact and more precise.
 * Merged pull request from @uones regarding:
 
@@ -16,7 +18,7 @@
   * logging changes
 
 * Replaced logging changes from @uones with standard Ruby logging and removed
-  unnecessary messages
+  unnecessary debug messages.
 
 ## 0.2.4
 

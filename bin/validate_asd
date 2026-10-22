@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+if [[ $# -ne 2 ]]; then
+  echo "Usage: $0 SET.als SCHEMA.xsd" >&2
+  exit 2
+fi
+
+als=$1
+xsd=$2
+
+if [[ ! -f "$als" ]]; then
+  echo "Error: ALS file not found: $als" >&2
+  exit 2
+fi
+
+if [[ ! -f "$xsd" ]]; then
+  echo "Error: XSD file not found: $xsd" >&2
+  exit 2
+fi
+
+if ! command -v xmllint >/dev/null 2>&1; then sudo apt install libxml2-utils; fi
+if ! command -v gzip    >/dev/null 2>&1; then sudo apt install gzip; fi
+if ! command -v xmllint >/dev/null 2>&1; then sudo apt install libxml2-utils; fi
+
+xml=$(mktemp) || exit 2
+trap 'rm -f "$xml"' EXIT
+
+if ! gzip -dc -- "$als" > "$xml"; then
+  echo "Error: could not decompress ALS file: $als" >&2
+  exit 1
+fi
+
+xmllint --noout --schema "$xsd" "$xml"

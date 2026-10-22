@@ -6,7 +6,8 @@ This software can:
 
 2. Report the version compatibility of an Ableton Live set.
 
-3. Detect environmental problems, for example unwanted directories called `Ableton Project Info` in parent directories.
+3. Detect environmental problems, for example unwanted directories called
+   `Ableton Project Info` in parent directories.
 
 4. Display the location and size of the samples in each track.
 
@@ -14,15 +15,19 @@ This software can:
 
 7. Show changes persisted to file storage each time a Live session is saved in real time.
 
-8. Clearly show if a Live set is ready to be transferred to a Push 3 Standalone, and what needs to be changed if not.
+8. Clearly show if a Live set is ready to be transferred to a Push 3 Standalone,
+   and what needs to be changed if not.
 
-   a. Detect sets that are too large to be frozen, which means they are too large to transfer to Push 3 Standalone.
+   a. Detect sets that are too large to be frozen, which means they are too
+   large to transfer to Push 3 Standalone.
 
-   b. Detect tracks that have non-Ableton plugins are not frozen, which means they are not ready to be transferred to Push 3 Standalone.
+   b. Detect tracks that have non-Ableton plugins are not frozen, which means
+   they are not ready to be transferred to Push 3 Standalone.
 
    c. Shows clips that are have not been collected within the set&rsquo;s project directory.
 
-This program has successfully converted the Ableton Live 12 demo project to Live 11. Also tested with Live 8.6 session files.
+This program has successfully converted the Ableton Live 12 demo project to Live
+11. Also tested with Live 8.6 session files.
 
 ##  Push 3 Standalone (P3S)
 
@@ -158,7 +163,7 @@ $ live_set "$ableton_media/Projects/Ableton Live 12 Demo Project/Ableton Live 12
   SchemaChangeCount 7
   Revision dc76d800e94bdd5e2d8f0f72ef4d056a634a8cd7
 Warning: This set should not be transferred to Push 3 Standalone.
- - Some tracks are not frozen.
+ - Some non-frozen tracks have non-Ableton plugins.
 Total set size: 312.5 MB
 4 tracks:
   Track 'Vocal Main' **not frozen** (12 clips, totaling 154.0 MB)
@@ -197,6 +202,8 @@ Total set size: 312.5 MB
     Samples/Imported/Vocal Patience Adlib.wav  827.9 kB  2024-01-31 22:00:22
 ```
 
+A [bug](https://github.com/mslinn/live_set/issues/2) has been logged for the
+above output.
 
 ### Convert
 
@@ -271,5 +278,5 @@ Bug reports and pull requests are welcome at https://github.com/mslinn/live_set.
 ## License
 
 The gem is provided as [source-available, noncommercial license](LICENCE.txt).
-Commercial use and use in court-case investigations requires a separate
-license..
+Commercial use, and use in court-case investigations, require paid
+licenses.
