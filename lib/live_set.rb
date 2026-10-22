@@ -61,8 +61,8 @@ def validate_asd
 
   help_validate_asd if ARGV.empty?
 
-  set_name = ARGV.shift
-  xsd_name = ARGV.shift
+  set_name = ARGV.shift&.expand_env
+  xsd_name = ARGV.shift&.expand_env
 
   help_validate_asd 'An XSD file name must be provided.' if xsd_name.nil?
   help_validate_asd "#{set_name} does not exist" unless File.exist? set_name

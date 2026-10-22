@@ -1,15 +1,20 @@
-class LiveAudioTrack
-  attr_reader :audio_clips, :clip_slots, :frozen, :id, :track_size
+require_relative '../common/log'
+require_relative '../common/xml'
+
+class LiveTrack
+  include Xml
+
+  attr_reader :audio_clips, :clip_slots, :id, :track_size
 
   def initialize(set_directory, audio_track)
     @audio_track = audio_track
     @id          = @audio_track['Id']
-    @frozen      = @audio_track.at('Freeze')&.[]('Value')&.to_bool
+    @frozen      = xml_bool?(@audio_track.at('Freeze'), description: "AudioTrack '#{@id}' Freeze")
 
     Log.debug "Track #{@id}:"
-    Log.debug "  DeviceChain exists: #{@audio_track.DeviceChain}"
-    Log.debug "  MainSequencer exists: #{@audio_track.DeviceChain.MainSequencer}" if @audio_track.DeviceChain
-    Log.debug "  ClipSlotList exists: #{@audio_track.DeviceChain.MainSequencer.ClipSlotList}" if @audio_track.DeviceChain&.MainSequencer
+    Log.debug "  DeviceChain exists: #{!@audio_track.DeviceChain.nil?}"
+    Log.debug "  MainSequencer exists: #{!@audio_track.DeviceChain.MainSequencer.nil?}" if @audio_track.DeviceChain
+    Log.debug "  ClipSlotList exists: #{!@audio_track.DeviceChain.MainSequencer.ClipSlotList.nil?}" if @audio_track.DeviceChain&.MainSequencer
 
     # Audit the whole chain, including devices nested inside racks.
     @devices = @audio_track.search('.//Device').map { |node| LiveDevice.new(node) }
@@ -37,10 +42,7 @@ class LiveAudioTrack
 
       next unless inner.respond_to?(:Value) && inner.Value && !inner.Value.children.empty?
 
-      # Safely handle NeedRefreeze in case it's missing
-      need_refreeze = clip_slot.at('NeedRefreeze')&.[]('Value') == 'true'
-
-      LiveAudioClip.new(set_directory, clip_slot['Id'], need_refreeze, inner)
+      LiveAudioClip.new(set_directory, inner)
     end
   end
 
@@ -56,7 +58,7 @@ class LiveAudioTrack
 
   # Only unfrozen tracks can be blocked by their devices.
   def blocking_devices
-    @frozen ? [] : @devices.select(&:blocking?)
+    frozen? ? [] : @devices.select(&:blocking?)
   end
 
   def device_summary

@@ -4,6 +4,7 @@ require 'fileutils'
 require 'nokogiri'
 require 'pathname'
 require 'zlib'
+require_relative '../common/log'
 
 # See https://www.ionos.ca/digitalguide/websites/web-development/xpath-tutorial/
 # See https://www.scrapingbee.com/webscraping-questions/selenium/how-to-find-elements-by-xpath-selenium
@@ -19,18 +20,12 @@ class LiveSet
     @overwrite = options[:force]
     @set_name = set_name
 
-    @contents = Zlib::GzipReader.open(set_name, &:readlines)
+    @contents = Zlib::GzipReader.open(set_name, &:read)
 
-    @xml_doc = Nokogiri::Slop @contents.join("\n")
+    @xml_doc = Nokogiri::Slop @contents
 
     @ableton = @xml_doc.Ableton
     @minor_version = @ableton['MinorVersion']
-
-    puts <<~TEXT
-      Ableton version: #{@ableton['MajorVersion']}.#{@minor_version}
-      Creator: #{@ableton['Creator']}
-      SchemaChangeCount: #{@ableton['SchemaChangeCount']}
-    TEXT
 
     @live_set = @ableton.LiveSet
 
@@ -43,7 +38,7 @@ class LiveSet
       puts "Error accessing AudioTrack elements: #{e.message}".red
       []
     end
-    @tracks = AllTracks.new @set_directory, audio_tracks
+    @tracks = LiveTracks.new @set_directory, audio_tracks
     @scenes = @live_set.Scenes.map { |scene| LiveScene.new scene }
   end
 
@@ -65,7 +60,7 @@ class LiveSet
   def modify_als
     if @minor_version.start_with? '11.'
       puts 'The Live set is already compatible with Live 11.'.yellow
-      exit
+      exit 0
     end
 
     @ableton['Creator'] = 'Ableton Live 11.3.21'

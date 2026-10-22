@@ -135,10 +135,10 @@ Example:
 
 ```text
 $ als_delta
-ls_delta: Shows changes to an .als file each time a session file is saved.
-Press enter to compare with previous version.
+als_delta: Shows changes to an .als file each time a session file is saved.
+Press any key to compare with previous version.
 
-Syntax: ls_delta OPTIONS PATH_TO_ALS_FILE
+Syntax: als_delta OPTIONS PATH_TO_ALS_FILE
 
 Environment variables used in PATH_TO_ALS_FILE are expanded.
 
@@ -147,7 +147,7 @@ Options are:
   -h Display this help message.
 
 Example:
-ls_delta $path/to/my_v12_set.als
+als_delta $path/to/my_v12_set.als
 ```
 
 ```text

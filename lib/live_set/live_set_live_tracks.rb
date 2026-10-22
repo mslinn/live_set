@@ -1,12 +1,12 @@
-class AllTracks
+class LiveTracks
   def initialize(set_directory, tracks)
     @tracks = tracks
-    @track_instances = tracks.map { |track| LiveAudioTrack.new set_directory, track }
+    @track_instances = tracks.map { |track| LiveTrack.new set_directory, track }
   end
 
   # @return true if all tracks are frozen
   def all_frozen?
-    @track_instances.all?(&:frozen)
+    @track_instances.all?(&:frozen?)
   end
 
   # @return message summarizing the state of all tracks
@@ -69,7 +69,7 @@ class AllTracks
     all_frozen_msg = all_frozen? ? ' (All are frozen)'.yellow : ''
     total_size = @track_instances.sum(&:track_size)
     size_warning = if total_size >= 2_000_000_000
-                     "\nWarning: This set is too large to be frozen and too large too large to transfer to Push 3 Standalone.".red
+                     "\nWarning: This set is too large to be frozen and too large to transfer to Push 3 Standalone.".red
                    else
                      ''
                    end

@@ -1,6 +1,5 @@
 require 'date'
 require 'fileutils'
-require 'highline'
 require 'shellwords'
 require_relative '../common/run'
 

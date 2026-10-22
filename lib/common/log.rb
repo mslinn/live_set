@@ -11,7 +11,7 @@ unless Object.const_defined?(:Log, false)
     case severity
     when 'WARN'
       line.yellow
-    when 'FATAL' || 'UNKNOWN'
+    when 'FATAL', 'UNKNOWN'
       line.red
     else
       line.green

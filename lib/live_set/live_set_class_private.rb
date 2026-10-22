@@ -14,10 +14,7 @@ class LiveSet
 
     Log.debug "Checking parent directories for 'Ableton Project Info'"
     cur_dir = Pathname.new(set_directory).parent
-    prev_dir = nil
-    iteration = 0
-    while cur_dir && cur_dir != prev_dir
-      iteration += 1
+    while cur_dir
       project_info_path = File.join(cur_dir, 'Ableton Project Info')
       if File.exist? project_info_path
         Log.debug "Found 'Ableton Project Info' in parent: #{cur_dir}"
@@ -29,7 +26,6 @@ class LiveSet
         break
       end
 
-      prev_dir = cur_dir
       cur_dir = cur_dir.parent
     end
   end

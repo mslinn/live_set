@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'live_set/live_set_audio_track'
+require 'live_set/live_set_track'
 require 'live_set/live_set_audio_clip'
 
 # These specs document the CURRENT behaviour of clip-slot parsing, which is
@@ -9,7 +9,7 @@ require 'live_set/live_set_audio_clip'
 # that currently fail are marked `pending`, so the suite stays green while the defect is
 # tracked. RSpec reports a pending example as a failure if it unexpectedly passes, so these
 # specs will flag the moment the underlying behaviour changes.
-RSpec.describe LiveAudioTrack, 'clip slot parsing (see TODO.md S3)' do
+RSpec.describe LiveTrack, 'clip slot parsing (see TODO.md S3)' do
   def track_for(slot_count:, nested:)
     slots = (1..slot_count).map do |i|
       clip_slot_xml(nested: nested, id: (13 + i).to_s, relative_path: "Samples/Imported/song#{i}.mp3")

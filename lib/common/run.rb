@@ -1,4 +1,5 @@
 require 'open3'
+require_relative 'log'
 
 module Run
   # Run command passed as a string. Die with a message if an error occurs.
@@ -9,7 +10,7 @@ module Run
     # printf "Run #{command}\n".yellow
     stdout_str, status = Open3.capture2 command
     unless success_statuses.include? status.exitstatus
-      printf "Error: #{command} returned #{status}"
+      Log.error "Error: #{command} returned #{status}"
       exit status.exitstatus
     end
     stdout_str.split("\n")

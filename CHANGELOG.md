@@ -3,7 +3,6 @@
 ## 0.2.5 2026-10-21
 
 * Changed license from MIT to source-available non-commercial.
-* Added `bin/validate_asd`.
 * Added `generate_xsd` command.
 * Added `validate_asd` command.
 * Improved `README.md`.

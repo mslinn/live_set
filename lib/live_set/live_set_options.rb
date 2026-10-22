@@ -1,6 +1,7 @@
 require 'colorator'
 require 'logger'
 require 'optparse'
+require_relative '../common/log'
 
 @loglevels = Logger::Severity.constants.sort_by { |name| Logger::Severity.const_get(name) } unless defined?(@loglevels)
 
@@ -41,7 +42,7 @@ def parse_options
 
   msg = "Invalid verbosity value (#{@loglevel}), must be one of one of: #{@loglevels.join ', '}."
 
-  live_set msg if @loglevel && !@loglevels.include?(@loglevel.upcase.to_sym)
+  help_live_set msg if @loglevel && !@loglevels.include?(@loglevel.upcase.to_sym)
 
   options
 end

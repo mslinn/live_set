@@ -1,7 +1,7 @@
 require 'spec_helper'
-require 'live_set/live_set_audio_track'
+require 'live_set/live_set_track'
 
-RSpec.describe LiveAudioTrack do
+RSpec.describe LiveTrack do
   describe '#frozen?' do
     it 'is true when the track has <Freeze Value="true"/>' do
       track = described_class.allocate

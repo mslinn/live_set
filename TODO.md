@@ -10,38 +10,6 @@ style. Minor issues are reported but were deliberately not acted on.
 
 ## Severe
 
-### S1. `FileUtils` is used but never required — **FIXED**
-
-`lib/live_set/live_set_class.rb:90` calls `FileUtils.rm_f new_set_path` on the `-11 -f` (convert and
-overwrite) path, but `lib/live_set/live_set_class.rb` does not `require 'fileutils'`. No file in the
-`live_set` code path requires it either — only `lib/als_delta/als_delta_class.rb:2` does, and that is
-only loaded by the `als_delta` command.
-
-The `FileUtils` constant is therefore undefined when `live_set -11 -f` runs, which raises
-`NameError: uninitialized constant FileUtils`. The write path is also reached when `--force` is not
-supplied, but only the `rm_f` call needs `FileUtils`.
-
-Fix: add `require 'fileutils'` to `lib/live_set/live_set_class.rb`.
-
-### S2. `show_track` queries the wrong object for the frozen state — **FIXED**
-
-`lib/live_set/live_set_audio_track.rb:72`:
-
-```ruby
-frozen = @audio_track.frozen? ? ' frozen'.green : ' **not frozen**'.yellow unless all_frozen || @audio_clips.empty?
-```
-
-`@audio_track` is a `Nokogiri::XML::Node`, not a `LiveAudioTrack`. `frozen?` is defined on
-`LiveAudioTrack` (line 53) to return the parsed `@frozen` value, but on a Nokogiri node `frozen?`
-resolves to `Kernel#frozen?`, which reports whether the *Ruby object* is frozen — it is always
-`false` for a Nokogiri node.
-
-Consequence: the per-track "frozen" / "**not frozen**" marker is never shown as frozen. A frozen
-track is reported as "**not frozen**", and the class already exposes the correct `frozen?` method
-that is never used here.
-
-Fix: change `@audio_track.frozen?` to `frozen?` (or `@frozen`).
-
 ### S3. `define_audio_clips` relies on Slop accessors whose shape varies by Live version and by child count
 
 **No change made — recommendations only, per instruction.**
@@ -262,9 +230,9 @@ that the other two are deliberately excluded would help.
 
 | Spec | Covers |
 | --- | --- |
-| `spec/live_set/live_set_audio_track_clip_slots_spec.rb` | The Live 8 nested layout, the Live 12 flat layout, and the zero-slot case, at one and at 2+ slots (S3, M9) |
-| `spec/live_set/live_set_audio_track_spec.rb` | `#frozen?` (S2) |
-| `spec/live_set/live_set_audio_track_show_track_spec.rb` | The frozen marker in `#show_track` (S2) |
+| `spec/live_set/live_set_track_clip_slots_spec.rb` | The Live 8 nested layout, the Live 12 flat layout, and the zero-slot case, at one and at 2+ slots (S3, M9) |
+| `spec/live_set/live_set_track_spec.rb` | `#frozen?` (S2) |
+| `spec/live_set/live_set_track_show_track_spec.rb` | The frozen marker in `#show_track` (S2) |
 | `spec/common/run_spec.rb` | Exit-status handling (S4) and line-structure preservation (S5) |
 | `spec/spec_helper.rb` | The fixtures, plus `FakeClip` |
 
@@ -313,30 +281,6 @@ Fix: scope each command's option parsing to a module or a class, or rename the m
 (`parse_live_set_options`, `parse_als_delta_options`, …). Deleting both `common` methods would
 resolve the dead code on its own.
 
-### M3. `generate_xsd` calls itself with an error message
-
-`lib/generate_xsd/generate_xsd_options.rb:47`:
-
-```ruby
-generate_xsd msg if @loglevel && !@loglevels.include?(@loglevel.upcase.to_sym)
-```
-
-This calls the *command* `generate_xsd` (defined in `lib/live_set.rb:34`) rather than the
-`help_generate_xsd` helper. The same pattern exists in `lib/live_set/live_set_options.rb:44`
-(`live_set msg`) and `lib/als_delta/als_delta_options.rb:43` (`help_als_delta msg` — this one is
-correct). The two incorrect ones re-enter the command, which re-parses options and re-prints the
-help, instead of showing the error message.
-
-Fix: call `help_generate_xsd msg` and `help_live_set msg`.
-
-### M4. `unless remaining` treats an empty array as truthy
-
-`lib/generate_xsd/generate_xsd_options.rb:34,37` guard with `unless remaining`. `remaining` is an
-`Array`; an empty array is truthy in Ruby, so the guard never fires. The subsequent
-`remaining.shift` returns `nil`, and the "No XSD file name provided" / "No ALS file names provided"
-messages are never shown.
-
-Fix: use `if remaining.empty?` (or `if remaining.nil? || remaining.empty?`).
 
 ### M5. `als_delta` declares `--loglevel` as `Integer` but validates it as a String
 
@@ -352,16 +296,6 @@ Also, `lib/als_delta/als_delta_class.rb:12-13` builds a `zdiff` argument from th
 `-loglevel` option, so the constructed command would fail regardless. The `-stats` flag appended on
 line 13 is also a `diff` option that is not in POSIX `diff` (it is a GNU extension).
 
-### M6. `als_delta` help text calls the command `ls_delta`
-
-`lib/als_delta/als_delta_options.rb:15,18,27` use `ls_delta`, while the executable and everything
-else use `als_delta`. The same text is copied into `README.md:138,141,150`.
-
-### M7. `als_delta` help says "Press enter" but the code waits for any key
-
-`lib/als_delta/als_delta_options.rb:16` says "Press enter to compare with previous version", but
-`lib/als_delta/als_delta_class.rb:47` uses `$stdin.getch` and prints "Press any key to display the
-changes to the Live set XML file, or press Esc to exit."
 
 ### M8. `expand_env` does not expand the `$NAME` form it appears to support
 
@@ -424,105 +358,18 @@ unreachable. The whole class is effectively dead.
 fallbacks. The two disagree for any track missing an `EffectiveName`, and `show_track` raises
 `NoMethodError` on `nil` where `name` would have degraded gracefully.
 
-### M13. `Log` formatter's `FATAL` branch is unreachable
-
-`lib/common/log.rb:14`:
-
-```ruby
-when 'FATAL' || 'UNKNOWN'
-```
-
-`'FATAL' || 'UNKNOWN'` evaluates to `'FATAL'` (a non-empty string is truthy), so `'UNKNOWN'` is
-never matched. Since `when` uses `===` against the severity string, `'UNKNOWN'` falls through to the
-`else` branch and is coloured green rather than red.
-
-Fix: `when 'FATAL', 'UNKNOWN'`.
-
-### M14. `human_file_size` depends on `ByteSize` without requiring it — **FIXED**
-
-`lib/common/util.rb:29` calls `ByteSize.new(number)`, but `lib/common/util.rb` did not
-`require 'bytesize'`. It happened to work because `lib/live_set/live_set_class.rb:1` requires it, but
-`lib/common/util.rb` was not self-contained.
-
-Fix: add `require 'bytesize'` to `lib/common/util.rb`.
-
-### M15. `gemspec` looks for `LICENSE.*` but the file is `LICENCE.txt` — **FIXED**
-
-`live_set.gemspec:23` includes `Dir[..., 'LICENSE.*', ...]`. The repository contained `LICENCE.txt`
-(British spelling), so the licence file was not included in the built gem. The `Dir[]` glob simply
-matched nothing.
-
-Fix: rename `LICENCE.txt` to `LICENSE.md` and convert it to proper markdown. The gemspec glob
-already matches it, and `README.md` now links to `LICENSE.md`.
-
----
 
 ## Minor
-
-Reported for completeness; no action taken.
-
-### N2. `help_validate_asd` promises environment variable expansion that is not implemented
-
-`lib/validate_asd/validate_asd_options.rb:13` says "Environment variables used in PATH_TO_ALS_FILE
-are expanded", but `lib/live_set.rb:59-74` (`validate_asd`) does not call `expand_env` — it uses the
-raw `ARGV` values. The other three commands do call `expand_env`.
-
-The new `validate_asd` command was written during this session and is included for completeness.
-
-### N3. `LiveSet#show` prints version information twice
-
-`lib/live_set/live_set_class.rb:28-32` prints `Ableton version`, `Creator` and `SchemaChangeCount`
-from the constructor, and `#show` (lines 51-58) prints `Created by`, `Major version`,
-`Minor version`, `SchemaChangeCount` and `Revision`. `Creator` and `SchemaChangeCount` are
-duplicated. The constructor's output is not suppressed when `modify_als` runs, so the conversion
-path prints both blocks too.
-
-### N4. `LiveSet#initialize` prints unconditionally
-
-The `puts` at `lib/live_set/live_set_class.rb:28` is in the constructor rather than in `show`, so
-output is emitted as a side effect of construction, before the caller decides what to do.
-
-### N5. `LiveSet#modify_als` calls `exit` with no status
-
-`lib/live_set/live_set_class.rb:68` — `exit` is equivalent to `exit 0` (success). It is arguably
-correct here ("nothing to do" is not an error), but it is inconsistent with the explicit
-`exit 1` used in `lib/live_set.rb:73`.
-
-### N6. `LiveSet#initialize` uses `readlines` then joins with `"\n"`
-
-`lib/live_set/live_set_class.rb:21` — `Zlib::GzipReader.open(set_name, &:readlines)` followed by
-`@contents.join("\n")` at line 23. Because `readlines` already keeps the trailing newlines, the
-join inserts an extra newline between every line, so the parsed document has blank lines between
-all elements. `Zlib::GzipReader.open(set_name, &:read)` avoids this. The same pattern is in
-`lib/generate_xsd/generate_xsd.rb:25-26`.
-
-### N7. `LiveAudioTrack` has both `frozen` and `frozen?`
-
-`lib/live_set/live_set_audio_track.rb:2` declares `attr_reader :frozen` and line 53 defines
-`frozen?` returning the same value. Two names for one attribute; `AllTracks#all_frozen?` calls
-`&:frozen` while `LiveAudioTrack#frozen?` exists — inconsistent usage of the two spellings.
 
 ### N8. `LiveAudioTrack` exposes `clip_slots` but nothing consumes it
 
 `lib/live_set/live_set_audio_track.rb:2` declares `attr_reader :clip_slots`, set on line 17. No other
 code reads it.
 
-### N9. `LiveAudioClip` declares readers that are never used
-
-`lib/live_set/live_set_audio_clip.rb:3-5` declares `file_ref`, `file_type`, `live_pack_name`,
-`relative_path_type`, `id` and `need_refreeze`. Of these, only `relative_path`, `absolute_path` and
-`file_size` are used elsewhere.
-
 ### N10. `AllTracks#ready_for_p3s?` is dead code
 
 `lib/live_set/live_set_all_tracks.rb:65-69`. The comment above it explicitly says it is "not used at
 present, but it should be". `p3s_tx_msg` implements the same logic inline instead.
-
-### N11. `AllTracks#summary` contains a duplicated word
-
-`lib/live_set/live_set_all_tracks.rb:79`:
-`"Warning: This set is too large to be frozen and too large too large to transfer to Push 3
-Standalone."` — "too large" appears twice.
 
 ### N12. `AllTracks#p3s_tx_msg` has an unused variable
 
@@ -531,25 +378,12 @@ loop, and the `next if ...` on line 45 can skip the `has_errors = true` on line 
 `iteration` variable in `check_ableton_project_info` is the clearer example:
 `lib/live_set/live_set_class_private.rb:16` — `iteration` is incremented on line 17 and never read.
 
-### N13. `check_ableton_project_info` looks for `Ableton Project Info` in the set directory twice
-
-`lib/live_set/live_set_class_private.rb:11-13` checks the set's own directory, and the loop starting
-at line 18 starts from the *parent* of that directory. The two checks are therefore for different
-directories, so this is not a bug, but the `cur_dir`/`prev_dir` loop guard on lines 16 and 31 is
-redundant — `cur_dir.root?` on line 29 already terminates it.
-
 ### N14. `LiveSet#modify_als` hard-codes the Live 11 version strings
 
 `lib/live_set/live_set_class.rb:71-75` hard-codes `Creator`, `MajorVersion`, `MinorVersion`,
 `Revision` and `SchemaChangeCount` for "Ableton Live 11.3.21". There is no configuration or
 version-detection logic to choose these.
 
-### N15. `LiveDevice#value_of` mixes three access strategies
-
-`lib/live_set/live_device.rb:64-70` tries the `Value` attribute, then `EffectiveName`'s `Value`
-attribute, then raw text. The `.then { |s| s.empty? ? nil : s }` on line 69 would be clearer as
-`&.strip`, and the chain returns the *first* match rather than preferring an explicit `Value`
-attribute over a nested `EffectiveName`.
 
 ### N16. `LiveDevice::PLUGIN_MARKERS` is an unsorted list
 
@@ -567,23 +401,6 @@ anchored to the start of the whole string, so a manufacturer/name like "X Max" w
 `lib/generate_xsd/generate_xsd_options.rb:16` — "Options are: -f overwrite any existing xsd." The
 other commands list options with a leading dash and consistent capitalisation.
 
-### N19. `als_delta` requires `highline` but never uses it
-
-`lib/als_delta/als_delta_class.rb:4` — `require 'highline'`. `HighLine` is only used in
-`lib/live_set/live_set_class_private.rb`.
-
-### N20. `lib/live_set/live_set_options.rb` requires `optparse` but `common/util` does not
-
-`lib/live_set/live_set_options.rb:3` and the two other `*_options.rb` files each require `optparse`
-individually. `lib/common/util.rb` is the only shared file loaded unconditionally, and it does not
-require it.
-
-### N21. `Log` is referenced from `live_set_class.rb` but required elsewhere
-
-`lib/live_set/live_set_class.rb:14` uses `Log.level`, and
-`lib/live_set/live_set_audio_track.rb:9` uses `Log.debug`. Neither file requires
-`../common/log`; the constant comes from `lib/live_set.rb:4` (`require_directory "#{__dir__}/common"`).
-The classes are not independently loadable.
 
 ### N22. `exe/` scripts use a `VO_DEBUGGING` environment variable
 
@@ -591,53 +408,17 @@ The classes are not independently loadable.
 `ENV['VO_DEBUGGING']` to choose between `require_relative '../lib/live_set'` and `require 'live_set'`.
 The name suggests a generic debugger switch but is specific to this project.
 
-### N23. `src/live_set.rs` is an incomplete Rust port
-
-`src/live_set.rs` is 98 lines and declares `mod live_set; mod als_delta; mod common;`, but no
-corresponding `live_set.rs`, `als_delta.rs` or `common.rs` files exist under `src/`. It also lists
-only `common`, `als_delta` and `live_set` as commands — `generate_xsd` and `validate_asd` are absent.
-The `common` command in the Rust code dispatches to `common::parse_options()` and
-`common::help_live_set(...)`, mirroring the Ruby `common` method that is itself dead code (M1).
-
 ### N24. `after_real_pain.xsd` is untracked
 
 The file exists in the working directory but `.gitignore` contains `*.xsd`, so it is not in version
 control. It is a generated artifact from `generate_xsd`.
 
-### N25. `README.md` says "Two commands are provided" while three are shipped
-
-`README.md:109` — updated to "Three" as part of the `validate_asd` work in this session, with
-`validate_asd` added to the list.
-
-### N26. `CHANGELOG.md` lists `bin/validate_asd` and `validate_asd` as separate additions
-
-`CHANGELOG.md:6-8` — both the bash prototype and the Ruby command are listed for 0.2.5. This
-accurately reflects the history, but a reader may expect the bash script to have been replaced.
-
-### N27. `.rubocop.yml` uses `plugins:` rather than `require:`
-
-`.rubocop.yml:1` — this was changed from `require:` to `plugins:` in the working tree (uncommitted).
-`plugins:` is the newer RuboCop spelling, but the `rubocop-md` plugin should be confirmed to
-support it. RuboCop runs clean with this configuration, so it appears to work.
-
-### N28. `rubocop-md` flags `CHANGELOG.md` and `README.md` file names
-
-`bundle exec rubocop` reports `Naming/FileName` offenses for both markdown files. `Naming/FileName`
-is already excluded for `Rakefile` (`.rubocop.yml:44-46`); the markdown files need the same
-exclusion. Pre-existing, not introduced by recent work.
-
-### N29. `lib/live_set/live_set_audio_track.rb` uses `!!` on a Nokogiri node
-
-`lib/live_set/live_set_audio_track.rb:9-12` — `!!@audio_track.DeviceChain` and
-`!!@audio_track.DeviceChain.MainSequencer.ClipSlotList` are used to test for presence. RuboCop's
-`Style/DoubleNegation` flags this (it appears in the current RuboCop output). `!nil` or a `nil?`
-check would be clearer.
-
 ### N30. `LiveAudioTrack#initialize` assumes `DeviceChain/MainSequencer/ClipSlotList` exist
 
 `lib/live_set/live_set_audio_track.rb:17` — `@clip_slots = @audio_track.DeviceChain.MainSequencer.ClipSlotList`
 uses no safe navigation, unlike line 12 which does. A track without a `DeviceChain` raises
-`NoMethodError` on `nil`.
+`NoMethodError` on `nil`. Write a unit test for a track without a `DeviceChain`
+and verify expected results.
 
 ### N31. `LiveAudioClip#initialize` assumes `Value/AudioClip` exists
 
@@ -655,10 +436,6 @@ for `inner.Value` but not for `AudioClip` within it.
 `lib/live_set/live_set_audio_clip.rb:88` — `@last_modified.strftime(...)`. If `LastModDate` is
 missing, the rescue path is not taken and the method raises (see N32).
 
-### N34. `all_tracks.rb` and `live_set_audio_track.rb` naming is inconsistent with the rest
-
-The other classes are `LiveSet`, `LiveScene`, `LiveAudioClip`, `LiveDevice`; these are `AllTracks`
-and `LiveAudioTrack` (the latter mixes both conventions).
 
 ### N35. `generate_xsd` writes the XSD without checking the output directory exists
 
@@ -671,47 +448,8 @@ directory does not exist. The `generate_xsd` help text does not mention this.
 file against that backup, so the first iteration compares the file to itself. The help text says
 "compare with previous version", which is accurate only from the second iteration onward.
 
----
 
-## Summary
+## Severe
 
-| Severity | Count | Status |
-| --- | --- | --- |
-| Severe | 5 | 4 fixed, 1 open (S3 — recommendations only) |
-| Moderate | 14 | 2 fixed (M14, M15), 12 open |
-| Minor | 35 | open, reported only |
-
-### Severe
-
-1. **S1** — `FileUtils` is never required, so `live_set -11 -f` raises `NameError`. **Fixed.**
-2. **S2** — `show_track` asks the Nokogiri node for `frozen?` instead of the track, so frozen
-   tracks are always reported as not frozen. **Fixed.**
 3. **S3** — `define_audio_clips` relies on Slop accessors whose return type varies by child count
    and whose Live 8 / Live 12 fallback is unreachable. **Open — recommendations only, see above.**
-4. **S4** — `run_capture_stdout` treats `zdiff`'s "files differ" exit status 1 as a fatal error, so
-   `als_delta` exits instead of showing the diff. **Fixed.**
-5. **S5** — `run_capture_stdout` splits on all whitespace, flattening diff output. **Fixed.**
-
-### Changes made
-
-| File | Change |
-| --- | --- |
-| `lib/live_set/live_set_audio_track.rb:72` | `@audio_track.frozen?` → `frozen?` (S2) |
-| `lib/common/run.rb:6-16` | `run_capture_stdout` takes `success_statuses:`; compares `status.exitstatus`; returns `stdout_str.split("\n")` (S4, S5) |
-| `lib/als_delta/als_delta_class.rb:49-50` | `zdiff` call passes `success_statuses: [0, 1]` (S4) |
-| `lib/common/util.rb:1` | Added `require 'bytesize'` (M14) |
-| `LICENCE.txt` → `LICENSE.md` | Renamed and converted to proper markdown (M15) |
-| `README.md:293` | Licence link now points at `LICENSE.md` (M15) |
-
-### Specs added
-
-| File | Covers |
-| --- | --- |
-| `spec/spec_helper.rb` | Fixtures: `audio_track_element`, `clip_slot_xml` (Live 8 nested / Live 12 flat) |
-| `spec/live_set/live_set_audio_track_spec.rb` | S2 — `frozen?` |
-| `spec/live_set/live_set_audio_track_show_track_spec.rb` | S2 — the frozen marker in `show_track` |
-| `spec/common/run_spec.rb` | S4 — exit-status handling; S5 — line structure preserved |
-| `spec/live_set/live_set_audio_track_clip_slots_spec.rb` | S3 and M9 — characterises the current broken behaviour; failing examples are `pending` |
-
-The S2, S4 and S5 specs were verified to **fail** when the corresponding fix is reverted, so they
-genuinely detect the defects rather than merely passing.

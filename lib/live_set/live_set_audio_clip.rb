@@ -3,8 +3,7 @@ require 'date'
 require 'pathname'
 
 class LiveAudioClip
-  attr_reader :absolute_path, :file_ref, :file_size, :file_type, :id, :last_modified, :live_pack_name, :need_refreeze, :relative_path,
-              :relative_path_type
+  attr_reader :absolute_path, :file_size, :last_modified, :relative_path
 
   # Ableton Live 8.2.6's XML structure has a quirk depending on the data type:
   # - Integers/Booleans use attributes: <HasRelativePath Value="true" /> (['Value'] code works for these).
@@ -24,10 +23,7 @@ class LiveAudioClip
   # Live 12 moved <AudioClip> elements out of <ClipSlot>. Instead, they're in:
   # - TakeLanes/TakeLane/ClipAutomation/Events/AudioClip (for take lanes)
   # - DeviceChain/MainSequencer/Sample/ArrangerAutomation/Events/AudioClip (for the main arrangement)
-  def initialize(set_directory, id, need_refreeze, clip_slot)
-    @id                 = id
-    @need_refreeze      = need_refreeze
-
+  def initialize(set_directory, clip_slot)
     @audio_clip         = clip_slot.Value.AudioClip
     @file_ref           = @audio_clip.SampleRef.FileRef
     @last_modified      = Time.at(@audio_clip.SampleRef.LastModDate['Value'].to_i).utc.to_datetime
@@ -36,20 +32,15 @@ class LiveAudioClip
     size_node = @file_ref.at('OriginalFileSize') || @file_ref.at('FileSize')
     @file_size = size_node ? (size_node['Value'] || size_node.text).to_i : 0
 
-    @file_type          = @file_ref.at('Type')&.[]('Value')
-    @live_pack_name     = @file_ref.at('LivePackName')&.[]('Value')
-
     # PATHS: Ableton stores paths as text inside nested tags (e.g., <Path><Path>actual/path</Path></Path>).
     # We must use `.text` instead of `['Value']` to extract them.
     rel_path_node = @file_ref.at('RelativePath/RelativePath/Path') || @file_ref.at('RelativePath')
     @relative_path = rel_path_node&.text
 
     abs_path_node = @file_ref.at('Path/Path') || @file_ref.at('Path')
-    @absolute_path_xml = abs_path_node&.text
+    absolute_path_xml = abs_path_node&.text
 
-    @relative_path_type = @file_ref.at('RelativePathType')&.[]('Value')
-
-    @absolute_path = compute_absolute_path @absolute_path_xml, @relative_path, set_directory
+    @absolute_path = compute_absolute_path absolute_path_xml, @relative_path, set_directory
   end
 
   def compute_absolute_path(absolute_path_xml, relative_path, set_directory)

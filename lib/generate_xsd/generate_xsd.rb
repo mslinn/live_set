@@ -22,8 +22,8 @@ class XsdFromXml
     @overwrite = options[:force]
     @xml_docs = []
     @roots = xml_files.map do |xml_file|
-      contents = Zlib::GzipReader.open(xml_file, &:readlines)
-      xml_doc = Nokogiri::Slop contents.join("\n")
+      contents = Zlib::GzipReader.open(xml_file, &:read)
+      xml_doc = Nokogiri::Slop contents
       xml_doc.root || raise(ArgumentError, "#{xml_file} has no root element")
       @xml_docs << xml_doc
       xml_doc.root

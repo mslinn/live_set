@@ -1,4 +1,5 @@
 require 'bytesize'
+require 'optparse'
 
 # Monkey patch Array to add one new method
 class Array
@@ -13,15 +14,8 @@ class Array
   end
 end
 
-# Monkey patch String to add two new methods
+# Monkey patch String to add one new method
 class String # rubocop:disable Style/OneClassPerFile
-  def to_bool
-    return true if casecmp('true').zero?
-    return false if casecmp('false').zero?
-
-    nil
-  end
-
   def expand_env
     gsub(/\$([a-zA-Z_][a-zA-Z0-9_]*)|\${\g<1>}|%\g<1>%/) do
       ENV.fetch(Regexp.last_match(1), nil)

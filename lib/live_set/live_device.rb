@@ -47,8 +47,11 @@ class LiveDevice
     el = node.at(tag)
     return nil unless el
 
-    el['Value'] ||
-      el.at('EffectiveName')&.[]('Value') ||
-      el.text.strip.then { |s| s.empty? ? nil : s }
+    # Prefer an explicit Value attribute, whether on the element itself or on a nested EffectiveName.
+    value = el['Value'] || el.at('EffectiveName')&.[]('Value')
+    return value if value
+
+    text = el.text.strip
+    text.empty? ? nil : text
   end
 end

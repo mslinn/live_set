@@ -31,10 +31,10 @@ def parse_options
   opts = do_parse
   remaining = opts.order!(into: options)
 
-  help_generate_xsd('No XSD file name provided.') unless remaining
+  help_generate_xsd('No XSD file name provided.') if remaining.empty?
   @xsd_file = remaining.shift
 
-  help_generate_xsd('No ALS file names provided.') unless remaining
+  help_generate_xsd('No ALS file names provided.') if remaining.empty?
   @als_files = remaining
 
   # Normalize loglevel to uppercase string
@@ -44,7 +44,7 @@ def parse_options
 
   msg = "Invalid verbosity value (#{@loglevel}), must be one of one of: #{@loglevels.join ', '}."
 
-  generate_xsd msg if @loglevel && !@loglevels.include?(@loglevel.upcase.to_sym)
+  help_generate_xsd msg if @loglevel && !@loglevels.include?(@loglevel.upcase.to_sym)
 
   options
 end

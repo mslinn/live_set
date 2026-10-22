@@ -1,7 +1,7 @@
 require 'spec_helper'
-require 'live_set/live_set_audio_track'
+require 'live_set/live_set_track'
 
-RSpec.describe LiveAudioTrack, '#show_track' do
+RSpec.describe LiveTrack, '#show_track' do
   # Builds a track without running #initialize, so that the frozen state can be
   # exercised independently of the clip-slot parsing discussed in TODO.md S3.
   def track_with(frozen:, clip_count:)
