@@ -1,67 +1,65 @@
 require 'colorator'
 require 'logger'
 require 'optparse'
+require_relative '../common/command_options'
+require_relative '../common/log'
 
-@loglevels = Logger::Severity.constants.sort_by { |name| Logger::Severity.const_get(name) } unless defined?(@loglevels)
+class XsdFromXml
+  # Display help message for generate_xsd
+  #
+  # @param msg [String, nil] an error message to show above the help
+  # @return [String] the help message
+  def self.help(msg = nil)
+    help = <<~END_HELP
+      Generate_xsd reads one or more Ableton Live sets and generates an XSD with the given name.
 
-# Display help message for generate_xsd
-def help_generate_xsd(msg = nil)
-  printf "Error: #{msg}\n\n".yellow unless msg.nil?
-  msg = <<~END_HELP
-    Generate_xsd reads one or more Ableton Live sets and generates an XSD with the given name.
+      Syntax: generate_xsd OPTIONS XSD_FILE_NAME PATH_TO_ALS_FILE...
 
-    Syntax: generate_xsd OPTIONS XSD_FILE_NAME PATH_TO_ALS_FILE...
+      Environment variables used in XSD_FILE_NAME and PATH_TO_ALS_FILE are expanded.
 
-    Environment variables used in XSD_FILE_NAME and PATH_TO_ALS_FILE are expanded.
+      Options are:
+        -f Overwrite any existing xsd.
+        -h Display this help message.
 
-    Options are:
-      -f Overwrite any existing xsd.
-      -h Display this help message.
+      Example:
+        generate_xsd -f xsd_file_name $path/to/my_v12_set.als
+    END_HELP
 
-    Example:
-      generate_xsd -f xsd_file_name $path/to/my_v12_set.als
-  END_HELP
-  printf msg.cyan
-  exit 1
-end
+    msg.nil? ? help : "Error: #{msg}\n\n#{help}"
+  end
 
-# Parse options for generate_xsd executable
-def parse_options
-  options = { loglevel: 'WARN' }
-  opts = do_parse
-  remaining = opts.order!(into: options)
+  # Parse options for generate_xsd executable
+  #
+  # @param args [Array<String>] the command line arguments
+  # @return [Array(Hash, String, Array<String>)] the options, the XSD file name, and the ALS file names
+  def self.parse_options(args)
+    options = { loglevel: 'WARN' }
+    remaining = do_parse.order!(args, into: options)
 
-  help_generate_xsd('No XSD file name provided.') if remaining.empty?
-  @xsd_file = remaining.shift
+    abort help('No XSD file name provided.') if remaining.empty?
+    xsd_file = remaining.shift
 
-  help_generate_xsd('No ALS file names provided.') if remaining.empty?
-  @als_files = remaining
+    abort help('No ALS file names provided.') if remaining.empty?
 
-  xsd_directory = File.dirname(File.expand_path(@xsd_file))
-  help_generate_xsd("Directory does not exist: #{xsd_directory}") unless Dir.exist?(xsd_directory)
+    xsd_directory = File.dirname(File.expand_path(xsd_file))
+    abort help("Directory does not exist: #{xsd_directory}") unless Dir.exist?(xsd_directory)
 
-  # Normalize loglevel to uppercase string
-  options[:loglevel] = options[:loglevel].to_s.upcase if options[:loglevel]
+    error = CommandOptions.loglevel_error(options)
+    abort help(error) if error
 
-  @loglevel = options[:loglevel]
+    [options, xsd_file, remaining]
+  end
 
-  msg = "Invalid verbosity value (#{@loglevel}), must be one of one of: #{@loglevels.join ', '}."
+  def self.do_parse
+    OptionParser.new do |parser|
+      parser.program_name = 'generate_xsd'
 
-  help_generate_xsd msg if @loglevel && !@loglevels.include?(@loglevel.upcase.to_sym)
+      parser.on('-f', '--force', 'Overwrite the output xsd if it already exists')
+      parser.on('-l', '--loglevel LOGLEVEL', String, "Logging level (#{LOG_LEVELS.join ', '})")
 
-  options
-end
-
-def do_parse
-  OptionParser.new do |parser|
-    parser.program_name = File.basename __FILE__
-    @parser = parser
-
-    parser.on('-f', '--force', 'Overwrite the output xsd if it already exists')
-    parser.on('-l', '--loglevel LOGLEVEL', String, "Logging level (#{@loglevels.join ', '})")
-
-    parser.on_tail('-h', '--help', 'Show this message') do
-      generate_xsd
+      parser.on_tail('-h', '--help', 'Show this message') do
+        abort help
+      end
     end
   end
 end

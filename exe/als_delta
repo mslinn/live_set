@@ -5,4 +5,5 @@ if ENV['VO_DEBUGGING']
 else
   require 'live_set'
 end
-als_delta
+
+AlsDelta.run(ARGV)

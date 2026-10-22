@@ -6,6 +6,30 @@ require_relative '../common/run'
 class AlsDelta
   include Run
 
+  # Show the changes to a Live set each time it is saved.
+  #
+  # @param args [Array<String>] the command line arguments
+  # @return [void]
+  def self.run(args)
+    options, remaining = parse_options(args)
+
+    abort help('An Ableton Live set name must be provided.') if remaining.empty?
+
+    set_name = remaining.join(' ').expand_env
+    abort help("#{set_name} does not exist") unless File.exist? set_name
+    abort help("#{set_name} is a directory") if File.directory? set_name
+
+    trap('SIGINT') { throw :ctrl_c }
+
+    als_delta = new set_name, **options
+    catch :ctrl_c do
+      als_delta.show
+      als_delta.cleanup
+    rescue Exception # rubocop:disable Lint/RescueException
+      als_delta.cleanup
+    end
+  end
+
   def initialize(set_name, **options)
     @options = options
     @loglevel  = "-loglevel #{@options[:loglevel]}"

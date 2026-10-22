@@ -4,10 +4,11 @@ require 'live_set/live_set_live_tracks'
 
 RSpec.describe LiveTracks, '#p3s_tx_msg' do
   # Builds a LiveTracks holding the given stand-in tracks.
-  def tracks_with(*tracks)
+  def tracks_with(*tracks, groups: [])
     tracks_object = described_class.allocate
     tracks_object.instance_variable_set(:@tracks, tracks)
     tracks_object.instance_variable_set(:@track_instances, tracks)
+    tracks_object.instance_variable_set(:@group_instances, groups)
     tracks_object
   end
 
@@ -62,6 +63,48 @@ RSpec.describe LiveTracks, '#p3s_tx_msg' do
       tracks = tracks_with(track_with_clip(device_summary: 'EQ Eight'))
 
       expect(tracks.send(:p3s_tx_msg)).to include('is unfrozen; devices: EQ Eight')
+    end
+  end
+
+  context 'when a group uses a third-party device' do
+    # A group's members are routed to the group, so the group's devices process the members' audio.
+    # A plug-in in a group's chain blocks a transfer just as much as one on a track. A group track
+    # cannot be frozen, so the tracks inside it have to be frozen individually.
+    it 'reports that the set is not ready' do
+      group = FakeGroup.new('VOZ', [FakeDevice.new('OTT')])
+      tracks = tracks_with(groups: [group])
+
+      expect(tracks.send(:p3s_tx_msg)).to include('should not be transferred')
+    end
+
+    it 'names the group' do
+      group = FakeGroup.new('VOZ', [FakeDevice.new('OTT')])
+      tracks = tracks_with(groups: [group])
+
+      expect(tracks.send(:p3s_tx_msg)).to include("Group 'VOZ'")
+    end
+
+    it 'names the device' do
+      group = FakeGroup.new('VOZ', [FakeDevice.new('OTT')])
+      tracks = tracks_with(groups: [group])
+
+      expect(tracks.send(:p3s_tx_msg)).to include('OTT')
+    end
+
+    it 'says how to render the device away' do
+      group = FakeGroup.new('VOZ', [FakeDevice.new('OTT')])
+      tracks = tracks_with(groups: [group])
+
+      expect(tracks.send(:p3s_tx_msg)).to include('Freeze the tracks in this group')
+    end
+  end
+
+  context 'when a group uses only native devices' do
+    it 'still reports that the set is ready' do
+      group = FakeGroup.new('VOZ', [])
+      tracks = tracks_with(groups: [group])
+
+      expect(tracks.send(:p3s_tx_msg)).to include('Ready for transfer to Push 3 Standalone')
     end
   end
 end

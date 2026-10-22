@@ -4,25 +4,35 @@ require_relative '../common/xml'
 class LiveTrack
   include Xml
 
-  attr_reader :audio_clips, :clip_slots, :id
+  attr_reader :audio_clips, :id
+
+  # The two sequencers a track can have.
+  #
+  # A track that is frozen keeps both. The MainSequencer holds the editable material, and the
+  # FreezeSequencer holds the rendered audio cache that replaces it during playback. A frozen
+  # track's clips can be in either, and some are only in the FreezeSequencer, so both have to be
+  # searched. See docs/als_format.md section 11.
+  SEQUENCERS = %w[MainSequencer FreezeSequencer].freeze
 
   def initialize(set_directory, audio_track)
     @audio_track = audio_track
     @id          = @audio_track['Id']
     @frozen      = xml_bool?(@audio_track.at('Freeze'), description: "AudioTrack '#{@id}' Freeze")
 
+    device_chain = @audio_track.at('DeviceChain')
+
     Log.debug "Track #{@id}:"
-    Log.debug "  DeviceChain exists: #{!@audio_track.DeviceChain.nil?}"
-    Log.debug "  MainSequencer exists: #{!@audio_track.DeviceChain.MainSequencer.nil?}" if @audio_track.DeviceChain
-    Log.debug "  ClipSlotList exists: #{!@audio_track.DeviceChain.MainSequencer.ClipSlotList.nil?}" if @audio_track.DeviceChain&.MainSequencer
+    Log.debug "  DeviceChain exists: #{!device_chain.nil?}"
+    SEQUENCERS.each do |sequencer|
+      Log.debug "  #{sequencer} exists: #{!device_chain&.at(sequencer).nil?}"
+    end
 
-    # Audit the whole chain, including devices nested inside racks.
-    # TODO.md N16: this matches no real set. A survey of 40 sets in $songs found zero <Device/>
-    # elements; plugins live in <PluginDevice/> elements instead.
-    @devices = @audio_track.search('.//Device').map { |node| LiveDevice.new(node) }
+    # The devices in the track's chain. The path is doubled: the track's DeviceChain contains a
+    # DeviceChain, which contains Devices. See docs/als_format.md section 8.1.
+    @devices = @audio_track.xpath('./DeviceChain/DeviceChain/Devices/*')
+                           .map { |node| LiveDevice.new node }
 
-    @clip_slots = @audio_track.DeviceChain.MainSequencer.ClipSlotList
-    @audio_clips = define_audio_clips @clip_slots, set_directory
+    @audio_clips = define_audio_clips set_directory
   end
 
   # The clips in this track, grouped by where they come from.
@@ -30,32 +40,41 @@ class LiveTrack
   # A track's audio can be in the session view, in the arrangement, and in the take lanes. They are
   # separate clips with separate ids, and the same file can be referenced from more than one of
   # them. See docs/als_format.md section 6.
-  def define_audio_clips(clip_slots, set_directory)
+  #
+  # A frozen track's audio may be in the FreezeSequencer rather than the MainSequencer, so each
+  # source is searched in both sequencers. See docs/als_format.md section 11.
+  def define_audio_clips(set_directory)
     {
-      'Session view' => session_view_clips(clip_slots, set_directory),
+      'Session view' => session_view_clips(set_directory),
       'Arrangement'  => arrangement_clips(set_directory),
       'Take lanes'   => take_lane_clips(set_directory),
     }
   end
 
   # The clips in the track's row of session-view slots.
-  def session_view_clips(clip_slots, set_directory)
-    return [] if clip_slots.nil?
-
-    clip_slots.xpath('./ClipSlot/ClipSlot/Value/AudioClip')
-              .map { |node| LiveAudioClip.new(set_directory, node) }
+  def session_view_clips(set_directory)
+    sequencer_clips('ClipSlotList/ClipSlot/ClipSlot/Value/AudioClip')
+      .map { |node| LiveAudioClip.new(set_directory, node) }
   end
 
   # The clips on the arrangement timeline.
   def arrangement_clips(set_directory)
-    @audio_track.xpath('./DeviceChain/MainSequencer/Sample/ArrangerAutomation/Events/AudioClip')
-                .map { |node| LiveAudioClip.new(set_directory, node) }
+    sequencer_clips('Sample/ArrangerAutomation/Events/AudioClip')
+      .map { |node| LiveAudioClip.new(set_directory, node) }
   end
 
   # The clips recorded onto the take lanes.
   def take_lane_clips(set_directory)
     @audio_track.xpath('./TakeLanes/TakeLanes/TakeLane/ClipAutomation/Events/AudioClip')
                 .map { |node| LiveAudioClip.new(set_directory, node) }
+  end
+
+  # The clips at the given path within a sequencer.
+  #
+  # @param path [String] the path to the clips, relative to the sequencer
+  # @return [Array<Nokogiri::XML::Element>] the clips
+  def sequencer_clips(path)
+    SEQUENCERS.flat_map { |sequencer| @audio_track.xpath("./DeviceChain/#{sequencer}/#{path}").to_a }
   end
 
   # The name to display for this track.

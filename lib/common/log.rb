@@ -1,6 +1,9 @@
 require 'colorator'
 require 'logger'
 
+# The valid logging levels, in increasing order of severity.
+LOG_LEVELS = Logger::Severity.constants.sort_by { |name| Logger::Severity.const_get(name) }.freeze
+
 # Define singleton for logging. Logs are color-coded by severity.
 unless Object.const_defined?(:Log, false)
   Log = Logger.new($stdout)

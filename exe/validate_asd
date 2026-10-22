@@ -6,4 +6,4 @@ else
   require 'live_set'
 end
 
-validate_asd
+ValidateAsd.run(ARGV)

@@ -33,16 +33,16 @@ class LiveAudioClip
   # @param audio_clip [Nokogiri::XML::Element] an <AudioClip> element from an Ableton Live .als file
   def initialize(set_directory, audio_clip)
     @audio_clip         = audio_clip
-    @file_ref           = @audio_clip.SampleRef.FileRef
+    @file_ref           = @audio_clip.at('SampleRef/FileRef')
     @last_modified      = last_modified_date
 
     # File size: Check both OriginalFileSize (newer Live) and FileSize (Live 8)
-    size_node = @file_ref.at('OriginalFileSize') || @file_ref.at('FileSize')
+    size_node = @file_ref&.at('OriginalFileSize') || @file_ref&.at('FileSize')
     @file_size = xml_value(size_node).to_i
 
     # PATHS: Ableton stores the path in the Value attribute of a RelativePath or Path element.
-    @relative_path = xml_value(@file_ref.at('RelativePath'))
-    absolute_path_xml = xml_value(@file_ref.at('Path'))
+    @relative_path = xml_value(@file_ref&.at('RelativePath'))
+    absolute_path_xml = xml_value(@file_ref&.at('Path'))
 
     @absolute_path = compute_absolute_path absolute_path_xml, @relative_path, set_directory
     @file_size = disk_size if @file_size.zero? && !@absolute_path.nil?

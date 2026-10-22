@@ -30,6 +30,13 @@ FakeTrackClip = Struct.new(:absolute_path, :collected?)
 # A stand-in for a LiveDevice, for testing LiveTracks.
 FakeDevice = Struct.new(:label)
 
+# A stand-in for a LiveGroup, for testing LiveTracks.
+FakeGroup = Struct.new(:name, :blocking_devices) do
+  def device_summary
+    ''
+  end
+end
+
 # Builds a Slop-decorated document containing a single AudioTrack.
 #
 # @param clip_slots [String] the inner XML of the <ClipSlotList> element
@@ -77,6 +84,160 @@ def audio_track_element(clip_slots: '', freeze: 'false', arrangement_clips: '', 
   XML
 
   Nokogiri::Slop(xml).xpath('//AudioTrack').first
+end
+
+# Builds a Slop-decorated document containing a single AudioTrack whose audio is in the
+# FreezeSequencer rather than the MainSequencer.
+#
+# A frozen track keeps both sequencers. The MainSequencer holds the editable material, and the
+# FreezeSequencer holds the rendered audio cache. Some frozen tracks hold their clips only in the
+# FreezeSequencer, so a reader that looks only at the MainSequencer finds nothing.
+#
+# See docs/als_format.md section 11.
+#
+# @param clip_slots [String] the inner XML of the FreezeSequencer's <ClipSlotList> element
+# @param arrangement_clips [String] the inner XML of the arrangement's <Events> element
+# @return [Nokogiri::XML::Element] the AudioTrack element
+def frozen_track_element(clip_slots: '', arrangement_clips: '')
+  xml = <<~XML
+    <Ableton>
+      <LiveSet>
+        <Tracks>
+          <AudioTrack Id="4">
+            <Name><EffectiveName Value="Frozen Track"/></Name>
+            <Freeze Value="true"/>
+            <DeviceChain>
+              <MainSequencer>
+                <ClipSlotList>
+                </ClipSlotList>
+              </MainSequencer>
+              <FreezeSequencer>
+                <ClipSlotList>
+    #{clip_slots}
+                </ClipSlotList>
+                <Sample>
+                  <ArrangerAutomation>
+                    <Events>
+    #{arrangement_clips}
+                    </Events>
+                  </ArrangerAutomation>
+                </Sample>
+              </FreezeSequencer>
+            </DeviceChain>
+          </AudioTrack>
+        </Tracks>
+      </LiveSet>
+    </Ableton>
+  XML
+
+  Nokogiri::Slop(xml).xpath('//AudioTrack').first
+end
+
+# Builds a Slop-decorated document containing a single GroupTrack.
+#
+# A group track is a summing container. It has no clips, and its Slots are empty. Its DeviceChain
+# has no MainSequencer, only a FreezeSequencer. See docs/als_format.md section 9.
+#
+# @param id [String] the group's Id attribute
+# @param name [String] the group's name
+# @param devices [String] the inner XML of the group's <Devices> element
+# @return [Nokogiri::XML::Element] the GroupTrack element
+def group_track_element(id: '34', name: 'Test Group', devices: '')
+  xml = <<~XML
+    <Ableton>
+      <LiveSet>
+        <Tracks>
+          <GroupTrack Id="#{id}">
+            <Name><EffectiveName Value="#{name}"/></Name>
+            <TrackGroupId Value="-1"/>
+            <Freeze Value="false"/>
+            <Slots>
+              <GroupTrackSlot><LomId Value="0"/></GroupTrackSlot>
+            </Slots>
+            <DeviceChain>
+              <Mixer>
+                <Sends/>
+                <Pan Value="0"/>
+                <Volume Value="0"/>
+              </Mixer>
+              <DeviceChain>
+                <Devices>
+    #{devices}
+                </Devices>
+              </DeviceChain>
+              <FreezeSequencer>
+                <ClipSlotList>
+                  <ClipSlot><LomId Value="0"/><ClipSlot><HasStop Value="true"/></ClipSlot></ClipSlot>
+                </ClipSlotList>
+              </FreezeSequencer>
+            </DeviceChain>
+          </GroupTrack>
+        </Tracks>
+      </LiveSet>
+    </Ableton>
+  XML
+
+  Nokogiri::Slop(xml).xpath('//GroupTrack').first
+end
+
+# Builds a track element that belongs to the given group.
+#
+# @param group_id [String] the Id of the group the track belongs to
+# @return [Nokogiri::XML::Element] the AudioTrack element
+def track_with_group(group_id)
+  xml = "<AudioTrack Id=\"1\"><TrackGroupId Value=\"#{group_id}\"/></AudioTrack>"
+  Nokogiri::Slop(xml).xpath('//AudioTrack').first
+end
+
+# Builds a <PluginDevice> element holding a VST3 plug-in.
+#
+# A VST3 plug-in has no PlugName. Its name is at PluginDesc/Vst3PluginInfo/Name. See
+# docs/als_format.md section 8.
+#
+# @param name [String] the plug-in's name
+# @return [String] the XML of a <PluginDevice> element
+def plugin_device_xml(name: 'OTT')
+  <<~XML
+    <PluginDevice Id="6">
+      <LomId Value="0"/>
+      <Name Value=""/>
+      <UserName Value=""/>
+      <PluginDesc>
+        <Vst3PluginInfo Id="0">
+          <WinPosX Value="47"/>
+          <NumAudioInputs Value="1"/>
+          <NumAudioOutputs Value="1"/>
+          <IsPlaceholderDevice Value="false"/>
+          <Preset><Vst3Preset/></Preset>
+          <Name Value="#{name}"/>
+          <DeviceType Value="2"/>
+        </Vst3PluginInfo>
+      </PluginDesc>
+    </PluginDevice>
+  XML
+end
+
+# Builds a <PluginDevice> element holding a VST2 plug-in.
+#
+# A VST2 plug-in's name is at PluginDesc/VstPluginInfo/PlugName. See docs/als_format.md section 8.
+#
+# @param name [String] the plug-in's name
+# @return [String] the XML of a <PluginDevice> element
+def vst2_plugin_device_xml(name: 'MAutoPitch')
+  <<~XML
+    <PluginDevice Id="7">
+      <LomId Value="0"/>
+      <Name Value=""/>
+      <UserName Value=""/>
+      <PluginDesc>
+        <VstPluginInfo Id="0">
+          <Path Value="C:/Program Files/VstPlugins/#{name}.dll"/>
+          <PlugName Value="#{name}"/>
+          <UniqueId Value="1298232660"/>
+        </VstPluginInfo>
+      </PluginDesc>
+    </PluginDevice>
+  XML
 end
 
 # Builds an <AudioClip> element.

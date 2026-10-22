@@ -24,7 +24,16 @@ This software can:
    b. Detect tracks that have non-Ableton plugins are not frozen, which means
    they are not ready to be transferred to Push 3 Standalone.
 
-   c. Shows clips that are have not been collected within the set&rsquo;s project directory.
+   c. Detect group tracks that have non-Ableton plugins. A group&rsquo;s tracks are
+   routed through the group&rsquo;s device chain, so a plugin in a group blocks a
+   transfer just as much as a plugin on a track. A group track cannot be frozen,
+   so the tracks inside the group have to be frozen individually.
+
+   d. Shows clips that are have not been collected within the set&rsquo;s project directory.
+
+9. Report the samples in frozen tracks. A frozen track keeps two copies of its
+   audio: the editable material, and the rendered audio cache that replaces it
+   during playback. Both are reported.
 
 This program has successfully converted the Ableton Live 12 demo project to Live
 11. Also tested with Live 8.6 session files.
@@ -229,6 +238,22 @@ $ live_set -11 -f path/to/my_set.als
 The converted set uses the Live 11.3.21 schema. The sub-version is not configurable, because
 there is no way to ask for a particular one — see
 [docs/als_format.md](docs/als_format.md#21-converting-a-set-to-live-11-uses-a-fixed-schema).
+
+
+## Experimental features
+
+Ableton Live can be configured to enable experimental and unsupported features through an
+`Options.txt` file in its Preferences folder. For example, `-_GroupTrackFreeze` allows a group
+track to be bounced as though it were a track.
+
+**`live_set` does not support experimental features.** It ignores `Options.txt` entirely, and
+treats every setting that `Options.txt` can control as having its standard behaviour, as though
+the experimental option had not been specified.
+
+A set saved with an experimental option enabled is therefore read as though the option were not
+in effect. In particular, a group track is always read as unfrozen, and the tracks inside it are
+always read as unfrozen. See
+[docs/als_format.md](docs/als_format.md#941-the-optionstxt-hidden-option).
 
 
 ## Development

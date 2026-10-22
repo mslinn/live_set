@@ -13,6 +13,32 @@ require 'zlib'
 # Usage: generate_xsd sample1.xml sample2.xml
 #
 class XsdFromXml
+  # Generate an XSD from one or more Live sets, and write it to a file.
+  #
+  # @param args [Array<String>] the command line arguments
+  # @return [void]
+  def self.run(args)
+    options, xsd_file, als_files = parse_options(args)
+
+    als_files = als_files.map do |file|
+      expanded_file = file.expand_env
+      abort help("ALS file does not exist: #{expanded_file}") unless File.exist?(expanded_file)
+      abort help("#{expanded_file} is a directory") if File.directory? expanded_file
+      expanded_file
+    end
+
+    trap('SIGINT') { throw :ctrl_c }
+
+    generate_xsd = new xsd_file, als_files, **options
+    catch :ctrl_c do
+      content = generate_xsd.generate
+      File.write(xsd_file, content)
+      puts "Wrote '#{File.expand_path xsd_file}'".green
+    rescue Exception => e # rubocop:disable Lint/RescueException
+      puts e.full_message
+    end
+  end
+
   def initialize(xsd_file, xml_files, **options)
     raise ArgumentError, 'Provide at least one XML file' if xml_files.empty?
 

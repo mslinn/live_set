@@ -1,64 +1,61 @@
 require 'colorator'
 require 'logger'
 require 'optparse'
+require_relative '../common/command_options'
 require_relative '../common/log'
 
-@loglevels = Logger::Severity.constants.sort_by { |name| Logger::Severity.const_get(name) } unless defined?(@loglevels)
+class LiveSet
+  # Display help message for live_set
+  #
+  # @param msg [String, nil] an error message to show above the help
+  # @return [String] the help message
+  def self.help(msg = nil)
+    help = <<~END_HELP
+      Live_set displays information about an Ableton Live set or converts a Live 12 set to Live 11 format.
+      If the special folder called 'Ableton Project Info' is not present in the same folder as the .als file, a warning is generated.
+      Similarly, if 'Ableton Project Info' is present in any parent folder, a warning is issued and the user is asked if the directory should be renamed.
 
-# Display help message for live_set
-def help_live_set(msg = nil)
-  printf "Error: #{msg}\n\n".yellow unless msg.nil?
-  msg = <<~END_HELP
-    Live_set displays information about an Ableton Live set or converts a Live 12 set to Live 11 format.
-    If the special folder called 'Ableton Project Info' is not present in the same folder as the .als file, a warning is generated.
-    Similarly, if 'Ableton Project Info' is present in any parent folder, a warning is issued and the user is asked if the directory should be renamed.
+      Syntax: live_set OPTIONS PATH_TO_ALS_FILE
 
-    Syntax: live_set OPTIONS PATH_TO_ALS_FILE
+      Environment variables used in PATH_TO_ALS_FILE are expanded.
 
-    Environment variables used in PATH_TO_ALS_FILE are expanded.
+      Options are:
+        -11 Convert the Live 12 set to Live 11 format.
+        -f If -11 is specified, overwrite any existing Live 11 set.
+        -h Display this help message.
 
-    Options are:
-      -11 Convert the Live 12 set to Live 11 format.
-      -f If -11 is specified, overwrite any existing Live 11 set.
-      -h Display this help message.
+      Example:
+        live_set -11 -f $path/to/my_v12_set.als
+    END_HELP
 
-    Example:
-      live_set -11 -f $path/to/my_v12_set.als
-  END_HELP
-  printf msg.cyan
-  exit 1
-end
+    msg.nil? ? help : "Error: #{msg}\n\n#{help}"
+  end
 
-# Parse options for live_set executable
-def parse_options
-  options = { loglevel: 'WARN' }
-  opts = do_parse
-  opts.order!(into: options)
+  # Parse options for live_set executable
+  #
+  # @param args [Array<String>] the command line arguments
+  # @return [Array(Hash, Array<String>)] the options and the remaining arguments
+  def self.parse_options(args)
+    options = { loglevel: 'WARN' }
+    remaining = do_parse.order!(args, into: options)
 
-  # Normalize loglevel to uppercase string
-  options[:loglevel] = options[:loglevel].to_s.upcase if options[:loglevel]
+    error = CommandOptions.loglevel_error(options)
+    abort help(error) if error
+    [options, remaining]
+  end
 
-  @loglevel = options[:loglevel]
+  def self.do_parse
+    OptionParser.new do |parser|
+      parser.program_name = 'live_set'
 
-  msg = "Invalid verbosity value (#{@loglevel}), must be one of one of: #{@loglevels.join ', '}."
+      parser.on('-11', '--convert11', 'Make a copy of the set that is compatible with Live 11')
+      parser.on('-f', '--force', 'Overwrite the output set if it already exists')
+      parser.on('-l', '--loglevel LOGLEVEL', String, "Logging level (#{LOG_LEVELS.join ', '})")
+      parser.on('-s', '--show', 'Display information about the Ableton Live set')
 
-  help_live_set msg if @loglevel && !@loglevels.include?(@loglevel.upcase.to_sym)
-
-  options
-end
-
-def do_parse
-  OptionParser.new do |parser|
-    parser.program_name = File.basename __FILE__
-    @parser = parser
-
-    parser.on('-11', '--convert11', 'Make a copy of the set that is compatible with Live 11')
-    parser.on('-f', '--force', 'Overwrite the output set if it already exists')
-    parser.on('-l', '--loglevel LOGLEVEL', String, "Logging level (#{@loglevels.join ', '})")
-    parser.on('-s', '--show', 'Display information about the Ableton Live set')
-
-    parser.on_tail('-h', '--help', 'Show this message') do
-      live_set
+      parser.on_tail('-h', '--help', 'Show this message') do
+        abort help
+      end
     end
   end
 end

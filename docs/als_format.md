@@ -318,10 +318,44 @@ The plugin's name is not where `live_set` looks for it:
       <PlugName Value="MAutoPitch"/>
 ```
 
-The name is at `PluginDesc/VstPluginInfo/PlugName` — 76 such elements in the sample, with values
-such as `"TDR VOS SlickEQ"` (38), `"MAutoPitch"` (24) and `"GTune"` (4).
+**There are two shapes of `PluginDesc`, and the name is in a different place in each.** Across the
+whole corpus:
 
-**There is no `Manufacturer` element at all** — 76 of 76 are absent.
+| `PluginDesc` child | Count | Name element | Live versions |
+| --- | --- | --- | --- |
+| `VstPluginInfo` (VST2) | 351 | `PlugName` | 8, 11, 12 |
+| `Vst3PluginInfo` (VST3) | 1153 | `Name` | 11, 12 |
+
+A VST2 plugin has `PlugName` — 351 of 351 have it, with values such as `"MAutoPitch"`. A VST3
+plugin has **no `PlugName` at all** — 0 of 1153 — and its name is at `Name`, with values such as
+`"T-De-Esser"`, `"LALA"`, `"Kontakt"`, `"SSQ"`, `"MCompressor"` and `"OTT"`.
+
+```xml
+<PluginDesc>
+  <Vst3PluginInfo Id="0">
+    <WinPosX Value="47"/>
+    <NumAudioInputs Value="1"/>
+    <NumAudioOutputs Value="1"/>
+    <IsPlaceholderDevice Value="false"/>
+    <Preset><Vst3Preset/></Preset>
+    <Name Value="T-De-Esser"/>
+    <Uid Value="..."/>
+    <DeviceType Value="2"/>
+```
+
+`DeviceType` is `1` for an instrument (96 of 1153) and `2` for an effect (1057 of 1153).
+
+**There is no `Manufacturer` element at all** — it is absent from every plugin in the corpus.
+
+There is also **no reliable way to tell a third-party plugin from an Ableton-native one** from the
+XML alone. A native Ableton device is not a `PluginDevice` at all — it is its own element, such as
+`Eq8`, `GlueCompressor`, `Limiter`, `Saturator`, `Compressor2`, `Reverb`, `Tube`, `Cabinet`,
+`Spectral`, `AutoFilter`, `StereoGain` and `Tuner`. The `PluginDevice` element therefore means
+"a plug-in", and every plug-in in the corpus is third-party — but that is a property of the
+corpus, not something the file states. `Path` is present on 317 of 1504 plugins and always points
+outside Ableton's own directories; the other 1187 have no `Path` at all.
+
+`IsPlaceholderDevice` is `"false"` on 1430 plugins, and absent on the other 74.
 
 The elements `live_set` currently looks for are all absent from real sets:
 
@@ -337,16 +371,222 @@ The elements `live_set` currently looks for are all absent from real sets:
 
 See TODO.md N21 for the plan to rewrite this.
 
+### 8.1 The device chain
+
+The devices on a track are the children of `DeviceChain/DeviceChain/Devices`. The path is
+doubled: `DeviceChain` (the track's) contains a `DeviceChain` (the chain) which contains
+`Devices`.
+
+| Element | Occurrences in 40 sets (audio and MIDI tracks) |
+| --- | --- |
+| `Eq8` | 179 |
+| `PluginDevice` | 153 |
+| `GlueCompressor` | 125 |
+| `AudioEffectGroupDevice` | 56 |
+| `StereoGain` | 37 |
+| `MultibandDynamics` | 24 |
+| `Saturator` | 24 |
+| `Limiter` | 24 |
+| `Compressor2` | 18 |
+| `DrumGroupDevice` | 16 |
+| `Tuner` | 15 |
+| `Tube` | 9 |
+| `MxDeviceAudioEffect` | 6 |
+| `Cabinet` | 4 |
+| `Reverb` | 4 |
+| `InstrumentGroupDevice` | 4 |
+| `Spectral` | 2 |
+| `OriginalSimpler` | 2 |
+| `AutoFilter` | 2 |
+
+`AudioEffectGroupDevice` is not a device that processes audio itself — it is a **reference** to a
+group's device chain. See section 9.3.
+
 ---
 
-## 9. Booleans
+## 9. Group tracks
+
+A group track is a **summing container**, not a track that plays clips. Ableton's manuals are
+explicit about this in both Live 11 (section 16.3) and Live 12 (section 18.3):
+
+> Group Tracks cannot contain clips, but they are similar to audio tracks in that they have mixer
+> controls and can host audio effects.
+
+Group tracks exist in Live 11 as well as Live 12. Live 11 sets in the corpus rarely have them,
+and 29 of the 32 Live 11 sets in `$songs` were written by `live_set -11` itself, so the corpus
+is a poor guide to how common they are. The repo's own `after_real_pain.xsd` includes
+`GroupTrack` and `GroupTrackSlot` elements.
+
+### 9.1 A group track has no clips
+
+Measured over the whole corpus:
+
+| Measurement | Result |
+| --- | --- |
+| `GroupTrack` elements | 1603 |
+| `AudioClip` inside any of them | **0** |
+| `MidiClip` inside any of them | **0** |
+| `GroupTrackSlot` elements | 14031 |
+| …that contain a `ClipSlot/Value` | **0** — every one is a bare `<LomId/>` |
+| `GroupTrack` with a `DeviceChain/MainSequencer` | **0** |
+
+A group track *looks* like it has a session view. It has a `Slots` element holding eight
+`GroupTrackSlot` children, but every slot is empty and has no `ClipSlot` child at all. Its
+`DeviceChain` has no `MainSequencer` — it has a `FreezeSequencer` instead, whose `ClipSlotList`
+is likewise empty.
+
+**So a group track contributes nothing to clip reporting.** `live_set` ignores group tracks when
+it reports clips, their sizes, and whether their samples have been collected.
+
+### 9.2 A group track is not a track in the data model
+
+The membership is a single attribute on the member track. A track's `TrackGroupId` holds the `Id`
+of the group it belongs to, and `-1` means it is at the top level.
+
+| Live version | Sets | Sets with groups | Groups |
+| --- | --- | --- | --- |
+| 8 | 21 | 0 | 0 |
+| 11 | 32 | 0 | 0 |
+| 12 | 407 | 281 | 1603 |
+
+Groups nest: a group track has its own `TrackGroupId`, so a group can contain another group. In
+the sample set `Urban_Agony.als`, group 47 has `TrackGroupId="27"` — it is inside group 27.
+
+A group track has a full mixer, like a regular track: `Sends`, `Pan`, `Volume`, `CrossFadeState`.
+That is what makes it a submixer.
+
+### 9.3 A group's devices are in its members' signal path
+
+This is the part that matters, and it is the reason a group track cannot simply be ignored.
+
+A member track's output is routed to its group:
+
+```xml
+<AudioOutputRouting>
+  <Target Value="AudioOut/GroupTrack"/>
+  <UpperDisplayString Value="Group"/>
+</AudioOutputRouting>
+```
+
+In a 40-set sample:
+
+| Track output target | Tracks |
+| --- | --- |
+| `AudioOut/GroupTrack` | 543 |
+| `AudioOut/Main` | 136 |
+| `AudioOut/Track.8/TrackIn` | 2 |
+
+A group's own output then goes to `AudioOut/Main` (110 groups) or to a parent group (8 groups), so
+audio flows up the tree.
+
+The devices on the group are **not** copied onto its members. Group 43 in `Urban_Agony.als` owns
+`FilterEQ3`, `Limiter`, `PluginDevice` and `Reverb`; its five member tracks have device chains of
+their own containing only an `AudioEffectGroupDevice`, whose `ChainsListWrapper` is **empty** — it
+is a reference to the group's chain, not a copy of it.
+
+| | Group 43 | Member track 30 |
+| --- | --- | --- |
+| `FilterEQ3` | 1 | 0 |
+| `Limiter` | 1 | 0 |
+| `Reverb` | 1 | 0 |
+| `PluginDevice` | 1 | 0 |
+
+**Consequence for the Push 3 Standalone check:** a third-party plugin in a group's chain blocks
+transfer just as much as one on a track, because the member's audio passes through it. A report
+that only inspects member tracks would say "no blocking devices" when the group blocks transfer.
+`live_set` therefore checks a group's devices and reports a blocking group device as an error
+naming the group.
+
+Across the corpus, 151 group tracks have a `PluginDevice` in their chain.
+
+### 9.4 A group track cannot be frozen
+
+> Note that you can only freeze tracks that hold clips, so it is not possible to freeze a Group
+> Track, a return track, or the Main track.
+
+— Live 12 manual, section 38.1.4 "Track Freeze". The Live 11 manual (section 33.1.4) says the
+same.
+
+A group track holds no clips, so it cannot be frozen. The corpus agrees: **0 of 1603** group
+tracks have `Freeze="true"`, and 195 of 195 in a 60-set sample have `Freeze="false"`.
+
+This answers the question of whether freezing a group track also freezes the tracks inside it:
+**the question does not arise**, because a group track cannot be frozen at all.
+
+#### 9.4.1 The `Options.txt` hidden option
+
+Ableton's `Options.txt` file can enable "a few experimental and unsupported features". One that
+is documented in the wild is `GroupTrackFreeze`, written as:
+
+```text
+-_GroupTrackFreeze
+```
+
+With it, Live can *bounce* a group as though it were a track. The Live 12 manual's own advice for
+groups is to "bounce [them] to audio" rather than freeze them, and the `GroupTrackFreeze` option
+is described in the same terms — it enables a group to be treated as a track for bouncing. What
+that option does to the XML is a separate matter, and the corpus cannot answer it, because no set
+in the corpus has a group track with a populated `FreezeSequencer`.
+
+**`live_set` does not support experimental features.** It ignores `Options.txt` entirely, and
+treats every setting that `Options.txt` can control as having its standard behaviour, as though
+the experimental option had not been specified. A set that uses `GroupTrackFreeze` is therefore
+read as though the group were not frozen, and the group's members are read as unfrozen.
+
+---
+
+## 10. Booleans
 
 `Freeze` (on audio, group and MIDI tracks) and `IsTempoEnabled` (on scenes) hold `"true"` or
 `"false"` in a `Value` attribute.
 
 ---
 
-## 10. How `live_set` reads all this
+## 11. Frozen tracks and the `FreezeSequencer`
+
+A track that is frozen has a second sequencer. `MainSequencer` holds the editable material;
+`FreezeSequencer` holds the rendered audio cache that replaces it during playback. The cache
+files live in the project folder under `Samples/Processed/Freeze`.
+
+> When you right-click a track and choose Freeze Track, Ableton does not destroy or replace your
+> original data. Instead, it compiles that track into a background audio file and modifies the
+> XML layout.
+
+Both sequencers exist at the same time, and a frozen track's clips can be found in either.
+
+Measured over the corpus's 256 frozen tracks:
+
+| | Tracks |
+| --- | --- |
+| Clips in `MainSequencer` **and** `FreezeSequencer` | 155 |
+| Clips **only** in `FreezeSequencer` | **20** |
+| Clips only in `MainSequencer` | 0 |
+| No clips at all | 81 |
+
+**A frozen track's audio is not always in `MainSequencer`.** `live_set` must look in both places,
+or it reports zero clips — and therefore no uncollected-sample warnings and a size of zero — for a
+track that is holding hundreds of megabytes of frozen audio.
+
+The two sequencers hold the same kinds of clip. Under `MainSequencer` the paths are:
+
+```
+DeviceChain / MainSequencer / ClipSlotList / ClipSlot / ClipSlot / Value / AudioClip
+DeviceChain / MainSequencer / Sample / ArrangerAutomation / Events / AudioClip
+```
+
+and under `FreezeSequencer` they are:
+
+```
+DeviceChain / FreezeSequencer / ClipSlotList / ClipSlot / ClipSlot / Value / AudioClip
+DeviceChain / FreezeSequencer / Sample / ArrangerAutomation / Events / AudioClip
+```
+
+A frozen track's arrangement clips live under `FreezeSequencer/Sample/ArrangerAutomation/Events`
+rather than under `MainSequencer`.
+
+---
+
+## 12. How `live_set` reads all this
 
 | Element | Read with |
 | --- | --- |
@@ -355,6 +595,8 @@ See TODO.md N21 for the plan to rewrite this.
 | `FileRef/RelativePath`, `FileRef/Path`, `FileRef/OriginalFileSize` | `xml_value` |
 | `ClipSlotList/ClipSlot/ClipSlot/Value/AudioClip` | `xpath`, then `xml_value` for the values |
 | `ArrangerAutomation/Events/AudioClip`, `TakeLane/ClipAutomation/Events/AudioClip` | `xpath`, then `xml_value` for the values |
+| `PluginDesc/VstPluginInfo/PlugName`, `PluginDesc/Vst3PluginInfo/Name` | `xml_value` |
+| `DeviceChain/DeviceChain/Devices/*` | `xpath`, then the device's own element name |
 
 Do not use `Nokogiri::Slop` accessors for these. A Slop accessor returns a single `Element` for
 one match, a `NodeSet` for two or more, and raises `NoMethodError` for none — so the same expression

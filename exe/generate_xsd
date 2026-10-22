@@ -6,9 +6,4 @@ else
   require 'live_set'
 end
 
-if ARGV.empty?
-  puts "No paths to XML files were specified."
-  exit
-end
-
-generate_xsd
+XsdFromXml.run(ARGV)

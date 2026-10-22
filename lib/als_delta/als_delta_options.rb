@@ -1,59 +1,57 @@
 require 'colorator'
 require 'logger'
 require 'optparse'
+require_relative '../common/command_options'
+require_relative '../common/log'
 
-@loglevels = Logger::Severity.constants.sort_by { |name| Logger::Severity.const_get(name) } unless defined?(@loglevels)
+class AlsDelta
+  # Display help message for als_delta
+  #
+  # @param msg [String, nil] an error message to show above the help
+  # @return [String] the help message
+  def self.help(msg = nil)
+    help = <<~END_HELP
+      als_delta: Shows changes to an .als file each time a session file is saved.
+      Press any key to compare with previous version.
 
-def common(command)
-  @options = parse_options command
-  help_als_delta 'An Ableton Live set name must be provided.' if ARGV.empty?
-end
+      Syntax: als_delta OPTIONS PATH_TO_ALS_FILE
 
-def help_als_delta(msg = nil)
-  printf "Error: #{msg}\n\n".yellow unless msg.nil?
-  msg = <<~END_HELP
-    als_delta: Shows changes to an .als file each time a session file is saved.
-    Press any key to compare with previous version.
+      Environment variables used in PATH_TO_ALS_FILE are expanded.
 
-    Syntax: als_delta OPTIONS PATH_TO_ALS_FILE
+      Options are:
+        -k Keep each backup (default is to delete them)
+        -h Display this help message.
 
-    Environment variables used in PATH_TO_ALS_FILE are expanded.
+      Example (references an environment variable called `path`):
+      als_delta $path/to/my_v12_set.als
+    END_HELP
 
-    Options are:
-      -k Keep each backup (default is to delete them)
-      -h Display this help message.
+    msg.nil? ? help : "Error: #{msg}\n\n#{help}"
+  end
 
-    Example (references an environment variable called `path`):
-    als_delta $path/to/my_v12_set.als
-  END_HELP
-  printf msg.cyan
-  exit 1
-end
+  # Parse options for als_delta executable
+  #
+  # @param args [Array<String>] the command line arguments
+  # @return [Array(Hash, Array<String>)] the options and the remaining arguments
+  def self.parse_options(args)
+    options = { keep: false, loglevel: 'WARN' }
+    remaining = do_parse.order!(args, into: options)
 
-def parse_options
-  options = { keep: false, loglevel: 'WARN' }
-  opts = do_parse
-  opts.order!(into: options)
+    error = CommandOptions.loglevel_error(options)
+    abort help(error) if error
 
-  # Normalize loglevel to uppercase string
-  options[:loglevel] = options[:loglevel].to_s.upcase if options[:loglevel]
-  @loglevel = options[:loglevel]
+    [options, remaining]
+  end
 
-  msg = "Invalid verbosity value (#{@loglevel}), must be one of one of: #{@loglevels.join ', '}."
-  help_als_delta msg if @loglevel && !@loglevels.include?(@loglevel.upcase.to_sym)
+  def self.do_parse
+    OptionParser.new do |parser|
+      parser.program_name = 'als_delta'
 
-  options
-end
-
-def do_parse
-  OptionParser.new do |parser|
-    parser.program_name = File.basename __FILE__
-    @parser = parser
-
-    parser.on('-k', '--keep', 'Keep all backups')
-    parser.on('-l', '--loglevel LOGLEVEL', Integer, "Log level (#{@loglevels.join ', '})")
-    parser.on_tail('-h', '--help', 'Show this message') do
-      help_als_delta
+      parser.on('-k', '--keep', 'Keep all backups')
+      parser.on('-l', '--loglevel LOGLEVEL', String, "Log level (#{LOG_LEVELS.join ', '})")
+      parser.on_tail('-h', '--help', 'Show this message') do
+        abort help
+      end
     end
   end
 end
