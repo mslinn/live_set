@@ -46,17 +46,6 @@ or should report only the sequencer that is currently in effect: the `MainSequen
 unfrozen track, the `FreezeSequencer` for a frozen one. See `docs/als_format.md` section 11.
 
 
-### N39. The `-11` conversion does not check that the result can be read by Live 11
-
-`lib/live_set/live_set_class.rb` writes the Live 11 version strings and removes the Live 12-only
-elements it knows about. It does not verify that what remains is valid for Live 11, and it does
-not check the schema of the result.
-
-`generate_xsd` and `validate_asd` can be used together to check a set against a schema, but
-there is no Live 11 schema in the repository to check against. The `after_real_pain.xsd` file
-describes a Live 12 set and is known to be wrong about the shape of values — see
-`docs/als_format.md` section 3.
-
 
 ### N40. A group's device chain is reported on the group, but the group is not reported on its members
 
@@ -80,18 +69,54 @@ for the same track: one naming the track, and one naming the group. That is accu
 not make the relationship between them clear.
 
 
-### N42. The group hierarchy is not reported
+### N42. It is not known whether Live 11 tolerates a lane of an unknown `Type`
 
-A group can contain another group, and the `Tracks` element is a flat list — a group is a sibling
-of the tracks it contains, and the membership is an attribute. `live_set` reads the membership
-(`TrackGroupId`) but does not report the hierarchy.
+The conversion renames `MidiEditorLaneModel` to `ExpressionLane`, and that is all it does to the
+lanes. But the two Live versions number their lanes differently within the same family, so a
+converted set has lanes that Live 11 has no equivalent for:
 
-The report lists a group's members in the group's error message, but does not say which of them
-are themselves groups, or which group a group is in. A user reading the report cannot see the
-shape of the set.
+| Live version | `ContentLanes` types | `ExpressionLanes` types |
+| --- | --- | --- |
+| 11 | 4, 5 | 0, 1, 2, 3 |
+| 12 | 2, 3, 4 | 0, 1, 2, 3, 5 |
 
-The information is all there — follow `TrackGroupId` up from a group to its parent, and down to
-its members. See `docs/als_format.md` section 9.2.1.
+Every Live 11 demo set has the Live 11 set of lanes, and every Live 12 demo set has the Live 12
+set, so the lanes are application state rather than a property of the music.
+
+**What a round trip through `live_set -11` establishes.** Converting the Live 12 version of the
+Live 11 demo set back to Live 11 produces a file that is a Live 11 set in every respect that can
+be checked without Live 11:
+
+- the `Creator` and `MinorVersion` are Live 11's,
+- the lanes are named `ExpressionLane`, as Live 11 names them,
+- the `Oversampling` values are `"1"` and `"0"`, in the same tally as the original Live 11 file —
+  5 of `"1"` and 1 of `"0"`,
+- the tracks, the clips and the group are all the same: 14 audio tracks, 14 MIDI tracks, 1 group
+  track and 255 clips.
+
+**What it does not establish.** The round-tripped file has `ContentLanes` of `Type` 2 and 3, and
+an `ExpressionLanes` of `Type` 5. Live 11 has no lanes of those types, so the file contains
+lanes Live 11 has never seen, and it has lost Live 11's `ContentLanes` of `Type` 5.
+
+**The question that is still open:** does Live 11 open a set with a lane of an unknown `Type`
+without complaint, and if it does, what does it do with that lane?
+
+**The test that answers it:** open the round-tripped file in Live 11 and look at the lanes. The
+file is produced by converting the Live 12 set, which is inside a Project folder beside the
+Live 11 demo sets:
+
+```shell
+$ cd "/mnt/c/ProgramData/Ableton/Live 11 Suite/Resources/Core Library/Lessons/Demo Songs"
+$ live_set -11 "Ninajirachi - In The Rain (Live 11 Suite Demo) converted to Live 12 Project/Ninajirachi - In The Rain (Live 11 Suite Demo) converted to Live 12.als"
+```
+
+That writes `…converted to Live 12_11.als` in the same folder.
+
+If Live 11 ignores the unknown lanes, the conversion is right as it stands, and this can be
+recorded in `docs/als_format.md`. If Live 11 complains, the conversion has to map or drop the
+lanes it cannot use.
+
+See `docs/als_format.md` section 2.4.
 
 
 ### N43. A `FakeGroup` element has been claimed but never found

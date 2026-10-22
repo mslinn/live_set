@@ -1,11 +1,49 @@
 # The Ableton Live `.als` File Format
 
 A reference for the parts of the format that `live_set` reads, based on a survey of 460 real
-sets in `$songs`. Where this document and the code disagree, this document is right and the code
-is wrong.
+sets in `$songs` and on the official Ableton demo sets. Where this document and the code
+disagree, this document is right and the code is wrong.
 
 `bin/als_files [DIRECTORY]` re-runs the survey. It reads 25 files by default, because reading all
 of them takes about four minutes.
+
+### Where the evidence comes from
+
+Two corpora, because neither is sufficient alone.
+
+| Corpus | What it is | What it is good for |
+| --- | --- | --- |
+| `$songs` | 460 sets, one person's collection, Live 8.2 to 12.4 | Real-world sets, especially with groups, nesting and third-party plug-ins |
+| The Ableton demo sets | The sets Ableton ships with Live | Comparing two Live versions directly, because there is one for each |
+
+The demo sets are the better evidence when the question is "what does Live 11 do?", because they
+exist for several versions. Ableton installs them with Live, and the location is documented:
+
+```
+Windows:  C:\ProgramData\Ableton\[Live Version]\Resources\Core Library\Lessons\Demo Songs
+macOS:    /Applications/Live [Version].app/Contents/App Resources/Core Library/Lessons/Demo Songs
+```
+
+See [Location of the default Demo Set](https://help.ableton.com/hc/en-us/articles/209774005-Location-of-the-default-Demo-Set).
+`locate -i "Demo Songs"` finds them. The versions installed on the machine this was developed
+on:
+
+| | Path | `Creator` |
+| --- | --- | --- |
+| Live 12 | `C:\ProgramData\Ableton\Live 12 Suite\Resources\Core Library\Lessons\Demo Songs` | Ableton Live 12.4d1 |
+| Live 11 | `C:\ProgramData\Ableton\Live 11 Suite\Resources\Core Library\Lessons\Demo Songs` | Ableton Live 11.3d1 |
+| Live 10 | `C:\ProgramData\Ableton\Live 10 Standard\Resources\Core Library\Lessons\Demo Songs` | Ableton Live 10.1.3d1 |
+
+`spec/demo_sets.rb` finds them, so the test suite uses them rather than fragments.
+
+The demo sets are not the same song — Live 11's is "Ninajirachi - In The Rain" and Live 12's is
+"Chuck Sutton - Patience" — so a plain diff between them confounds version differences with
+content differences. A *structural* difference, such as an element name that changes in the same
+position, is still reliable.
+
+The demo sets are also the *right* size for a quick check: five sets per version, and the same
+song in five editions (Intro, Lite, Push, Standard, Suite). Live 10's are a different song
+("Live 10 Demo Song"), and have no lanes at all.
 
 ---
 
@@ -42,6 +80,12 @@ The corpus spans these versions:
 | 11.3.21 – 11.3.22 | 32 |
 | 12.0.1 – 12.4.6 | 407 |
 
+> **A caution about the corpus.** 29 of the 32 Live 11 sets in `$songs` were written by
+> `live_set -11` itself — their `MinorVersion` is `11.0_11300` and their `Revision` is this
+> tool's hard-coded value. So the corpus's Live 11 sets mostly reflect what `live_set` produces,
+> not what Live 11 produces. Only 3 are genuine Live 11 sets. The demo sets in the table above are
+> genuine, and are the better reference for Live 11 behaviour.
+
 ### 2.1 Converting a set to Live 11 uses a fixed schema
 
 `live_set -11` writes a set in the Live 11 format, and the version strings it writes are fixed:
@@ -65,20 +109,17 @@ different numbering schemes: `Creator` is the version of Live that wrote the set
 
 ### 2.2 What the conversion removes, and what it keeps
 
-The conversion removes a fixed list of Live 12 constructs that Live 11 does not have:
+The conversion removes the elements that Live 11 does not have:
 
-| Element | Occurrences in the corpus |
-| --- | --- |
-| `ContentLanes` | top level |
-| `ExpressionLanes` | top level |
-| `Oversampling` | on audio and MIDI tracks |
-| `InstrumentMeld` | 0 — in no set examined |
-| `Roar` | 0 — in no set examined |
-| `MxPatchRef` | on tracks and the main track |
+| Element | In Live 11? | In Live 12? |
+| --- | --- | --- |
+| `InstrumentMeld` | no | yes — 2 in the Live 12 demo set |
+| `Roar` | no | yes — 10 in the Live 12 demo set |
+| `MxPatchRef` | no | yes — 5 in the Live 12 demo set |
 
 **Everything else is copied through unchanged.** The conversion is a selective removal, not a
-rewrite: it edits the version strings on the `Ableton` element, removes those six elements, and
-writes the rest of the document back out.
+rewrite: it edits the version strings on the `Ableton` element, removes those three elements,
+translates the two that Live 11 spells differently, and writes the rest of the document back out.
 
 Two consequences follow.
 
@@ -90,6 +131,115 @@ Two consequences follow.
 
 This is worth knowing if a set contains something the format reference does not document. Nothing
 is silently dropped.
+
+### 2.3 Two elements the conversion translates
+
+Two elements exist in both versions but are spelled differently, so the conversion rewrites them
+rather than removing them. The rules were confirmed by opening the Live 11 demo set in Live 12,
+saving it, and comparing the two files.
+
+**The lane element was renamed.** A lane is an `ExpressionLane` in Live 11 and a
+`MidiEditorLaneModel` in Live 12. Apart from the name they are the same: the same `Id` attribute,
+and the same `Type`, `Size` and `IsMinimized` children.
+
+```xml
+<!-- Live 11 -->
+<ContentLanes>
+  <ExpressionLane Id="0">
+    <Type Value="4"/>
+    <Size Value="25"/>
+    <IsMinimized Value="false"/>
+  </ExpressionLane>
+</ContentLanes>
+```
+
+```xml
+<!-- Live 12 -->
+<ContentLanes>
+  <MidiEditorLaneModel Id="0">
+    <Type Value="4"/>
+    <Size Value="25"/>
+    <IsMinimized Value="false"/>
+  </MidiEditorLaneModel>
+</ContentLanes>
+```
+
+So the conversion renames `MidiEditorLaneModel` to `ExpressionLane`.
+
+**The `Oversampling` value was respelled.** It is a child of a device, and it exists in both
+versions:
+
+| Parent | Live 11.3d1 | Live 12.4d1 |
+| --- | --- | --- |
+| `Saturator` | `"1"` or `"0"` | `"true"` or `"false"` |
+| `Pedal` | `"true"` or `"false"` | `"true"` or `"false"` |
+
+So the conversion rewrites a `Saturator`'s value to `"1"` or `"0"`, and leaves a `Pedal`'s alone.
+The convention is per device, not per version.
+
+In the demo set, the two versions agree on every value. Track 132 "Plastic Toy" has a
+`Saturator` with `Oversampling="0"` in Live 11 and `Oversampling="false"` in Live 12; the other
+five `Saturator`s have `"1"` and `"true"`.
+
+### 2.4 The lanes are a fixed set, and it changed
+
+The two containers hold a fixed set of lanes, and **the set is the same in every set of a given
+Live version**. Every demo set of every edition has the same lanes:
+
+| Live version | `ContentLanes` types | `ExpressionLanes` types |
+| --- | --- | --- |
+| 11 | 4, 5 | 0, 1, 2, 3 |
+| 12 | 2, 3, 4 | 0, 1, 2, 3, 5 |
+
+All five Live 11 demo sets have `ContentLanes` types 4 and 5 and `ExpressionLanes` types 0 to 3.
+All five Live 12 demo sets have `ContentLanes` types 2, 3 and 4 and `ExpressionLanes` types 0 to
+3 and 5. The lanes are not a property of the music; they are part of the application state.
+
+A lane is identified by the container it is in and its `Type`. The `Size` value says which family
+a lane belongs to: 25 for a lane in `ContentLanes`, 41 for a lane in `ExpressionLanes`, in both
+Live versions. The `Type` is a number within that family, and the two families use the same
+numbers for different things — `Type` 2 in `ContentLanes` is not `Type` 2 in `ExpressionLanes`.
+
+**So the conversion has to cope with lanes Live 11 has never heard of.** Converting a Live 12 set
+produces lanes of `Type` 2 and 3 in `ContentLanes`, and `Type` 5 in `ExpressionLanes`. Live 11 has
+no lanes of those types, so it cannot render them; and a Live 11 set has a lane of `Type` 5 in
+`ContentLanes` that Live 12 has no use for.
+
+The conversion does not try to reconcile this. It renames the element and leaves the lanes alone,
+because:
+
+- **The `Type` values are not portable.** There is no mapping from a Live 12 lane to a Live 11
+  lane, because the two versions number their lanes differently within the same family.
+- **The lanes are application state, not material.** They record which panel is open and how wide
+  it is. Nothing in the set's audio depends on them.
+
+Whether Live 11 tolerates a lane of an unknown `Type` is not known. It is a small thing to test:
+convert a Live 12 set, open the result in Live 11, and look at the lanes.
+
+### 2.5 What a round trip establishes
+
+Converting the Live 12 version of the Live 11 demo set back to Live 11 produces a file that is a
+Live 11 set in every respect that can be checked without Live 11:
+
+| | Live 11 original | Round tripped |
+| --- | --- | --- |
+| `Creator` | Ableton Live 11.3d1 | Ableton Live 11.3.21 |
+| `MinorVersion` | `11.0_11300` | `11.0_11300` |
+| Lane element name | `ExpressionLane` | `ExpressionLane` |
+| `Oversampling` values | 5 of `"1"`, 1 of `"0"` | 5 of `"1"`, 1 of `"0"` |
+| Audio tracks | 14 | 14 |
+| MIDI tracks | 14 | 14 |
+| Group tracks | 1 | 1 |
+| Clips | 255 | 255 |
+
+The material is untouched, and the two elements that Live 12 spells differently are now spelled
+the Live 11 way.
+
+**The one thing the round trip cannot settle** is the lanes. The round-tripped file has
+`ContentLanes` of `Type` 2 and 3, and an `ExpressionLanes` of `Type` 5, none of which Live 11
+has; and it has lost the `ContentLanes` of `Type` 5 that the original had. The file is a
+well-formed Live 11 file, but it contains lanes Live 11 has never seen. Only Live 11 itself can
+say what it does with them. See TODO.md N42.
 
 ---
 

@@ -40,6 +40,12 @@ This software can:
 This program has successfully converted the Ableton Live 12 demo project to Live
 11. Also tested with Live 8.6 session files.
 
+The conversion is a selective removal: it writes the Live 11 version strings,
+removes the three elements that Live 11 does not have, and copies everything
+else through unchanged. Two elements that Live 11 *does* have are translated
+rather than removed, because Live 12 spells them differently — see
+[docs/als_format.md](docs/als_format.md#23-two-elements-the-conversion-translates).
+
 ##  Push 3 Standalone (P3S)
 
 An unfrozen track will cause a error (or fail to produce sound) on a P3S if and
@@ -273,8 +279,20 @@ $ code .  # Run Visual Studio Code
 ### The File Format
 
 [docs/als_format.md](docs/als_format.md) documents the parts of the Ableton Live
-`.als` format that this project reads, based on a survey of 460 real sets.
-`bin/als_files` re-runs the survey.
+`.als` format that this project reads, based on a survey of 460 real sets and
+on the official Ableton demo sets. `bin/als_files` re-runs the survey.
+
+The demo sets are the better evidence when the question is "what does Live 11
+do?", because there is one for each version. Ableton installs them with Live:
+
+```shell
+$ bin/als_files "/mnt/c/ProgramData/Ableton/Live 12 Suite/Resources/Core Library/Lessons/Demo Songs"
+$ bin/als_files "/mnt/c/ProgramData/Ableton/Live 11 Suite/Resources/Core Library/Lessons/Demo Songs"
+```
+
+Ableton documents the location in
+[Location of the default Demo Set](https://help.ableton.com/hc/en-us/articles/209774005-Location-of-the-default-Demo-Set).
+`locate -i "Demo Songs"` finds them.
 
 
 ### Run the Tests

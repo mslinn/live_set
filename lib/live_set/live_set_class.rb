@@ -110,12 +110,13 @@ class LiveSet
     # The conversion is a selective removal, not a rewrite. Anything else in the document —
     # including an element this list has never heard of — is copied through unchanged. See
     # docs/als_format.md section 2.2.
-    ['//ContentLanes', '//ExpressionLanes', '//InstrumentMeld', '//Roar', '//MxPatchRef', '//Oversampling'].each do |element|
+    ['//InstrumentMeld', '//Roar', '//MxPatchRef'].each do |element|
       count = @xml_doc.xpath(element).length
       @xml_doc.xpath(element).remove
       Log.debug "Removed #{count} element(s) matching #{element}" if count.positive?
     end
 
+    translate_to_live_eleven
     new_contents = @xml_doc.to_xml.to_s
     new_contents.gsub! 'AudioOut/Main', 'AudioOut/Master'
 
@@ -132,5 +133,46 @@ class LiveSet
 
     Zlib::GzipWriter.open(new_set_path) { |gz| gz.write new_contents }
     puts 'Conversion complete'.green
+  end
+
+  # Rewrites the elements that Live 12 and Live 11 spell differently.
+  #
+  # Two things changed between the versions, and both were confirmed by opening a Live 11 demo set
+  # in Live 12, saving it, and comparing the two files.
+  #
+  # **The lane element was renamed.** A lane is an `ExpressionLane` in Live 11 and a
+  # `MidiEditorLaneModel` in Live 12. Apart from the name they are the same: the same `Id`
+  # attribute, and the same `Type`, `Size` and `IsMinimized` children.
+  #
+  # **The `Oversampling` value was respelled.** A `Saturator`'s `Oversampling` is `"1"` or `"0"`
+  # in Live 11, and `"true"` or `"false"` in Live 12. A `Pedal`'s `Oversampling` uses
+  # `"true"`/`"false"` in both versions, so only a `Saturator`'s is rewritten.
+  #
+  # See docs/als_format.md section 2.3.
+  def translate_to_live_eleven
+    translate_lane_names
+    translate_oversampling_values
+  end
+
+  # Renames the lane elements to the name Live 11 uses.
+  def translate_lane_names
+    lanes = @xml_doc.xpath('//ContentLanes/MidiEditorLaneModel | //ExpressionLanes/MidiEditorLaneModel')
+    lanes.each do |lane|
+      lane.name = 'ExpressionLane'
+      Log.debug 'Renamed a MidiEditorLaneModel to ExpressionLane'
+    end
+  end
+
+  # Rewrites a `Saturator`'s `Oversampling` value to the form Live 11 uses.
+  def translate_oversampling_values
+    @xml_doc.xpath('//Saturator/Oversampling').each do |oversampling|
+      value = oversampling['Value']
+      case value
+      when 'true' then oversampling['Value'] = '1'
+      when 'false' then oversampling['Value'] = '0'
+      else
+        Log.warn "Leaving an unrecognized Oversampling value #{value.inspect} as it is"
+      end
+    end
   end
 end
