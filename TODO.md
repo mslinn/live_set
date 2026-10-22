@@ -38,6 +38,9 @@ counted once — `distinct_clips` de-duplicates by path — but the per-source c
 than the number of distinct files, and the same file is listed under both the session view and the
 arrangement.
 
+For example, one frozen track in the corpus reports 13 session-view clips and 12 arrangement
+clips, 25 clip objects in total, but only 14 distinct files.
+
 This is not wrong, but it is confusing. The report should say which sequencer each clip came from,
 or should report only the sequencer that is currently in effect: the `MainSequencer` for an
 unfrozen track, the `FreezeSequencer` for a frozen one. See `docs/als_format.md` section 11.
@@ -75,3 +78,33 @@ report should read. See `docs/als_format.md` section 9.3.
 If a member track has a plug-in of its own, and its group has one too, the report has two errors
 for the same track: one naming the track, and one naming the group. That is accurate, but it does
 not make the relationship between them clear.
+
+
+### N42. The group hierarchy is not reported
+
+A group can contain another group, and the `Tracks` element is a flat list — a group is a sibling
+of the tracks it contains, and the membership is an attribute. `live_set` reads the membership
+(`TrackGroupId`) but does not report the hierarchy.
+
+The report lists a group's members in the group's error message, but does not say which of them
+are themselves groups, or which group a group is in. A user reading the report cannot see the
+shape of the set.
+
+The information is all there — follow `TrackGroupId` up from a group to its parent, and down to
+its members. See `docs/als_format.md` section 9.2.1.
+
+
+### N43. A `FakeGroup` element has been claimed but never found
+
+There is a claim that the `.als` format uses a `<FakeGroup>` element — a phantom routing target
+that wraps a group inside another group. No such element has been found in any set examined:
+460 sets, the 61,000-line `evasiva.xml` test file in `pyableton`, and the source of five
+`.als`-parsing projects. The specific elements the claim names — `TrackWrapperType` and
+`RoutingTarget` — are also absent.
+
+A nested group and a top-level group have identical child elements, which is the strongest
+evidence against a structural wrapper.
+
+This is recorded as an open question rather than a settled one, because the corpus is one
+person's collection. **A set containing a `FakeGroup` element would settle it.** See
+`docs/als_format.md` section 9.2.1.

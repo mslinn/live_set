@@ -63,6 +63,34 @@ Note that `MinorVersion` here is `11.0_11300` while `Creator` says `11.3.21`. Th
 different numbering schemes: `Creator` is the version of Live that wrote the set, and
 `MinorVersion` identifies the set format that Live 11.3.21 reads.
 
+### 2.2 What the conversion removes, and what it keeps
+
+The conversion removes a fixed list of Live 12 constructs that Live 11 does not have:
+
+| Element | Occurrences in the corpus |
+| --- | --- |
+| `ContentLanes` | top level |
+| `ExpressionLanes` | top level |
+| `Oversampling` | on audio and MIDI tracks |
+| `InstrumentMeld` | 0 — in no set examined |
+| `Roar` | 0 — in no set examined |
+| `MxPatchRef` | on tracks and the main track |
+
+**Everything else is copied through unchanged.** The conversion is a selective removal, not a
+rewrite: it edits the version strings on the `Ableton` element, removes those six elements, and
+writes the rest of the document back out.
+
+Two consequences follow.
+
+- **Group tracks are kept**, because Live 11 has group tracks. See section 9.2.
+- **An element the conversion has never heard of is kept too.** A `FakeGroup` element, a
+  `TrackWrapperType` element, or anything else that a future version of Live writes is copied to
+  the output verbatim, with its attributes intact. The conversion does not need to know what an
+  element means in order to preserve it.
+
+This is worth knowing if a set contains something the format reference does not document. Nothing
+is silently dropped.
+
 ---
 
 ## 3. Every value is in a `Value` attribute
@@ -483,6 +511,97 @@ the sample set `Urban_Agony.als`, group 47 has `TrackGroupId="27"` — it is ins
 
 A group track has a full mixer, like a regular track: `Sends`, `Pan`, `Volume`, `CrossFadeState`.
 That is what makes it a submixer.
+
+### 9.2.1 How nesting is represented
+
+**`live_set` has found no `FakeGroup` element.** There is a claim that the `.als` format uses a
+`<FakeGroup>` element — a phantom routing target that wraps a group inside another group. No
+such element has been found in any set that has been examined.
+
+That is a statement about the evidence, not a proof of absence. The corpus is one person's
+collection, and it holds 314 nested group tracks, so nesting plainly does occur. The evidence
+against `FakeGroup` is:
+
+| Check | Result |
+| --- | --- |
+| The string "fake", any case, anywhere in 460 sets | **0** occurrences — not an element, attribute, or value |
+| The string "fake" in the 61,000-line `evasiva.xml` test file in `pyableton` | **0** occurrences |
+| `FakeGroup` in the source of `pyableton`, `als-parser`, `abletron`, `AbletonParsing`, `ableton-parser` | **0** occurrences |
+| `FakeGroup` in the repo's `after_real_pain.xsd` | **0** occurrences |
+| Web search for `"FakeGroup"` with Ableton / Live / `.als` | Nothing but unrelated projects named "fakegroup" |
+
+And the specific elements that the claim names do not appear either. In a 120-file sample:
+
+| Element | Occurrences |
+| --- | --- |
+| `TrackWrapperType` | 0 |
+| `RoutingTarget` | 0 |
+| any element matching `*Wrapper*` | only the real ones: `ParametersListWrapper`, `DevicesListWrapper`, `ClipSlotsListWrapper`, `ArrangementClipsListWrapper`, `TakeLanesListWrapper`, `SendsListWrapper`, `ChainsListWrapper`, `ReturnChainsListWrapper`, and others |
+| any attribute *value* containing "FakeGroup" | 0 |
+
+The strongest evidence is structural. A nested group and a top-level group have **exactly the
+same child elements** — the same 21 of them, in the same order, with the same `*ListWrapper`
+elements. The only difference between them is the value of `TrackGroupId` and the routing target.
+If `FakeGroup` existed as a structural wrapper, a nested group would have to contain something a
+top-level group does not.
+
+What nesting actually uses is the same two mechanisms as everything else in the format: an `Id`
+and an `AudioOut/GroupTrack` routing target.
+
+A group track's `TrackGroupId` names its parent group, and `-1` means it is at the top level. Its
+`AudioOutputRouting/Target` is `AudioOut/GroupTrack` when it is inside another group, and
+`AudioOut/Main` when it is not.
+
+The `Tracks` element is a **flat list**. A group is not a container element in the XML — it is a
+sibling of the tracks it contains, and the membership is expressed by attribute. From
+`Urban_Agony.als`, in document order:
+
+```xml
+<GroupTrack Id="27" ...>            <!-- TrackGroupId="-1", routes to AudioOut/Main -->
+  <GroupTrack Id="47" ...>          <!-- TrackGroupId="27",  routes to AudioOut/GroupTrack -->
+    <AudioTrack Id="8" ... />       <!-- TrackGroupId="47",  routes to AudioOut/GroupTrack -->
+    <AudioTrack Id="46" ... />
+    <AudioTrack Id="45" ... />
+  </GroupTrack>
+  <AudioTrack Id="15" ... />        <!-- TrackGroupId="27",  routes to AudioOut/GroupTrack -->
+  <AudioTrack Id="54" ... />
+</GroupTrack>
+```
+
+(The indentation is for readability only — in the file these are all siblings under `Tracks`.)
+
+So a member's routing target names its **immediate** parent, and the signal path is the chain of
+parents: a track in group 47 is routed into group 47, which is routed into group 27, which is
+routed into Main.
+
+Two things follow:
+
+- **The hierarchy is recoverable** by following `TrackGroupId` up from a track. Nothing needs to
+  be inferred.
+- **A track's own routing target is not enough to know its group.** A member routed to
+  `AudioOut/GroupTrack` does not say *which* group. That is what `TrackGroupId` is for.
+
+The corpus has **314** nested group tracks — groups whose `TrackGroupId` is not `-1`. Every one of
+them routes to `AudioOut/GroupTrack`.
+
+`LinkedTrackGroupId` is **not** the parent indicator, despite the name. It is `-1` for every
+group in the corpus — all 1289 top-level groups and all 314 nested ones — so it carries no
+information about the hierarchy. `TrackGroupId` is the only thing that does.
+
+There is also a plural `LinkedTrackGroups` element. It appears 439 times in the corpus, and it is
+**always empty**.
+
+> **If you have a set that contains a `FakeGroup` element, it is not in the corpus examined
+> here, and it would be worth looking at.** Send one to `live_set` and it can be added to the
+> survey. Until then, the mechanism described above is what the evidence supports.
+
+A `FakeGroup` element would not be lost by the `-11` conversion, whatever it turns out to be.
+The conversion removes a fixed list of six Live 12 elements and copies everything else through
+unchanged, so a `FakeGroup` — or any other element the format reference does not document —
+survives into the output with its attributes intact. See section 2.2.
+
+A note on naming: `Live_set` has its own `FakeGroup` class in `spec/spec_helper.rb`. It is a
+test double — a stand-in for a `LiveGroup` — and has nothing to do with the `.als` format.
 
 ### 9.3 A group's devices are in its members' signal path
 

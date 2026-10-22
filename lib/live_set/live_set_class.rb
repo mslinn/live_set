@@ -106,6 +106,10 @@ class LiveSet
 
     # These are Live 12 constructs that Live 11 does not have. Group tracks are not among them:
     # Live 11 has group tracks, so they are kept. See docs/als_format.md section 9.2.
+    #
+    # The conversion is a selective removal, not a rewrite. Anything else in the document —
+    # including an element this list has never heard of — is copied through unchanged. See
+    # docs/als_format.md section 2.2.
     ['//ContentLanes', '//ExpressionLanes', '//InstrumentMeld', '//Roar', '//MxPatchRef', '//Oversampling'].each do |element|
       count = @xml_doc.xpath(element).length
       @xml_doc.xpath(element).remove
