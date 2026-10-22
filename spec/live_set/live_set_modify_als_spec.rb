@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'conversions'
 require 'demo_sets'
 require 'live_set/live_set_class'
 
@@ -10,42 +11,29 @@ require 'live_set/live_set_class'
 # the elements the conversion depends on, and it proves nothing about what the conversion does to
 # a set that Live actually wrote.
 #
+# Every set is converted once and the result is shared by the examples that look at it. See
+# spec/conversions.rb.
+#
 # See docs/als_format.md sections 2.2 and 2.3.
 RSpec.describe LiveSet, '#modify_als' do
-  # The directory the set is copied to and converted in.
-  let(:dir) { Dir.mktmpdir }
-
-  # The path of the set that is converted.
-  let(:set_path) { File.join dir, 'set.als' }
-
-  # The path of the converted set.
-  let(:output_path) { File.join dir, 'set_11.als' }
-
-  # A complete Live 12 demo set.
+  # The Live 12 demo set that Ableton ships.
   def live12_path
     DemoSets.path '12'
   end
 
-  # The Live 11 demo set that the N39 round trip uses.
+  # The Live 11 demo set that the round trip uses.
   #
   # It is the "Suite" edition, which has the most tracks, a group track, and the most
   # Oversampling elements. See TODO.md N39.
-  def live11_path
+  def suite_path
     DemoSets.edition '11', 'Suite'
   end
 
-  after { FileUtils.remove_entry dir }
-
-  # Reads a set as a document.
-  def read_set(path = output_path)
-    Nokogiri::XML Zlib::GzipReader.open(path, &:read)
-  end
-
-  # Copies a set into the working directory and converts it.
-  def convert(path)
-    FileUtils.cp path, set_path
-    described_class.new(set_path).modify_als
-    read_set
+  # The Live 12 version of the Live 11 demo set, made by opening it in Live 12 and saving it.
+  #
+  # It is the same song as the Live 11 demo set, written by Live 12.
+  def suite_in_live12_path
+    DemoSets.converted '11', 'Suite'
   end
 
   # The number of tracks in a set.
@@ -63,78 +51,94 @@ RSpec.describe LiveSet, '#modify_als' do
   end
 
   describe 'the Live 11 version strings' do
+    # The Live 12 demo set, converted to the Live 11 format.
+    def converted
+      Conversions.in_process live12_path
+    end
+
     before { skip 'the Live 12 demo set is not installed' if live12_path.nil? }
 
     it 'writes the Live 11 creator' do
-      convert live12_path
-
-      expect(read_set.at('//Ableton')['Creator']).to eq('Ableton Live 11.3.21')
+      expect(converted.at('//Ableton')['Creator']).to eq('Ableton Live 11.3.21')
     end
 
     it 'writes the Live 11 minor version' do
-      convert live12_path
-
-      expect(read_set.at('//Ableton')['MinorVersion']).to eq('11.0_11300')
+      expect(converted.at('//Ableton')['MinorVersion']).to eq('11.0_11300')
     end
   end
 
   describe 'a complete Live 12 set' do
-    before { skip 'the Live 12 demo set is not installed' if live12_path.nil? }
+    # The Live 12 demo set, converted to the Live 11 format.
+    def converted
+      Conversions.in_process live12_path
+    end
 
     # The set before it was converted.
     def original
-      Nokogiri::XML Zlib::GzipReader.open(live12_path, &:read)
+      Conversions.read_set live12_path
     end
 
-    it 'keeps every track' do
-      after = convert live12_path
+    before { skip 'the Live 12 demo set is not installed' if live12_path.nil? }
 
-      expect(after.xpath('//AudioTrack').length).to eq(original.xpath('//AudioTrack').length)
+    it 'keeps every track' do
+      expect(converted.xpath('//AudioTrack').length).to eq(original.xpath('//AudioTrack').length)
     end
 
     it 'keeps the group tracks' do
-      after = convert live12_path
-
-      expect(after.xpath('//GroupTrack').length).to eq(original.xpath('//GroupTrack').length)
+      expect(converted.xpath('//GroupTrack').length).to eq(original.xpath('//GroupTrack').length)
     end
 
     it 'keeps the clips' do
-      after = convert live12_path
-
-      expect(after.xpath('//AudioClip').length).to eq(original.xpath('//AudioClip').length)
+      expect(converted.xpath('//AudioClip').length).to eq(original.xpath('//AudioClip').length)
     end
 
     it 'keeps the devices' do
-      after = convert live12_path
-
-      expect(after.xpath('//Saturator').length).to eq(original.xpath('//Saturator').length)
+      expect(converted.xpath('//Saturator').length).to eq(original.xpath('//Saturator').length)
     end
 
     it 'keeps the group membership' do
-      after = convert live12_path
-
-      expect(group_members(after)).to eq(group_members(original))
+      expect(group_members(converted)).to eq(group_members(original))
     end
 
     it 'keeps the ContentLanes element' do
-      expect(convert(live12_path).xpath('//ContentLanes')).not_to be_empty
+      expect(converted.xpath('//ContentLanes')).not_to be_empty
     end
 
     it 'keeps the ExpressionLanes element' do
-      expect(convert(live12_path).xpath('//ExpressionLanes')).not_to be_empty
+      expect(converted.xpath('//ExpressionLanes')).not_to be_empty
     end
 
     it 'keeps the Oversampling elements' do
-      expect(convert(live12_path).xpath('//Oversampling')).not_to be_empty
+      expect(converted.xpath('//Oversampling')).not_to be_empty
+    end
+
+    it 'removes the elements that Live 11 does not have' do
+      # Live 12 writes these; Live 11 has no equivalent for them, so they are removed. See
+      # docs/als_format.md section 2.2.
+      expect(converted.xpath('//InstrumentMeld|//Roar|//MxPatchRef')).to be_empty
+    end
+
+    it 'renames the lanes to the name Live 11 uses' do
+      expect(converted.xpath('//ContentLanes/ExpressionLane')).not_to be_empty
+    end
+
+    it 'leaves no lane named the way Live 12 names it' do
+      expect(converted.xpath('//ContentLanes/MidiEditorLaneModel')).to be_empty
+    end
+
+    it 'rewrites the Oversampling values to the form Live 11 uses' do
+      values = converted.xpath('//Saturator/Oversampling').map { |node| node['Value'] }.uniq.sort
+
+      expect(values).to eq(%w[0 1])
     end
   end
 
   describe 'a complete Live 11 set' do
-    before { skip 'the Live 11 demo set is not installed' if live11_path.nil? }
+    before { skip 'the Live 11 demo set is not installed' if suite_path.nil? }
 
     it 'is not converted, because it is already in the Live 11 format' do
-      FileUtils.cp live11_path, set_path
-      live_set = described_class.new set_path
+      set = Conversions.set_path suite_path, 'live11'
+      live_set = described_class.new set
 
       expect { live_set.modify_als }.to raise_error SystemExit
     end
@@ -150,38 +154,37 @@ RSpec.describe LiveSet, '#modify_als' do
     # this, because it is a different song.
     #
     # See TODO.md N39.
-    let(:live12_of_live11_path) { DemoSets.converted '11', 'Suite' }
 
-    # The Live 11 set, as Live wrote it.
-    def live11
-      Nokogiri::XML Zlib::GzipReader.open(live11_path, &:read)
+    # The set as Live 11 wrote it.
+    def as_live11
+      Conversions.read_set suite_path
     end
 
-    # The Live 12 set, as Live 12 wrote it.
-    def live12
-      Nokogiri::XML Zlib::GzipReader.open(live12_of_live11_path, &:read)
+    # The set as Live 12 wrote it.
+    def as_live12
+      Conversions.read_set suite_in_live12_path
     end
 
     # The Live 12 set, converted to Live 11.
     def converted
-      convert live12_of_live11_path
+      Conversions.in_process suite_in_live12_path
     end
 
     before do
-      skip 'the Live 11 demo set is not installed' if live11_path.nil?
-      skip 'the Live 12 version of the Live 11 demo set has not been made yet' if live12_of_live11_path.nil?
+      skip 'the Live 11 demo set is not installed' if suite_path.nil?
+      skip 'the Live 12 version of the Live 11 demo set has not been made yet' if suite_in_live12_path.nil?
     end
 
     it 'has the same number of tracks as the Live 11 set' do
-      expect(track_count(converted)).to eq(track_count(live11))
+      expect(track_count(converted)).to eq(track_count(as_live11))
     end
 
     it 'has the same number of clips as the Live 11 set' do
-      expect(converted.xpath('//AudioClip').length).to eq(live11.xpath('//AudioClip').length)
+      expect(converted.xpath('//AudioClip').length).to eq(as_live11.xpath('//AudioClip').length)
     end
 
     it 'has the same group membership as the Live 11 set' do
-      expect(group_members(converted)).to eq(group_members(live11))
+      expect(group_members(converted)).to eq(group_members(as_live11))
     end
 
     it 'names the lanes the way Live 11 does' do
@@ -201,13 +204,27 @@ RSpec.describe LiveSet, '#modify_als' do
     it 'gives the same Oversampling values as the Live 11 set' do
       values = ->(doc) { doc.xpath('//Oversampling').map { |node| node['Value'] }.tally }
 
-      expect(values.call(converted)).to eq(values.call(live11))
+      expect(values.call(converted)).to eq(values.call(as_live11))
     end
 
     it 'keeps the lane types it was given' do
       types = ->(doc) { doc.xpath('//ContentLanes/*/Type').map { |node| node['Value'] }.tally }
 
-      expect(types.call(converted)).to eq(types.call(live12))
+      expect(types.call(converted)).to eq(types.call(as_live12))
+    end
+
+    it 'keeps the lanes themselves' do
+      # Live 11 crashes on a set with no ContentLanes and no ExpressionLanes, so the conversion
+      # has to translate the lanes rather than remove them. See docs/als_format.md section 2.4.
+      expect(converted.xpath('//ContentLanes').length).to eq(1)
+    end
+
+    it 'keeps the ExpressionLanes themselves' do
+      expect(converted.xpath('//ExpressionLanes').length).to eq(1)
+    end
+
+    it 'keeps the Oversampling elements themselves' do
+      expect(converted.xpath('//Oversampling').length).to eq(as_live12.xpath('//Oversampling').length)
     end
 
     it 'leaves the lanes Live 11 has no equivalent for alone' do

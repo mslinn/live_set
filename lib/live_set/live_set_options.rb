@@ -21,7 +21,8 @@ class LiveSet
 
       Options are:
         -11 Convert the Live 12 set to Live 11 format.
-        -f If -11 is specified, overwrite any existing Live 11 set.
+        -f If -11 is specified, overwrite any existing Live 11 set. Without it, an existing
+           set is left alone.
         -h Display this help message.
 
       Example:

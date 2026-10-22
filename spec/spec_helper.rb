@@ -4,6 +4,12 @@ require 'nokogiri'
 require 'ostruct'
 require 'tmpdir'
 
+# Require the code in this repository, not an installed gem of the same name.
+#
+# The repository's version and the installed gem's version can be the same, so a plain
+# `require 'live_set'` may pick up the installed one. `rake install` installs this repository's
+# code, so the two are the same; but the spec should test this repository either way.
+$LOAD_PATH.unshift File.expand_path('../lib', __dir__)
 require 'live_set'
 
 # A stand-in for a LiveAudioClip. Only the methods that the reporting code calls are needed.

@@ -120,13 +120,26 @@ class LiveSet
     new_contents = @xml_doc.to_xml.to_s
     new_contents.gsub! 'AudioOut/Main', 'AudioOut/Master'
 
+    write_conversion new_contents
+  end
+
+  # Writes the converted set next to the set that was converted.
+  #
+  # An existing set is not overwritten unless the user asks for it. The gzip writer truncates
+  # the file it opens, so without this check a conversion would silently destroy the previous
+  # result.
+  #
+  # @param new_contents [String] the contents of the converted set
+  # @return [void]
+  def write_conversion(new_contents)
     set_path = File.dirname @set_name
     new_set_name = File.basename @set_name, '.als'
     new_set_path = File.join set_path, "#{new_set_name}_11.als"
 
-    if @overwrite
+    if File.exist? new_set_path
+      abort "Error: #{new_set_path} already exists. Use -f to overwrite it." unless @overwrite
+
       puts "Overwriting existing #{new_set_path}".green
-      FileUtils.rm_f new_set_path
     else
       puts "Writing #{new_set_path}".green
     end

@@ -107,14 +107,30 @@ Live 11 demo sets:
 
 ```shell
 $ cd "/mnt/c/ProgramData/Ableton/Live 11 Suite/Resources/Core Library/Lessons/Demo Songs"
+$ rake install     # in the live_set repository, so the command runs the current code
 $ live_set -11 "Ninajirachi - In The Rain (Live 11 Suite Demo) converted to Live 12 Project/Ninajirachi - In The Rain (Live 11 Suite Demo) converted to Live 12.als"
 ```
 
 That writes `…converted to Live 12_11.als` in the same folder.
 
-If Live 11 ignores the unknown lanes, the conversion is right as it stands, and this can be
-recorded in `docs/als_format.md`. If Live 11 complains, the conversion has to map or drop the
-lanes it cannot use.
+**A first attempt crashed Live 11**, and the reason is worth recording. That attempt was made
+with a `live_set` that removed the lanes entirely rather than translating them, and Live 11
+crashed with "A serious program error has occurred" on opening the result. So **removing the
+lanes is not an option** — Live 11 does not tolerate a set with no `ContentLanes` and no
+`ExpressionLanes` any more than it tolerates one with lanes of an unknown `Type`.
+
+The file produced by the current code, which translates rather than removes, has been written
+and has not been opened in Live 11 yet. That is the test:
+
+```shell
+$ cd "/mnt/c/ProgramData/Ableton/Live 11 Suite/Resources/Core Library/Lessons/Demo Songs"
+$ live_set -11 -f "Ninajirachi - In The Rain (Live 11 Suite Demo) converted to Live 12 Project/Ninajirachi - In The Rain (Live 11 Suite Demo) converted to Live 12.als"
+```
+
+It writes `…converted to Live 12_11.als` beside the set it was given. The file has the Live 11
+version strings, the lanes are named `ExpressionLane`, the `Oversampling` values are 5 of `"1"`
+and 1 of `"0"`, and the tracks, clips and group are unchanged. The lanes are `ContentLanes` of
+`Type` 2, 3 and 4, and an `ExpressionLanes` of `Type` 5 — the unknown ones.
 
 See `docs/als_format.md` section 2.4.
 

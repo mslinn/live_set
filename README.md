@@ -143,7 +143,8 @@ Environment variables used in PATH_TO_ALS_FILE are expanded.
 
 Options are:
   -11 Convert a copy of the Live 12 set to Live 11 format.
-  -f Overwrite any existing Live 11 set.
+  -f If -11 is specified, overwrite any existing Live 11 set. Without it, an existing
+     set is left alone.
   -h Display this help message.
 
 Example:

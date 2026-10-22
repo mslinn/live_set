@@ -36,6 +36,15 @@ on:
 
 `spec/demo_sets.rb` finds them, so the test suite uses them rather than fragments.
 
+**The sets are converted once, and the result is shared.** A conversion in the same process
+takes about half a millisecond, but running the `live_set` command takes about six hundred
+milliseconds, because Ruby has to start up and load the code. The suite therefore converts each
+set once and shares the result, through `spec/conversions.rb`. The examples in
+`spec/live_set/live_set_modify_als_spec.rb` call the method directly, and the examples in
+`spec/integration/live_set_modify_als_spec.rb` run the command as a subprocess, three times on
+one set, so that the second and third runs can examine what happens when the set the command
+writes already exists.
+
 The demo sets are not the same song — Live 11's is "Ninajirachi - In The Rain" and Live 12's is
 "Chuck Sutton - Patience" — so a plain diff between them confounds version differences with
 content differences. A *structural* difference, such as an element name that changes in the same
@@ -132,6 +141,25 @@ Two consequences follow.
 This is worth knowing if a set contains something the format reference does not document. Nothing
 is silently dropped.
 
+**The converted set is not written over an existing one.** The conversion writes
+`<name>_11.als` next to the set it was given. If that file is already there, the command stops
+and says so, unless the force option is given:
+
+```shell
+$ live_set -11 my_set.als
+Writing ./my_set_11.als
+Conversion complete
+$ live_set -11 my_set.als
+Error: ./my_set_11.als already exists. Use -f to overwrite it.
+$ live_set -11 -f my_set.als
+Overwriting existing ./my_set_11.als
+Conversion complete
+```
+
+This matters because the gzip writer truncates the file it opens. Without the check, a second
+conversion would destroy the result of the first without saying so. The set that was converted
+is never modified, whichever way the command ends.
+
 ### 2.3 Two elements the conversion translates
 
 Two elements exist in both versions but are spelled differently, so the conversion rewrites them
@@ -215,6 +243,16 @@ because:
 
 Whether Live 11 tolerates a lane of an unknown `Type` is not known. It is a small thing to test:
 convert a Live 12 set, open the result in Live 11, and look at the lanes.
+
+**The lanes cannot simply be removed.** An earlier version of the conversion removed
+`ContentLanes`, `ExpressionLanes` and `Oversampling` rather than translating them, and Live 11
+**crashed** on the result:
+
+> A serious program error has occurred.
+> Live will shut down after this message box is closed.
+
+So a set with no `ContentLanes` and no `ExpressionLanes` is no more acceptable to Live 11 than a
+set with lanes of an unknown `Type`. The conversion has to translate them.
 
 ### 2.5 What a round trip establishes
 
