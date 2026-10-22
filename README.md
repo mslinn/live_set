@@ -290,6 +290,6 @@ Bug reports and pull requests are welcome at https://github.com/mslinn/live_set.
 
 ## License
 
-The gem is provided as [source-available, noncommercial license](LICENCE.txt).
+The gem is provided as [source-available, noncommercial license](LICENSE.md).
 Commercial use, and use in court-case investigations, require paid
 licenses.

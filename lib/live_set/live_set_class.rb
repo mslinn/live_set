@@ -1,5 +1,6 @@
 require 'bytesize'
 require 'colorator'
+require 'fileutils'
 require 'nokogiri'
 require 'pathname'
 require 'zlib'

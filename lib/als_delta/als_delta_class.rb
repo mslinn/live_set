@@ -46,7 +46,8 @@ class AlsDelta
       puts 'Press any key to display the changes to the Live set XML file, or press Esc to exit.'
       character = $stdin.getch
       exit if character.ord == 27
-      output = run_capture_stdout "GZIP=--no-name zdiff #{@set_name.shellescape} #{@backup_name.shellescape}"
+      output = run_capture_stdout "GZIP=--no-name zdiff #{@set_name.shellescape} #{@backup_name.shellescape}",
+                                  success_statuses: [0, 1]
       if output.empty?
         puts 'There were no changes to the saved live set.'
       else

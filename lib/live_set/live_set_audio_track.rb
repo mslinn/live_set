@@ -7,9 +7,9 @@ class LiveAudioTrack
     @frozen      = @audio_track.at('Freeze')&.[]('Value')&.to_bool
 
     Log.debug "Track #{@id}:"
-    Log.debug "  DeviceChain exists: #{!!@audio_track.DeviceChain}"
-    Log.debug "  MainSequencer exists: #{!!@audio_track.DeviceChain.MainSequencer}" if @audio_track.DeviceChain
-    Log.debug "  ClipSlotList exists: #{!!@audio_track.DeviceChain.MainSequencer.ClipSlotList}" if @audio_track.DeviceChain&.MainSequencer
+    Log.debug "  DeviceChain exists: #{@audio_track.DeviceChain}"
+    Log.debug "  MainSequencer exists: #{@audio_track.DeviceChain.MainSequencer}" if @audio_track.DeviceChain
+    Log.debug "  ClipSlotList exists: #{@audio_track.DeviceChain.MainSequencer.ClipSlotList}" if @audio_track.DeviceChain&.MainSequencer
 
     # Audit the whole chain, including devices nested inside racks.
     @devices = @audio_track.search('.//Device').map { |node| LiveDevice.new(node) }
@@ -69,7 +69,7 @@ class LiveAudioTrack
 
   def show_track(all_frozen)
     name = @audio_track.Name.EffectiveName['Value']
-    frozen = @audio_track.frozen? ? ' frozen'.green : ' **not frozen**'.yellow unless all_frozen || @audio_clips.empty?
+    frozen = frozen? ? ' frozen'.green : ' **not frozen**'.yellow unless all_frozen || @audio_clips.empty?
     size = ", totaling #{human_file_size @track_size}" unless @audio_clips.empty?
 
     track_line = "Track '#{name}'#{frozen} (#{@audio_clips.length} clips#{size})"

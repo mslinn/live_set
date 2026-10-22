@@ -1,3 +1,5 @@
+require 'bytesize'
+
 # Monkey patch Array to add one new method
 class Array
   # Convert an Array of Array into a String, formatted as a table.

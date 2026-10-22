@@ -13,6 +13,19 @@ AllCops:
   NewCops: enable
   TargetRubyVersion: 3.4
 
+# TODO.md quotes Ruby excerpts that are not standalone-parseable programs, so
+# rubocop-md cannot lint them.
+Markdown:
+  Exclude:
+    - TODO.md
+
+Naming/FileName:
+  Exclude:
+    - Rakefile
+    - CHANGELOG.md
+    - README.md
+    - TODO.md
+
 Gemspec/DeprecatedAttributeAssignment:
   Enabled: false
 
@@ -46,9 +59,18 @@ Metrics/ModuleLength:
 Metrics/PerceivedComplexity:
   Max: 15
 
-Naming/FileName:
+RSpec/DescribeMethod:
   Exclude:
-    - Rakefile
+    - spec/live_set/live_set_audio_track_clip_slots_spec.rb
+
+# The classes in this project are namespaced under the live_set_ prefix, so that
+# the spec files can be named to match.
+RSpec/SpecFilePathFormat:
+  CustomTransform:
+    LiveAudioTrack: live_set_audio_track
+    Run: common/run
+  Exclude:
+    - spec/live_set/live_set_audio_track_clip_slots_spec.rb
 
 Style/Documentation:
   Enabled: false
