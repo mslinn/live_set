@@ -20,13 +20,126 @@ them and present them for discussion.
 
 ## Purpose
 
-This document describes how round-trip conversion shall be used to verify
-correctness of converted Live 12 sets. Once we have that working, issues like
-N42 in `TODO.md` will magically be fixed.
+This document describes the round-trip test that proves a conversion from Live
+12 data back to the Live 11 format is valid. The purpose is not to treat a
+Live 12 demo set as a fixed oracle. The purpose is to take a real Live 11 set,
+save it in Live 12, convert it back with `live_set -11`, inspect the converted
+XML, and then ask Live 11 whether it accepts the result.
 
-This document is a plan for building the round trip mechanism: code that starts
-Live 11 with a set generated in a unit test, that interacts with the running
-Live executable image, and reports back to the unit test what happened.
+The end-to-end test is the proving instrument, but it is not the first gate. We
+must first check the converted ALS file itself: if the XML is structurally
+invalid, or if the conversion has lost required elements or default values, Live
+11 is not the next step.
+
+This document is the plan for building the round-trip mechanism: code that uses
+an original Live 11 set as the source, converts it through Live 12 and back to
+Live 11, probes the converted `.als` file, feeds the result to Live 11, and
+reports back to the unit test what happened.
+
+### The actual round-trip sequence
+
+The round trip is the core of the plan, and it starts from a real Live 11 set:
+
+1. Start from a known-good Live 11 set.
+2. Open it in Live 12 and save it, creating the Live 12 version of the same song.
+3. Run `live_set -11` to convert that Live 12 result back to the Live 11 format.
+4. Probe the converted `.als` file as XML before invoking Live 11.
+5. Run the structural sanity checks on the converted file.
+6. Only if the converted file passes those checks, launch Live 11 against it.
+7. Record whether Live 11 accepts it, crashes, or blocks on a prompt.
+8. Read back the relevant document content and compare it with the original Live 11 set:
+   - track structure
+   - clip structure
+   - group membership
+   - lane data
+   - version strings and invariant values
+
+This is the whole point of the round trip: convert the same material across
+versions, inspect the result, and see whether Live 11 accepts it and preserves
+the meaningful data.
+
+### Required pre-flight gate: XML sanity checks before Live 11 launch
+
+The Live 12 source is a generated artifact, not a canonical or fixed oracle. It
+is still valuable, but it is not the ground truth in the same sense as the
+starting Live 11 set. The conversion must therefore be proven in stages: first
+structure, then acceptance by Live 11.
+
+The round-trip flow therefore needs this pre-flight gate:
+
+1. convert the Live 12 source set to the Live 11 format;
+2. parse the resulting `.als` file as XML;
+3. run the structural sanity checks before launching Live 11;
+4. only if the file passes those checks should Live 11 be started.
+
+The existing XML checks live in the suite and are the obvious starting point:
+
+- `spec/live_set/live_set_modify_als_spec.rb`
+  - checks the Live 11 creator/version strings;
+  - checks track, group, clip, and device counts;
+  - checks group membership and lane renames;
+  - checks unsupported Live 12-only elements are removed;
+  - checks the Oversampling rewrite and the Live 11 round-trip comparisons.
+
+These checks are useful, but they are not yet a formal gate in the harness play.
+They should be reviewed and made explicit as the pre-flight contract before the
+Live 11 launch step.
+
+This ordering matters: the round-trip test is the proof, but the XML gate is the
+first filter. Without it, the harness can waste time launching Live on a file
+that is already structurally invalid.
+
+### Terminology
+
+The plan uses these terms consistently:
+
+- `source set`: the original Live 12 `.als` file produced by Ableton Live.
+- `converted file`: the Live 11-compatible file produced by `live_set`.
+- `round-tripped result`: the converted file after it is opened in Live 11 and
+  checked by the harness.
+- `harness`: the Ruby test infrastructure that launches Live, watches the log,
+  answers dialogs, and reports the outcome.
+- `research finding`: an observation or fact established from Live's behavior,
+  documentation, or log files.
+- `implementation action`: the code or test step that turns a finding into an
+  executable part of the harness.
+
+These terms are used throughout the document: research findings describe what
+is true about Live's behavior, while implementation actions describe what the
+code in this repository is meant to do.
+
+## Current validation coverage
+
+The existing validation checks are already in the suite and are the baseline for
+this work. They are not a replacement for the harness, but they do provide the
+first layer of evidence:
+
+- `spec/live_set/live_set_modify_als_spec.rb`
+  - checks the Live 11 creator/version strings
+  - checks track counts, group membership, clips, devices, and lane renames
+  - verifies unsupported Live 12-only elements are removed
+  - checks the oversampling rewrite and the round-trip against a Live 11 demo set
+
+- `spec/integration/live_set_round_trip_spec.rb`
+  - launches Live 11 against the converted set
+  - asserts no error dialog is shown
+  - asserts the log reaches `End ExchangeDocument`
+
+- `spec/support/live_harness/live_log_spec.rb`
+  - validates the log parser in success, crash, restore, and missing-log cases
+
+- `spec/support/live_harness/live_recovery_spec.rb`
+  - validates recovery-file parsing for pending crashes
+  - validates extraction of the set path from `CrashRecoveryInfo.cfg`
+  - validates UTF-16 string parsing used to recover the file name
+
+This is the important point for the plan: the repository already contains a
+meaningful validation layer, and the remaining work is to make the harness and
+the conversion checks explicit, repeatable, and strong enough to support the
+round trip as a formal test. The key requirement is that the XML sanity checks
+must be run as a gate before the Live 11 launch, because the round trip is meant
+to prove conversion validity across version boundaries, not simply to launch Live
+11 on a file that has not yet been read back and checked.
 
 ## Research Is Complete
 
@@ -280,6 +393,20 @@ So the conversion cannot be blamed for the crash. And deleting the Live 12-only
 elements is known to work: that was found by hand, and it is what the harness
 should make into a test.
 
+## How to read this plan
+
+This document is split into two layers:
+
+- **Research findings**: the evidence and conclusions about how Live behaves,
+  where its logs and recovery files live, and which prompts must be handled.
+- **Implementation actions**: the steps to code the harness, validate the log
+  parser, and make the round-trip spec repeatable.
+
+The research sections tell us what is true about Live; later sections tell us
+what to build in Ruby to turn those findings into a test harness. Keeping this
+boundary explicit makes it easier to trace a design decision back to the
+observed behavior it depends on.
+
 ## The design
 
 A program, in this repository, with a stable API. **Nothing to install.**
@@ -325,9 +452,20 @@ in the log, so a recovery prompt is handled rather than mistaken for a hang.
 
 ### What the harness does, in order
 
-1. **Note where the log is**, so that only this run's lines are read.
-2. **Start Live** with the set, using the WSL interop.
-3. **Watch the log** until the run settles. There are four outcomes, and the harness must tell
+1. **Prepare a clean launch state**: close any existing Live instance, ensure the log is fresh,
+   and clear or isolate recovery files so that the next run does not block on a stale prompt.
+2. **Start from a real Live 11 set** and save it in Live 12, creating the Live 12 source for
+   the test.
+3. **Convert that Live 12 source to the Live 11 format** with `live_set -11` and write the
+   result to a known path.
+4. **Probe the converted `.als` file as XML** before launching Live 11. This is the required
+   structural gate: parse the file, assert the expected live set invariants, and stop with a
+   clear failure if the file is malformed or missing required elements.
+5. **Read back the converted file as XML** and compare the meaningful set content against the
+   original Live 11 source: tracks, clips, group membership, lane values, version strings, and
+   any required invariant fields.
+6. **Start Live** with the set, using the WSL interop.
+7. **Watch the log** until the run settles. There are four outcomes, and the harness must tell
    them apart:
    - `End ExchangeDocument` — the set loaded.
    - `Exception: Fatal Error` — Live crashed.
@@ -336,8 +474,8 @@ in the log, so a recovery prompt is handled rather than mistaken for a hang.
      recovery prompt. The harness sends "n", and waits for
      `Restore Document: Rejected by the user`. Live then moves the recovery files into
      `Crash\` by itself, and carries on.
-4. **If it crashed, read `CrashRecoveryInfo.cfg`** and report which set it was working on.
-5. **Close Live** gracefully, and confirm the log's last line is `Exit: End`.
+8. **If it crashed, read `CrashRecoveryInfo.cfg`** and report which set it was working on.
+9. **Close Live** gracefully, and confirm the log's last line is `Exit: End`.
 
 ### Closing Live
 
@@ -392,15 +530,27 @@ interpreter here is on the Windows side of the boundary already.
    starts Live, watches the log, answers the recovery prompt, reports the outcome, and closes
    Live.
 
-5. **Write the spec that uses it.** `spec/integration/live_set_round_trip_spec.rb`, asserting
-   that Live 11 opens the converted set without complaint. It is opt-in, because Live takes
+5. **Write the XML sanity-check gate.** Before launching Live 11, read the converted `.als`
+   file as XML and assert a small but explicit set of invariants: required top-level elements,
+   version strings, lane names, removed Live 12-only nodes, and the expected set of track and
+   clip counts. This is the step currently represented by the checks in
+   `spec/live_set/live_set_modify_als_spec.rb`, and it should be made an explicit part of the
+   plan rather than a loose collection of examples.
+
+6. **Write the round-trip spec that exercises the full sequence.**
+   `spec/integration/live_set_round_trip_spec.rb` should take a real Live 11 set, save it in
+   Live 12, convert it back with `live_set -11`, run the XML sanity checks, and then launch Live
+   11 with the converted file. It should assert the meaningful data still reads back correctly
+   and that Live 11 accepts the file without a fatal crash. It is opt-in, because Live takes
    about half a minute to start and load a set, and the rest of the suite must stay quick:
    skipped unless `LIVE_SET_ROUND_TRIP` is set.
 
-6. **Then, and only then, fix the conversion.** With the harness working, the loop is:
-   convert → open in Live 11 → read the log → adjust the conversion → repeat. The evidence
-   says the answer is to remove the Live 12-only elements, as has already been found by hand;
-   the harness turns that into a test and lets the list be derived rather than guessed.
+7. **Then, and only then, fix the conversion.** With the harness working, the loop is:
+   Live 11 source → Live 12 save → `live_set -11` → XML sanity check → Live 11 open → log
+   inspection → data read-back verification → adjust the conversion → repeat. The evidence says
+   the answer is to remove the Live 12-only elements or otherwise reconcile the incompatible lane
+   data, as has already been found by hand; the harness turns that into a test and lets the list
+   be derived rather than guessed.
 
 ## Verification
 

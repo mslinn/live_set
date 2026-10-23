@@ -4,6 +4,76 @@ Outstanding work on `live_set`. This is a description of work in progress; when
 an item is completed its entry is deleted, and anything worth keeping is written
 up in `docs/als_format.md` or the code itself.
 
+## Testing work
+
+These are the concrete test improvements still to be done. They are not notes
+about tests that already work; they are the next changes to make the suite more
+reliable, more exhaustive, and easier to trust.
+
+### T1. Strengthen the XML-level validation of the Live 11 conversion
+
+The current checks in `spec/live_set/live_set_modify_als_spec.rb` cover obvious
+version strings, tracks, lanes, and a few known removed elements. They do not yet
+make the conversion contract explicit enough. The work is to define the minimum
+semantic invariants for a valid Live 11 set and assert them in code, including:
+
+- the exact set of supported `Type` values for lane structures
+- the expected shape of `ContentLanes` and `ExpressionLanes`
+- the required absence of unsupported Live 12-only nodes
+- version, schema, and element counts that must remain stable across conversions
+
+This should turn the current ad hoc spot checks into an explicit set of
+acceptance conditions.
+
+### T2. Make the round-trip spec assert real equivalence, not just "no error"
+
+`spec/integration/live_set_round_trip_spec.rb` currently checks that Live 11 does
+not display an error dialog and that the log reaches `End ExchangeDocument`.
+That is useful, but not enough. The test should be expanded to assert concrete
+outcomes such as:
+
+- a successful open without a crash or restore prompt
+- no unexpected Live 11-only lane types or unknown values
+- the converted set preserves the expected track and clip structure
+- a clear pass/fail signal that distinguishes a crash from a normal open
+
+This is the test that should decide whether the conversion is actually acceptable
+for Live 11, not merely loaded without complaint.
+
+### T3. Add a failing test for the known crash path before treating a fix as complete
+
+The current round-trip work already establishes that a certain translated lane
+layout crashes Live 11. The missing discipline is to turn that into a compact,
+reproducible regression test: a fixture or controlled set that is known to fail
+and must fail in a specific way until the conversion is corrected.
+
+This prevents the suite from accepting a "works on my machine" result and gives a
+clear red/green signal for the conversion fix.
+
+### T4. Add fixture-driven tests for recovery prompts and crash-recovery state
+
+The harness currently covers some of this in the log parser and recovery reader,
+but those tests should be made more explicit about the actual Live failure modes
+that the harness is meant to withstand. Add fixture-based tests for:
+
+- a clean exit
+- a crash followed by a restore prompt
+- a crash followed by a normal recovery-file move into `Crash\`
+- the log sequence that shows `Restore Document: Rejected by the user`
+
+This keeps the harness behavior pinned to real Live output instead of relying on
+one-off manual observations.
+
+### T5. Review and tighten the names and scope of all conversion checks
+
+The current specs mix XML structure checks, version checks, and live-behavior
+checks without always making the purpose of each example obvious. This should be
+reviewed and cleaned up so that each example states exactly which contract it is
+checking: conversion output, Live compatibility, or harness parsing.
+
+The goal is not more tests for their own sake; it is to make the suite explain
+what it proves, where it fails, and what remains uncertain.
+
 
 ## Moderate
 
@@ -15,19 +85,18 @@ up in `docs/als_format.md` or the code itself.
 unreachable. The whole class is effectively dead.
 
 
+### N36. `als_delta` compares against a backup, not the previous version
+
+`lib/als_delta/als_delta_class.rb:66-81` — the loop backs up the current file and diffs the current
+file against that backup, so the first iteration compares the file to itself. The help text says
+"compare with previous version", which is accurate only from the second iteration onward.
+
 ## Minor
 
 ### N10. `LiveTracks#ready_for_p3s?` is dead code
 
 `lib/live_set/live_set_live_tracks.rb`. The comment above it explicitly says it is "not used at
 present, but it should be". `p3s_tx_msg` implements the same logic inline instead.
-
-
-### N36. `als_delta` compares against a backup, not the previous version
-
-`lib/als_delta/als_delta_class.rb:66-81` — the loop backs up the current file and diffs the current
-file against that backup, so the first iteration compares the file to itself. The help text says
-"compare with previous version", which is accurate only from the second iteration onward.
 
 
 ### N37. A frozen track's clips are reported twice over
@@ -44,7 +113,6 @@ clips, 25 clip objects in total, but only 14 distinct files.
 This is not wrong, but it is confusing. The report should say which sequencer each clip came from,
 or should report only the sequencer that is currently in effect: the `MainSequencer` for an
 unfrozen track, the `FreezeSequencer` for a frozen one. See `docs/als_format.md` section 11.
-
 
 
 ### N40. A group's device chain is reported on the group, but the group is not reported on its members
@@ -136,7 +204,7 @@ translating them crashes Live 11 too, because the translated file still has lane
 
 Live 11's own log records the crash:
 
-```
+```text
 2026-10-22T16:22:56.753332: info: Default App: Begin ExchangeDocument
 2026-10-22T16:22:58.144252: info: Exception: Windows Exception
 2026-10-22T16:22:58.144280: info: Exception: Fatal Error: Unhandled exception
