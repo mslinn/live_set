@@ -21,105 +21,106 @@ them and present them for discussion.
 ## Purpose
 
 This document describes the round-trip test that proves a conversion from Live
-12 data back to the Live 11 format is valid. The purpose is not to treat a
-Live 12 demo set as a fixed oracle. The purpose is to take a real Live 11 set,
-save it in Live 12, convert it back with `live_set -11`, inspect the converted
-XML, and then ask Live 11 whether it accepts the result.
+12 data back to the Live 11 format is valid.
 
-The end-to-end test is the proving instrument, but it is not the first gate. We
-must first check the converted ALS file itself: if the XML is structurally
-invalid, or if the conversion has lost required elements or default values, Live
-11 is not the next step.
+** No simulations or stubs or mocks are allowed in this live end-to-end
+integration test capability. **
 
-This document is the plan for building the round-trip mechanism: code that uses
-an original Live 11 set as the source, converts it through Live 12 and back to
-Live 11, probes the converted `.als` file, feeds the result to Live 11, and
-reports back to the unit test what happened.
+TODO Search for simulations, stubs, and mocks and replace them with live code.
 
-### The actual round-trip sequence
 
-The round trip is the core of the plan, and it starts from a real Live 11 set:
+## Round Trip Steps
 
-1. Start from the official Live 11 demo set shipped with Ableton 11, found by the
-   repository helper in `spec/demo_sets.rb` via `DemoSets.edition '11', 'Suite'` (or the
-   equivalent version-specific lookup).
-2. Open it in Live 12 and save it, creating the Live 12 version of the same song.
-3. Run `live_set -11` to convert that Live 12 result back to the Live 11 format.
-4. Probe the converted `.als` file as XML before invoking Live 11.
-5. Run the structural sanity checks on the converted file.
-6. Only if the converted file passes those checks, launch Live 11 against it.
-7. Record whether Live 11 accepts it, crashes, or blocks on a prompt.
-8. Read back the relevant document content and compare it with the original Live 11 set:
-   - track structure
-   - clip structure
-   - group membership
-   - lane data
-   - version strings and invariant values
+The round trip can be summarized as:
 
-This is the whole point of the round trip: convert the same material across
-versions, inspect the result, and see whether Live 11 accepts it and preserves
-the meaningful data.
+convert → XML gate → launch gate → classify gate → close → report
 
-### Required pre-flight gate: XML sanity checks before Live 11 launch
+A more detailed explanation of the round trip is as follows. If one of these
+steps fail, then the round trip should fail fast:
 
-The Live 12 source is a generated artifact, not a canonical or fixed oracle. It
-is still valuable, but it is not the ground truth in the same sense as the
-starting Live 11 set. The conversion must therefore be proven in stages: first
-structure, then acceptance by Live 11.
+1. Locate one of the demo Live 11 sets installed by Ableton Live.
 
-The round-trip flow therefore needs this pre-flight gate:
+   a. Use the repository helper in `spec/demo_sets.rb` via `DemoSets.edition
+   '11', 'Suite'`.
 
-1. convert the Live 12 source set to the Live 11 format;
-2. parse the resulting `.als` file as XML;
-3. run the structural sanity checks before launching Live 11;
-4. only if the file passes those checks should Live 11 be started.
+2. Launch Ableton Live 12.
 
-The official Live 11 demo sets are already searched for and located in the repository helper
-`spec/demo_sets.rb`, which follows Ableton's documented location and falls back to the known
-installed paths on the test machine. That helper is the place the plan should call out as the
-source of the initial Live 11 set used in the round trip.
+   a. Load the demo set (an `.als` file)
+   b. Save the demo set in Live 12 format
+   c. Exit Ableton Live 12.
 
-The existing XML checks live in the suite and are the obvious starting point:
+3. Convert the Live 12 set back to Live 11 format by using `live_set -11`
 
-- `spec/live_set/live_set_modify_als_spec.rb`
-  - checks the Live 11 creator/version strings;
-  - checks track, group, clip, and device counts;
-  - checks group membership and lane renames;
-  - checks unsupported Live 12-only elements are removed;
-  - checks the Oversampling rewrite and the Live 11 round-trip comparisons.
+4. Run [sanity checks](spec/live_set/live_set_modify_als_spec.rb) on the XML
+   within the converted Live 11 set. The XML sanity checks must be run as a gate
+   before the next step, because the round trip is meant to prove conversion
+   validity, not simply to launch Live 11 on a file that has not yet been read
+   back and checked.
 
-These checks are useful, but they are not yet a formal gate in the harness play.
-They should be reviewed and made explicit as the pre-flight contract before the
-Live 11 launch step.
+   Required test fixtures include: clean open, crash dialog, restore prompt,
+   save prompt, no log, partial log, unexpected dialog. TODO which of these
+   exist, and which are stubbed, simulated, or not implemented?
 
-This ordering matters: the round-trip test is the proof, but the XML gate is the
-first filter. Without it, the harness can waste time launching Live on a file
-that is already structurally invalid.
+   At a high level, the required sanity checks are:
 
-### Terminology
+   a. Is the XML structurally valid?
+   b. Are the expected elements present and in the right nodes?
+   c. Do the following expected elements have the proper values?
 
-The plan uses these terms consistently:
+      - Live 11 creator/version strings
+      - track, group, clip, and device counts
+      - group membership and lane renames
+      - unsupported Live 12-only elements are removed
+
+5. Load the converted Live 11 set into Live 11
+
+   a. Check for error dialogs; if error messages are displayed, read them and
+      handle them appropriately. Potential outcomes are:
+
+      - `loaded` (success)
+      - `save_changes` (attempting to exit Ableton Live after converting from 11
+        format to 12 format will cause a dialog to appear asking the user if
+        they want to save changes in Live 12 format, and if the dialog appears
+        this indicates the step succeeded, so the Live set should be saved with
+        a <code>_11</code> suffix.)
+      - `crashed` (Ableton Live displays a fatal error dialog)
+      - `recovery` (a previous invocation of Live crashed and the marker
+        file must be moved or deleted)
+
+   b. Verify that the original tracks, clips and settings are the same as the
+      original. TODO review this pre-flight contract.
+
+      - track structure
+      - clip structure
+      - group membership
+      - lane data
+      - version strings and invariant values
+
+6. Report results back to the unit test.
+
+
+## Terminology
+
+This plan uses the following terms:
 
 - `source set`: the original Live 12 `.als` file produced by Ableton Live.
 - `converted file`: the Live 11-compatible file produced by `live_set`.
 - `round-tripped result`: the converted file after it is opened in Live 11 and
   checked by the harness.
 - `harness`: the Ruby test infrastructure that launches Live, watches the log,
-  answers dialogs, and reports the outcome.
+  answers dialogs, and reports the outcome. The harness is a test framework;
+  the round trip is the scenario that uses it.
 - `research finding`: an observation or fact established from Live's behavior,
   documentation, or log files.
-- `implementation action`: the code or test step that turns a finding into an
-  executable part of the harness.
+- `implementation action`: describes what the code in this repository is meant
+   to do.
 
-These terms are used throughout the document: research findings describe what
-is true about Live's behavior, while implementation actions describe what the
-code in this repository is meant to do.
 
 ## Current validation coverage
 
-The existing validation checks are already in the suite and are the baseline for
-this work. They are not a replacement for the harness, but they do provide the
-first layer of evidence:
+The following validation checks are already in the suite but some are
+simulations or unimplemented stubs.
+TODO No simulations or stubs are permitted.
 
 - `spec/live_set/live_set_modify_als_spec.rb`
   - checks the Live 11 creator/version strings
@@ -140,13 +141,85 @@ first layer of evidence:
   - validates extraction of the set path from `CrashRecoveryInfo.cfg`
   - validates UTF-16 string parsing used to recover the file name
 
-This is the important point for the plan: the repository already contains a
-meaningful validation layer, and the remaining work is to make the harness and
-the conversion checks explicit, repeatable, and strong enough to support the
-round trip as a formal test. The key requirement is that the XML sanity checks
-must be run as a gate before the Live 11 launch, because the round trip is meant
-to prove conversion validity across version boundaries, not simply to launch Live
-11 on a file that has not yet been read back and checked.
+
+## Current status of the harness validation
+
+The harness has a unit-tested Ruby parser contract, but it proves
+nothing because it is just a simulation. TODO fix this.
+
+TODO What still must be covered:
+
+- dialog text is read and captured (the current implementation is fake code)
+- the dialog family is classified
+- the dismiss action is recorded
+- known recovery, fatal, and save dialogs are recognized
+- a single outcome model for the whole run (`loaded`, `crashed`, `blocked`, `unknown`)
+- table-driven tests covering the real outcome matrix
+- a harness-level result that the integration spec can assert on without re-deriving
+  the meaning from raw strings
+- a final end-to-end run against a real demo file using the same result model
+
+
+## The framework structure we want
+
+The framework should be built around a small scenario engine:
+
+1. Prepare the environment
+   - locate the Live 11/12 demo sets and installation
+   - ensure a clean process state
+   - use a fresh log file and clear any stale recovery state
+2. Convert and preflight
+   - start from the real Live 11 demo set
+   - save or source the Live 12 version
+   - convert back to Live 11
+   - parse the `.als` file as XML
+   - fail fast if required invariants are missing or invalid
+3. Launch Live
+   - start the program with the converted set
+   - watch process state and log output
+   - classify the top-level dialog and choose the dismissal action
+4. Classify the result
+   - `:loaded` if the run reaches `End ExchangeDocument`
+   - `:crashed` if Live reports a fatal error
+   - `:died` if the process exits without a clean end
+   - `:blocked` if a modal dialog is still open and the harness handled it
+   - `:unknown` for any unrecognised modal
+5. Close and report
+   - close Live gracefully
+   - capture the final log tail
+   - return a structured result the specs can assert on
+
+This is the framework structure that makes end-to-end testing reproducible and
+reviewable: a stable outcome model, a documented dialog matrix, and a round-trip
+scenario that runs against that contract.
+
+## Best next concrete step
+
+The immediate next action is to formalise the result object and the table-driven
+outcome tests before chasing the remaining conversion bug.
+
+1. Canonicalise the harness result in `spec/live_launcher.rb`
+   - `dialog`
+   - `dialog_type`
+   - `dismiss_action`
+   - `loaded`
+   - `crashed`
+   - the outcome classification itself
+2. Expand `spec/support/live_harness/live_launcher_spec.rb` into a table-driven
+   matrix of scenarios
+   - success
+   - fatal error dialog
+   - recovery prompt
+   - save prompt
+   - unknown dialog
+   - no log / partial log / unexpected exit
+3. Keep the PowerShell UIAutomation flow in `spec/support/live_harness/live_launcher.ps1`
+   aligned with the same dialog families and actions.
+4. Once that harness model is stable, turn the integration test into a scenario
+   runner that asserts the round trip through the documented outcome contract.
+
+This is the concrete improvement that gives us a framework, rather than a few
+example checks that happen to pass in a particular environment.
 
 ## Research Is Complete
 

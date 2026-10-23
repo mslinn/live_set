@@ -74,6 +74,21 @@ checking: conversion output, Live compatibility, or harness parsing.
 The goal is not more tests for their own sake; it is to make the suite explain
 what it proves, where it fails, and what remains uncertain.
 
+### T6. Validate the harness outcome model and the dialog-matrix contract
+
+The parser tests in `spec/support/live_harness/live_launcher_spec.rb` cover the
+Ruby output contract, but they do not yet define the full harness outcome model
+that the end-to-end tests will use. The missing work is to make the harness say,
+for each observable dialog and run state:
+
+- what the result is (`loaded`, `crashed`, `blocked`, `unknown`)
+- which dialog family it saw (`fatal`, `recovery`, `save_changes`, `unknown`)
+- which action the harness must take to dismiss it
+- whether the run is a pass, failure, or blocked state
+
+This should be codified as a small outcome matrix, with table-driven tests,
+so that the end-to-end round-trip test uses the same classification contract as
+Live's real dialogs.
 
 ## Moderate
 

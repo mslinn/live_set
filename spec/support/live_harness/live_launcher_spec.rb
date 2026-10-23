@@ -10,6 +10,23 @@ RSpec.describe LiveLauncher do
     end
   end
 
+  describe '.classify_dialog' do
+    it 'recognises each supported dialog family and the required dismissal action' do
+      expect(described_class.classify_dialog('A serious program error has occurred.')).to eq(
+        { type: :fatal, action: { type: 'button', value: 'OK' } }
+      )
+      expect(described_class.classify_dialog("Live unexpectedly quit while you were working on the Live Set 'Untitled'. Would you like to recover your work?")).to eq(
+        { type: :recovery, action: { type: 'button', value: 'No' } }
+      )
+      expect(described_class.classify_dialog('Save changes?')).to eq(
+        { type: :save_changes, action: { type: 'button', value: 'No' } }
+      )
+      expect(described_class.classify_dialog('Some unexpected Live window')).to eq(
+        { type: :unknown, action: nil }
+      )
+    end
+  end
+
   describe '.parse' do
     it 'reads the launch result from the launcher output' do
       output = <<~TEXT
@@ -28,6 +45,7 @@ RSpec.describe LiveLauncher do
       expect(result.dialog).to be_nil
       expect(result.dialog_type).to be_nil
       expect(result.dismiss_action).to be_nil
+      expect(result.outcome).to eq(:loaded)
       expect(result.crashed).to be false
       expect(result.loaded).to be true
       expect(result.log).to include('End ExchangeDocument')
@@ -51,6 +69,7 @@ RSpec.describe LiveLauncher do
       expect(result.dialog).to eq('A serious program error has occurred.')
       expect(result.dialog_type).to eq(:fatal)
       expect(result.dismiss_action).to eq({ type: 'button', value: 'OK' })
+      expect(result.outcome).to eq(:crashed)
       expect(result.crashed).to be true
       expect(result.loaded).to be false
     end
@@ -71,6 +90,7 @@ RSpec.describe LiveLauncher do
 
       expect(result.dialog_type).to eq(:recovery)
       expect(result.dismiss_action).to eq({ type: 'button', value: 'No' })
+      expect(result.outcome).to eq(:blocked)
       expect(result.loaded).to be false
     end
 
@@ -89,6 +109,7 @@ RSpec.describe LiveLauncher do
 
       expect(result.dialog_type).to eq(:save_changes)
       expect(result.dismiss_action).to eq({ type: 'button', value: 'No' })
+      expect(result.outcome).to eq(:blocked)
     end
 
     it 'marks an unrecognised top-level modal as unknown rather than silently ignoring it' do
@@ -104,7 +125,34 @@ RSpec.describe LiveLauncher do
 
       expect(result.dialog_type).to eq(:unknown)
       expect(result.dismiss_action).to be_nil
+      expect(result.outcome).to eq(:unknown)
       expect(result.dialog).to eq('Some unexpected Live window')
+    end
+  end
+
+  describe 'real Live integration', :live_integration do
+    before do
+      unless Gem.win_platform? || RUBY_PLATFORM.include?('mswin') || RUBY_PLATFORM.include?('mingw')
+        skip 'this is a Windows + Ableton Live integration test'
+      end
+
+      @installation = LiveInstallations.version('11')
+      skip 'Live 11 is not installed on this machine' if @installation.nil? || @installation.executable.nil?
+
+      @demo_set = DemoSets.edition('11', 'Suite')
+      skip 'the Live 11 demo set is not installed on this machine' if @demo_set.nil? || !File.exist?(@demo_set)
+
+      @log_path = LiveInstallations.preferences('11')
+      skip 'Live 11 has no writable Preferences directory configured' if @log_path.nil?
+      @log_path = File.join(@log_path, 'Log.txt')
+    end
+
+    it 'launches the real app and reports the actual launcher outcome' do
+      result = described_class.launch(@installation.executable, @demo_set, log: @log_path, timeout: 60)
+
+      expect(result).to be_a(described_class::Result)
+      expect(result.exit_code).to be_a(Integer)
+      expect(%i[loaded blocked crashed unknown]).to include(result.outcome)
     end
   end
 end

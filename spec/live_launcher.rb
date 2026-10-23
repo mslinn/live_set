@@ -48,6 +48,16 @@ module LiveLauncher
     def success?
       exit_code.zero? && dialog.nil? && loaded
     end
+
+    # @return [Symbol] the harness-level outcome for the run
+    def outcome
+      return :loaded if loaded && !crashed && dialog.nil?
+      return :crashed if crashed || dialog_type == :fatal
+      return :unknown if dialog_type == :unknown
+      return :blocked if dialog_type && dialog_type != :fatal
+
+      :unknown
+    end
   end
 
   # Recognised dialog families. The harness must classify the top-level dialog by visible text and

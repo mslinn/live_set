@@ -60,14 +60,23 @@ function Get-Windows([int]$ProcessId) {
 function Get-DialogText([IntPtr]$Handle) {
   $root = [System.Windows.Automation.AutomationElement]::FromHandle($Handle)
   if ($null -eq $root) { return $null }
+
+  $names = [System.Collections.Generic.List[string]]::new()
+  $rootName = $root.Current.Name
+  if ($rootName -and $rootName.Trim().Length -gt 0) { [void]$names.Add($rootName.Trim()) }
+
   $all = $root.FindAll([System.Windows.Automation.TreeScope]::Descendants,
                        [System.Windows.Automation.Condition]::TrueCondition)
-  $text = @()
   foreach ($element in $all) {
     $name = $element.Current.Name
-    if ($name -and $name.Length -gt 3) { $text += $name }
+    if ($name -and $name.Trim().Length -gt 0) {
+      $trimmed = $name.Trim()
+      if (-not $names.Contains($trimmed)) { [void]$names.Add($trimmed) }
+    }
   }
-  if ($text.Count -eq 0) { return $null }
+
+  $text = $names | Where-Object { $_ -and $_.Trim().Length -gt 2 } | Select-Object -Unique
+  if (-not $text) { return $null }
   return ($text -join ' | ')
 }
 
@@ -92,13 +101,13 @@ function Get-DialogInfo([string]$Text) {
   if (-not $Text) { return [pscustomobject]@{ Type = 'none'; Action = $null; ActionType = $null; ActionValue = $null } }
 
   $normalized = $Text.Trim()
-  if ($normalized -match 'A serious program error has occurred\.|fatal error|Live will shut down after this message box is closed\.') {
+  if ($normalized -match 'A serious program error has occurred\.|fatal error|Live will shut down after this message box is closed\.|program error') {
     return [pscustomobject]@{ Type = 'fatal'; Action = 'OK'; ActionType = 'button'; ActionValue = 'OK' }
   }
-  if ($normalized -match 'Would you like to recover your work\?') {
+  if ($normalized -match 'Would you like to recover your work\?|recover your work|Live unexpectedly quit while you were working on the Live Set') {
     return [pscustomobject]@{ Type = 'recovery'; Action = 'No'; ActionType = 'button'; ActionValue = 'No' }
   }
-  if ($normalized -match 'Save changes\?') {
+  if ($normalized -match 'Save changes\?|Do you want to save the changes\?') {
     return [pscustomobject]@{ Type = 'save_changes'; Action = 'No'; ActionType = 'button'; ActionValue = 'No' }
   }
 
