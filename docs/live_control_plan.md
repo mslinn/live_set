@@ -303,6 +303,33 @@ dialog returns nothing. UI Automation is the only technology guaranteed to be
 available that can read crash dialog text.
 
 
+### The harness must classify the top-level dialog and know how to dismiss it
+
+The harness is not allowed to treat every modal window as the same thing. It has to inspect the
+*top-level UI dialog* itself, read the visible text, classify which dialog family it is, and then
+choose the right dismissal action. The harness should understand the following cases explicitly:
+
+| Dialog family | Typical text | Required handling |
+| --- | --- | --- |
+| Normal load | no dialog | continue; the set loads and the log reaches `End ExchangeDocument` |
+| Recovery prompt | `Would you like to recover your work?` | classify as recovery state; dismiss it with `No` / `n` and confirm the log says `Restore Document: Rejected by the user` |
+| Serious program error | `A serious program error has occurred.` or `fatal error` | classify as fatal; record the exact dialog text and mark the run as failed; do not continue as though it were a harmless prompt |
+| Save changes? | `Save changes?` or equivalent modal prompt | classify as a save prompt; answer `n` and confirm the action instead of silently guessing |
+| Unknown modal dialog | any other top-level dialog | capture the text, mark the run as blocked or failed, and do not suppress the message |
+
+The point is not to hide the dialog; it is to recognise it, answer the right button or key,
+confirm that the answer landed, and keep the result honest.
+
+In code, this means the harness must expose a small dialog classification layer rather than a single
+`dialog = text` string. The contract should be:
+
+- inspect the window and read the visible text
+- match it against a finite list of known dialog patterns
+- return the dialog type and the dismissal action (`button: 'OK'`, `button: 'No'`, `key: 'n'`)
+- treat unrecognised dialogs as explicit failures, not as passing states
+
+That classification is the real harness contract; everything else is downstream.
+
 ### Exit Via Simulated Keypress
 
 A keypress answers Live's recovery prompt, and the log says so.

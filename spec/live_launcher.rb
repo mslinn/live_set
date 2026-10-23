@@ -33,23 +33,50 @@ module LiveLauncher
   #   @return [String] everything the launcher wrote
   # @!attribute dialog
   #   @return [String, nil] the text of the dialog Live put up, if it put one up
+  # @!attribute dialog_type
+  #   @return [Symbol, nil] the dialog family, such as :fatal, :recovery, :save_changes, :unknown
+  # @!attribute dismiss_action
+  #   @return [Hash, nil] the action needed to dismiss the dialog, e.g. { key: 'n' } or { button: 'No' }
   # @!attribute log
   #   @return [String] the part of Live's log written by this run
   # @!attribute loaded
   #   @return [Boolean] whether Live finished loading the set
   # @!attribute crashed
   #   @return [Boolean] whether Live reported a fatal error
-  Result = Struct.new(:exit_code, :output, :dialog, :log, :loaded, :crashed, keyword_init: true) do
+  Result = Struct.new(:exit_code, :output, :dialog, :dialog_type, :dismiss_action, :log, :loaded, :crashed, keyword_init: true) do
     # @return [Boolean] whether Live loaded the set without complaint
     def success?
       exit_code.zero? && dialog.nil? && loaded
     end
   end
 
+  # Recognised dialog families. The harness must classify the top-level dialog by visible text and
+  # then dismiss it with the correct key or button, rather than assuming every prompt is the same.
+  DIALOG_RULES = [
+    { pattern: /A serious program error has occurred\.|fatal error/i, type: :fatal, action: { type: 'button', value: 'OK' } },
+    { pattern: /Would you like to recover your work\?/i, type: :recovery, action: { type: 'button', value: 'No' } },
+    { pattern: /Save changes\?/i, type: :save_changes, action: { type: 'button', value: 'No' } },
+    { pattern: /Live will shut down after this message box is closed\./i, type: :fatal, action: { type: 'button', value: 'OK' } }
+  ].freeze
+
   # The PowerShell script that launches Live, watches it, and reports what happened.
   SCRIPT = File.read(File.expand_path('support/live_harness/live_launcher.ps1', __dir__))
 
   class << self
+    # Maps the text from a top-level dialog to the recognised Live dialog family and the action
+    # the harness should take to dismiss it.
+    #
+    # @param text [String, nil] the dialog text, as read from the top-level window
+    # @return [Hash, nil] { type: :fatal, action: { button: 'OK' } } or similar
+    def classify_dialog(text)
+      return nil if text.nil? || text.strip.empty?
+
+      rule = DIALOG_RULES.find { |candidate| text.match?(candidate[:pattern]) }
+      return { type: :unknown, action: nil } if rule.nil?
+
+      { type: rule[:type], action: rule[:action].dup }
+    end
+
     # Launches Live with a set, and reports what happened.
     #
     # @param executable [String] the path of the Live executable
@@ -131,11 +158,29 @@ module LiveLauncher
       clean = output.gsub("\r\n", "\n")
       dialog = clean[/^DIALOG: (.*)$/, 1]
       dialog = nil if dialog.nil? || dialog.strip == 'none'
+
+      dialog_type = clean[/^DIALOG_TYPE: (.*)$/, 1]&.strip&.to_sym
+      dismiss_action = clean[/^DISMISS_ACTION: (.*)$/, 1]
+      if dismiss_action
+        dismiss_action = case dismiss_action
+                         when 'button=OK' then { type: 'button', value: 'OK' }
+                         when 'button=No' then { type: 'button', value: 'No' }
+                         when 'key=n' then { type: 'key', value: 'n' }
+                         else nil
+                         end
+      end
+
+      dialog_info = classify_dialog(dialog)
+      dialog_type ||= dialog_info && dialog_info[:type]
+      dismiss_action ||= dialog_info && dialog_info[:action]
+
       crashed = clean[/^CRASHED: (.*)$/, 1].to_s.strip == 'yes'
       log = clean[/--- LOG ---\s*(.*)\z/m, 1].to_s
       loaded = log.include? 'End ExchangeDocument'
-      Result.new exit_code: status.exitstatus, output: clean, dialog: dialog, log: log,
-                 loaded: loaded, crashed: crashed
+      Result.new exit_code: status.exitstatus, output: clean, dialog: dialog,
+                 dialog_type: dialog_type,
+                 dismiss_action: dismiss_action,
+                 log: log, loaded: loaded, crashed: crashed
     end
   end
 end

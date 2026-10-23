@@ -88,6 +88,23 @@ function Click-Button([IntPtr]$Handle, [string]$Label) {
   } catch { return $false }
 }
 
+function Get-DialogInfo([string]$Text) {
+  if (-not $Text) { return [pscustomobject]@{ Type = 'none'; Action = $null; ActionType = $null; ActionValue = $null } }
+
+  $normalized = $Text.Trim()
+  if ($normalized -match 'A serious program error has occurred\.|fatal error|Live will shut down after this message box is closed\.') {
+    return [pscustomobject]@{ Type = 'fatal'; Action = 'OK'; ActionType = 'button'; ActionValue = 'OK' }
+  }
+  if ($normalized -match 'Would you like to recover your work\?') {
+    return [pscustomobject]@{ Type = 'recovery'; Action = 'No'; ActionType = 'button'; ActionValue = 'No' }
+  }
+  if ($normalized -match 'Save changes\?') {
+    return [pscustomobject]@{ Type = 'save_changes'; Action = 'No'; ActionType = 'button'; ActionValue = 'No' }
+  }
+
+  return [pscustomobject]@{ Type = 'unknown'; Action = $null; ActionType = $null; ActionValue = $null }
+}
+
 # Live must not already be running, or the file is handed to the running instance
 # instead of being opened by a new one.
 Get-Process -Name 'Ableton Live*' -ErrorAction SilentlyContinue | Stop-Process -Force
@@ -124,17 +141,20 @@ while ((Get-Date) -lt $deadline) {
     $shown = Get-DialogText $window.Handle
     if (-not $shown) { continue }
 
-    # Fatal error dialogs are not harmless prompts; they are the signal the harness is
-    # meant to report. The harness records what Live said and treats the launch as failed,
-    # rather than swallowing the dialog and continuing as though nothing happened.
-    if ($shown -match 'serious program error|fatal error') {
-      $dialog = $shown
+    $dialogInfo = Get-DialogInfo $shown
+    $dialog = $shown
+
+    if ($dialogInfo.Type -eq 'fatal') {
       $crashed = $true
       break
     }
 
-    if ($shown -match 'recover your work') {
-      if (Click-Button $window.Handle 'No') { $recovered = $true }
+    if ($dialogInfo.Type -eq 'recovery') {
+      if (Click-Button $window.Handle $dialogInfo.Action) { $recovered = $true }
+    }
+
+    if ($dialogInfo.Type -eq 'save_changes') {
+      if (Click-Button $window.Handle $dialogInfo.Action) { }
     }
   }
 }
@@ -157,6 +177,14 @@ Start-Sleep -Seconds 3
 Get-Process -Id $process.Id -ErrorAction SilentlyContinue | Stop-Process -Force
 
 if ($dialog) { Write-Output ('DIALOG: ' + $dialog) } else { Write-Output 'DIALOG: none' }
+if ($dialog) {
+  $dialogInfo = Get-DialogInfo $dialog
+  if ($dialogInfo.Type) { Write-Output ('DIALOG_TYPE: ' + $dialogInfo.Type) }
+  if ($dialogInfo.Action) { Write-Output ('DISMISS_ACTION: ' + $dialogInfo.ActionType + '=' + $dialogInfo.ActionValue) }
+} else {
+  Write-Output 'DIALOG_TYPE: none'
+  Write-Output 'DISMISS_ACTION: none'
+}
 if ($crashed) { Write-Output 'CRASHED: yes' } else { Write-Output 'CRASHED: no' }
 if ($recovered) { Write-Output 'RECOVERED: yes' } else { Write-Output 'RECOVERED: no' }
 
