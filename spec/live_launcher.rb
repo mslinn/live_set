@@ -25,6 +25,38 @@ require 'tmpdir'
 # "End ExchangeDocument". A failed one reaches "Begin ExchangeDocument" and then logs an
 # exception, or logs that the document could not be loaded.
 module LiveLauncher
+  # Define recognized dialog families. This allows the harness to classify the top-level dialog by visible text and
+  # then dismiss it by performing the appropriate action.
+  DIALOG_RULES = [
+    {
+      action:  { type: 'button', value: 'OK' },
+      id:      'fatal',
+      pattern: /A serious program error has occurred\.|fatal error/i,
+      type:    :fatal,
+    },
+    {
+      action:  { type: 'button', value: 'No' },
+      id:      'recover',
+      pattern: /Would you like to recover your work\?/i,
+      type:    :recovery,
+    },
+    {
+      action:  { type: 'button', value: 'No' },
+      id:      'save',
+      pattern: /Save changes\?/i,
+      type:    :save_changes,
+    },
+    {
+      action:  { type: 'button', value: 'OK' },
+      id:      'shutdown',
+      pattern: /Live will shut down after this message box is closed\./i,
+      type:    :fatal,
+    }
+  ].freeze
+
+  # The PowerShell script that launches Live, watches it, and reports what happened.
+  SCRIPT = File.read(File.expand_path('support/live_harness/live_launcher.ps1', __dir__))
+
   # The outcome of launching Live.
   #
   # @!attribute exit_code
@@ -60,23 +92,12 @@ module LiveLauncher
     end
   end
 
-  # Recognised dialog families. The harness must classify the top-level dialog by visible text and
-  # then dismiss it with the correct key or button, rather than assuming every prompt is the same.
-  DIALOG_RULES = [
-    { pattern: /A serious program error has occurred\.|fatal error/i, type: :fatal, action: { type: 'button', value: 'OK' } },
-    { pattern: /Would you like to recover your work\?/i, type: :recovery, action: { type: 'button', value: 'No' } },
-    { pattern: /Save changes\?/i, type: :save_changes, action: { type: 'button', value: 'No' } },
-    { pattern: /Live will shut down after this message box is closed\./i, type: :fatal, action: { type: 'button', value: 'OK' } }
-  ].freeze
-
-  # The PowerShell script that launches Live, watches it, and reports what happened.
-  SCRIPT = File.read(File.expand_path('support/live_harness/live_launcher.ps1', __dir__))
-
   class << self
-    # Maps the text from a top-level dialog to the recognised Live dialog family and the action
+    # Maps the text extracted from a top-level Ableton Live dialog to the recognized Live dialog family and the action
     # the harness should take to dismiss it.
     #
     # @param text [String, nil] the dialog text, as read from the top-level window
+    #
     # @return [Hash, nil] { type: :fatal, action: { button: 'OK' } } or similar
     def classify_dialog(text)
       return nil if text.nil? || text.strip.empty?
@@ -87,7 +108,7 @@ module LiveLauncher
       { type: rule[:type], action: rule[:action].dup }
     end
 
-    # Launches Live with a set, and reports what happened.
+    # Launches Live with a set using a PowerShell script, and reports what happened.
     #
     # @param executable [String] the path of the Live executable
     # @param set [String] the path of the set to open
@@ -95,34 +116,41 @@ module LiveLauncher
     # @param timeout [Integer] how long to wait, in seconds
     # @return [Result] what happened
     def launch(executable, set, log: nil, timeout: 120)
-      script = write_script
+      script = write_powershell_live_launcher_script
       args = ['powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', windows_path(script),
               '-Exe', windows_path(executable), '-Set', windows_path(set),
               '-TimeoutSeconds', timeout.to_s]
       args += ['-Log', windows_path(log)] unless log.nil?
+
+      # capture2e obtains stdout from powershell, because Live is a GUI program.
       output, status = Open3.capture2e(*args)
+
+      # FIXME: the Ableton Live top-level window must be discovered, categorized, and examined.
+
+      # FIXME: Just returning the an analysis of the PowerShell script output is INSUFFICIENT
       parse output, status
     end
 
-    # Whether Live can be launched at all on this machine.
+    # Indicates if a program can be launched on this machine.
+    #
+    # FIXME this method is bogus because it does not use the `executable` parameter ; instead it runs powershell for no
+    # reason, which proves nothing.
     #
     # @param executable [String, nil] the path of the Live executable
-    # @return [Boolean] true if PowerShell and the executable are both there
+    # @return [Boolean]
     def available?(executable)
       return false if executable.nil?
       return false unless File.exist? executable
 
+      # FIXME: This does not try to run the executable. There is no reason to run powershell
       _, status = Open3.capture2e 'powershell.exe', '-NoProfile', '-Command', 'exit 0'
       status.success?
     rescue Errno::ENOENT
       false
     end
 
-    # Translates a path into one that PowerShell can use.
-    #
-    # The Ruby here runs under WSL, and PowerShell runs on the Windows side, so a path such as
-    # /mnt/c/Program Files/... means nothing to PowerShell. It has to be C:\Program Files\....
-    # wslpath does this, and does it correctly.
+    # Translate a Linux path into WSL path.
+    # Implemented as a wrapper around the WSL wslpath command.
     #
     # @param path [String] the path to translate
     # @return [String] the path PowerShell can use
@@ -135,62 +163,61 @@ module LiveLauncher
 
     private
 
-    # Writes the PowerShell script to a file PowerShell can read, and returns its path.
-    #
-    # The script has to be somewhere the Windows side can see. /tmp is not, so it goes in the
-    # Windows temporary directory, which is under /mnt/c from here.
+    # Writes the PowerShell script to a Windows file in the Windows temporary directory and returns its path.
     #
     # @return [String] the path of the script
-    def write_script
+    def write_powershell_live_launcher_script
       path = File.join windows_directory, 'live_launcher.ps1'
       File.write path, SCRIPT
       path
     end
 
-    # The Windows temporary directory, as seen from here.
+    # The Windows temporary directory, as seen from WSL.
     #
     # @return [String] the path
     def windows_directory
       @windows_directory ||= begin
         dir = ENV['TEMP'] || ENV['TMP'] || 'C:\\Windows\\Temp'
         wsl = windows_path dir
-        # A Windows path that is not on a mounted drive cannot be reached from here.
+        # A Windows path that is not on a mounted drive cannot be reached from WSL.
         wsl.start_with?('/mnt/') ? wsl : '/mnt/c/Windows/Temp'
       end
     end
 
-    # Reads the launcher's output.
+    DISMISS_ACTIONS = { # rubocop: disable Lint/UselessConstantScoping
+      'button=OK' => { type: 'button', value: 'OK' },
+      'button=No' => { type: 'button', value: 'No' },
+      'key=n'     => { type: 'key', value: 'n' },
+    }.freeze
+
+    # Examines the contents of the top-level Ableton Live window and looks for problems by reading the launcher output.
     #
-    # @param output [String] everything the launcher wrote
-    # @param status [Process::Status] how the launcher finished
+    # @param output [String] everything the launcher wrote @param status [Process::Status] how the launcher finished
     # @return [Result] what happened
     def parse(output, status)
-      clean = output.gsub("\r\n", "\n")
-      dialog = clean[/^DIALOG: (.*)$/, 1]
+      clean_output = output.gsub("\r\n", "\n")
+      dialog = clean_output[/^DIALOG: (.*)$/, 1]
       dialog = nil if dialog.nil? || dialog.strip == 'none'
 
-      dialog_type = clean[/^DIALOG_TYPE: (.*)$/, 1]&.strip&.to_sym
-      dismiss_action = clean[/^DISMISS_ACTION: (.*)$/, 1]
-      if dismiss_action
-        dismiss_action = case dismiss_action
-                         when 'button=OK' then { type: 'button', value: 'OK' }
-                         when 'button=No' then { type: 'button', value: 'No' }
-                         when 'key=n' then { type: 'key', value: 'n' }
-                         else nil
-                         end
-      end
+      dialog_type = clean_output[/^DIALOG_TYPE: (.*)$/, 1]&.strip&.to_sym
+      dismiss_action = clean_output[/^DISMISS_ACTION: (.*)$/, 1]
+      dismiss_action = DISMISS_ACTIONS[dismiss_action] if dismiss_action
 
       dialog_info = classify_dialog(dialog)
-      dialog_type ||= dialog_info && dialog_info[:type]
+      dialog_type    ||= dialog_info && dialog_info[:type]
       dismiss_action ||= dialog_info && dialog_info[:action]
 
-      crashed = clean[/^CRASHED: (.*)$/, 1].to_s.strip == 'yes'
-      log = clean[/--- LOG ---\s*(.*)\z/m, 1].to_s
+      crashed = clean_output[/^CRASHED: (.*)$/, 1].to_s.strip == 'yes'
+      log = clean_output[/--- LOG ---\s*(.*)\z/m, 1].to_s
       loaded = log.include? 'End ExchangeDocument'
-      Result.new exit_code: status.exitstatus, output: clean, dialog: dialog,
-                 dialog_type: dialog_type,
+      Result.new crashed:        crashed,
+                 dialog:         dialog,
+                 dialog_type:    dialog_type,
                  dismiss_action: dismiss_action,
-                 log: log, loaded: loaded, crashed: crashed
+                 exit_code:      status.exitstatus,
+                 loaded:         loaded,
+                 log:            log,
+                 output:         clean_output
     end
   end
 end

@@ -17,6 +17,7 @@
   "unwantedRecommendations": [
     "castwide.solargraph",
     "rebornix.Ruby",
+    "streetsidesoftware.code-spell-checker",
     "wingrunr21.vscode-ruby",
   ]
 }

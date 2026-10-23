@@ -2,12 +2,13 @@ require 'open3'
 
 # Sends a keypress to a Windows program.
 #
-# Live's dialogs are modal, and a modal dialog stops everything behind it, so the harness
-# has to answer them. A keypress is the simplest way to do that: Live's "Save changes?"
-# prompt and its crash-recovery prompt both answer to a key.
+# Live's dialogs are modal, and a modal dialog stops everything behind it, so the harness has to answer them. A keypress
+# is the simplest way to do that: Live's "Save changes?" prompt and its crash-recovery prompt both answer to a key.
 #
-# The key is sent with WScript.Shell, which is in Windows itself, so nothing has to be
-# installed. The program has to have the focus first, so AppActivate brings it forward.
+# The key is sent with WScript.Shell, which this program writes to a Windows directory. This approach does not require
+# installing any other software.
+#
+# Live must have the focus before its dialogs can be examined, so `AppActivate` brings it forward.
 #
 # See docs/live_control_plan.md.
 class LiveKeys
@@ -30,56 +31,39 @@ class LiveKeys
     Write-Output 'SENT'
   POWERSHELL
 
-  # Sends a key to a process.
+  # Send a key to a process.
   #
   # @param process_id [Integer] the process to send the key to
   # @param keys [String] the keys to send, in WScript.Shell syntax
-  # @return [Boolean] whether the key was sent
+  # @return [Boolean] whether the key was sent successfully
   def press?(process_id, keys)
-    script = write_script
+    script = write_powershell_keypress_script
     output, status = Open3.capture2e 'powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass',
-                                     '-File', windows_path(script),
+                                     '-File', LiveLauncher.windows_path(script),
                                      '-Process', process_id.to_s, '-Keys', keys
     status.success? && output.include?('SENT')
   end
 
   private
 
-  # Writes the PowerShell script to a file PowerShell can read.
-  #
-  # The script has to be somewhere the Windows side can see, so it goes in the Windows
-  # temporary directory rather than /tmp.
+  # Writes the keypress PowerShell script (live_keys.ps1) to a file in the Windows
+  # temporary directory.
   #
   # @return [String] the path of the script
-  def write_script
+  def write_powershell_keypress_script
     path = File.join windows_directory, 'live_keys.ps1'
     File.write path, SCRIPT
     path
   end
 
-  # The Windows temporary directory, as seen from here.
+  # The location Windows temporary directory, as seen from WSL.
   #
   # @return [String] the path
   def windows_directory
     @windows_directory ||= begin
       dir = ENV['TEMP'] || ENV['TMP'] || 'C:\\Windows\\Temp'
-      wsl = windows_path dir
-      # A Windows path that is not on a mounted drive cannot be reached from here.
+      wsl = LiveLauncher.windows_path dir
+      # A Windows path that is not on a mounted drive cannot be reached from WSL.
       wsl.start_with?('/mnt/') ? wsl : '/mnt/c/Windows/Temp'
     end
   end
-
-  # Translates a path into one that PowerShell can use.
-  #
-  # The Ruby here runs under WSL, and PowerShell runs on the Windows side, so a path such
-  # as /mnt/c/Windows/Temp means nothing to PowerShell. wslpath does the translation.
-  #
-  # @param path [String] the path to translate
-  # @return [String] the path PowerShell can use
-  def windows_path(path)
-    return path unless path.start_with? '/'
-
-    out, status = Open3.capture2e 'wslpath', '-w', path
-    status.success? ? out.strip : path
-  end
-end

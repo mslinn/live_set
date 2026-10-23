@@ -1,21 +1,32 @@
 require 'spec_helper'
 require 'live_launcher'
+require_relative 'live_installations'
 
 RSpec.describe LiveLauncher do
+  let(:ableton_home) { '/mnt/c/ProgramData/Ableton' }
+  let(:ableton_11_home) { "#{ableton_home}/Live 11 Suite" }
+  let(:ableton_11_program) { "#{ableton_11_suite}/Program/Ableton Live 11 Suite.exe" }
+  let(:ableton_11_demo_home) { "#{ableton_11_suite}/Resources/Core Library/Lessons/Demo Songs/" }
+  let(:ableton_11_demo_set) { "#{ableton_11_demo_home}/Ninajirachi - In The Rain (Live 11 Suite Demo).als" }
+
   describe '.windows_path' do
     it 'converts a WSL path to a Windows path' do
-      result = described_class.windows_path('/mnt/c/Program Files/Ableton/Live 11 Suite/Program/Ableton Live 11 Suite.exe')
+      result = described_class.windows_path ableton_11_program
 
-      expect(result).to match(/\AC:\\Program Files\\Ableton\\Live 11 Suite\\Program\\Ableton Live 11 Suite.exe\z/)
+      expect(result).to match(/\AC:\\ProgramData\\Ableton\\Live 11 Suite\\Program\\Ableton Live 11 Suite.exe\z/)
     end
   end
 
+  # This tests that messages are properly categorized. This does not verify that the messages can be extracted from Live
+  # when it is running under Windows.
   describe '.classify_dialog' do
-    it 'recognises each supported dialog family and the required dismissal action' do
+    # TODO: replace these matching text messages with DIALOG_RULES[]{}.pattern,.type,.action} values
+    it 'recognizes each supported dialog family and the required dismissal action' do
       expect(described_class.classify_dialog('A serious program error has occurred.')).to eq(
         { type: :fatal, action: { type: 'button', value: 'OK' } }
       )
-      expect(described_class.classify_dialog("Live unexpectedly quit while you were working on the Live Set 'Untitled'. Would you like to recover your work?")).to eq(
+      msg = "Live unexpectedly quit while you were working on the Live Set 'Untitled'. Would you like to recover your work?"
+      expect(described_class.classify_dialog(msg)).to eq(
         { type: :recovery, action: { type: 'button', value: 'No' } }
       )
       expect(described_class.classify_dialog('Save changes?')).to eq(
@@ -27,18 +38,20 @@ RSpec.describe LiveLauncher do
     end
   end
 
+  # Examine the top-level Ableton Live window and look for problems
   describe '.parse' do
     it 'reads the launch result from the launcher output' do
+      winpath = described_class.windows_path ableton_11_demo_set
       output = <<~TEXT
         DIALOG: none
         CRASHED: no
         --- LOG ---
-        Loading document "C:/ProgramData/Ableton/Live 11 Suite/Resources/Core Library/Lessons/Demo Songs/demo.als"
+        Loading document "#{winpath}"
         Begin ExchangeDocument
         End ExchangeDocument
       TEXT
-      status = OpenStruct.new(exitstatus: 0)
 
+      status = Struct.new(:exitstatus, keyword_init: true).new(exitstatus: 0)
       result = described_class.send(:parse, output, status)
 
       expect(result.exit_code).to eq(0)
@@ -61,8 +74,7 @@ RSpec.describe LiveLauncher do
         Begin ExchangeDocument
         Exception: Fatal Error
       TEXT
-      status = OpenStruct.new(exitstatus: 1)
-
+      status = Struct.new(:exitstatus, keyword_init: true).new(exitstatus: 1)
       result = described_class.send(:parse, output, status)
 
       expect(result.exit_code).to eq(1)
@@ -74,7 +86,7 @@ RSpec.describe LiveLauncher do
       expect(result.loaded).to be false
     end
 
-    it 'recognises the restore document prompt and the button that dismisses it' do
+    it 'recognizes the restore document prompt and the button that dismisses it' do
       output = <<~TEXT
         DIALOG: Live unexpectedly quit while you were working on the Live Set 'Untitled'. Would you like to recover your work?
         DIALOG_TYPE: recovery
@@ -84,8 +96,8 @@ RSpec.describe LiveLauncher do
         Default App: Checking whether to restore the document...
         Message Box: Live unexpectedly quit while you were working on the Live Set 'Untitled'. Would you like to recover your work?
       TEXT
-      status = OpenStruct.new(exitstatus: 0)
 
+      status = Struct.new(:exitstatus, keyword_init: true).new(exitstatus: 0)
       result = described_class.send(:parse, output, status)
 
       expect(result.dialog_type).to eq(:recovery)
@@ -103,8 +115,8 @@ RSpec.describe LiveLauncher do
         --- LOG ---
         Save changes?
       TEXT
-      status = OpenStruct.new(exitstatus: 0)
 
+      status = Struct.new(:exitstatus, keyword_init: true).new(exitstatus: 0)
       result = described_class.send(:parse, output, status)
 
       expect(result.dialog_type).to eq(:save_changes)
@@ -119,8 +131,8 @@ RSpec.describe LiveLauncher do
         --- LOG ---
         Some unexpected Live window
       TEXT
-      status = OpenStruct.new(exitstatus: 0)
 
+      status = Struct.new(:exitstatus, keyword_init: true).new(exitstatus: 0)
       result = described_class.send(:parse, output, status)
 
       expect(result.dialog_type).to eq(:unknown)
@@ -132,8 +144,9 @@ RSpec.describe LiveLauncher do
 
   describe 'real Live integration', :live_integration do
     before do
+      # TODO: This should run in WSL, which means a Windows computer. The following test is WRONG:
       unless Gem.win_platform? || RUBY_PLATFORM.include?('mswin') || RUBY_PLATFORM.include?('mingw')
-        skip 'this is a Windows + Ableton Live integration test'
+        # skip 'this is a Windows + Ableton Live integration test'
       end
 
       @installation = LiveInstallations.version('11')

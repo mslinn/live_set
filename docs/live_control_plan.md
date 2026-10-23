@@ -75,17 +75,8 @@ steps fail, then the round trip should fail fast:
 5. Load the converted Live 11 set into Live 11
 
    a. Check for error dialogs; if error messages are displayed, read them and
-      handle them appropriately. Potential outcomes are:
-
-      - `loaded` (success)
-      - `save_changes` (attempting to exit Ableton Live after converting from 11
-        format to 12 format will cause a dialog to appear asking the user if
-        they want to save changes in Live 12 format, and if the dialog appears
-        this indicates the step succeeded, so the Live set should be saved with
-        a <code>_11</code> suffix.)
-      - `crashed` (Ableton Live displays a fatal error dialog)
-      - `recovery` (a previous invocation of Live crashed and the marker
-        file must be moved or deleted)
+      handle them appropriately. Potential outcomes are described in
+      [spec/live_launcher#outcome](spec/live_launcher.rb).
 
    b. Verify that the original tracks, clips and settings are the same as the
       original. TODO review this pre-flight contract.
