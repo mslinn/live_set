@@ -40,7 +40,9 @@ reports back to the unit test what happened.
 
 The round trip is the core of the plan, and it starts from a real Live 11 set:
 
-1. Start from a known-good Live 11 set.
+1. Start from the official Live 11 demo set shipped with Ableton 11, found by the
+   repository helper in `spec/demo_sets.rb` via `DemoSets.edition '11', 'Suite'` (or the
+   equivalent version-specific lookup).
 2. Open it in Live 12 and save it, creating the Live 12 version of the same song.
 3. Run `live_set -11` to convert that Live 12 result back to the Live 11 format.
 4. Probe the converted `.als` file as XML before invoking Live 11.
@@ -71,6 +73,11 @@ The round-trip flow therefore needs this pre-flight gate:
 2. parse the resulting `.als` file as XML;
 3. run the structural sanity checks before launching Live 11;
 4. only if the file passes those checks should Live 11 be started.
+
+The official Live 11 demo sets are already searched for and located in the repository helper
+`spec/demo_sets.rb`, which follows Ableton's documented location and falls back to the known
+installed paths on the test machine. That helper is the place the plan should call out as the
+source of the initial Live 11 set used in the round trip.
 
 The existing XML checks live in the suite and are the obvious starting point:
 
@@ -454,8 +461,9 @@ in the log, so a recovery prompt is handled rather than mistaken for a hang.
 
 1. **Prepare a clean launch state**: close any existing Live instance, ensure the log is fresh,
    and clear or isolate recovery files so that the next run does not block on a stale prompt.
-2. **Start from a real Live 11 set** and save it in Live 12, creating the Live 12 source for
-   the test.
+2. **Start from the official Live 11 demo set** located by the repository helper in
+   `spec/demo_sets.rb` (`DemoSets.edition '11', 'Suite'` and related helpers), then save it in
+   Live 12, creating the Live 12 source for the test.
 3. **Convert that Live 12 source to the Live 11 format** with `live_set -11` and write the
    result to a known path.
 4. **Probe the converted `.als` file as XML** before launching Live 11. This is the required

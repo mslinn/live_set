@@ -123,4 +123,17 @@ RSpec.describe LiveInstallations do
       expect(described_class.demo_sets(installation)).to be_empty
     end
   end
+
+  describe '.preferences' do
+    it 'finds the preferences folder for a version under a custom root' do
+      path = File.join(root, 'Ableton', 'Live 11.3.43', 'Preferences')
+      FileUtils.mkdir_p path
+
+      expect(described_class.preferences('11', [root])).to eq(path)
+    end
+
+    it 'is nil when there is no matching preferences folder' do
+      expect(described_class.preferences('99', [root])).to be_nil
+    end
+  end
 end
