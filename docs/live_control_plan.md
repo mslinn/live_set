@@ -1,70 +1,106 @@
 # A plan to test the Live 11 conversion against Live 11 itself
 
-## The problem
+`live_set -11` is supposed to convert a Live 12 set into the best representation
+possible in Live 11 format; any use of unsupported Live 12 features is stripped
+away and is not saved in the converted file.
 
-`live_set -11` converts a Live 12 set into what it claims is the Live 11 format. Every check
-that can be made from Ruby passes — the XML is well formed, the element names are right, the
-version strings are right — and Live 11 still crashes on the result.
 
-The conversion's correctness is a matter of faith. N42 in `TODO.md` is the open question: does
-Live 11 tolerate a lane of an unknown `Type`? Nobody knows, because nothing has ever opened a
-converted set in Live 11 and reported what happened.
+## Problem Background
 
-This plan is for building the thing that answers it: a program that starts Live with a set,
-watches it, and says what happened.
+We needed to run Ableton Live many times when reverse engineering various
+versions of the Ableton Live `als` file format. However, we encountered a
+problem: our test runs of Ableton Live were non-deterministic. The source of the
+problem was that if Live crashed, the next launch would pop up a dialog box and
+test automation would stop. This document describes a solution in every detail.
 
-## What has been established
+We wrote some checks (specs) to inspect the converted file: the XML was well formed,
+the element names were right, the version strings were right.
+TODO: Where are these checks? They probably need to be made more effective. find
+them and present them for discussion.
 
-Everything in this section was checked during this work, or in Ableton's own documentation.
-Nothing here is assumed.
+## Purpose
+
+This document describes how round-trip conversion shall be used to verify
+correctness of converted Live 12 sets. Once we have that working, issues like
+N42 in `TODO.md` will magically be fixed.
+
+This document is a plan for building the round trip mechanism: code that starts
+Live 11 with a set generated in a unit test, that interacts with the running
+Live executable image, and reports back to the unit test what happened.
+
+## Research Is Complete
+
+Everything in this section was checked during this work, or in Ableton's own
+documentation.  Nothing here is assumed.
 
 ### The installation
 
-Live installs every edition under one directory:
-
-```text
-C:\ProgramData\Ableton\Live <Version> <Edition>\
-```
-
-Within an installation, the executable and the demo sets are in fixed places:
-
-```text
-Program\Ableton Live <Version> <Edition>.exe
-Resources\Core Library\Lessons\Demo Songs
-```
-
-The demo sets are a **subdirectory of the installation**, so finding the installations finds
-the demo sets too. The location is documented at
-[Location of the default Demo Set](https://help.ableton.com/hc/en-us/articles/209774005-Location-of-the-default-Demo-Set),
-which gives the Windows and macOS paths. On macOS the installation is an application bundle,
+On macOS the installation is an application bundle,
 `/Applications/Live <Version>.app`, with the executable at `Contents/MacOS/` and the demo sets
 at `Contents/App Resources/Core Library/Lessons/Demo Songs`.
 
-Four installations are present on the machine this was developed on: Live 8, Live 10 Standard,
-Live 11 Suite, and Live 12 Suite.
+On Windows, Live installs every edition under one directory:
 
-### The machine has two sides
+```text
+%ProgramData%\Ableton\Live <Version> <Edition>\
+```
 
-The Ruby in this repository runs under WSL, on Linux. It cannot `dlopen("user32.dll")`,
-because a PE binary is not an ELF one. But it *can*:
+For all operating systems, the executable and the demo sets are stored in
+subdirectories of the installation directory:
+
+```text
+Program\Ableton Live <Version> <Edition>[.exe]
+Resources\Core Library\Lessons\Demo Songs
+```
+
+Because the demo sets are a subdirectory of the installation, finding the
+installations also finds the demo sets. The location is documented at [Location
+of the default Demo
+Set](https://help.ableton.com/hc/en-us/articles/209774005-Location-of-the-default-Demo-Set).
+
+Four installations are present on the machine this was developed on:
+
+* Live 8.4.2 Standard
+* Live 9.7.7_64 Standard
+* Live 10.1.43 Standard
+* Live 11.3.43 Suite
+* Live 12 Suite
+
+### Windows and WSL Roles
+
+The Ruby in this repository runs under WSL, on Ubuntu Linux. It cannot invoke
+`dlopen("user32.dll")`, because a PE binary is not an ELF binary. But it *can*:
 
 - launch Windows executables, through the WSL interop;
 - read and write the Windows filesystem, at `/mnt/c`;
-- reach the Windows process table, through `tasklist.exe` and `taskkill.exe`, which are in
-  `System32` and are always present.
+- reach the Windows process table, through `tasklist.exe` and `taskkill.exe`,
+  which are in `System32` and are always present.
 
-### Live is single-instance
+### Single-Instance Behavior
 
-A second launch hands the file to the running instance and exits. So a harness must close Live
-before each run, and leave it closed afterwards.
+The command line that launches Ableton Live might have no parameters, or it
+might contain the name of a Ableton Live Set to open. If so, this file will have
+an `.als` filetype.
 
-### Live writes a log of what it did
+If Live is launched twice, the second instance forwards its command line to the
+older running instance, then the second instance exits.
+
+### Startup and Shutdown
+
+This first version of a test harness shall close any pre-existing Live instance
+before each run, and shut it down after the test completes.
+
+### Live writes a log of what it does
+
+This log can be used to get an approximate idea of what Live did.
 
 ```text
 %APPDATA%\Ableton\Live <version>\Preferences\Log.txt
 ```
 
-Readable directly from WSL Ruby, as a plain file. The lines that matter:
+TODO: This is supposed to be a plain file, but I saw lots of fussing trying
+to parse it. I suspect garbage code was written. Show me the code and discuss.
+This plain file is readable from Ruby on WSL. The lines that matter are:
 
 | Line | Meaning |
 | --- | --- |
@@ -75,25 +111,32 @@ Readable directly from WSL Ruby, as a plain file. The lines that matter:
 | `Message Box: <text>` | Live put up a dialog, with its text |
 | `Live App: GlobalExit( ): End or Exit: End` | Live quit normally |
 
-Ableton's [Reading Ableton Live Crash Reports](https://help.ableton.com/hc/en-us/articles/5301568366354-Reading-Ableton-Live-Crash-Reports)
-describes the last one: *"When Live is quit normally (without crashing), the last line of the
-run is logged as `Live App: GlobalExit( ): End or Exit: End`."* A run that ends with hashmarks
-and no `Exit: End` is a crash. That gives the harness a clean way to tell a normal exit from a
-crash, and it needs no guessing.
+Ableton's [Reading Ableton Live Crash
+Reports](https://help.ableton.com/hc/en-us/articles/5301568366354-Reading-Ableton-Live-Crash-Reports)
+describes the last one: *"When Live is quit normally (without crashing), the
+last line of the run is logged as `Live App: GlobalExit( ): End or Exit: End`."*
+A run that ends with hashmarks and no `Exit: End` is a crash. That gives the
+harness a clean way to tell a normal exit from a crash, and it needs no
+guessing.
 
-### The crash-recovery state is in the Preferences folder, and it blocks the next launch
+### Crash Files Block The Next Launch
+
+If a crash-recovery file is present in the Live Preferences folder, the next
+Live launch will block with a user dialog.
 
 Live's file recovery is triggered by an undo file in the Preferences folder. Per Ableton's
 [Recovering a Set manually after a crash](https://help.ableton.com/hc/en-us/articles/115001878844-Recovering-a-Set-manually-after-a-crash):
 
-> "Live's file recovery process is usually triggered by an undo file in Live's preferences
-> folder. In case the process doesn't happen automatically, or if you clicked 'No' on the restore
-> document dialog, the relevant files needed to recover the set are moved into a folder named
-> 'Crash' located in Live's preferences folder."
+> "Live's file recovery process is usually triggered by an undo file in Live's
+> preferences folder. In case the process doesn't happen automatically, or if
+> you clicked 'No' on the restore document dialog, the relevant files needed to
+> recover the set are moved into a folder named 'Crash' located in Live's
+> preferences folder."
 
-So the recovery prompt is a consequence of the files being in `Preferences\`. **Move them into
-`Crash\` and Live starts normally.** The documented manual recovery procedure is the same
-thing in reverse: move them from `Crash\` back up to `Preferences\`, and the prompt comes back.
+So the recovery prompt is a consequence of the files being in `Preferences\`.
+**Move them into `Crash\` and Live starts normally.** The documented manual
+recovery procedure is the same thing in reverse: move them from `Crash\` back up
+to `Preferences\`, and the prompt comes back.
 
 The files are:
 
@@ -111,7 +154,7 @@ C:/ProgramData/Ableton/Live 11 Suite/Resources/Core Library/Lessons/Demo Songs/N
 BaseFiles/Ninajirachi - In The Rain (Live 11 Suite Demo).als
 ```
 
-That is the best evidence available of **which set Live was working on when it fell over** —
+That is the best evidence available of "which set Live was working on when it fell over" —
 better than the log, which says only that Live crashed.
 
 **The log records the recovery prompt, with its text:**
@@ -121,27 +164,32 @@ info: Exception: The file "...\Preferences\CrashRecoveryInfo.cfg" cannot be copi
 info: Message Box: Live unexpectedly quit while you were working on the Live Set 'Untitled'. Would you like to recover your work?
 ```
 
-That prompt is modal. It intercepts the launch, and Live opens `Untitled` instead of the set
-that was asked for. **This is why the runs were not repeatable**, and moving the files aside
-is what fixes it.
+That prompt is modal. It intercepts the launch, and Live opens `Untitled`
+instead of the set that was asked for.  Moving the files aside is what fixes it.
 
 ### The crash dialog's text is not in the log
 
-The log records *some* dialogs with their text, but not the crash message. Grepping Live 11's
-log for `serious program error`, `shut down after` and `Report a Crash` gives **zero hits**; the
-log has `Exception: Fatal Error: Unhandled exception` and nothing more. The text on the
-screen is always the same three lines for this class of failure, so it adds little:
+The log records *some* dialogs with their text, but not the crash message.
+Grepping Live 11's log for `serious program error`, `shut down after` and
+`Report a Crash` gives **zero hits**; the log has `Exception: Fatal Error:
+Unhandled exception` and nothing more. The text on the screen is always the same
+three lines for this class of failure, so it adds little:
 
 > A serious program error has occurred.
 > Live will shut down after this message box is closed.
 
-The text is also hard to get at: Live is a Qt app, so `GetWindowText` on its dialog returns
-**nothing**, and only UI Automation reads it. The plan does not depend on reading it.
+The text is also hard to get at: Live is a Qt app, so `GetWindowText` on its
+dialog returns nothing. UI Automation is the only technology guaranteed to be
+available that can read crash dialog text.
 
-### A keypress answers Live's recovery prompt, and the log says so
 
-The recovery prompt is a modal dialog with a **No** button, and pressing "n" dismisses it. That
-was tried by hand on 2026-10-22, and Live's log records the whole sequence:
+### Exit Via Simulated Keypress
+
+A keypress answers Live's recovery prompt, and the log says so.
+
+The recovery prompt is a modal dialog with a **No** button, and pressing "n"
+dismisses it. That was tried by hand on 2026-10-22, and Live's log records the
+whole sequence:
 
 ```text
 19:44:47  info: Default App: Checking whether to restore the document...
@@ -150,11 +198,12 @@ was tried by hand on 2026-10-22, and Live's log records the whole sequence:
 19:45:17  info: Loading document "...\DefaultLiveSet.als"
 ```
 
-**"Restore Document: Rejected by the user"** is the confirmation that the keypress landed. So
-the harness can dismiss the prompt, and know that it did, without reading the dialog's text.
+**"Restore Document: Rejected by the user"** is the confirmation that the
+keypress landed. So the harness can dismiss the prompt, and know that it did,
+without reading the dialog's text.
 
-And Live tidies up after itself: answering the prompt moved the recovery files into
-`Preferences\Crash\`, with a timestamp on each:
+And Live tidies up after itself: answering the prompt moved the recovery files
+into `Preferences\Crash\`, with a timestamp on each:
 
 ```text
 Preferences/Crash/2026_10_22__19_44_43_BaseFiles/
@@ -162,11 +211,12 @@ Preferences/Crash/2026_10_22__19_44_43_CrashRecoveryInfo.cfg
 Preferences/Crash/2026_10_22__19_44_43_Undo/
 ```
 
-So **the harness does not have to move anything** — Live does it, and the `Crash\` folder is
-the record of what happened.
+So **the harness does not have to move anything** — Live does it, and the
+`Crash\` folder is the record of what happened.
 
-The keypress is sent with `WScript.Shell.SendKeys`, which is in Windows itself and needs
-nothing installed. The harness must make sure Live has the focus first, with `AppActivate`.
+The keypress is sent with `WScript.Shell.SendKeys`, which is in Windows itself
+and needs nothing installed. The harness must make sure Live has the focus
+first, with `AppActivate`.
 
 ### OSC cannot exit Live, and neither can anything else over the network
 
@@ -180,32 +230,35 @@ AbletonOSC exposes Live's whole Object Model, but its Application API is only:
 | `/live/api/get/log_level`, `/live/api/set/log_level` | logging |
 | `/live/api/show_message` | show a message in the status bar |
 
-There is no quit, no exit and no close, and no way to press a dialog's button. The Song API
-has `stop_playing`, `undo` and `redo`, but nothing that ends the application. **OSC cannot
-exit Live.**
+There is no quit, no exit and no close, and no way to press a dialog's button.
+The Song API has `stop_playing`, `undo` and `redo`, but nothing that ends the
+application. **OSC cannot exit Live.**
 
 ### A Remote Script is possible, and is not needed
 
-Live's Remote Script API is Python, and Live ships a Python 3 standard library in
-`Resources/Python/lib/` — `socket.pyc` and `threading.pyc` among them — with no `python.exe`
-in `Program\`, because the interpreter is embedded in Live's own process. Live compiles a
-Remote Script's `.py` to `.pyc` itself, so a Remote Script needs **nothing installed on
-Windows**.
+Live's Remote Script API is Python, and Live ships a Python 3 standard library
+in `Resources/Python/lib/` — `socket.pyc` and `threading.pyc` among them — with
+no `python.exe` in `Program\`, because the interpreter is embedded in Live's own
+process. Live compiles a Remote Script's `.py` to `.pyc` itself, so a Remote
+Script needs **nothing installed on Windows**.
 
-It was the obvious way to answer a dialog from inside Live, and it can: the Object Model's
-`open_dialog_count`, `current_dialog_message` and `press_current_dialog_button` are exactly
-the right tools. But it is not needed, because a keypress does the job, and a keypress has
-two advantages the script does not:
+It was the obvious way to answer a dialog from inside Live, and it can: the
+Object Model's `open_dialog_count`, `current_dialog_message` and
+`press_current_dialog_button` are exactly the right tools. But it is not needed,
+because a keypress does the job, and a keypress has two advantages the script
+does not:
 
-- **A crash does not kill it.** The script runs inside Live's process, so it dies with it. The
-  harness still has to report a crash from the log and the recovery file.
-- **It needs no setup.** A Remote Script has to be **selected by a person** — Preferences →
-  Link, Tempo & MIDI → Control Surface, with its MIDI input and output set to None — and
-  until that is done it does not run at all.
+- **A crash does not kill it.** The script runs inside Live's process, so it
+  dies with it. The harness still has to report a crash from the log and the
+  recovery file.
+- **It needs no setup.** A Remote Script has to be **selected by a person** —
+  Preferences → Link, Tempo & MIDI → Control Surface, with its MIDI input and
+  output set to None — and until that is done it does not run at all.
 
 ### The conversion itself is not the problem
 
-The round-tripped file was compared with the original Live 11 file, element by element:
+The round-tripped file was compared with the original Live 11 file, element by
+element:
 
 | | Live 11 original | Round tripped |
 | --- | --- | --- |
@@ -213,17 +266,19 @@ The round-tripped file was compared with the original Live 11 file, element by e
 | Live 12-only element types | — | **106** |
 | Live 11-only element types | 29 | — |
 
-A positional diff of the Live 12 source against the round-tripped file shows **exactly 8
-differences, all of them `MidiEditorLaneModel` → `ExpressionLane`**. The conversion removes
-nothing, and renames only the lanes.
+A positional diff of the Live 12 source against the round-tripped file shows
+**exactly 8 differences, all of them `MidiEditorLaneModel` → `ExpressionLane`**.
+The conversion removes nothing, and renames only the lanes.
 
-The 106 element types Live 12 added — `AdaptiveQAffectsShelves`, `ArrangerMixerIO`,
-`AutomationEnvelopesListWrapper`, `BassShaperThreshold` and so on — and the 29 it dropped,
-including `MasterTrack`, `SessionMixer` and `WaveShaper`, were **already there when Live 12
-saved the file**. Live 12 wrote them; the conversion copied them through.
+The 106 element types Live 12 added — `AdaptiveQAffectsShelves`,
+`ArrangerMixerIO`, `AutomationEnvelopesListWrapper`, `BassShaperThreshold` and
+so on — and the 29 it dropped, including `MasterTrack`, `SessionMixer` and
+`WaveShaper`, were **already there when Live 12 saved the file**. Live 12 wrote
+them; the conversion copied them through.
 
-So the conversion cannot be blamed for the crash. And deleting the Live 12-only elements is
-known to work: that was found by hand, and it is what the harness should make into a test.
+So the conversion cannot be blamed for the crash. And deleting the Live 12-only
+elements is known to work: that was found by hand, and it is what the harness
+should make into a test.
 
 ## The design
 
@@ -238,9 +293,9 @@ spec/support/live_harness/
 └── live_harness.rb        # the API the specs use
 ```
 
-Plain Ruby, reading and writing `/mnt/c` directly, and running Windows programs through the
-WSL interop. `WScript.Shell.SendKeys` is in Windows itself, so sending a keypress needs
-nothing installed either.
+Plain Ruby, reading and writing `/mnt/c` directly, and running Windows programs
+through the WSL interop. `WScript.Shell.SendKeys` is in Windows itself, so
+sending a keypress needs nothing installed either.
 
 There is no Windows helper, no Windows Ruby, and no Remote Script. See **Decisions**.
 
