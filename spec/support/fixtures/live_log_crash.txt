@@ -1,0 +1,6 @@
+2026-10-22T15:23:39.817633: info: Loading document "C:\ProgramData\Ableton\Live 11 Suite\Resources\Core Library\Lessons\Demo Songs\Ninajirachi - In The Rain (Live 11 Suite Demo) converted to Live 12_11.als"
+2026-10-22T15:23:40.000108: info: MemoryUsage: V: 6.8 GB, R: 451.6 MB, P: 513.3 MB
+2026-10-22T15:23:41.015930: info: Loaded document was created by Ableton Live 11.3.21
+2026-10-22T15:23:41.015970: info: Default App: Begin ExchangeDocument
+2026-10-22T15:23:41.928653: info: Exception: Windows Exception
+2026-10-22T15:23:41.928674: info: Exception: Fatal Error: Unhandled exception

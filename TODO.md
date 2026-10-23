@@ -83,56 +83,101 @@ converted set has lanes that Live 11 has no equivalent for:
 Every Live 11 demo set has the Live 11 set of lanes, and every Live 12 demo set has the Live 12
 set, so the lanes are application state rather than a property of the music.
 
-**What a round trip through `live_set -11` establishes.** Converting the Live 12 version of the
-Live 11 demo set back to Live 11 produces a file that is a Live 11 set in every respect that can
-be checked without Live 11:
+**What a round trip through `live_set -11` establishes.** The Live 11 demo set was opened in
+Live 12 and saved, and converting that file back to Live 11 gives:
 
-- the `Creator` and `MinorVersion` are Live 11's,
-- the lanes are named `ExpressionLane`, as Live 11 names them,
-- the `Oversampling` values are `"1"` and `"0"`, in the same tally as the original Live 11 file —
-  5 of `"1"` and 1 of `"0"`,
-- the tracks, the clips and the group are all the same: 14 audio tracks, 14 MIDI tracks, 1 group
-  track and 255 clips.
+| | Live 11 original | Live 12 source | Round tripped |
+| --- | --- | --- | --- |
+| `Creator` | Ableton Live 11.3d1 | Ableton Live 12.4.6 | Ableton Live 11.3.21 |
+| `MinorVersion` | `11.0_11300` | `12.0_12402` | `11.0_11300` |
+| Lane element name | `ExpressionLane` | `MidiEditorLaneModel` | `ExpressionLane` |
+| `Oversampling` values | 5 of `"1"`, 1 of `"0"` | 5 of `"true"`, 1 of `"false"` | 5 of `"1"`, 1 of `"0"` |
+| Audio tracks | 14 | 14 | 14 |
+| MIDI tracks | 14 | 14 | 14 |
+| Group tracks | 1 | 1 | 1 |
+| Clips | 255 | 255 | 255 |
 
-**What it does not establish.** The round-tripped file has `ContentLanes` of `Type` 2 and 3, and
-an `ExpressionLanes` of `Type` 5. Live 11 has no lanes of those types, so the file contains
-lanes Live 11 has never seen, and it has lost Live 11's `ContentLanes` of `Type` 5.
+The material is untouched, and the two elements that Live 12 spells differently are now spelled
+the Live 11 way.
 
-**The question that is still open:** does Live 11 open a set with a lane of an unknown `Type`
-without complaint, and if it does, what does it do with that lane?
+**What it does not establish.** The lanes are not reconciled, and there is no way to reconcile
+them, because the `Type` values are not portable: there is no mapping from a Live 12 lane to a
+Live 11 lane, since the two versions number them differently within the same family. The
+round-tripped file therefore has three lanes Live 11 has never seen, and has lost one that it
+has:
 
-**The test that answers it:** open the round-tripped file in Live 11 and look at the lanes. The
-file is produced by converting the Live 12 set, which is inside a Project folder beside the
-Live 11 demo sets:
+| | Live 11 original | Round tripped | |
+| --- | --- | --- | --- |
+| `ContentLanes` | 4, 5 | 2, 3, 4 | `Type` 2 and 3 are unknown to Live 11; `Type` 5 is lost |
+| `ExpressionLanes` | 0, 1, 2, 3 | 0, 1, 2, 3, 5 | `Type` 5 is unknown to Live 11 |
 
-```shell
-$ cd "/mnt/c/ProgramData/Ableton/Live 11 Suite/Resources/Core Library/Lessons/Demo Songs"
-$ rake install     # in the live_set repository, so the command runs the current code
-$ live_set -11 "Ninajirachi - In The Rain (Live 11 Suite Demo) converted to Live 12 Project/Ninajirachi - In The Rain (Live 11 Suite Demo) converted to Live 12.als"
+**The test has been run, and the answer is no.** The round-tripped file was opened in Live 11
+Suite 11.3.43, and Live 11 **crashed** on it:
+
+> A serious program error has occurred.
+> Live will shut down after this message box is closed.
+
+This is the file produced by the current code, which **translates** the lanes rather than
+removing them. Its contents at the time of the crash were:
+
+| | |
+| --- | --- |
+| `Creator` | Ableton Live 11.3.21 |
+| `MinorVersion` | `11.0_11300` |
+| `ContentLanes` | 3 × `ExpressionLane`, `Type` 2, 3, 4 |
+| `ExpressionLanes` | 5 × `ExpressionLane`, `Type` 5, 0, 1, 2, 3 |
+| `Oversampling` | 5 of `"1"`, 1 of `"0"` |
+| `InstrumentMeld`, `Roar`, `MxPatchRef` | none |
+| Tracks and clips | 14 audio, 14 MIDI, 1 group, 255 clips |
+
+**So neither of the two possible treatments works.** Removing the lanes crashes Live 11, and
+translating them crashes Live 11 too, because the translated file still has lanes of an unknown
+`Type`.
+
+Live 11's own log records the crash:
+
+```
+2026-10-22T16:22:56.753332: info: Default App: Begin ExchangeDocument
+2026-10-22T16:22:58.144252: info: Exception: Windows Exception
+2026-10-22T16:22:58.144280: info: Exception: Fatal Error: Unhandled exception
 ```
 
-That writes `…converted to Live 12_11.als` in the same folder.
+The load got as far as `Begin ExchangeDocument`, and the exception followed a second later. For
+contrast, the original Live 11 demo set loads cleanly, through `Begin ExchangeDocument` and
+`End ExchangeDocument`, with no exception.
 
-**A first attempt crashed Live 11**, and the reason is worth recording. That attempt was made
-with a `live_set` that removed the lanes entirely rather than translating them, and Live 11
-crashed with "A serious program error has occurred" on opening the result. So **removing the
-lanes is not an option** — Live 11 does not tolerate a set with no `ContentLanes` and no
-`ExpressionLanes` any more than it tolerates one with lanes of an unknown `Type`.
+**What the crash is caused by is not yet known.** The `Type` values are the obvious suspect,
+but the file also differs from a Live 11 set in other ways — the `Creator` says 11.3.21 rather
+than 11.3d1, the `Revision` hash is one the current code hardcodes, and `SchemaChangeCount` is
+`3`. A crash in `Begin ExchangeDocument` could be any of these. **The conversion is not yet
+known to produce a set that Live 11 can open**, and until it does, N42 is not closed.
 
-The file produced by the current code, which translates rather than removes, has been written
-and has not been opened in Live 11 yet. That is the test:
+**Reproducing the test.** The round-tripped file is produced from the Live 12 version of the
+Live 11 demo set, which lives in a Project folder beside the Live 11 demo sets:
 
 ```shell
 $ cd "/mnt/c/ProgramData/Ableton/Live 11 Suite/Resources/Core Library/Lessons/Demo Songs"
 $ live_set -11 -f "Ninajirachi - In The Rain (Live 11 Suite Demo) converted to Live 12 Project/Ninajirachi - In The Rain (Live 11 Suite Demo) converted to Live 12.als"
 ```
 
-It writes `…converted to Live 12_11.als` beside the set it was given. The file has the Live 11
-version strings, the lanes are named `ExpressionLane`, the `Oversampling` values are 5 of `"1"`
-and 1 of `"0"`, and the tracks, clips and group are unchanged. The lanes are `ContentLanes` of
-`Type` 2, 3 and 4, and an `ExpressionLanes` of `Type` 5 — the unknown ones.
+That writes `…converted to Live 12_11.als` in the same folder. The `-f` is needed only because
+the file has already been written once; without it the command stops and leaves the existing
+file alone.
 
-See `docs/als_format.md` section 2.4.
+To open it in Live 11 and see the crash, run the executable directly:
+
+```shell
+$ "/mnt/c/ProgramData/Ableton/Live 11 Suite/Program/Ableton Live 11 Suite.exe" \
+    "Ninajirachi - In The Rain (Live 11 Suite Demo) converted to Live 12 Project/Ninajirachi - In The Rain (Live 11 Suite Demo) converted to Live 12_11.als"
+```
+
+Live writes its own log, which records the load and the exception:
+
+```
+~/AppData/Roaming/Ableton/Live 11.3.43/Preferences/Log.txt
+```
+
+See `docs/als_format.md` sections 2.4 and 2.5.
 
 
 ### N43. A `FakeGroup` element has been claimed but never found

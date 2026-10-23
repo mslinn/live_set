@@ -1,0 +1,7 @@
+2026-10-22T11:25:57.417639: info: Loading document "C:\ProgramData\Ableton\Live 11 Suite\Resources\Core Library\Lessons\Demo Songs\Ninajirachi - In The Rain (Live 11 Suite Demo).als"
+2026-10-22T11:25:58.620184: info: Loaded document was created by Ableton Live 11.3d1
+2026-10-22T11:25:58.620227: info: Default App: Begin ExchangeDocument
+2026-10-22T11:26:00.443951: info: Default App: End ExchangeDocument
+2026-10-22T11:26:01.559861: info: Link: Disabled
+2026-10-22T11:26:11.593588: info: MemoryUsage: V: 8.8 GB, R: 2.3 GB, P: 2.3 GB
+2026-10-22T11:26:20.000000: info: Live App: GlobalExit(): End

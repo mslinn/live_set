@@ -244,15 +244,29 @@ because:
 Whether Live 11 tolerates a lane of an unknown `Type` is not known. It is a small thing to test:
 convert a Live 12 set, open the result in Live 11, and look at the lanes.
 
-**The lanes cannot simply be removed.** An earlier version of the conversion removed
-`ContentLanes`, `ExpressionLanes` and `Oversampling` rather than translating them, and Live 11
-**crashed** on the result:
+**Neither treatment works.** Removing `ContentLanes`, `ExpressionLanes` and `Oversampling`
+crashes Live 11, and so does translating them, because the translated file still has lanes of an
+unknown `Type`:
 
 > A serious program error has occurred.
 > Live will shut down after this message box is closed.
 
-So a set with no `ContentLanes` and no `ExpressionLanes` is no more acceptable to Live 11 than a
-set with lanes of an unknown `Type`. The conversion has to translate them.
+This is not a theoretical problem. The round-tripped file was opened in Live 11 Suite 11.3.43
+and it crashed Live, with the log showing the exception a second after `Begin ExchangeDocument`:
+
+```
+2026-10-22T16:22:56.753332: info: Default App: Begin ExchangeDocument
+2026-10-22T16:22:58.144252: info: Exception: Windows Exception
+2026-10-22T16:22:58.144280: info: Exception: Fatal Error: Unhandled exception
+```
+
+The original Live 11 demo set loads cleanly, through `Begin ExchangeDocument` and
+`End ExchangeDocument`, with no exception. So a set with no `ContentLanes` and no
+`ExpressionLanes` is no more acceptable to Live 11 than a set with lanes of an unknown `Type`,
+and **the conversion does not yet produce a set that Live 11 can open.** What the crash is
+caused by is not yet known: the `Type` values are the obvious suspect, but the converted file
+also differs from a Live 11 set in its `Creator`, `Revision` and `SchemaChangeCount`. See
+TODO.md N42.
 
 ### 2.5 What a round trip establishes
 
@@ -273,11 +287,16 @@ Live 11 set in every respect that can be checked without Live 11:
 The material is untouched, and the two elements that Live 12 spells differently are now spelled
 the Live 11 way.
 
-**The one thing the round trip cannot settle** is the lanes. The round-tripped file has
-`ContentLanes` of `Type` 2 and 3, and an `ExpressionLanes` of `Type` 5, none of which Live 11
-has; and it has lost the `ContentLanes` of `Type` 5 that the original had. The file is a
-well-formed Live 11 file, but it contains lanes Live 11 has never seen. Only Live 11 itself can
-say what it does with them. See TODO.md N42.
+**The one thing the round trip cannot settle** is the lanes. The round-tripped file has three
+lanes Live 11 has never seen, and has lost one that it has:
+
+| | Live 11 original | Round tripped | |
+| --- | --- | --- | --- |
+| `ContentLanes` | 4, 5 | 2, 3, 4 | `Type` 2 and 3 are unknown to Live 11; `Type` 5 is lost |
+| `ExpressionLanes` | 0, 1, 2, 3 | 0, 1, 2, 3, 5 | `Type` 5 is unknown to Live 11 |
+
+The file is a well-formed Live 11 file, but it contains lanes Live 11 has never seen, and Live
+11 crashes on it rather than opening it. See TODO.md N42 and section 2.4.
 
 ---
 

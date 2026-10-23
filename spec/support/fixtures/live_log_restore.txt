@@ -1,0 +1,4 @@
+2026-10-22T19:44:47.228578: info: Default App: Checking whether to restore the document...
+2026-10-22T19:44:47.233040: info: Message Box: Live unexpectedly quit while you were working on the Live Set 'Untitled'. Would you like to recover your work?
+2026-10-22T19:45:16.692173: info: Default App: Restore Document: Rejected by the user
+2026-10-22T19:45:17.127694: info: Loading document "C:\ProgramData\Ableton\Live 11 Suite\Resources\Builtin\Templates\DefaultLiveSet.als"
