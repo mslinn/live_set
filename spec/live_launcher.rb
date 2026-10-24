@@ -1,29 +1,25 @@
 require 'open3'
 require 'tmpdir'
 
-# Launches Ableton Live with a set, watches it, and shuts it down.
+# TODO
 #
-# Live is a GUI program, and the Ruby here runs under WSL, so the program is launched on the
-# Windows side with PowerShell. PowerShell is reached through the WSL interop, and it does the
-# things that cannot be done from Ruby here:
+# Live is a GUI program, and the Ruby here runs under WSL, so the program is launched on the Windows side with
+# PowerShell. PowerShell is reached through the WSL interop, and it does the things that cannot be done from Ruby here:
 #
 # - start the program and watch the process,
 # - read the text of a dialog Live puts up, through UI Automation,
 # - dismiss the dialog and close the program.
 #
-# **Live is a single-instance program.** A second launch hands the file to the running instance
-# rather than opening it in a new one, so the launcher closes any running instance before it
-# starts one. That also means the launcher has to leave Live closed, or the next run cannot
-# start.
+# **Live is a single-instance program.** A second launch hands the file to the running instance rather than opening it
+# in a new one, so the launcher closes any running instance before it starts one. That also means the launcher has to
+# leave Live closed, or the next run cannot start.
 #
-# **Live writes a log of what it did**, and it is the most reliable way to tell a clean load
-# from a failed one:
+# **Live writes a log of what it did**, and it is the most reliable way to tell a clean load from a failed one:
 #
 #   ~/AppData/Roaming/Ableton/Live <version>/Preferences/Log.txt
 #
-# A clean load runs from "Loading document" through "Begin ExchangeDocument" to
-# "End ExchangeDocument". A failed one reaches "Begin ExchangeDocument" and then logs an
-# exception, or logs that the document could not be loaded.
+# A clean load runs from "Loading document" through "Begin ExchangeDocument" to "End ExchangeDocument". A failed one
+# reaches "Begin ExchangeDocument" and then logs an exception, or logs that the document could not be loaded.
 module LiveLauncher
   # Define recognized dialog families. This allows the harness to classify the top-level dialog by visible text and
   # then dismiss it by performing the appropriate action.

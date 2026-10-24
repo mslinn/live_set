@@ -1,4 +1,4 @@
-# A plan to test the Live 11 conversion against Live 11 itself
+# A Plan For Round-Trip Testing Live 11 Conversion
 
 `live_set -11` is supposed to convert a Live 12 set into the best representation
 possible in Live 11 format; any use of unsupported Live 12 features is stripped
@@ -20,11 +20,45 @@ them and present them for discussion.
 
 ## Purpose
 
-This document describes the round-trip test that proves a conversion from Live
-12 data back to the Live 11 format is valid.
+This document describes the round-trip test harness that proves a conversion
+from Live 12 data back to the Live 11 format is valid.
 
-** No simulations or stubs or mocks are allowed in this live end-to-end
-integration test capability. **
+The primary purpose of this project is to support round-trip testing, so the
+Ableton Live ALS file format can be reverse engineered. This requires calling
+the Live GUI program repetitively, interacting with it under program control,
+and obtaining error messages from displayed dialogs as well as from stdout.
+
+**No simulations, stubs, or mocks are allowed ANYWHERE in this code.**
+
+In more detail, the Ableton Live harness must:
+
+1. Launch the target GUI process
+2. Retain its process id
+3. Enumerate the visible top-level windows owned by that pid
+4. Walk the UIAutomation tree
+5. Read the text exposed to the user
+6. Match that text against the real dialog families
+7. Perform the correct dismissal action,
+8. Return a structured outcome.
+
+Log parsing is a secondary source of evidence; the process-owned window probe is
+the primary source of truth for user-visible failure states.
+
+The harness shall be implemented as a Ruby Gem called `gui_harness`.
+Use the template Git project as a starting point to create the new gem.
+
+The gem abstracts the underlying functionality of this project, which is: to
+support round-trip testing, so a file format can be reverse engineered by
+repetitively calling the GUI program, interacting with it, and obtaining error
+messages from displayed dialogs as well as from stdout.
+
+The central component is the GUI process probe: launch the target GUI app,
+retain its process id, enumerate the visible top-level windows owned by that
+process, walk the UIAutomation tree, read whatever user-facing text it finds,
+classify the dialog family, dismiss the dialog with the appropriate action, and
+report the run outcome. Log parsing is only a secondary check; the process-owned
+window probe is the primary source of truth.
+
 
 TODO Search for simulations, stubs, and mocks and replace them with live code.
 
