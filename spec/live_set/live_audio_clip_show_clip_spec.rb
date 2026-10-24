@@ -1,7 +1,16 @@
 require 'spec_helper'
+require 'stringio'
 require 'live_set/live_set_audio_clip'
 
 RSpec.describe LiveAudioClip, '#show_clip' do
+  around do |example|
+    original_stdout = $stdout
+    $stdout = StringIO.new
+    example.run
+  ensure
+    $stdout = original_stdout
+  end
+
   # Builds an <AudioClip> element, with or without a LastModDate.
   def clip_with(last_mod_date: '1707598944')
     lmd = last_mod_date ? "<LastModDate Value=\"#{last_mod_date}\"/>" : ''

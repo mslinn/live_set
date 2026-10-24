@@ -6,6 +6,7 @@ RSpec.describe Run do
 
   # Captures the status that the runner exits with, or nil if it does not exit.
   def exit_status_for(command, success_statuses: [0])
+    allow(Log).to receive(:error)
     runner.run_capture_stdout(command, success_statuses: success_statuses)
     nil
   rescue SystemExit => e

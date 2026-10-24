@@ -184,7 +184,7 @@ class LiveSet
       when 'true' then oversampling['Value'] = '1'
       when 'false' then oversampling['Value'] = '0'
       else
-        Log.warn "Leaving an unrecognized Oversampling value #{value.inspect} as it is"
+      Log.warn "Leaving an unrecognized Oversampling value #{value.inspect} as it is"
       end
     end
   end

@@ -2,6 +2,7 @@ require 'bytesize'
 require 'fileutils'
 require 'nokogiri'
 require 'ostruct'
+require 'stringio'
 require 'tmpdir'
 
 # Require the code in this repository, not an installed gem of the same name.
@@ -11,6 +12,16 @@ require 'tmpdir'
 # code, so the two are the same; but the spec should test this repository either way.
 $LOAD_PATH.unshift File.expand_path('../lib', __dir__)
 require 'live_set'
+
+# The fixture sets reference sample files that are intentionally not present. Keep their
+# diagnostic output out of the specs that only inspect clip metadata.
+def silence_stdout
+  original_stdout = $stdout
+  $stdout = StringIO.new
+  yield
+ensure
+  $stdout = original_stdout
+end
 
 # A stand-in for a LiveAudioClip. Only the methods that the reporting code calls are needed.
 FakeClip = Struct.new(:file_size, :absolute_path) do

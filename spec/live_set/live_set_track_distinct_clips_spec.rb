@@ -3,6 +3,8 @@ require 'live_set/live_set_track'
 require 'live_set/live_set_audio_clip'
 
 RSpec.describe LiveTrack, '#distinct_clips' do
+  around { |example| silence_stdout { example.run } }
+
   # Builds a track in which the same file is referenced from all three sources.
   def track_with_shared_file(file_size: '1000')
     shared = audio_clip_xml(id: '0', relative_path: 'Samples/Imported/shared.mp3', file_size: file_size)

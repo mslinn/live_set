@@ -1,4 +1,5 @@
 require 'open3'
+require 'support/gui_harness'
 
 # Sends a keypress to a Windows program.
 #
@@ -37,11 +38,15 @@ class LiveKeys
   # @param keys [String] the keys to send, in WScript.Shell syntax
   # @return [Boolean] whether the key was sent successfully
   def press?(process_id, keys)
+    return false unless File.writable?(windows_directory)
+
     script = write_powershell_keypress_script
     output, status = Open3.capture2e 'powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass',
-                                     '-File', LiveLauncher.windows_path(script),
+                                     '-File', GuiHarness::LiveLauncher.windows_path(script),
                                      '-Process', process_id.to_s, '-Keys', keys
     status.success? && output.include?('SENT')
+  rescue Errno::EACCES, Errno::ENOENT, Errno::EROFS
+    false
   end
 
   private
@@ -62,8 +67,9 @@ class LiveKeys
   def windows_directory
     @windows_directory ||= begin
       dir = ENV['TEMP'] || ENV['TMP'] || 'C:\\Windows\\Temp'
-      wsl = LiveLauncher.windows_path dir
+      wsl = GuiHarness::LiveLauncher.windows_path dir
       # A Windows path that is not on a mounted drive cannot be reached from WSL.
       wsl.start_with?('/mnt/') ? wsl : '/mnt/c/Windows/Temp'
     end
   end
+end

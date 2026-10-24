@@ -8,6 +8,8 @@ require 'live_set/live_set_audio_clip'
 #
 # See docs/als_format.md section 11.
 RSpec.describe LiveTrack, '#audio_clips' do
+  around { |example| silence_stdout { example.run } }
+
   context 'when the track is frozen' do
     it 'finds a clip that is only in the FreezeSequencer' do
       slots = clip_slot_xml(id: '1', relative_path: 'Samples/Processed/Freeze/frozen.wav')

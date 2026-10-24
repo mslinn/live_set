@@ -3,6 +3,8 @@ require 'live_set/live_set_track'
 require 'live_set/live_set_audio_clip'
 
 RSpec.describe LiveTrack, '#audio_clips' do
+  around { |example| silence_stdout { example.run } }
+
   # Builds a track with clips in the session view, the arrangement, and a take lane.
   def track_for(session: 0, arrangement: 0, take_lane: 0)
     slots = (1..session).map { |i| clip_slot_xml(id: i.to_s, relative_path: "Samples/Imported/s#{i}.mp3") }.join

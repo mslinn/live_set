@@ -156,7 +156,7 @@ module LiveInstallations
   # @return [String, nil] the path of the Preferences folder
   def self.preferences(version, roots = profile_roots)
     @preferences ||= {}
-    @preferences[version] ||= begin
+    @preferences[[version, roots]] ||= begin
       found = roots.flat_map { |root| Dir.glob File.join(root, 'Ableton', 'Live *') }
                    .map { |path| File.join path, 'Preferences' }
                    .select { |path| File.directory? path }

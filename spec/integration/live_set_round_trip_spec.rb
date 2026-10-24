@@ -1,12 +1,9 @@
 require 'spec_helper'
+require 'stringio'
 require 'conversions'
 require 'demo_sets'
 require 'support/live_harness/live_installations'
-require 'live_launcher'
-
-RSpec.configure do |config|
-  config.fail_fast = true
-end
+require 'support/gui_harness'
 
 # The round trip: an original Live 11 set is saved in Live 12, converted back to the Live 11
 # format, read back as XML, and then opened in Live 11. The point is to prove that the
@@ -34,7 +31,16 @@ RSpec.describe LiveSet, 'the round trip through Live 11' do
   let(:converted_path) { Conversions.output_path Conversions.set_path live12_path, 'round-trip' }
 
   # The converted set, read back as XML.
-  let(:converted_document) { Conversions.in_process live12_path }
+  # The test set refers to samples that are not copied into the temporary conversion directory.
+  # Loading it prints one warning for every missing sample; those warnings are expected here and
+  # would otherwise bury the RSpec output.
+  let(:converted_document) do
+    original_stdout = $stdout
+    $stdout = StringIO.new
+    Conversions.in_process live12_path
+  ensure
+    $stdout = original_stdout
+  end
 
   # The Live 11 installation.
   let(:installation) { LiveInstallations.version '11' }
@@ -45,8 +51,8 @@ RSpec.describe LiveSet, 'the round trip through Live 11' do
 
   # What happened when Live was launched with the converted set.
   let(:result) do
-    @result ||= LiveLauncher.launch installation.executable, converted_path,
-                                    log: log_path, timeout: 120
+    @result ||= GuiHarness::LiveLauncher.launch installation.executable, converted_path,
+                                                 log: log_path, timeout: 3
   end
 
   around do |example|
@@ -65,6 +71,16 @@ RSpec.describe LiveSet, 'the round trip through Live 11' do
     skip 'Live 11 preferences are not available' if preferences.nil? || log_path.nil?
   end
 
+  describe 'opening the converted set in Live 11' do
+    it 'does not put up an error' do
+      expect(result.dialog).to be_nil
+    end
+
+    it 'finishes loading the set' do
+      expect(result.log).to include 'End ExchangeDocument'
+    end
+  end
+
   describe 'the XML preflight gate' do
     it 'keeps the converted file structurally valid before Live 11 is launched' do
       expect(converted_document.at('//Ableton')['Creator']).to eq('Ableton Live 11.3.21')
@@ -81,19 +97,13 @@ RSpec.describe LiveSet, 'the round trip through Live 11' do
   describe 'converting the set' do
     it 'writes a set' do
       set = Conversions.set_path live12_path, 'round-trip'
+      original_stdout = $stdout
+      $stdout = StringIO.new
       LiveSet.new(set).modify_als
 
       expect(File.exist?(converted_path)).to be true
-    end
-  end
-
-  describe 'opening the converted set in Live 11' do
-    it 'does not put up an error' do
-      expect(result.dialog).to be_nil
-    end
-
-    it 'finishes loading the set' do
-      expect(result.log).to include 'End ExchangeDocument'
+    ensure
+      $stdout = original_stdout
     end
   end
 end
