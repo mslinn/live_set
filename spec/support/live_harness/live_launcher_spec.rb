@@ -1,12 +1,18 @@
 require 'spec_helper'
 require 'live_launcher'
+require_relative '../../demo_sets'
 require_relative 'live_installations'
+
+def running_in_wsl?
+  ENV['WSL_DISTRO_NAME'] || ENV['WSL_INTEROP'] ||
+    (File.exist?('/proc/version') && File.read('/proc/version').downcase.include?('microsoft'))
+end
 
 RSpec.describe LiveLauncher do
   let(:ableton_home) { '/mnt/c/ProgramData/Ableton' }
   let(:ableton_11_home) { "#{ableton_home}/Live 11 Suite" }
-  let(:ableton_11_program) { "#{ableton_11_suite}/Program/Ableton Live 11 Suite.exe" }
-  let(:ableton_11_demo_home) { "#{ableton_11_suite}/Resources/Core Library/Lessons/Demo Songs/" }
+  let(:ableton_11_program) { "#{ableton_11_home}/Program/Ableton Live 11 Suite.exe" }
+  let(:ableton_11_demo_home) { "#{ableton_11_home}/Resources/Core Library/Lessons/Demo Songs/" }
   let(:ableton_11_demo_set) { "#{ableton_11_demo_home}/Ninajirachi - In The Rain (Live 11 Suite Demo).als" }
 
   describe '.windows_path' do
@@ -35,6 +41,40 @@ RSpec.describe LiveLauncher do
       expect(described_class.classify_dialog('Some unexpected Live window')).to eq(
         { type: :unknown, action: nil }
       )
+    end
+  end
+
+  describe 'GUI visibility matrix', :live_integration do
+    before do
+      skip 'this is a WSL + Windows Ableton Live integration test' unless running_in_wsl?
+
+      @installation = LiveInstallations.version('11')
+      skip 'Live 11 is not installed on this machine' if @installation.nil? || @installation.executable.nil?
+
+      @demo_set = DemoSets.edition('11', 'Suite')
+      skip 'the Live 11 demo set is not installed on this machine' if @demo_set.nil? || !File.exist?(@demo_set)
+
+      @log_path = LiveInstallations.preferences('11')
+      skip 'Live 11 has no writable Preferences directory configured' if @log_path.nil?
+      @log_path = File.join(@log_path, 'Log.txt')
+    end
+
+    %i[normal minimized hidden].each do |visibility|
+      it "succeeds when the launcher is #{visibility}" do
+        result = described_class.launch(@installation.executable, @demo_set, log: @log_path, timeout: 30, visibility: visibility)
+
+        expect(result).to be_a(described_class::Result)
+        expect(result.success?).to be(true)
+        expect(result.outcome).to eq(:loaded)
+      end
+
+      it "fails cleanly when the launcher is #{visibility}" do
+        missing_set = File.join(Dir.pwd, 'spec', 'support', 'live_harness', 'missing_live_set.als')
+        result = described_class.launch(@installation.executable, missing_set, log: @log_path, timeout: 20, visibility: visibility)
+
+        expect(result).to be_a(described_class::Result)
+        expect(result.outcome).to(satisfy { |outcome| %i[blocked unknown crashed].include?(outcome) })
+      end
     end
   end
 
@@ -144,10 +184,7 @@ RSpec.describe LiveLauncher do
 
   describe 'real Live integration', :live_integration do
     before do
-      # TODO: This should run in WSL, which means a Windows computer. The following test is WRONG:
-      unless Gem.win_platform? || RUBY_PLATFORM.include?('mswin') || RUBY_PLATFORM.include?('mingw')
-        # skip 'this is a Windows + Ableton Live integration test'
-      end
+      skip 'this is a WSL + Windows Ableton Live integration test' unless running_in_wsl?
 
       @installation = LiveInstallations.version('11')
       skip 'Live 11 is not installed on this machine' if @installation.nil? || @installation.executable.nil?

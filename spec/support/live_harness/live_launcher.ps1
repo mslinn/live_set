@@ -2,7 +2,8 @@ param(
   [Parameter(Mandatory=$true)][string]$Exe,
   [Parameter(Mandatory=$true)][string]$Set,
   [string]$Log = '',
-  [int]$TimeoutSeconds = 120
+  [int]$TimeoutSeconds = 15,
+  [ValidateSet('normal','minimized','hidden')][string]$Visibility = 'normal'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -21,6 +22,7 @@ public class Live {
   [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern int GetClassName(IntPtr h, StringBuilder s, int n);
   [DllImport("user32.dll")] public static extern bool IsWindowVisible(IntPtr h);
   [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr h, out uint pid);
+  [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 }
 '@
 
@@ -114,6 +116,24 @@ function Get-DialogInfo([string]$Text) {
   return [pscustomobject]@{ Type = 'unknown'; Action = $null; ActionType = $null; ActionValue = $null }
 }
 
+function Set-ProcessWindowVisibility([int]$ProcessId, [string]$Visibility) {
+  $mode = switch ($Visibility) {
+    'hidden' { 0 }
+    'minimized' { 2 }
+    default { 1 }
+  }
+
+  [Live]::EnumWindows({
+    param($handle, $lparam)
+    $owner = 0
+    [void][Live]::GetWindowThreadProcessId($handle, [ref]$owner)
+    if ($owner -eq $ProcessId) {
+      [void][Live]::ShowWindow($handle, $mode)
+    }
+    return $true
+  }, [IntPtr]::Zero) | Out-Null
+}
+
 # Live must not already be running, or the file is handed to the running instance
 # instead of being opened by a new one.
 Get-Process -Name 'Ableton Live*' -ErrorAction SilentlyContinue | Stop-Process -Force
@@ -122,7 +142,8 @@ Start-Sleep -Seconds 2
 $logStart = 0
 if ($Log -and (Test-Path $Log)) { $logStart = (Get-Item $Log).Length }
 
-$process = Start-Process -FilePath $Exe -ArgumentList "`"$Set`"" -PassThru
+$process = Start-Process -FilePath $Exe -ArgumentList "`"$Set`"" -PassThru -WindowStyle Normal
+if ($Visibility -ne 'normal') { Set-ProcessWindowVisibility $process.Id $Visibility }
 
 $dialog = $null
 $recovered = $false
@@ -146,16 +167,17 @@ while ((Get-Date) -lt $deadline) {
 
   # Answer the recovery prompt that a previous crash leaves behind, so that the
   # set is opened as it should be rather than the recovery taking precedence.
+  $dialogSeen = $false
   foreach ($window in Get-Windows $process.Id) {
     $shown = Get-DialogText $window.Handle
     if (-not $shown) { continue }
 
     $dialogInfo = Get-DialogInfo $shown
     $dialog = $shown
+    $dialogSeen = ($dialogInfo.Type -and $dialogInfo.Type -ne 'none')
 
     if ($dialogInfo.Type -eq 'fatal') {
       $crashed = $true
-      break
     }
 
     if ($dialogInfo.Type -eq 'recovery') {
@@ -165,7 +187,11 @@ while ((Get-Date) -lt $deadline) {
     if ($dialogInfo.Type -eq 'save_changes') {
       if (Click-Button $window.Handle $dialogInfo.Action) { }
     }
+
+    if ($dialogSeen) { break }
   }
+
+  if ($dialogSeen) { break }
 }
 
 # Close the app cleanly after the run, but do not hide a fatal error dialog from the

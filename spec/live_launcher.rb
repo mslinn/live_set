@@ -21,6 +21,9 @@ require 'tmpdir'
 # A clean load runs from "Loading document" through "Begin ExchangeDocument" to "End ExchangeDocument". A failed one
 # reaches "Begin ExchangeDocument" and then logs an exception, or logs that the document could not be loaded.
 module LiveLauncher
+  VISIBILITY_LEVELS = %i[normal minimized hidden].freeze
+  INVISIBLE_VISIBILITY_LEVELS = %i[minimized hidden].freeze
+
   # Define recognized dialog families. This allows the harness to classify the top-level dialog by visible text and
   # then dismiss it by performing the appropriate action.
   DIALOG_RULES = [
@@ -104,26 +107,47 @@ module LiveLauncher
       { type: rule[:type], action: rule[:action].dup }
     end
 
+    def normalize_visibility(visibility)
+      candidate = visibility.to_s.strip.downcase.to_sym
+      return candidate if VISIBILITY_LEVELS.include?(candidate)
+
+      raise ArgumentError, "visibility must be one of: #{VISIBILITY_LEVELS.join(', ')}"
+    end
+
+    def visibility_style(visibility)
+      case normalize_visibility(visibility)
+      when :hidden then 'Hidden'
+      when :minimized then 'Minimized'
+      else 'Normal'
+      end
+    end
+
+    def debug_visibility_message(visibility, executable)
+      level = normalize_visibility(visibility)
+      "Launching Live with visibility=#{level} executable=#{executable}"
+    end
+
     # Launches Live with a set using a PowerShell script, and reports what happened.
     #
     # @param executable [String] the path of the Live executable
     # @param set [String] the path of the set to open
     # @param log [String, nil] the path of Live's log
     # @param timeout [Integer] how long to wait, in seconds
+    # @param visibility [Symbol, String] the desired launch visibility: :normal, :minimized, :hidden
     # @return [Result] what happened
-    def launch(executable, set, log: nil, timeout: 120)
+    def launch(executable, set, log: nil, timeout: 15, visibility: :normal)
+      level = normalize_visibility(visibility)
+      if INVISIBLE_VISIBILITY_LEVELS.include?(level) && (ENV['GUI_HARNESS_DEBUG'] == '1' || ENV['DEBUG'] == '1')
+        Log.debug(debug_visibility_message(level, executable))
+      end
+
       script = write_powershell_live_launcher_script
       args = ['powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', windows_path(script),
               '-Exe', windows_path(executable), '-Set', windows_path(set),
-              '-TimeoutSeconds', timeout.to_s]
+              '-TimeoutSeconds', timeout.to_s, '-Visibility', level.to_s]
       args += ['-Log', windows_path(log)] unless log.nil?
 
-      # capture2e obtains stdout from powershell, because Live is a GUI program.
       output, status = Open3.capture2e(*args)
-
-      # FIXME: the Ableton Live top-level window must be discovered, categorized, and examined.
-
-      # FIXME: Just returning the an analysis of the PowerShell script output is INSUFFICIENT
       parse output, status
     end
 
