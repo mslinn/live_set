@@ -2,7 +2,7 @@ param(
   [Parameter(Mandatory=$true)][string]$Exe,
   [Parameter(Mandatory=$true)][string]$Set,
   [string]$Log = '',
-  [int]$TimeoutSeconds = 15,
+  [int]$TimeoutSeconds = 3,
   [ValidateSet('normal','minimized','hidden')][string]$Visibility = 'normal'
 )
 

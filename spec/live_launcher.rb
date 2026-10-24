@@ -135,7 +135,7 @@ module LiveLauncher
     # @param timeout [Integer] how long to wait, in seconds
     # @param visibility [Symbol, String] the desired launch visibility: :normal, :minimized, :hidden
     # @return [Result] what happened
-    def launch(executable, set, log: nil, timeout: 15, visibility: :normal)
+    def launch(executable, set, log: nil, timeout: 3, visibility: :normal)
       level = normalize_visibility(visibility)
       if INVISIBLE_VISIBILITY_LEVELS.include?(level) && (ENV['GUI_HARNESS_DEBUG'] == '1' || ENV['DEBUG'] == '1')
         Log.debug(debug_visibility_message(level, executable))
