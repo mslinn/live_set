@@ -1,87 +1,37 @@
-# The Ableton Live `.als` File Format
+# Working With The Ableton Live ALS File Format
 
-A reference for the parts of the format that `live_set` reads, based on a survey of 460 real
-sets in `$songs` and on the official Ableton demo sets. Where this document and the code
-disagree, this document is right and the code is wrong.
+This document is a reference for the Ableton Live set (ALS) format that has been reverse-engineered for this project.
 
-`bin/als_files [DIRECTORY]` re-runs the survey. It reads 25 files by default, because reading all
-of them takes about four minutes.
+The ALS format changes with every Ableton Live release. The `live_set` project is designed to handle structural
+differences in ALS files, such as an element name that was renamed.
 
-### Where the evidence comes from
+This document was written before the `live_set` code was updated; however, the
+code is often incorrect, and this document also has many fundamental errors. TODO
+and FIXME comments have been added to this document and in the code to assist
+reconciliation.
 
-Two corpora, because neither is sufficient alone.
+<blockquote style="border: 1px solid currentColor; padding: 12px; border-radius: 4px;">
+Important: when this document was last edited, both the code and the documentation were in heavy flux and neither was
+authorative. Ask the user for clarification whenever conflicting information is discovered.
+</blockquote>
+## Two Corpuses
 
-| Corpus | What it is | What it is good for |
+The reverse-engineering data is based on two corpuses.
+
+* A corpus of 460 sets in the `$songs` directory of Mike Slinn&apos;s Bear computer.
+
+* The official Ableton Live demo sets.
+
+
+| Corpus | Description | Use |
 | --- | --- | --- |
-| `$songs` | 460 sets, one person's collection, Live 8.2 to 12.4 | Real-world sets, especially with groups, nesting and third-party plug-ins |
-| The Ableton demo sets | The sets Ableton ships with Live | Comparing two Live versions directly, because there is one for each |
+| Mike Slinn&apos;s `$songs` directory on his Bear computer | 460 sets, featuring sets created with Live 8.2 to 12.. | Real-world sets, containing groups, nesting and third-party plug-ins. |
+| Ableton demo sets | Installed with Ableton Live | Most Live features are demonstrated, so these are good for testing. |
 
-The demo sets are the better evidence when the question is "what does Live 11 do?", because they
-exist for several versions. Ableton installs them with Live, and the location is documented:
 
-```
-Windows:  C:\ProgramData\Ableton\[Live Version]\Resources\Core Library\Lessons\Demo Songs
-macOS:    /Applications/Live [Version].app/Contents/App Resources/Core Library/Lessons/Demo Songs
-```
+### Corpus of Mike Slinn&apos;s Sets
 
-See [Location of the default Demo Set](https://help.ableton.com/hc/en-us/articles/209774005-Location-of-the-default-Demo-Set).
-`locate -i "Demo Songs"` finds them. The versions installed on the machine this was developed
-on:
-
-| | Path | `Creator` |
-| --- | --- | --- |
-| Live 12 | `C:\ProgramData\Ableton\Live 12 Suite\Resources\Core Library\Lessons\Demo Songs` | Ableton Live 12.4d1 |
-| Live 11 | `C:\ProgramData\Ableton\Live 11 Suite\Resources\Core Library\Lessons\Demo Songs` | Ableton Live 11.3d1 |
-| Live 10 | `C:\ProgramData\Ableton\Live 10 Standard\Resources\Core Library\Lessons\Demo Songs` | Ableton Live 10.1.3d1 |
-
-`spec/demo_sets.rb` finds them, so the test suite uses them rather than fragments.
-
-**The sets are converted once, and the result is shared.** A conversion in the same process
-takes about half a millisecond, but running the `live_set` command takes about six hundred
-milliseconds, because Ruby has to start up and load the code. The suite therefore converts each
-set once and shares the result, through `spec/conversions.rb`. The examples in
-`spec/live_set/live_set_modify_als_spec.rb` call the method directly, and the examples in
-`spec/integration/live_set_modify_als_spec.rb` run the command as a subprocess, three times on
-one set, so that the second and third runs can examine what happens when the set the command
-writes already exists.
-
-The demo sets are not the same song — Live 11's is "Ninajirachi - In The Rain" and Live 12's is
-"Chuck Sutton - Patience" — so a plain diff between them confounds version differences with
-content differences. A *structural* difference, such as an element name that changes in the same
-position, is still reliable.
-
-The demo sets are also the *right* size for a quick check: five sets per version, and the same
-song in five editions (Intro, Lite, Push, Standard, Suite). Live 10's are a different song
-("Live 10 Demo Song"), and have no lanes at all.
-
----
-
-## 1. The file is gzipped XML
-
-An `.als` file is a gzip-compressed XML document. Read it with:
-
-```ruby
-Zlib::GzipReader.open(path, &:read)
-```
-
-The root element is `<Ableton>`, and the document is a single `<LiveSet>` under it.
-
----
-
-## 2. The real Live version is in `Creator`
-
-The `<Ableton>` element has `MajorVersion` and `MinorVersion` attributes, but those are Ableton's
-**internal set-format numbers**, not the Live version a user sees. A set written by Live 12.2.1
-reports `MajorVersion="5" MinorVersion="12.0_12203"`.
-
-The real version is the `Creator` attribute:
-
-```xml
-<Ableton MajorVersion="5" MinorVersion="12.0_12203" SchemaChangeCount="3"
-         Creator="Ableton Live 12.2.1" Revision="c0d59beb...">
-```
-
-The corpus spans these versions:
+This corpus spans these versions:
 
 | Live version | Sets |
 | --- | --- |
@@ -89,11 +39,104 @@ The corpus spans these versions:
 | 11.3.21 – 11.3.22 | 32 |
 | 12.0.1 – 12.4.6 | 407 |
 
-> **A caution about the corpus.** 29 of the 32 Live 11 sets in `$songs` were written by
-> `live_set -11` itself — their `MinorVersion` is `11.0_11300` and their `Revision` is this
-> tool's hard-coded value. So the corpus's Live 11 sets mostly reflect what `live_set` produces,
-> not what Live 11 produces. Only 3 are genuine Live 11 sets. The demo sets in the table above are
-> genuine, and are the better reference for Live 11 behaviour.
+**Caution:** 29 of the 32 Live 11 sets in `$songs` were written by `live_set -11` itself, which hard-codes certain
+attributes:
+
+* `MinorVersion` is `11.0_11300`
+* `Revision` is a hard-coded value written by `live_set`.
+
+This corpus's Live 11 sets mostly reflect what `live_set` produces, not what Live 11 produces.
+
+Only 3 Live 11 sets in this corpus were actually created by Ableton 11.
+
+
+### Corpus of Demo Sets
+
+From Live 10 onwards, the demo sets have been provided in five versions: Intro, Lite, Push, Standard, and Suite.
+
+Different demo sets are provided for each Ableton Live version. For example, Live 11&apos;s demo song is "Ninajirachi -
+In The Rain", and Live 12&apos;s demo song is "Chuck Sutton - Patience", so a diff between them confounds version
+differences with content differences.
+
+The demo sets are installed with Ableton Live, and the
+[locations](https://help.ableton.com/hc/en-us/articles/209774005-Location-of-the-default-Demo-Set) for Ableton Live 9+
+are:
+
+```text
+Windows:  %ProgramData%\Ableton\[Live Version]\Resources\Core Library\Lessons\Demo Songs
+macOS:    /Applications/Live [Version].app/Contents/App Resources/Core Library/Lessons/Demo Songs
+```
+
+The versions installed on Mike Slinn&apos;s Bear computer, where this was developed
+on were:
+
+| | Path | `Creator` |
+| --- | --- | --- |
+| Live 12 | `C:\ProgramData\Ableton\Live 12 Suite\Resources\Core Library\Lessons\Demo Songs\` | Ableton Live 12.4d1 |
+| Live 11 | `C:\ProgramData\Ableton\Live 11 Suite\Resources\Core Library\Lessons\Demo Songs\` | Ableton Live 11.3d1 |
+| Live 10 | `C:\ProgramData\Ableton\Live 10 Standard\Resources\Core Library\Lessons\Demo Songs\` | Ableton Live 10.1.3d1 |
+| Live 9 | `C:ProgramData\Ableton\Live 9 Standard\Resources\Core Library\Lessons\Samples\Live 9 Demo\` |  |
+| Live 8 | `C:ProgramData\Ableton\Live 8 Standard\` | Not installed by default, but available from Live. |
+
+
+## Surveying Corpuses
+
+The [`als_file`](../bin/als_files) script re-runs the survey. To survey the Live sets in the `$songs` directory, type:
+
+```shell
+$ bin/als_files "$songs"
+```
+
+`als_files` surveys 25 files by default, because surveying all of Mike&apos;s sets takes about four minutes. To read them
+all, type:
+
+```shell
+$ bin/als_files "$songs" 0
+```
+
+## Test Suite
+
+The `live_set` test in `spec/demo_sets.rb` works with the test corpuses, instead of XML fragments.
+
+When testing the `-11` option, the sets are converted only once, and `spec/conversions.rb` provides the result for
+multiple assertions.
+
+The examples in `spec/live_set/live_set_modify_als_spec.rb` call the method directly, and the examples in
+`spec/integration/live_set_modify_als_spec.rb` run the command as a subprocess, three times per set, so that the
+second and third runs can examine what happens when the set the command writes already exists.
+
+
+## ALS Files Are XML, Possibly GZipped
+
+An `.als` file is an XML document. Most are gzip-compressed, but uncompressed `.als` files are sometimes used for
+testing purposes. Read gzip-compressed versions with:
+
+```ruby
+Zlib::GzipReader.open(path, &:read)
+```
+
+### XML Root Element
+
+The root element is `<Ableton>`, and the document is a single `<LiveSet>` under it.
+
+
+#### The `Creator` Attribute
+
+The `<Ableton>` element has `MajorVersion` and `MinorVersion` attributes, but those are Ableton's internal set-format
+numbers, not the Live version a user sees. A set written by Live 12.2.1 reports `MajorVersion="5"
+MinorVersion="12.0_12203"`.
+
+The real Live version is stored in the `Creator` attribute:
+
+```xml
+<Ableton MajorVersion="5"
+         MinorVersion="12.0_12203"
+         SchemaChangeCount="3"
+         Creator="Ableton Live 12.2.1"
+         Revision="c0d59beb...">
+```
+
+
 
 ### 2.1 Converting a set to Live 11 uses a fixed schema
 

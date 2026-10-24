@@ -1,13 +1,12 @@
 #!/usr/bin/env ruby
 
-# Summarizes a directory of .als files: the Live versions they came from, and the shapes of the
-# elements this project reads.
+# Summarizes a directory of .als files: the Live versions they came from, and the shapes of the elements this project
+# reads. Every Ableton Live set is examined.
 #
 # Usage: bin/als_files [DIRECTORY] [MAX_FILES]
 #
-# The directory defaults to $songs. Files are found recursively. MAX_FILES limits how many are
-# read; it defaults to 25, because reading every file in a large collection takes minutes. Pass 0
-# to read them all.
+# The directory defaults to `$songs`. Files are found recursively. MAX_FILES limits how many are read; it defaults to
+# 25, because reading every file in a large corpus takes several minutes. Pass 0 to read them all.
 
 require 'nokogiri'
 require 'zlib'
