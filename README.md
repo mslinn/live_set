@@ -252,8 +252,8 @@ Make the Live 12 set compatible with Live 11 and save as `path/to/my_set_11.als`
 $ live_set -11 -f path/to/my_set.als
 ```
 
-The converted set uses the Live 11.3.21 schema. The sub-version is not configurable, because
-there is no way to ask for a particular one — see
+The converted set uses the Live 11.3.21 schema. The sub-version is not
+configurable. For more infomation, see
 [docs/als_format.md](docs/als_format.md#21-converting-a-set-to-live-11-uses-a-fixed-schema).
 
 
@@ -263,13 +263,17 @@ Ableton Live can be configured to enable experimental and unsupported features t
 `Options.txt` file in its Preferences folder. For example, `-_GroupTrackFreeze` allows a group
 track to be bounced as though it were a track.
 
-**`live_set` does not support experimental features.** It ignores `Options.txt` entirely, and
-treats every setting that `Options.txt` can control as having its standard behaviour, as though
-the experimental option had not been specified.
+`live_set` does not search for a file called  `Options.txt`. Ableton Live does
+when it starts up; the purpose of that file is to enable experimental features.
 
-A set saved with an experimental option enabled is therefore read as though the option were not
-in effect. In particular, a group track is always read as unfrozen, and the tracks inside it are
-always read as unfrozen. See
+TODO I am uncomfortable with the following conclusion, depending on the staet of
+the XML file. If an ALS file is generated somehow that has a frozen group track, we
+should respect the XML file. We need to follow through and look for docs and
+code that have a different goal, and fix them.
+
+TODO Question: Is it true that one of the experimental options that might be in
+effect when saving a Live set is the ability to save a frozen group track? If
+so, does that mean the frozen clip for the track group was prerendered? Also see
 [docs/als_format.md](docs/als_format.md#941-the-optionstxt-hidden-option).
 
 
