@@ -49,6 +49,12 @@ FakeDevice = Struct.new(:label)
 
 # A stand-in for a LiveGroup, for testing LiveTracks.
 #
+# TODO Rename FakeGroup to FakeTrackGroup, to match LiveTrackGroup. The name is
+# currently FakeGroup because the spec_helper.rb file is loaded by
+# spec/live_track_spec.rb, which tests LiveTracks, not LiveGroups.
+#
+# The FakGroup mentioned in docs/als_work.md is unrelated to this FakeGroup. The docs/als_work.md FakeGroup is a stand-in for a LiveGroupTrack, for testing the als_work.rb code.
+#
 # The field is called member_tracks rather than members, because Struct#members already exists.
 FakeGroup = Struct.new(:name, :blocking_devices, :member_tracks) do
   def device_summary
