@@ -54,14 +54,15 @@ else through unchanged. Two elements that Live 11 *does* have are translated
 rather than removed, because Live 12 spells them differently — see
 [docs/als_format.md](docs/als_format.md#23-two-elements-the-conversion-translates).
 
-##  Push 3 Standalone (P3S)
+
+## Push 3 Standalone (P3S)
 
 An unfrozen track will cause a error (or fail to produce sound) on a P3S if and
 only if it relies on software or routing that the P3S does not support.
 
 The scenarios where an unfrozen track will break on the P3S:
 
-1. Third-Party Plugins (VST / AU) - The #1 Cause
+1. Third-Party Plugins (VST / AU)
 
     The Push 3 Standalone runs a customized version of Ableton Live that does not
     support third-party VST3, Audio Units (AU), or CLAP plugins.
@@ -131,13 +132,14 @@ $ gem upgrade live_set
 
 ## Usage
 
-Three commands are provided:
+The following commands are provided:
 
-* `live_set` reports status of a session file, or converts a Live 12 session file to
+- `live_set` reports status of a session file, or converts a Live 12 session file to
   Live 11 format.
-* `als_delta` (used when Live is running) shows changes to a session file each
+- `als_delta` (used when Live is running) shows changes to a session file each
   time the session is saved.
-* `validate_asd` checks that a session file conforms to an XSD schema.
+- `generate_xsd` reads one or more Ableton Live sets and generates an XSD.
+- `validate_asd` checks that a session file conforms to an XSD schema.
 
 ```text
 $ live_set
@@ -177,6 +179,21 @@ als_delta $path/to/my_v12_set.als
 ```
 
 ```text
+Generate_xsd reads one or more Ableton Live sets and generates an XSD with the given name.
+
+Syntax: generate_xsd OPTIONS XSD_FILE_NAME PATH_TO_ALS_FILE...
+
+Environment variables used in XSD_FILE_NAME and PATH_TO_ALS_FILE are expanded.
+
+Options are:
+  -f Overwrite any existing xsd.
+  -h Display this help message.
+
+Example:
+  generate_xsd -f xsd_file_name $path/to/my_v12_set.als
+```
+
+```text
 $ validate_asd
 Validate_asd checks that an Ableton Live set conforms to an XSD schema.
 
@@ -189,7 +206,7 @@ Example:
 ```
 
 
-### Report
+### Sample Report
 
 Report the version of the [Ableton Live 12 Demo Project](https://help.ableton.com/hc/en-us/articles/209774005-Location-of-the-default-Demo-Set):
 
@@ -263,17 +280,16 @@ Ableton Live can be configured to enable experimental and unsupported features t
 `Options.txt` file in its Preferences folder. For example, `-_GroupTrackFreeze` allows a group
 track to be bounced as though it were a track.
 
-`live_set` does not search for a file called  `Options.txt`. Ableton Live does
-when it starts up; the purpose of that file is to enable experimental features.
+`live_set` does not search for a file called  `Options.txt`.
 
 TODO I am uncomfortable with the following conclusion, depending on the staet of
 the XML file. If an ALS file is generated somehow that has a frozen group track, we
 should respect the XML file. We need to follow through and look for docs and
 code that have a different goal, and fix them.
 
-TODO Question: Is it true that one of the experimental options that might be in
-effect when saving a Live set is the ability to save a frozen group track? If
-so, does that mean the frozen clip for the track group was prerendered? Also see
+TODO One of the experimental options that might be in effect when saving a Live
+set is the ability to save a frozen group track. The group data should be
+converted to maintain the integrity of the data. Also see
 [docs/als_format.md](docs/als_format.md#941-the-optionstxt-hidden-option).
 
 

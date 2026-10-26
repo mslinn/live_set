@@ -4,6 +4,13 @@ This document is a reference for the how the work of reverse engineering the
 Ableton Live set (ALS) format is being done. This is a HOW-TO document. The WHAT
 document (discussing findings) is [als_notes.md](als_notes.md).
 
+<blockquote style="border: 1px solid currentColor; padding: 12px; border-radius: 4px;">
+IMPORTANT: We are not allowing any additional switches or configuration ability
+for controlling the behavior of live_set at this time. One should not add
+unnecessary complexity to a new project that is already undergoing a huge
+transformation.
+</blockquote>
+
 The ALS format changes with every Ableton Live release. The `live_set` project
 is designed to handle structural differences in ALS files, such as an element
 name that was renamed, or elements that exist in one version but not in another.
@@ -16,14 +23,24 @@ required in the next section (Current Work).
 
 ### XML Transformation with XSLT (Nokogiri)
 
-Every Ableton Live file contains XML, and the XML structure actually present in this
-particular Live file can have an XML Stylesheet generated and saved as an XSD
-file. XSD files can be used as XSLT templates.
+#### XSD (XML Schema)
+
+Every Ableton Live file contains XML. From the XML structure present in a given
+Live file (or from a collection of them), you can generate an XML Schema (XSD)
+that describes the allowed structure, elements, attributes, and types for that
+version of the format. XSD files are used for XML validation.
 
 By combining XSDs together we can assemble a more complete XML stylesheet.
 One a "good enough" stylesheet exists for two Ableton Live versions (e.g. v11
 and v12), we can use the stylesheets to do much of the reorganizational work of
 transforming bidirectionally between v11 and v12 formats.
+
+XSLT templates are used for transforming XML files from one format to another.
+They perform structural transformations (for example, converting between Ableton
+Live v11 and v12 formats).
+
+We need to generate XSLT stylesheets that map one version’s structure to the other.
+The XSLT stylesheets perform the bidirectional reorganization work.
 
 To transform an XML document using an XSLT template, Nokogiri is the standard
 and most performant choice.
@@ -114,6 +131,11 @@ Gui_harness can answer GUI dialogs, provide values in forms, press buttons, and
 read text from the dialog. It can also shut down the GUI program, and it takes
 note of the return code and STDOUT and STDERR in case any warnings or errors
 were emitted.
+
+Gui_harness is a new program, and this is the first projec to use it. The tests
+should verify that a recent version of gui_harness is used. Also bugs may be
+found in gui_harness, so don't assume it works perfectly. If a bug is found in
+gui_harness, fix it instead of moving on to something else.
 
 
 ## Comparing XML Contents
