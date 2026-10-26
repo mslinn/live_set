@@ -1,5 +1,13 @@
 # `Live_set` [![Gem Version](https://badge.fury.io/rb/live_set.svg)](https://badge.fury.io/rb/live_set)
 
+<blockquote style="border: 1px solid currentColor; padding: 12px; border-radius: 4px;">
+This project is in a state of flux.
+The published gem was a proof of concept.
+All code and comments are aspirational until this message is deleted.
+The current code probably does not work and the docs are a mess.
+Come back real soon now, and things should be much better!
+</blockquote>
+
 This software can:
 
 1. Make a copy of an Ableton Live 12 set and save to Live 11 format.

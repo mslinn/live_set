@@ -1,7 +1,13 @@
 # ALS Filetype Notes
 
-This document contains details of various versions of the Ableton Live ALS file format.
+This document contains details of the Ableton Live Set (ALS) file format. This
+is a WHAT document that discusses XML fragments and how they morph between Live
+versions. The HOW-TO document (discussing how the work is performed) is
+[als_work.md](als_work.md).
 
+The ALS format changes with every Ableton Live release. The `live_set` project
+is designed to handle structural differences in ALS files, such as an element
+name that was renamed, or elements that exist in one version but not in another.
 
 
 ## ALS Schemas
