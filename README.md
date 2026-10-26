@@ -32,37 +32,50 @@ This software can:
    b. Detect tracks that have non-Ableton plugins are not frozen, which means
    they are not ready to be transferred to Push 3 Standalone.
 
-   c. Detect group tracks that have non-Ableton plugins. A group&rsquo;s tracks are
-   routed through the group&rsquo;s device chain, so a plugin in a group blocks a
-   transfer just as much as a plugin on a track. A group track cannot be frozen,
-   and freezing the tracks inside it does not help, because they stay routed
-   through the group. The plugin has to be removed from the group&rsquo;s chain, or
-   the group has to be bounced.
+   c. Detect group tracks that have non-Ableton plugins. A group track cannot be
+   frozen unless Options.txt allows it. The plugin has to be
+   removed from the group&rsquo;s chain, or the group has to be bounced to
+   another track and then be disabled.
 
-   d. Shows clips that are have not been collected within the set&rsquo;s project directory.
+   d. Show clips that are have not been collected within the set&rsquo;s
+   project directory.
 
-9. Report the samples in frozen tracks. A frozen track keeps two copies of its
-   audio: the editable material, and the rendered audio cache that replaces it
-   during playback. Both are reported.
+9. Report the samples in frozen tracks. During playback, a frozen track
+   *shadows* the track with the editable material. Both tracks are reported.
 
 This program has successfully converted the Ableton Live 12 demo project to Live
-11. Also tested with Live 8.6 session files.
+11. Other functionality has been tested with Live 8.6 session files.
 
-The conversion is a selective removal: it writes the Live 11 version strings,
-removes the three elements that Live 11 does not have, and copies everything
-else through unchanged. Two elements that Live 11 *does* have are translated
-rather than removed, because Live 12 spells them differently — see
+The conversion performed by most recently published was a selective removal: it
+wrote the Live 11 version strings, removed the three elements that Live 11 does
+not have, and copied everything else through unchanged. Two elements that Live
+11 *does* have were translated rather than removed, because Live 12 names them
+differently — see
 [docs/als_format.md](docs/als_format.md#23-two-elements-the-conversion-translates).
 
+This project is transitioning to being driven by XLST transformations, derived
+by recursively running Ableton Live in a GUI test harness. The demo programs
+provided with each version of Ableton Live were an important source of
+information.
 
 ## Push 3 Standalone (P3S)
 
-An unfrozen track will cause a error (or fail to produce sound) on a P3S if and
-only if it relies on software or routing that the P3S does not support.
+**This section was updated in anticipation of work actually getting done at some
+point, so it is aspirational**
 
-The scenarios where an unfrozen track will break on the P3S:
+Importing Ableton Live project files to the P3S is a painful process. Debugging
+can be frustrating. You sometimes feel like you are spending more time
+struggling with the technology than you are getting useful work done.
+
+Live_set reports on the status of an Ableton Live set and gives a go/no go
+signal for transmission to a P3S.
+
+### Reported Problems
 
 1. Third-Party Plugins (VST / AU)
+
+    An unfrozen track will cause a error (or fail to produce sound) on a P3S if and
+    only if it relies on software or routing that the P3S does not support.
 
     The Push 3 Standalone runs a customized version of Ableton Live that does not
     support third-party VST3, Audio Units (AU), or CLAP plugins.
@@ -75,6 +88,9 @@ The scenarios where an unfrozen track will break on the P3S:
     Freezing renders the track to a temporary audio file, baking the plugin's sound
     into the waveform. The P3S only needs to play back the audio file, completely
     bypassing the need for the missing plugin.
+
+    If any non-Ableton plugin is not on a frozen track then live_set reports the
+    problem in great detail.
 
 2. Desktop-Specific External Audio Routing
 
