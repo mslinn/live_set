@@ -21,9 +21,9 @@ This software can:
 
 5. Show changes that are made to a Live set.
 
-7. Show changes persisted to file storage each time a Live session is saved in real time.
+6. Show changes persisted to file storage each time a Live session is saved in real time.
 
-8. Clearly show if a Live set is ready to be transferred to a Push 3 Standalone,
+7. Clearly show if a Live set is ready to be transferred to a Push 3 Standalone,
    and what needs to be changed if not.
 
    a. Detect sets that are too large to be frozen, which means they are too
@@ -40,11 +40,11 @@ This software can:
    d. Show clips that are have not been collected within the set&rsquo;s
    project directory.
 
-9. Report the samples in frozen tracks. During playback, a frozen track
+8. Report the samples in frozen tracks. During playback, a frozen track
    *shadows* the track with the editable material. Both tracks are reported.
 
 This program has successfully converted the Ableton Live 12 demo project to Live
-11. Other functionality has been tested with Live 8.6 session files.
+9. Other functionality has been tested with Live 8.6 session files.
 
 The conversion performed by most recently published was a selective removal: it
 wrote the Live 11 version strings, removed the three elements that Live 11 does
