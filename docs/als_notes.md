@@ -1,5 +1,19 @@
 # ALS Filetype Notes
 
+This document contains details of various versions of the Ableton Live ALS file format.
+
+
+
+## ALS Schemas
+
+TODO: Show the schemas for each version of the Ableton Live ALS format.
+Use `exe/generate_xsd` to generate the schemas and store them in `schemas/`.
+
+
+## ALS Outlines
+
+TODO: what version was the following taken from?
+
 ```xml
 $ zcat '/mnt/e/media/Ableton/Projects/fu Project/fu.als' | less -N
       3   <LiveSet>

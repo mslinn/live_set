@@ -287,8 +287,8 @@ The demo sets are the better evidence when the question is "what does Live 11
 do?", because there is one for each version. Ableton installs them with Live:
 
 ```shell
-$ bin/als_files "/mnt/c/ProgramData/Ableton/Live 12 Suite/Resources/Core Library/Lessons/Demo Songs"
 $ bin/als_files "/mnt/c/ProgramData/Ableton/Live 11 Suite/Resources/Core Library/Lessons/Demo Songs"
+$ bin/als_files "/mnt/c/ProgramData/Ableton/Live 12 Suite/Resources/Core Library/Lessons/Demo Songs"
 ```
 
 Ableton documents the location in

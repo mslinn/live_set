@@ -10,10 +10,31 @@ end
 
 RSpec.describe GuiHarness::LiveLauncher do
   let(:ableton_home) { '/mnt/c/ProgramData/Ableton' }
+
+  let(:ableton_8_home) { "#{ableton_home}/Live 8" }
+  let(:ableton_8_program) { "#{ableton_8_home}/Program/Ableton Live 8.exe" }
+  # let(:ableton_8_demo_home) { "#{ableton_8_home}" }
+  # let(:ableton_8_demo_set) { "#{ableton_8_demo_home}" }
+
+  let(:ableton_9_home) { "#{ableton_home}/Live 9 Standard" }
+  let(:ableton_9_program) { "#{ableton_9_home}/Program/Ableton Live 9 Standard.exe" }
+  let(:ableton_9_demo_home) { "#{ableton_9_home}/Resources/Core Library/Lessons/Sets" }
+  let(:ableton_9_demo_set) { "#{ableton_9_demo_home}/Amp-Drum Examples.als" }
+
+  let(:ableton_10_home) { "#{ableton_home}/Live 10 Standard" }
+  let(:ableton_10_program) { "#{ableton_10_home}/Program/Ableton Live 10 Standard.exe" }
+  let(:ableton_10_demo_home) { "#{ableton_10_home}/Resources/Core Library/Lessons/Demo Songs/" }
+  let(:ableton_10_demo_set) { "#{ableton_10_demo_home}/Live 10 Intro Demo Song.als" }
+
   let(:ableton_11_home) { "#{ableton_home}/Live 11 Suite" }
   let(:ableton_11_program) { "#{ableton_11_home}/Program/Ableton Live 11 Suite.exe" }
-  let(:ableton_11_demo_home) { "#{ableton_11_home}/Resources/Core Library/Lessons/Demo Songs/" }
-  let(:ableton_11_demo_set) { "#{ableton_11_demo_home}/Ninajirachi - In The Rain (Live 11 Suite Demo).als" }
+  let(:ableton_11_demo_home) { "#{ableton_11_home}/Resources/Core Library/Lessons/Demo Songs" }
+  let(:ableton_11_demo_set) { "#{ableton_11_demo_home}/Ninajirachi - In The Rain (Live 11 Intro Demo).als" }
+
+  let(:ableton_12_home) { "#{ableton_home}/Live 12 Suite" }
+  let(:ableton_12_program) { "#{ableton_12_home}/Program/Ableton Live 12 Suite.exe" }
+  let(:ableton_12_demo_home) { "#{ableton_12_home}/Resources/Core Library/Lessons/Demo Songs" }
+  let(:ableton_12_demo_set) { "#{ableton_12_demo_home}/Chuck Sutton - Patience (Live 12 Intro Demo).als" }
 
   describe '.windows_path' do
     it 'converts a WSL path to a Windows path' do

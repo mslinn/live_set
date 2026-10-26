@@ -85,6 +85,44 @@ developed on were:
 | Live 8  | `C:ProgramData\Ableton\Live 8 Standard\`                                                    | Not installed by default, but available from Live. |
 
 
+### Bash Environment Variables for Live Demo Sets
+
+The largest demo files for each Ableton Live version were selected for testing:
+
+```bash
+export ableton_home='/mnt/c/ProgramData/Ableton'
+
+export ableton_8_home="${ableton_home}/Live 8"
+export ableton_8_program="${ableton_8_home}/Program/Ableton Live 8.exe"
+# export ableton_8_demo_home="${ableton_8_home}"
+# export ableton_8_demo_set="${ableton_8_demo_home}"
+
+export ableton_9_home="${ableton_home}/Live 9 Standard"
+export ableton_9_program="${ableton_9_home}/Program/Ableton Live 9 Standard.exe"
+export ableton_9_demo_home="${ableton_9_home}/Resources/Core Library/Lessons/Sets"
+export ableton_9_demo_set="${ableton_9_demo_home}/Amp-Drum Examples.als"
+
+export ableton_10_home="${ableton_home}/Live 10 Standard"
+export ableton_10_program="${ableton_10_home}/Program/Ableton Live 10 Standard.exe"
+export ableton_10_demo_home="${ableton_10_home}/Resources/Core Library/Lessons/Demo Songs"
+export ableton_10_demo_set="${ableton_10_demo_home}/Live 10 Intro Demo Song.als"
+
+export ableton_11_home="${ableton_home}/Live 11 Suite"
+export ableton_11_program="${ableton_11_home}/Program/Ableton Live 11 Suite.exe"
+export ableton_11_demo_home="${ableton_11_home}/Resources/Core Library/Lessons/Demo Songs"
+export ableton_11_demo_set="${ableton_11_demo_home}/Ninajirachi - In The Rain (Live 11 Intro Demo).als"
+
+export ableton_12_home="${ableton_home}/Live 12 Suite"
+export ableton_12_program="${ableton_12_home}/Program/Ableton Live 12 Suite.exe"
+export ableton_12_demo_home="${ableton_12_home}/Resources/Core Library/Lessons/Demo Songs"
+export ableton_12_demo_set="${ableton_12_demo_home}/Chuck Sutton - Patience (Live 12 Intro Demo).als"
+```
+
+### Ruby RSpec Variables for Live Demo Sets
+
+The [spec/support/live_harness/live_launcher_spec.rb](Ruby test code) has a
+similar structure.
+
 ## Surveying Corpuses
 
 The [`als_files`](../bin/als_files) script re-runs the survey. To survey the
