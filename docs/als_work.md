@@ -8,32 +8,13 @@ The ALS format changes with every Ableton Live release. The `live_set` project
 is designed to handle structural differences in ALS files, such as an element
 name that was renamed, or elements that exist in one version but not in another.
 
-This document is part of an effort to create the next version of `live_set`. The
-work being added right now is:
 
-1. Perform a proper translation of XML elements between Live 12 and 11. Use XSLT
-   for the heavy lifting. For example, XSLT is a logical choice for renaming XML
-   elements.
+## XML Tools
 
-   TODO the current code base is not organized this way yet. We need a new Ruby
-   subdirectory (`lib/live_set/tx/`) dedicated to the transformation in general,
-   and perhaps subclasses of a new generic class for each major ableton version
-   (e.g. 8..12). We also need unit tests that use the ableton demo sets in all
-   Live major versions as input data.
+The following subsections are presented here because this information will be
+required in the next section (Current Work).
 
-2. Detect and describe the differences between two sets. This first version may
-   assume that the XML schemas are identical. In real life this assumption will
-   be invalid most of the time. Here are two possible ways this might be
-   achieved. It is unclear which approach might be easier:
-
-   a. Translate both sets into a neutral format and compare them. This is the
-   approach taken by CAD data tools vendors.
-
-   b. Translate the older format into the newer format. This would run nearly
-   twice as fast as the other option.
-
-
-## XML Transformation with XSLT (Nokogiri)
+### XML Transformation with XSLT (Nokogiri)
 
 Every Ableton Live file contains XML, and the XML structure actually present in this
 particular Live file can have an XML Stylesheet generated and saved as an XSD
@@ -65,21 +46,80 @@ TODO we need a new class for transforming als files using xslt, plus spec unit
 tests and also tests on the ableton live demo als files.
 
 
+### Mapping XSD to Ruby Classes (RXSD)
+
+This might be used to assist the analysis of Ableton Live data.
+
+To parse W3C XML Schema (`.xsd`) files and translate them into Ruby object
+models or classes in memory, use [RXSD](https://github.com/movitto/RXSD):
+
+```ruby
+require 'rxsd'
+
+xsd_uri = "file:///path/to/schema.xsd"
+schema = RXSD::Parser.parse_xsd(uri: xsd_uri)
+
+# Inspect the generated Ruby classes
+classes = schema.to(:ruby_classes)
+puts classes.map { |c| c.nil? ? "" : "#{c} < #{c.superclass}" }.sort
+```
+
+
+## Current Work
+
+This document is part of an effort to create the next version of `live_set`. The
+work being added right now is:
+
+1. Perform a proper translation of XML elements between Live 12 and 11. Use XSLT
+   for the heavy lifting. For example, XSLT is a logical choice for renaming XML
+   elements.
+
+   TODO the current code base is not organized this way yet. We will need a new
+   Ruby subdirectory (`lib/live_set/tx/`) dedicated to the transformation in
+   general, and perhaps subclasses of a new generic class for each major ableton
+   version (e.g. 8..12). We also need unit tests that use the ableton demo sets
+   in all Live major versions as input data.
+
+2. Develop high-level methods that detect and describe the differences between
+   two Live sets. The first version may assume that the XML schemas are
+   identical. In real life this assumption will be invalid most of the time.
+   Here are two possible ways this might be achieved. It is unclear which
+   approach might be easier:
+
+   a. Translate both sets into a neutral model format and compare them. This is
+   the approach taken by CAD data tools vendors. The model might be pure XML or
+   it might be Ruby classes that read and write XML.
+
+   b. Translate the older format into the newer format. This would run nearly
+   twice as fast as the other option.
+
+   c. Define an Ableton Live base class, then subclass it for major releases,
+   then map XSD to specialized Ruby classes using RXSD. This would reduce the
+   translation process into one RXSD call. This approach should be extremely
+   flexible and should provide a consistent way of handling all versions of Live
+   sets.
+
+TODO Option (c) might be the best option. Discuss pros and cons, with code
+examples. Write to `docs/diff_discussion.md`.
+
+
 ## Gui_harness
 
-To make this possible, the [gui_harness](https://github.com/mslinn/gui_harness)
-gem was created. Gui_harness is meant to be used as a Ruby rspec helper for
-running GUI programs that launch from the command line, like Ableton Live.
-Gui_harness can answer dialogs, provide values, press buttons, and read text.
-Then it can shut down the GUI program, take note of the return code and STDOUT
-and STDERR in case there were any warnings or errors.
+To make the required reverse-engineering possible, the
+[gui_harness](https://github.com/mslinn/gui_harness) gem was created.
+Gui_harness is meant to be used as a Ruby rspec helper for running GUI programs
+that launch from the command line, like Ableton Live.
+
+Gui_harness can answer GUI dialogs, provide values in forms, press buttons, and
+read text from the dialog. It can also shut down the GUI program, and it takes
+note of the return code and STDOUT and STDERR in case any warnings or errors
+were emitted.
+
 
 ## Comparing XML Contents
 
-
-We can now iterate , using knowledge gained
-from
-reverse engineering the file format changes between Ableton Live versions.
+We can now iterate, using knowledge gained from reverse engineering the file
+format changes between Ableton Live versions.
 
 This document was written before the `live_set` code was updated; however, the
 code is often incorrect, and this document also has many fundamental errors. TODO
