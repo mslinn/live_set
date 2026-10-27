@@ -21,7 +21,9 @@ name that was renamed, or elements that exist in one version but not in another.
 The following subsections are presented here because this information will be
 required in the next section (Current Work).
 
+
 ### XML Transformation with XSLT (Nokogiri)
+
 
 #### XSD (XML Schema)
 
@@ -63,7 +65,7 @@ TODO we need a new class for transforming als files using xslt, plus spec unit
 tests and also tests on the ableton live demo als files.
 
 
-### Mapping XSD to Ruby Classes (RXSD)
+#### Mapping XSD to Ruby Classes (RXSD)
 
 This might be used to assist the analysis of Ableton Live data.
 
@@ -80,6 +82,62 @@ schema = RXSD::Parser.parse_xsd(uri: xsd_uri)
 classes = schema.to(:ruby_classes)
 puts classes.map { |c| c.nil? ? "" : "#{c} < #{c.superclass}" }.sort
 ```
+
+
+#### XSLT Identity Template
+
+The standard way to copy an XML file with minor changes in XSLT is to use the
+identity template, which copies everything as-is, and override it with specific
+templates for the elements or attributes you want to change.
+
+See
+[StackOverflow](https://stackoverflow.com/questions/3436212/xslt-copy-with-modifications)
+and [identity](https://dh.obdurodon.org/identity.xhtml).
+
+Here is an example of an identity transform:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="xml" indent="yes" encoding="UTF-8"/>
+
+  <xsl:template match="node() | @*">
+    <xsl:copy>
+      <xsl:apply-templates select="node() | @*"/>
+    </xsl:copy>
+  </xsl:template>
+
+  <!-- Minor Change 1: Rename a specific element (e.g., change <oldTag> to <newTag>) -->
+  <xsl:template match="oldTag">
+    <newTag>
+      <xsl:apply-templates select="node() | @*"/>
+    </newTag>
+  </xsl:template>
+
+  <!-- Minor Change 2: Modify the text content of a specific element -->
+  <xsl:template match="status">
+    <status>
+      <xsl:text>APPROVED</xsl:text>
+    </status>
+  </xsl:template>
+
+  <!-- Minor Change 3: Modify a specific attribute -->
+  <xsl:template match="@version">
+    <xsl:attribute name="version">2.0</xsl:attribute>
+  </xsl:template>
+
+  <!-- Minor Change 4: Remove a specific element or attribute by matching it and doing nothing -->
+  <xsl:template match="tempData"/>
+</xsl:stylesheet>
+```
+
+How it works:
+
+1. The Identity Template (`node() | @*`): Matches all nodes and attributes and
+    outputs an exact copy via `<xsl:copy>` and `<xsl:apply-templates>`.
+2. Overrides: Any more specific `xsl:template` match you add (like matching a
+    specific tag, text node, or attribute) takes precedence over the identity
+    template, allowing you to alter, replace, or drop it selectively.
 
 
 ## Current Work
