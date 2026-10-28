@@ -1,6 +1,7 @@
 require 'colorator'
 require 'nokogiri'
 require 'zlib'
+require_relative '../live_set/als_file'
 require_relative 'generate_xsd_options'
 require_relative 'xsd_builder'
 
@@ -61,7 +62,7 @@ class XsdFromXml
     @overwrite = options[:force]
     @xsd_file = xsd_file
     @roots = xml_files.map do |xml_file|
-      contents = Zlib::GzipReader.open(xml_file, &:read)
+      contents = AlsFile.read_text(xml_file)
       xml_doc = Nokogiri::XML(contents)
       xml_doc.root || raise(ArgumentError, "#{xml_file} has no root element")
       xml_doc.root

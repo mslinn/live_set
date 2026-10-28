@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ruby -e ' *)",
+      "Bash(ruby *)",
+      "Bash(mkdir -p /tmp/lsx)",
+      "Bash(cat)",
+      "Bash(python3 -)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(rm -rf conv3)",
+      "Bash(mkdir conv3 *)",
+      "Bash(cp \"/mnt/c/ProgramData/Ableton/Live 12 Suite/Resources/Core Library/Lessons/Demo Songs/Chuck Sutton - Patience \\(Live 12 Standard Demo\\).als\" conv3/test.als)"
+    ]
+  }
+}

@@ -125,25 +125,44 @@ functional operators and Nokogiri.
 
     ```ruby
     class BidirectionalXslt
+      # A stylesheet is not directional. It matches the input document and emits
+      # something else, so one stylesheet can carry both directions of a version
+      # pair: a rule that renames an element matches either spelling and emits
+      # the other. The direction is a property of the document, not of the
+      # stylesheet, and the stylesheet can read it from <Ableton MinorVersion>.
+      #
+      # The up direction (older version to newer) is lossless: it preserves
+      # everything the live set contains and changes only how it is expressed.
+      # The down direction is lossy: constructs the older version cannot
+      # represent are dropped and cannot be recovered. The down direction is
+      # therefore not a functional inverse of the up direction, and down-then-up
+      # does not return the original document.
+      #
+      # Rules that cannot be expressed symmetrically -- deleting an element only
+      # the newer version has, adding one the older version lacks -- must be
+      # conditioned on the version read from the input document.
       def initialize(up_path, down_path)
-        @up_stylesheet   = Nokogiri::XSLT(File.read(up_path))
-        @down_stylesheet = Nokogiri::XSLT(File.read(down_path))
+        @up_tx   = Nokogiri::XSLT(File.read(up_path))   # a transform, compiled from a stylesheet
+        @down_tx = Nokogiri::XSLT(File.read(down_path)) # a transform, compiled from a stylesheet
       end
 
-      # Returns a lambda accepting and returning a Nokogiri Document
+      # Applies the transform to an XML document, and returns a transformed live set
       def forward
-        ->(doc) { @up_stylesheet.transform(doc) }
+        ->(doc) { @up_tx.transform(doc) }
       end
 
-      # Returns a lambda accepting and returning a Nokogiri Document
+      # Applies the transform to an XML document, and returns a transformed live set.
+      #
+      # The name says inverse, but the down direction is not an inverse. It
+      # loses what the older version cannot represent.
       def inverse
-        ->(doc) { @down_stylesheet.transform(doc) }
+        ->(doc) { @down_tx.transform(doc) }
       end
 
-      # Output rendering following internal XSLT specifications
+      # Output rendering following the stylesheet's own rules
       def serialize(doc, direction:)
-        stylesheet = direction == :up ? @up_stylesheet : @down_stylesheet
-        stylesheet.serialize(doc)
+        tx = direction == :up ? @up_tx : @down_tx
+        tx.serialize(doc)
       end
     end
     ```
@@ -155,6 +174,15 @@ functional operators and Nokogiri.
     pipeline, and serialized at exit. [1]
 
     ```ruby
+    # Converts an XML document from one Live version to another.
+    #
+    # The upgrade must reproduce Live's own conversion. Opening an older set in
+    # a newer Live and saving it produces a specific document; the upgrade has
+    # to produce that same document, including the elements Live adds and the
+    # default values it gives them. Without that, an upgraded old set differs
+    # structurally from the same set saved natively in the new version, and
+    # every comparison reports differences that belong to the transform rather
+    # than to the live sets.
     def migrate_xml(xml_string, from:, to:)
       return xml_string if from == to # Identity guard clause
 
@@ -173,6 +201,8 @@ functional operators and Nokogiri.
         final_bridge = VERSION_REGISTRY[to]
       end
 
+      # Each step is written in the format of the version it lands in, so the
+      # writer is chosen by the target version, not by the direction.
       serialize_xml = ->(final_doc) { final_bridge.serialize(final_doc, direction: direction) }
 
       # Compose and execute the complete pipeline
@@ -181,7 +211,51 @@ functional operators and Nokogiri.
     end
     ```
 
-5. Optimization Refinement: Memory-Safe DOM Processing
+5. Comparing Two Live Sets
+
+    Two sets cannot be compared directly, because the same set is written
+    differently in each Live version. Both are brought to a common version
+    first, and the comparison is made there.
+
+    ```ruby
+    # Compares two live sets for equality.
+    #
+    # Both documents are upgraded, never downgraded. A downgrade drops the
+    # constructs the older version cannot represent, so two sets that differ
+    # only in those constructs would compare equal.
+    #
+    # The upgrade is lossless, so the base version does not decide what the
+    # comparison can see. It is chosen for where the upgrade is most faithful
+    # to Live's own.
+    #
+    # Bytes play no part in the comparison. The gzip header, the mtime and the
+    # writer's formatting all lie outside the equality relation.
+    #
+    # Revision and SchemaChangeCount describe the file rather than the live
+    # set: Live rewrites them every time it saves a set, so two files holding
+    # the same set do not agree on them. They are excluded from the comparison.
+    # What else to exclude is not settled yet.
+    def equal?(left, right, base_version:)
+      left_doc = upgrade_to(left, base_version)
+      right_doc = upgrade_to(right, base_version)
+
+      # Nokogiri's == is not structural equality, so the trees are compared as
+      # XML canonicalized per XML C14N.
+      canonicalize(left_doc) == canonicalize(right_doc)
+    end
+
+    # XML canonicalization (C14N) of a document, for comparison.
+    #
+    # Whitespace-only text nodes are removed first, because Live indents its
+    # XML and the indentation is not part of the set. Canonicalization then
+    # normalizes attribute order and quoting.
+    def canonicalize(doc)
+      doc.xpath('//text()').each { |node| node.remove if node.content.strip.empty? }
+      doc.canonicalize
+    end
+    ```
+
+6. Optimization Refinement: Memory-Safe DOM Processing
 
     While XSLT steps naturally produce fresh immutable document instances, there
     are cases where you may choose to inject standard Ruby/Nokogiri

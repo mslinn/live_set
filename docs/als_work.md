@@ -29,17 +29,7 @@ required in the next section (Current Work).
 ### XML Transformation with XSLT (Nokogiri)
 
 
-#### XSD (XML Schema)
-
-Every Ableton Live file contains XML. From the XML structure present in a given
-Live file (or from a collection of them), you can generate an XML Schema (XSD)
-that describes the allowed structure, elements, attributes, and types for that
-version of the format. XSD files are used for XML validation.
-
-By combining XSDs together we can assemble a more complete XSD.
-Once a "good enough" stylesheet exists for two Ableton Live versions (e.g. v11
-and v12), we can use the stylesheets to do much of the reorganizational work of
-transforming bidirectionally between v11 and v12 formats.
+#### XSLT Templates
 
 XSLT templates are used for transforming XML files from one format to another.
 They perform structural transformations (for example, converting between Ableton
@@ -52,40 +42,54 @@ To transform an XML document using an XSLT template, Nokogiri is the standard
 and most performant choice.
 
 ```ruby
-require 'nokogiri'
+require 'live_set'
 
-# Load the XML document and XSLT template
-document = Nokogiri::XML(File.read('input.xml'))
-template = Nokogiri::XSLT(File.read('template.xslt'))
+# The identity template: copies everything, so the transformation changes nothing
+# until a rule is added. See "XSLT Identity Template".
+IDENTITY_STYLESHEET = <<~XSLT.freeze
+  <?xml version="1.0" encoding="UTF-8"?>
+  <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+    <xsl:output method="xml" indent="yes" encoding="UTF-8"/>
+    <xsl:template match="node() | @*">
+      <xsl:copy>
+        <xsl:apply-templates select="node() | @*"/>
+      </xsl:copy>
+    </xsl:template>
+  </xsl:stylesheet>
+XSLT
+
+# Read the live set, which is an XML document
+document = AlsFile.read('input.als')
+template = Nokogiri::XSLT(IDENTITY_STYLESHEET)
 
 # Perform the transformation
 transformed_document = template.transform(document)
 
-# Save or output the result
-# binwrote makes the output byte-identical across platforms
-File.binwrite('output.xml', transformed_document)
+# Write the transformed live set, carrying the source file's timestamp into the
+# gzip header
+AlsFile.write('output.als', transformed_document, File.mtime('input.als'))
 ```
 
-TODO we need a new class for transforming als files using xslt, plus spec unit
-tests and also tests on the ableton live demo als files.
+Reading and writing live sets is done by `AlsFile`
+(`lib/live_set/als_file.rb`). Reading gives the XML document; writing takes
+the XML document, writes it in Live's own format, and compresses it. The XML is
+written by `LiveXmlWriter` (`lib/live_set/live_xml_writer.rb`), because libxml2
+does not write XML the way Live does. The writer, not the stylesheet, decides
+the format, so the stylesheet's `xsl:output` settings do not apply to it.
 
+The gzip header's mtime is stored inside the set. Live writes 0 there; this code
+writes the timestamp of the file the set was read from, so that a converted set
+keeps the timestamp of the one it came from. The output file's filesystem
+`mtime` is the time the file was created.
 
-#### Mapping XSD to Ruby Classes (RXSD)
+A round trip through this code produces byte-identical XML. The compressed
+file is not byte-identical: Live writes a gzip header with an mtime of 0 and
+with the byte identifying the platform that wrote the file, and the deflate
+stream itself differs.
 
-RXSD (<https://github.com/movitto/RXSD>) was considered for mapping the generated
-XSD to Ruby classes, and rejected. RXSD compiles a schema into Ruby classes on the
-fly, at run time. The classes in this project are written by hand and live in
-`lib/live_set/`, so a run-time generator is the wrong shape for the job. The gem
-is also unmaintained: the last release, 0.5.3, was in May 2016, it depends on
-`libxml-ruby ~> 2.8.0`, a second libxml2 binding alongside the Nokogiri this
-project already uses, and RFC 8134 section 7.1 reports that it could not parse a
-complex schema at all.
-
-Rejecting it costs nothing. The schema `exe/generate_xsd` produces is already an
-index of the format: it lists every element and every attribute of that Live
-version. The format's vocabulary can be read from the schema, and the differences
-between two versions can be found by diffing one schema against another. Neither
-the inventory nor the diff needs the ALS files scanned by hand.
+TODO `als_delta` must compare XML trees, not XML strings. It reads the sets
+with `AlsFile`, and the trees have to be brought to a common version before
+they are compared. See docs/cpfir.md, section 5.
 
 
 #### XSLT Identity Template
@@ -144,42 +148,67 @@ How it works:
     template, allowing you to alter, replace, or drop it selectively.
 
 
+#### XSLT Implementation
+
+See [cpfir.md](cpfir.md).
+
+TODO Discuss needs. We might need a new Ruby subdirectory (`lib/live_set/tx/`)
+dedicated to the transformation in general, and perhaps subclasses of a new
+generic class for each major ableton version (e.g. 8..12). We probably need a
+new class for transforming als files using xslt, plus spec unit tests and also
+tests on the ableton live demo als files. We definitely need unit tests that use
+the ableton demo sets in all Live major versions as input data.
+
+
+### XSD  (XML Schema)
+
+TODO This section is not used at present. We might delete it soon.
+
+
+#### Generating XSD
+
+Every Ableton Live file contains XML. From the XML structure present in a given
+Live file (or from a collection of them), you can generate an XML Schema (XSD)
+that describes the allowed structure, elements, attributes, and types for that
+version of the format. XSD files are used for XML validation.
+
+By combining XSDs together we can assemble a more complete XSD.
+Once a "good enough" stylesheet exists for two Ableton Live versions (e.g. v11
+and v12), we can use the stylesheets to do much of the reorganizational work of
+transforming bidirectionally between v11 and v12 formats.
+
+#### Mapping XSD to Ruby Classes (RXSD)
+
+RXSD (<https://github.com/movitto/RXSD>) was considered for mapping the generated
+XSD to Ruby classes, and rejected. RXSD compiles a schema into Ruby classes on the
+fly, at run time. The classes in this project are written by hand and live in
+`lib/live_set/`, so a run-time generator is the wrong shape for the job. The gem
+is also unmaintained: the last release, 0.5.3, was in May 2016, it depends on
+`libxml-ruby ~> 2.8.0`, a second libxml2 binding alongside the Nokogiri this
+project already uses, and RFC 8134 section 7.1 reports that it could not parse a
+complex schema at all.
+
+Rejecting it costs nothing. The schema `exe/generate_xsd` produces is already an
+index of the format: it lists every element and every attribute of that Live
+version. The format's vocabulary can be read from the schema, and the differences
+between two versions can be found by diffing one schema against another. Neither
+the inventory nor the diff needs the ALS files scanned by hand.
+
+
 ## Current Work
 
 This document is part of an effort to create the next version of `live_set`. The
 work being added right now is:
 
-1. Perform a proper translation of XML elements between Live 12 and 11. Use XSLT
-   for the heavy lifting. For example, XSLT is a logical choice for renaming XML
-   elements.
+1. Perform a proper translation of XML elements between different Live versions.
+   Use XSLT for the work; for example, renaming XML elements, moving XML
+   elements, deleting XML elements, etc..
 
-   TODO the current code base is not organized this way yet. We will need a new
-   Ruby subdirectory (`lib/live_set/tx/`) dedicated to the transformation in
-   general, and perhaps subclasses of a new generic class for each major ableton
-   version (e.g. 8..12). We also need unit tests that use the ableton demo sets
-   in all Live major versions as input data.
+   TODO the current code base is not organized this way yet.
 
 2. Develop high-level methods that detect and describe the differences between
-   two Live sets. The first version may assume that the XML schemas are
-   identical. In real life this assumption will be invalid most of the time.
-   Here are two possible ways this might be achieved. It is unclear which
-   approach might be easier:
-
-   a. Translate both sets into a neutral model format and compare them. This is
-   the approach taken by CAD data tools vendors. The model might be pure XML or
-   it might be Ruby classes that read and write XML.
-
-   b. Translate the older format into the newer format. This would run nearly
-   twice as fast as the other option.
-
-   c. Define an Ableton Live base class, then subclass it for major releases,
-   then map XSD to specialized Ruby classes using RXSD. This would reduce the
-   translation process into one RXSD call. This approach should be extremely
-   flexible and should provide a consistent way of handling all versions of Live
-   sets.
-
-TODO Option (c) might be the best option. Discuss pros and cons, with code
-examples. Write to `docs/diff_discussion.md`.
+   two Live sets. Do not assume that the XML schemas are identical for both Live
+   set. Translate the older format into the newer format.
 
 
 ## Gui_harness

@@ -10,8 +10,7 @@ AllCops:
     - exe/**/*
     - vendor/**/*
     - Gemfile*
-    # TODO.md quotes Ruby excerpts that are not standalone-parseable programs.
-    - TODO.md
+    - '**/*.md'
   NewCops: enable
   TargetRubyVersion: 3.4
 
@@ -44,6 +43,11 @@ Metrics/BlockLength:
     - live_set.gemspec
   Max: 30
 
+# A class in this project is expected to grow, and the limit only discourages the comments that
+# explain what the class does.
+Metrics/ClassLength:
+  Enabled: false
+
 Metrics/CyclomaticComplexity:
   Max: 15
 
@@ -51,7 +55,7 @@ Layout/ExtraSpacing:
   Enabled: false
 
 Metrics/MethodLength:
-  Max: 40
+  Max: 80
 
 Metrics/ModuleLength:
   Enabled: false

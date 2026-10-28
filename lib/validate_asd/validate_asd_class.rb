@@ -1,6 +1,7 @@
 require 'colorator'
 require 'nokogiri'
 require 'zlib'
+require_relative '../live_set/als_file'
 
 # Validates an Ableton Live set against an XSD schema.
 #
@@ -67,7 +68,7 @@ class ValidateAsd
   #
   # @return [Nokogiri::XML::Document] the document
   def read_document
-    document = Nokogiri::XML(Zlib::GzipReader.open(@als_file, &:read), &:strict)
+    document = Nokogiri::XML(AlsFile.read_gzip_text(@als_file), &:strict)
     root = document.root&.name
     raise ArgumentError, "#{@als_file} is not an ALS file. Its root element is <#{root}>." unless root == 'Ableton'
 
