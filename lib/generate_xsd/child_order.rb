@@ -18,13 +18,6 @@ class ChildOrder
     different_orders? || repeated?
   end
 
-  # @return [String] a description of the conflict, for a warning
-  def reason
-    return 'are in different orders in the sample files' if different_orders?
-
-    'repeat in an interleaved order in the sample files'
-  end
-
   private
 
   # @return [Boolean] true if the sample files order the children differently

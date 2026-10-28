@@ -9,7 +9,9 @@
       "Bash(echo \"exit=$?\")",
       "Bash(rm -rf conv3)",
       "Bash(mkdir conv3 *)",
-      "Bash(cp \"/mnt/c/ProgramData/Ableton/Live 12 Suite/Resources/Core Library/Lessons/Demo Songs/Chuck Sutton - Patience \\(Live 12 Standard Demo\\).als\" conv3/test.als)"
+      "Bash(cp \"/mnt/c/ProgramData/Ableton/Live 12 Suite/Resources/Core Library/Lessons/Demo Songs/Chuck Sutton - Patience \\(Live 12 Standard Demo\\).als\" conv3/test.als)",
+      "Bash(bundle exec ruby -e ' *)",
+      "Bash(bundle exec *)"
     ]
   }
 }

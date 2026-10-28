@@ -7,11 +7,11 @@
 # The schemas are written to the schemas/ subdirectory of this project. They are not stored in
 # the repository — .gitignore excludes *.xsd — so every computer has to generate its own.
 #
-# The name of a schema comes from the Creator attribute of the demo set, which holds the version
-# of Live that wrote it: a set written by "Ableton Live 12.4d1" produces schemas/live_12.4d1.xsd.
+# The name of a schema comes from the Creator attribute of the demo sets, which holds the version
+# of Live that wrote them: sets written by "Ableton Live 12.4d1" produce schemas/live_12.4d1.xsd.
 #
-# The demo set of each installation is the one the environment variables in docs/als_work.md
-# name: the Intro demo.
+# Every demo set of an installation is used. A schema inferred from a single set constrains the
+# schema more than Live does, and so rejects the other sets of the same version.
 
 set -euo pipefail
 
@@ -41,9 +41,9 @@ for installation in "$ABLTON_HOME"/Live*/; do
     continue
   fi
 
-  demo_sets=("$demo_dir"/*Intro*.als)
+  demo_sets=("$demo_dir"/*.als)
   if [ ${#demo_sets[@]} -eq 0 ]; then
-    echo "Skipping $installation: no Intro demo set"
+    echo "Skipping $installation: no demo sets"
     continue
   fi
 
@@ -56,8 +56,8 @@ for installation in "$ABLTON_HOME"/Live*/; do
 
   version="${creator#Ableton Live }"
   schema="$SCHEMA_DIR/live_${version}.xsd"
-  echo "Generating $schema from $demo_set"
-  bundle exec ruby exe/generate_xsd -f "$schema" "$demo_set"
+  echo "Generating $schema from ${#demo_sets[@]} demo sets"
+  bundle exec ruby exe/generate_xsd -f "$schema" "${demo_sets[@]}"
   generated=$((generated + 1))
 done
 

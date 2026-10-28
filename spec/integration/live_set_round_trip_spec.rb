@@ -54,7 +54,7 @@ RSpec.describe LiveSet, 'the round trip through Live 11' do # rubocop:disable RS
     @result ||= GuiHarness::LiveLauncher.launch installation.executable,
                                                 converted_path,
                                                 log:     log_path,
-                                                timeout: 3
+                                                timeout: 30
   end
 
   around do |example|

@@ -1,5 +1,4 @@
 require 'cgi'
-require_relative '../common/log'
 require_relative 'child_order'
 require_relative 'schema_preamble'
 
@@ -16,7 +15,8 @@ require_relative 'schema_preamble'
 #   * A child element may repeat (maxOccurs="unbounded") if some instance of its parent repeats
 #     it. The real maximum cannot be learned from a sample, so it is left unbounded.
 #   * An attribute is required if every instance of its element carries it, and optional
-#     otherwise.
+#     otherwise. The instances are counted across the whole sample, not just the ones that
+#     share a parent, because an element carries the same attributes wherever it appears.
 #   * The children of an element are declared in the order they were first seen. If the sample
 #     disagrees about that order, they are declared in an xs:choice instead, so that the schema
 #     accepts them in any order.
@@ -24,6 +24,10 @@ class XsdBuilder
   # @param roots [Array<Nokogiri::XML::Element>] the root elements of the Live sets
   def initialize(roots)
     @roots = roots
+    @attribute_counts = Hash.new { |hash, key| hash[key] = Hash.new(0) }
+    @instance_counts = Hash.new(0)
+
+    roots.each { |root| count_attributes(root) }
   end
 
   # Build the schema.
@@ -60,8 +64,8 @@ class XsdBuilder
 
     sequences = instances.map { |node| node.element_children.map(&:name) }
     ordered_names = sequences.flatten.uniq
-    attributes = attribute_declarations(instances, depth + 2)
-    unordered = unordered?(name, sequences)
+    attributes = attribute_declarations(name, depth + 2)
+    unordered = unordered?(sequences)
 
     return %(#{indent}<xs:element name="#{escape(name)}"#{occurrence} type="xs:string"/>) if ordered_names.empty? && attributes.empty?
 
@@ -120,36 +124,43 @@ class XsdBuilder
     ]
   end
 
-  # Describe the attributes that appear on the given instances of an element.
+  # Describe the attributes that appear on the elements of a given name.
   #
-  # An attribute is required if every instance carries it, and optional otherwise.
+  # An attribute is required if every instance carries it, and optional otherwise. The instances
+  # are counted across the whole sample, and not just the ones that share a parent, because an
+  # element carries the same attributes wherever it appears.
   #
-  # @param instances [Array<Nokogiri::XML::Element>] instances of the element
+  # @param name [String] the element's name
   # @param depth [Integer] the indentation depth
   # @return [Array<String>] the XSD fragments describing the attributes
-  def attribute_declarations(instances, depth)
+  def attribute_declarations(name, depth)
     indent = '  ' * depth
-    per_instance = instances.map { |node| node.attribute_nodes.map(&:name) }
+    counts = @attribute_counts[name]
 
-    per_instance.flatten.uniq.map do |attribute_name|
-      required = per_instance.all? { |names| names.include?(attribute_name) }
+    counts.keys.map do |attribute_name|
+      required = counts[attribute_name] == @instance_counts[name]
       use = required ? ' use="required"' : ''
       %(#{indent}<xs:attribute name="#{escape(attribute_name)}" type="xs:string"#{use}/>)
     end
   end
 
+  # Counts the instances of each element, and the attributes they carry.
+  #
+  # @param root [Nokogiri::XML::Element] the root element of a Live set
+  # @return [void]
+  def count_attributes(root)
+    ([root] + root.xpath('.//*')).each do |element|
+      @instance_counts[element.name] += 1
+      element.attribute_nodes.each { |attribute| @attribute_counts[element.name][attribute.name] += 1 }
+    end
+  end
+
   # Determine whether the children of an element have to be declared in a choice.
   #
-  # @param name [String] the element's name
   # @param sequences [Array<Array<String>>] the child names of each instance
   # @return [Boolean] true if the samples disagree about the order of the children
-  def unordered?(name, sequences)
-    order = ChildOrder.new(sequences)
-    return false unless order.conflict?
-
-    Log.warn("The child elements of <#{name}> #{order.reason}. " \
-             'The generated schema accepts them in any order.')
-    true
+  def unordered?(sequences)
+    ChildOrder.new(sequences).conflict?
   end
 
   # Describe one child element.

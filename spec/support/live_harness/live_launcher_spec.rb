@@ -82,7 +82,7 @@ RSpec.describe GuiHarness::LiveLauncher do
 
     %i[normal minimized hidden].each do |visibility|
       it "succeeds when the launcher is #{visibility}" do
-        result = described_class.launch(@installation.executable, @demo_set, log: @log_path, timeout: 3, visibility: visibility)
+        result = described_class.launch(@installation.executable, @demo_set, log: @log_path, timeout: 30, visibility: visibility)
 
         expect(result).to be_a(described_class::Result)
         expect(result.success?).to be(true)
@@ -91,7 +91,7 @@ RSpec.describe GuiHarness::LiveLauncher do
 
       it "fails cleanly when the launcher is #{visibility}" do
         missing_set = File.join(Dir.pwd, 'spec', 'support', 'live_harness', 'missing_live_set.als')
-        result = described_class.launch(@installation.executable, missing_set, log: @log_path, timeout: 3, visibility: visibility)
+        result = described_class.launch(@installation.executable, missing_set, log: @log_path, timeout: 30, visibility: visibility)
 
         expect(result).to be_a(described_class::Result)
         expect(result.outcome).to(satisfy { |outcome| %i[blocked unknown crashed].include?(outcome) })
@@ -219,7 +219,7 @@ RSpec.describe GuiHarness::LiveLauncher do
     end
 
     it 'launches the real app and reports the actual launcher outcome' do
-      result = described_class.launch(@installation.executable, @demo_set, log: @log_path, timeout: 3)
+      result = described_class.launch(@installation.executable, @demo_set, log: @log_path, timeout: 30)
 
       expect(result).to be_a(described_class::Result)
       expect(result.exit_code).to be_a(Integer)

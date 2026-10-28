@@ -384,9 +384,9 @@ a fresh clone, and `generate_xsd` will not create it, so make it first:
 
 ```shell
 mkdir -p schemas
-exe/generate_xsd -f schemas/live_12.4d1.xsd   "$ableton_12_demo_set"
-exe/generate_xsd -f schemas/live_11.3d1.xsd   "$ableton_11_demo_set"
-exe/generate_xsd -f schemas/live_10.1.3d1.xsd "$ableton_10_demo_set"
+exe/generate_xsd -f schemas/live_12.4d1.xsd   "$ableton_12_demo_home"/*.als
+exe/generate_xsd -f schemas/live_11.3d1.xsd   "$ableton_11_demo_home"/*.als
+exe/generate_xsd -f schemas/live_10.1.3d1.xsd "$ableton_10_demo_home"/*.als
 # TODO (low urgency) live 9 & 8
 ```
 
@@ -396,7 +396,7 @@ on the computer.
 
 ### What the Generated Schemas Contain
 
-Each schema is an inference from one sample file, and two things about it are worth
+Each schema is an inference from the sample files, and two things about it are worth
 knowing.
 
 **The attributes are declared.** Every value in an `.als` file is stored in a `Value`
@@ -415,6 +415,19 @@ second MIDI track has no place in that model, so the schema rejects the very fil
 was generated from. Where the sample shows a child element coming back after a
 different child element has already appeared, the children are declared in an
 `xs:choice` instead, which accepts them in any order.
+
+
+### Generate Each Schema From Every Demo Set of That Version
+
+A schema inferred from one set constrains Live more than Live constrains itself, and
+so rejects the other sets of the same version. The Live 11 schema generated from the
+Intro demo rejected four of the five Live 11 demo sets, over the order of the
+children of `<Devices>` and over elements that one set happens not to contain.
+
+Generating a schema from every demo set of a version fixes that. An element is
+required only if every set contains it, and the children of an element are declared
+in an `xs:choice` if the sets disagree about their order. All of the Live 10, Live 11
+and Live 12 demo sets validate against the schema generated from their own version.
 
 
 ## Test Suite

@@ -165,17 +165,7 @@ RSpec.describe XsdBuilder do
       expect(schema).to include('inference from a sample of the format')
     end
 
-    it 'warns when the sample files disagree about the order of child elements' do
-      allow(Log).to receive(:warn)
-
-      schema_for([simple_set, reordered_set])
-
-      expect(Log).to have_received(:warn).with(/different orders/)
-    end
-
     it 'accepts the child elements in any order when the sample files disagree' do
-      allow(Log).to receive(:warn)
-
       schema = schema_for([simple_set, reordered_set])
 
       expect(schema).to include('<xs:choice minOccurs="0" maxOccurs="unbounded">')

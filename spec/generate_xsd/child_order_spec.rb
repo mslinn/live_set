@@ -52,17 +52,4 @@ RSpec.describe ChildOrder do
     end
   end
 
-  describe '#reason' do
-    it 'describes the instances ordering the children differently' do
-      order = order_for([%w[A B], %w[B A]])
-
-      expect(order.reason).to include('different orders')
-    end
-
-    it 'describes a child element coming back after a different child element' do
-      order = order_for([%w[A B A]])
-
-      expect(order.reason).to include('interleaved')
-    end
-  end
 end
