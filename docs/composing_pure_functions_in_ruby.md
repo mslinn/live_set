@@ -993,7 +993,149 @@ Nokogiri objects are highly mutable. If a function modifies a node directly, it
 mutates the object in place, which violates the core definition of a pure
 function.
 
-Here is how to design a high-performance, mutation-safe Nokogiri pipeline.
+Cloning the incoming Nokogiri document using `.dup` could be expensive for large
+documents. We should subclass nokogiri instead and add an internal flag that
+ensures the document is only mutated once.
+
+Using a flag to track mutation state on a custom Nokogiri subclass is a smart
+way to gain maximum performance while protecting structural integrity. Since
+each step in the custom pipeline executes exactly once, the document only ever
+needs to be cloned a maximum of one time per pipeline execution, in the first
+step that attempts to alter it.
+
+If a step is an identity function or drops through without modifications, no
+cloning happens at all.
+
+However, because Nokogiri is an optimized C-extension, subclassing
+`Nokogiri::XML::Document` requires a small workaround: Nokogiri's internal parser
+logic yields standard `Nokogiri::XML::Document` instances, not your subclass
+instances.
+
+The idiomatic way to achieve this in Ruby is to create a lightweight
+Decorator/Proxy object that tracks the mutation flag and delegates the actual
+structural transformation to the underlying Nokogiri document.
+
+1. The Purity-Preserving Proxy Decorator
+
+    This wrapper intercepts calls, checks if the document has been altered yet, and
+    handles the conditional `.dup` under the hood.
+
+    TODO I do not believe dup is required because of the flag
+
+    ```ruby
+    require 'nokogiri'
+
+    class MutationSafeDocument
+      attr_reader :document
+
+      def initialize(nokogiri_doc, mutated = false)
+        @document = nokogiri_doc
+        @mutated  = mutated
+      end
+
+      # Check if this document reference has already been modified in the current session
+      def mutated?
+        @mutated
+      end
+
+      # If it hasn't been mutated yet, it clones it ONCE and flags it
+      # If it has already been cloned/mutated, it returns itself instantly
+      # @return an explicitly mutable instance of the document
+      def ensure_mutable!
+        if mutated?
+          self
+        else
+          # Perform the expensive clone exactly ONCE across the entire lifecycle
+          MutationSafeDocument.new(@document.dup, true)
+        end
+      end
+    end
+    ```
+
+2. Updating Pure Functions to Use the Proxy
+
+    Now, your transformation functions accept this proxy wrapper. They call
+    ensure_mutable!, perform their work on the underlying document, and pass the
+    updated proxy forward.
+
+    ```ruby
+    # Pure functions accept a Proxy, mutate the internal node tree, and return a Proxy
+    v11_to_10 = ->(proxy) {
+
+      # If this is the first step mutating the doc, it clones here
+      # If it's a subsequent step, this line is an O(1) pass-through
+
+      writable_proxy = proxy.ensure_mutable!
+      doc = writable_proxy.document
+
+      doc.at_css('user_id')&.name = 'uid'
+      doc.at_css('new_v11_feature')&.remove
+
+      writable_proxy # Return the proxy state
+    }
+
+    v10_to_9 = ->(proxy) {
+      writable_proxy = proxy.ensure_mutable!
+      doc = writable_proxy.document
+
+      if node = doc.at_css('contact_phone')
+        node.name = 'phone'
+      end
+
+      writable_proxy
+    }
+    ```
+
+3. Integrating the Proxy with the Migration Method
+
+    Wrap the parsing step to initialize the proxy, let the transformation
+    pipeline execute, and extract the internal document at the end for the XSLT
+    engine to serialize.
+
+    ```ruby
+    def migrate_xml(xml_string, from:, to:)
+      return xml_string if from == to
+
+      # LHS Bookend: Parse and instantly wrap in our safe proxy
+      parse_xml = ->(str) {
+        raw_doc = Nokogiri::XML(str)
+        MutationSafeDocument.new(raw_doc)
+      }
+
+    # Build transformation pipelines
+      if from > to
+        in_memory_pipeline = build_downgrade_pipeline(from: from, to: to)
+        final_bridge       = VERSION_REGISTRY[to]
+      else
+        in_memory_pipeline = build_upgrade_pipeline(from: from, to: to)
+        final_bridge       = VERSION_REGISTRY[to]
+      end
+
+    # RHS Bookend: Extract the underlying raw document out of the proxy for XSLT serialization
+      serialize_xml = ->(final_proxy) {
+        final_bridge.serialize(final_proxy.document)
+      }
+
+    # Compose end-to-end
+      pipeline = parse_xml >> in_memory_pipeline >> serialize_xml
+
+    # Execute
+      pipeline.call(xml_string)
+    end
+    ```
+
+### Performance Profiling Metrics
+
+
+| Metric              | Multi-.dup Approach             | Single-Pass Mutation Proxy                                |
+| ------------------- | ------------------------------- | --------------------------------------------------------- |
+| Cloning Cost        | O(N) where N is number of steps | O(1) maximum (Exactly 0 or 1 clone total)                 |
+| Memory Allocation   | Linear scale with steps         | Flat scale (Stays constant regardless of pipeline length) |
+| Immutability Status | Handled manually per step       | Handled automatically by the infrastructure layer         |
+
+
+Here is how to design a high-performance, mutation-safe Nokogiri pipeline using
+dup.  TODO use the Nokogiri subclass instead.
 
 1. Enforcing Purity with #dup
 
