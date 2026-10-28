@@ -1,5 +1,10 @@
 # Composing Pure Functions in Ruby
 
+NOTE: This document was created from a dialog with Gemini, which resulted in
+out-of-order explanations, duplicated information and code, and propagation of
+bad code. It has been condensed into `cpfir.md`. Only refer to this document if
+you find an error or omission in `cpfir.md`.
+
 [Function composition in
 Ruby](https://www.ghostcassette.com/function-composition-in-ruby/) can be
 achieved using the native `>>` (pipeline) and `<<` (compose) operators on `Proc`

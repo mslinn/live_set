@@ -9,7 +9,7 @@ functional operators and Nokogiri.
 
     A function is pure if it has no side effects and always returns the same
     output given the same input. Ruby 2.6+ supports native functional
-    composition on Proc and Method objects using forward (`>>`) and backward (`<<`)
+    composition on `Proc` and `Method` objects using forward (`>>`) and backward (`<<`)
     pipeline operators. [1]
 
     ```ruby
@@ -42,14 +42,17 @@ functional operators and Nokogiri.
 
 2. Defining a Single Source of Truth: The Target End-State Rule
 
-    When managing schema versions (e.g., v8 through v12), keeping anonymous
-    arrays or disconnected hashes for upgrades and downgrades is brittle. The
-    most robust design pattern uses a unified Version-Keyed Registry where the
-    key represents the desired end state (the version we are moving TO). [1]
+    When managing schema versions (e.g., Ableton Live Sets (ALS files) v8
+    through v12), a robust design would use a unified Version-Keyed Registry
+    where the key represents the desired end state (the version we are moving
+    TO). [1]
 
-    Because version migrations are bidirectional, each key points to a
-    specialized translation bridge object that handles the logic required to
-    enter that version from its neighboring version. [1]
+    ALS conversions are handled by XSLT transformations, which are inherently
+    bidirectional.
+
+    Because ALS version conversions are therefore also bidirectional, each key
+    points to a specialized translation bridge object that handles the logic
+    required to enter that version from its neighboring version. [1]
 
     ```ruby
     # Single Source of Truth
@@ -66,15 +69,17 @@ functional operators and Nokogiri.
     **Conceptual Visual Model**
 
     ```plain
-    [v8] <=== key 9 (xslt_v8_to_9) ===> [v9] <=== key 10 (xslt_v9_to_10) ===> [v10] <=== key 11 (xslt_v10_to_11) ===> [v11]
+    [v8] <=== key 9 (xslt_v8_to_9) ===> [v9] <=== key 10 (xslt_v9_to_10) ===> [v10] <=== key 11 (xslt_v10_to_11) ===> [v11] <=== key 12 (xslt_v11_to_12) ===> [v12]
 
-    UPWARD PATH (from: 8, to: 11)    => Target versions: [9, 10, 11]  => Operation: .forward
-    DOWNWARD PATH (from: 11, to: 8)  => Target versions: [11, 10, 9]  => Operation: .inverse (Executed 11 -> 10 -> 9)
+    UPWARD PATH (from: 8, to: 12)    => Target versions: [9, 10, 11, 12]  => Operation: .forward
+    DOWNWARD PATH (from: 12, to: 8)  => Target versions: [11, 10, 9, 8]  => Operation: .inverse (Executed 11 -> 10 -> 9 -> 8)
     ```
 
 3. Dynamically Slicing the Pipeline Intervals
 
-    By leveraging the target end-state registry layout, you can write semantic builders that filter keys dynamically and compose them using Enumerable#reduce(`:>>`). [1]
+    By leveraging the target end-state registry layout, you can write semantic
+    builders that filter keys dynamically and compose them using
+    `Enumerable#reduce` (`:>>`). [1]
 
     ```ruby
     # Extract and chain upgrade transformations
@@ -158,8 +163,10 @@ functional operators and Nokogiri.
       if from > to
         direction = :down
         in_memory_pipeline = build_downgrade_pipeline(from: from, to: to)
-        # The final bridge handles serialization output format matching the target version
-        final_bridge = VERSION_REGISTRY[to]
+
+        # Select the bridge that handled the final step down (to + 1)
+        # For to: 8, this safely grabs key 9 (xslt_v8_to_9) to use its serialization format
+        final_bridge = VERSION_REGISTRY[to + 1]
       else
         direction = :up
         in_memory_pipeline = build_upgrade_pipeline(from: from, to: to)
@@ -168,7 +175,7 @@ functional operators and Nokogiri.
 
       serialize_xml = ->(final_doc) { final_bridge.serialize(final_doc, direction: direction) }
 
-      # Compose the end-to-end process
+      # Compose and execute the complete pipeline
       full_process = parse_xml >> in_memory_pipeline >> serialize_xml
       full_process.call(xml_string)
     end
