@@ -3,17 +3,25 @@
 ## Context
 
 The gem converts a Live 12 set into a Live 11 set. The rules that make the two formats differ
-currently live as hand-written Ruby in `lib/live_set/live_set_converter.rb`. You have decided the
-rules belong in an XSLT stylesheet: a stylesheet says what the format is, and the rules can be
-read in one place.
+currently live as hand-written Ruby in `lib/live_set/live_set_converter.rb`.
 
-The second requirement is that the converted set validates against the Live 11 schema, so that
-`validate_asd` can be run on the result. What the schemas are ultimately *for* is deliberately
-left open; the immediate requirement is only that a converted set validates.
+We have decided the rules belong in an XSLT stylesheet instead because a that
+provides a way to associate functionality to nodes in a parsed schema. This can
+be used to transform conformant XML documents. The transformations are
+bidirectional, which means one XSLT stylesheet provides the ability to convert
+Ableton Live 12 to Live 11 format, and back again.
+
+`validate_asd` validates that a converted sets is well-formed XML, and that it
+complies with what we have learned about that version of the Live schema.
+
+We are unsure of the role that schemas might play in the near term. This is
+undefined at present.
 
 Already in place:
 
-- `lib/live_set/tx/live_12_to_live_11.xsl` — a first pass at the rules.
+- `lib/live_set/tx/live_12_to_live_11.xsl` — a first pass at the a
+  transformation. TODO this is a text file. it might be easier to maintain if it
+  were expressed in Ruby code instead. important: discuss before going any further!!!
 - `lib/live_set/live_set_transformer.rb` — applies a named stylesheet to a document.
 - `schemas/live_{10.1.3,11.3,12.4}d1.xsd` — generated from every demo set of each version, so
   each one accepts all of its version's demo sets.

@@ -108,6 +108,47 @@ module DemoSets
     end
   end
 
+  # The demo set for a Live version, or an error when there is none.
+  #
+  # The test data of this project is the demo set of each version of Live. A spec that skips
+  # when the data is missing proves nothing, so the absence of the data is an error.
+  #
+  # @param version [String] the Live version, e.g. "11" or "12"
+  # @return [String] the path of the demo set
+  # @raise [RuntimeError] when there is no demo set of that version
+  def self.require!(version)
+    found = path(version)
+    raise "No demo set of Live #{version} was found in #{directories.join(', ')}" if found.nil?
+
+    found
+  end
+
+  # The demo set for a Live version and an edition, or an error when there is none.
+  #
+  # @param version [String] the Live version, e.g. "11"
+  # @param edition [String] the edition, e.g. "Suite"
+  # @return [String] the path of the set
+  # @raise [RuntimeError] when there is no demo set of that version and edition
+  def self.require_edition!(version, edition)
+    found = edition(version, edition)
+    raise "No demo set of Live #{version} #{edition} was found in #{directories.join(', ')}" if found.nil?
+
+    found
+  end
+
+  # The Live 12 version of a Live 11 demo set, or an error when there is none.
+  #
+  # @param version [String] the Live version the set was written in, e.g. "11"
+  # @param edition [String] the edition, e.g. "Suite"
+  # @return [String] the path of the set
+  # @raise [RuntimeError] when the set has not been made
+  def self.require_converted!(version, edition)
+    found = converted(version, edition)
+    raise "No Live 12 conversion of the Live #{version} #{edition} demo set was found" if found.nil?
+
+    found
+  end
+
   # The Live 12 version of a Live 11 demo set, made by opening it in Live 12 and saving it.
   #
   # This is the file the round trip needs: the same material, written by Live 12. It is not one

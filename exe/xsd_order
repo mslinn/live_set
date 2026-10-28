@@ -1,0 +1,35 @@
+#!/usr/bin/env ruby
+
+# Prints the order of the children of an element in a generated Live schema.
+#
+# The rules of a conversion put elements in a particular place, and the schema is where that
+# order comes from: it is generated from the demo sets of a Live version, so it records the
+# order Live writes the children of an element in.
+#
+# Usage: xsd_order SCHEMA_FILE ELEMENT_NAME
+#
+# Example: xsd_order schemas/live_12.4d1.xsd MidiClip
+# MidiClip: ["LomId", "LomIdView", "CurrentStart", ...]
+
+if ENV['VO_DEBUGGING']
+  require_relative '../lib/generate_xsd/schema_order'
+else
+  require 'generate_xsd/schema_order'
+end
+
+if ARGV.length != 2
+  warn 'Usage: xsd_order SCHEMA_FILE ELEMENT_NAME'
+  exit 1
+end
+
+schema_file, element_name = ARGV
+abort "No such schema: #{schema_file}" unless File.exist?(schema_file)
+
+order = SchemaOrder.of_file(schema_file, element_name)
+
+if order.nil?
+  warn "The schema has no element named #{element_name}"
+  exit 1
+end
+
+puts "#{element_name}: #{order.inspect}"

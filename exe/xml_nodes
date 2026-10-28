@@ -1,0 +1,83 @@
+#!/usr/bin/env ruby
+
+# Prints the nodes of an XML document that an XPath expression finds.
+#
+# A Live set is XML, usually gzip-compressed, so the document can be a .als file or any XML
+# file. The XPath expression is the only thing that has to change from one question to the next,
+# which makes this the tool to reach for instead of writing a program for each element.
+#
+# Usage: xml_nodes FILE XPATH [options]
+#
+# Options:
+#   --attribute NAME  print the value of an attribute of each node, not the node itself
+#   --children        print the names of the children of each node, not the node itself
+#   --count           print the number of nodes that were found, and nothing else
+#   --max N           print at most N nodes
+#   --unique          print each distinct result once
+#
+# Examples:
+#   xml_nodes set.als '//MidiTrack/IsTuned' --attribute Value
+#   xml_nodes set.als '//LiveSet/Scenes/Scene/FollowAction' --children
+#   xml_nodes set.als '//MidiTrack' --count
+
+lib = File.expand_path('../lib', __dir__)
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+
+require 'live_set/als_file'
+
+# The options the tool was given.
+#
+# @return [Hash] the options
+def options(argv)
+  { max: nil, unique: false }.tap do |found|
+    until argv.empty?
+      case argv.first
+      when '--attribute' then found[:attribute] = argv.shift(2).last
+      when '--children'   then found[:children] = argv.shift
+      when '--count'      then found[:count] = argv.shift
+      when '--max'        then found[:max] = argv.shift(2).last.to_i
+      when '--unique'     then found[:unique] = argv.shift
+      else break
+      end
+    end
+  end
+end
+
+# The text of a node.
+#
+# @param node [Nokogiri::XML::Node] the node
+# @param found [Hash] the options
+# @return [String] the text of the node
+def text_of(node, found)
+  return node[found[:attribute]].to_s if found[:attribute]
+  return node.element_children.map(&:name).inspect if found[:children]
+
+  node.to_xml(save_with: Nokogiri::XML::Node::SaveOptions::AS_XML)
+end
+
+argv = ARGV.dup
+
+if argv.length < 2
+  warn 'Usage: xml_nodes FILE XPATH [--attribute NAME] [--children] [--count] [--max N] [--unique]'
+  exit 1
+end
+
+path = argv.shift
+xpath = argv.shift
+found = options(argv)
+
+abort "No such file: #{path}" unless File.exist?(path)
+
+document = AlsFile.read(path)
+nodes = document.xpath(xpath)
+
+if found[:count]
+  puts nodes.length
+  exit 0
+end
+
+nodes = nodes.first(found[:max]) if found[:max]
+results = nodes.map { |node| text_of(node, found) }
+results = results.uniq if found[:unique]
+
+puts results

@@ -11,7 +11,11 @@
       "Bash(mkdir conv3 *)",
       "Bash(cp \"/mnt/c/ProgramData/Ableton/Live 12 Suite/Resources/Core Library/Lessons/Demo Songs/Chuck Sutton - Patience \\(Live 12 Standard Demo\\).als\" conv3/test.als)",
       "Bash(bundle exec ruby -e ' *)",
-      "Bash(bundle exec *)"
+      "Bash(bundle exec *)",
+      "Read(//mnt/f/work/ruby/my_gems/**)",
+      "Bash(git log *)",
+      "Bash(grep -vc '^\\\\s*#\\\\|^\\\\s*$' live11.rb)",
+      "Bash(grep -vc '^\\\\s*<!--\\\\|^\\\\s*$' /mnt/f/work/ruby/my_gems/live_set/lib/live_set/tx/live_12_to_live_11.xsl)"
     ]
   }
 }

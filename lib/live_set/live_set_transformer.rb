@@ -1,35 +1,51 @@
 require 'nokogiri'
+require_relative 'tx/live_11_and_12'
+require_relative 'tx/live_version_converter'
 
-# Applies an XSLT stylesheet to a Live set.
+# Converts a live set to another version of the Live format.
 #
-# The stylesheets are in the tx subdirectory of this directory. Each one converts a set from one
-# version of the Live format to another.
+# A bridge converts between two versions of the format, and it handles moving both ways: the
+# direction is not passed in. The bridge reads the version of the document it is handed, and
+# converts to the other version of its pair.
 #
-# The result is a document, not a file. Writing the file is the job of AlsFile, because libxml2
-# does not write XML the way Live does. See LiveXmlWriter.
+# The bridges are in the tx subdirectory of this directory, one for each pair of versions.
 class LiveSetTransformer
-  # The directory the stylesheets are in.
-  STYLESHEET_DIRECTORY = File.expand_path('tx', __dir__)
+  # The bridges, each of which converts between two versions of the format.
+  BRIDGES = [Live11And12].freeze
 
-  # The path of a stylesheet.
+  # The bridge that converts a document.
   #
-  # @param name [String] the name of the stylesheet, without its extension
-  # @return [String] the path of the stylesheet
-  def self.stylesheet_path(name)
-    File.join(STYLESHEET_DIRECTORY, "#{name}.xsl")
+  # @param document [Nokogiri::XML::Document] the document to convert
+  # @return [Class] the bridge
+  # @raise [ArgumentError] when no bridge converts the document
+  def self.bridge_for(document)
+    version = version_of(document)
+    bridge = BRIDGES.find { |candidate| candidate.versions.include?(version) }
+    raise ArgumentError, "no bridge converts a set of version #{version.inspect}" if bridge.nil?
+
+    bridge
   end
 
-  # @param name [String] the name of the stylesheet, without its extension
-  def initialize(name)
-    @path = self.class.stylesheet_path(name)
-    @stylesheet = Nokogiri::XSLT(File.read(@path))
+  # The version of a document.
+  #
+  # The version is the minor version of the set, e.g. "12.0_12402". The major version is no help:
+  # Live 10, 11 and 12 all write MajorVersion="5".
+  #
+  # @param document [Nokogiri::XML::Document] the document
+  # @return [String] the version
+  def self.version_of(document)
+    document.at_xpath('/Ableton')&.[]('MinorVersion').to_s
   end
 
-  # Applies the stylesheet to a document.
+  # @param document [Nokogiri::XML::Document] the set to convert
+  def initialize(document)
+    @document = document
+  end
+
+  # Converts the set.
   #
-  # @param document [Nokogiri::XML::Document] the document to transform
-  # @return [Nokogiri::XML::Document] the transformed document
-  def transform(document)
-    @stylesheet.transform(document)
+  # @return [Nokogiri::XML::Document] the converted set
+  def transform
+    self.class.bridge_for(@document).new(@document).convert
   end
 end
