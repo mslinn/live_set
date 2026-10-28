@@ -66,6 +66,38 @@ RSpec.describe XsdBuilder do
     XML
   end
 
+  # A Live set whose tracks are not grouped by type.
+  #
+  # A MIDI track comes between two audio tracks, so no sequence of child elements can describe
+  # them.
+  #
+  # @return [String] the XML of the set
+  def interleaved_set
+    <<~XML
+      <?xml version="1.0" encoding="UTF-8"?>
+      <Ableton MajorVersion="5" MinorVersion="12.0_12000" SchemaChangeCount="3" Creator="Ableton Live 12.4d1" Revision="abc123">
+        <LiveSet>
+          <NextPointeeId Value="260122"/>
+          <NoValue/>
+          <Tracks>
+            <AudioTrack Id="3">
+              <Name><EffectiveName Value="Test Track"/></Name>
+              <Freeze Value="false"/>
+            </AudioTrack>
+            <MidiTrack Id="4">
+              <Name><EffectiveName Value="MIDI Track"/></Name>
+              <Freeze Value="false"/>
+            </MidiTrack>
+            <AudioTrack Id="5">
+              <Name><EffectiveName Value="Second Track"/></Name>
+              <Freeze Value="false"/>
+            </AudioTrack>
+          </Tracks>
+        </LiveSet>
+      </Ableton>
+    XML
+  end
+
   # Builds the schema for the given Live sets.
   #
   # @param sets [Array<String>] the XML of each set
@@ -139,6 +171,36 @@ RSpec.describe XsdBuilder do
       schema_for([simple_set, reordered_set])
 
       expect(Log).to have_received(:warn).with(/different orders/)
+    end
+
+    it 'accepts the child elements in any order when the sample files disagree' do
+      allow(Log).to receive(:warn)
+
+      schema = schema_for([simple_set, reordered_set])
+
+      expect(schema).to include('<xs:choice minOccurs="0" maxOccurs="unbounded">')
+    end
+
+    it 'generates a schema that validates a set whose children are in a different order' do
+      schema = Nokogiri::XML::Schema(schema_for([simple_set, reordered_set]))
+      document = Nokogiri::XML(reordered_set)
+
+      expect(schema.validate(document)).to be_empty
+    end
+
+    it 'accepts the child elements in any order when a child element repeats' do
+      allow(Log).to receive(:warn)
+
+      schema = schema_for([simple_set, interleaved_set])
+
+      expect(schema).to include('<xs:choice minOccurs="0" maxOccurs="unbounded">')
+    end
+
+    it 'generates a schema that validates a set whose child elements are interleaved' do
+      schema = Nokogiri::XML::Schema(schema_for([simple_set, interleaved_set]))
+      document = Nokogiri::XML(interleaved_set)
+
+      expect(schema.validate(document)).to be_empty
     end
 
     it 'does not warn when the sample files agree about the order of child elements' do

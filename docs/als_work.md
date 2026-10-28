@@ -361,6 +361,32 @@ exe/generate_xsd -f schemas/live_10.1.3d1.xsd "$ableton_10_demo_set"
 # TODO (low urgency) live 9 & 8
 ```
 
+`bin/generate_xsds` does all of that in one step, for every version of Live installed
+on the computer.
+
+
+### What the Generated Schemas Contain
+
+Each schema is an inference from one sample file, and two things about it are worth
+knowing.
+
+**The attributes are declared.** Every value in an `.als` file is stored in a `Value`
+attribute, so a schema that declared no attributes would reject every attribute in
+every file it was generated from. The generated schemas declare the attributes they
+found, and mark an attribute required when every instance of its element carries it.
+
+**The children of an element are declared in the order they were first seen.** Live
+does not always write siblings in groups. In the Live 11 demo set, the `<Tracks>`
+element holds a MIDI track first, then the audio tracks, and then another MIDI track.
+Inside a device's `<ParameterList>`, the parameters interleave: an enum parameter,
+then a float parameter, then another enum parameter.
+
+An `xs:sequence` can only say "all the MIDI tracks, then all the audio tracks". The
+second MIDI track has no place in that model, so the schema rejects the very file it
+was generated from. Where the sample shows a child element coming back after a
+different child element has already appeared, the children are declared in an
+`xs:choice` instead, which accepts them in any order.
+
 
 ## Test Suite
 
@@ -437,6 +463,10 @@ The real Live version is stored in the `Creator` attribute:
 The rules for converting Live 12 back to Live 11 were figured out by opening a
 Live 11 demo set in Live 12, saving it, and comparing the two versions of the
 Live set.
+
+See [`conversion.md`](conversion.md) for what the conversion has to become, what
+the component that does it looks like, and how the differences between two
+versions are worked out.
 
 
 #### Unique v11 Schema

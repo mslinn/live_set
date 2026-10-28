@@ -20,6 +20,9 @@ Gem::Specification.new do |spec|
     Live_set has successfully converted the Ableton Live 12 demo project to Live 11.
   END_DESC
   spec.email                 = ['mslinn@mslinn.com']
+  # The baselines/ directory holds the minimum ALS for each Live version. It is not packaged,
+  # because it is not yet decided whether an installed user needs it or only a developer does.
+  # If it is needed at run time, add 'baselines/**/*' to this list.
   spec.files                 = Dir['.rubocop.yml', 'LICENSE.*', 'Rakefile', '{lib,spec}/**/*', '*.gemspec', '*.md']
   spec.homepage              = 'https://mslinn.com/av_studio/553-live_set.html'
   spec.license               = 'Source-available, noncommercial license.'

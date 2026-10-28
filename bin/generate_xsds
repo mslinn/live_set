@@ -1,0 +1,69 @@
+#!/bin/bash
+
+# Regenerates the XSD schemas from the Ableton Live installations on this computer.
+#
+# Usage: bin/generate_xsds [ABLTON_HOME]
+#
+# The schemas are written to the schemas/ subdirectory of this project. They are not stored in
+# the repository — .gitignore excludes *.xsd — so every computer has to generate its own.
+#
+# The name of a schema comes from the Creator attribute of the demo set, which holds the version
+# of Live that wrote it: a set written by "Ableton Live 12.4d1" produces schemas/live_12.4d1.xsd.
+#
+# The demo set of each installation is the one the environment variables in docs/als_work.md
+# name: the Intro demo.
+
+set -euo pipefail
+
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SCHEMA_DIR="$PROJECT_DIR/schemas"
+ABLTON_HOME="${1:-${ableton_home:-/mnt/c/ProgramData/Ableton}}"
+
+# Use the code in this repository, not an installed gem of the same name.
+export VO_DEBUGGING=1
+
+if [ ! -d "$ABLTON_HOME" ]; then
+  echo "No Ableton Live installations found in $ABLTON_HOME" >&2
+  exit 1
+fi
+
+mkdir -p "$SCHEMA_DIR"
+cd "$PROJECT_DIR"
+
+shopt -s nullglob
+
+generated=0
+for installation in "$ABLTON_HOME"/Live*/; do
+  installation="${installation%/}"
+  demo_dir="$installation/Resources/Core Library/Lessons/Demo Songs"
+  if [ ! -d "$demo_dir" ]; then
+    echo "Skipping $installation: no demo sets"
+    continue
+  fi
+
+  demo_sets=("$demo_dir"/*Intro*.als)
+  if [ ${#demo_sets[@]} -eq 0 ]; then
+    echo "Skipping $installation: no Intro demo set"
+    continue
+  fi
+
+  demo_set="${demo_sets[0]}"
+  creator="$(zcat "$demo_set" | grep -m1 -o 'Creator="[^"]*"' | cut -d '"' -f2 || true)"
+  if [ -z "$creator" ]; then
+    echo "Skipping $demo_set: it has no Creator attribute"
+    continue
+  fi
+
+  version="${creator#Ableton Live }"
+  schema="$SCHEMA_DIR/live_${version}.xsd"
+  echo "Generating $schema from $demo_set"
+  bundle exec ruby exe/generate_xsd -f "$schema" "$demo_set"
+  generated=$((generated + 1))
+done
+
+if [ "$generated" -eq 0 ]; then
+  echo "No schemas were generated" >&2
+  exit 1
+fi
+
+echo "Generated $generated schemas in $SCHEMA_DIR"
