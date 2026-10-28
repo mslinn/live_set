@@ -47,6 +47,9 @@ Metrics/BlockLength:
 Metrics/CyclomaticComplexity:
   Max: 15
 
+Layout/ExtraSpacing:
+  Enabled: false
+
 Metrics/MethodLength:
   Max: 40
 
@@ -63,7 +66,16 @@ RSpec/DescribeMethod:
 RSpec/ExampleLength:
   Enabled: false
 
+RSpec/ExpectOutput:
+  Enabled: false
+
+RSpec/InstanceVariable:
+  Enabled: false
+
 RSpec/MultipleExpectations:
+  Enabled: false
+
+RSpec/MultipleMemoizedHelpers:
   Enabled: false
 
 # The classes in this project are namespaced under the live_set_ prefix, so that
@@ -77,6 +89,9 @@ RSpec/SpecFilePathFormat:
     String: string
   Exclude:
     - spec/live_set/live_set_track_clip_slots_spec.rb
+  Enabled: false
+
+Style/CommentedKeyword:
   Enabled: false
 
 Style/Documentation:

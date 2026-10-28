@@ -18,7 +18,7 @@ require 'support/gui_harness'
 # so the spec runs it when the installation is present and the live log is available.
 #
 # See TODO.md N42 and docs/als_format.md section 2.5.
-RSpec.describe LiveSet, 'the round trip through Live 11' do
+RSpec.describe LiveSet, 'the round trip through Live 11' do # rubocop:disable RSpec/DescribeMethod
   # The official Live 11 demo set supplied with Live 11. This is the source of truth for the
   # round trip.
   let(:live11_path) { DemoSets.edition '11', 'Suite' }
@@ -51,8 +51,10 @@ RSpec.describe LiveSet, 'the round trip through Live 11' do
 
   # What happened when Live was launched with the converted set.
   let(:result) do
-    @result ||= GuiHarness::LiveLauncher.launch installation.executable, converted_path,
-                                                 log: log_path, timeout: 3
+    @result ||= GuiHarness::LiveLauncher.launch installation.executable,
+                                                converted_path,
+                                                log:     log_path,
+                                                timeout: 3
   end
 
   around do |example|
@@ -97,13 +99,11 @@ RSpec.describe LiveSet, 'the round trip through Live 11' do
   describe 'converting the set' do
     it 'writes a set' do
       set = Conversions.set_path live12_path, 'round-trip'
-      original_stdout = $stdout
-      $stdout = StringIO.new
-      LiveSet.new(set).modify_als
+
+      expect { described_class.new(set).modify_als }
+        .to output.to_stdout
 
       expect(File.exist?(converted_path)).to be true
-    ensure
-      $stdout = original_stdout
     end
   end
 end

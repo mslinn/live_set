@@ -1,5 +1,5 @@
 require 'bundler/gem_tasks'
-require 'rake/testtask'
+require 'rspec/core/rake_task'
 
 desc 'Bump patch version'
 task :patch do
@@ -22,19 +22,20 @@ task publish: [:build] do
   system "gem push pkg/live_set-#{LiveSet::VERSION}.gem"
 end
 
-desc 'Bump major version, create git tag, build the gem and release to geminabox'
+desc 'Release a new version: bump the major version, create a git tag, build the gem and release it to geminabox'
 task release_major: %i[test major publish]
 
-desc 'Bump minor version, create git tag, build the gem and release to geminabox'
+desc 'Release a new version: bump the minor version, create a git tag, build the gem and release it to geminabox'
 task release_minor: %i[test minor publish]
 
-desc 'Bump patch version, create git tag, build the gem and release to geminabox (default)'
+desc 'Release a new version: bump the patch version, create a git tag, build the gem and release it to geminabox (default)'
 task release_patch: %i[test patch publish]
 
-Rake::TestTask.new(:test) do |t|
-  t.libs << 'test'
-  t.libs << 'lib'
-  t.test_files = FileList['test/**/*_test.rb']
+RSpec::Core::RakeTask.new(:spec) do |task|
+  task.pattern = 'spec/**/*_spec.rb'
 end
+
+desc 'Run the test suite'
+task test: :spec
 
 task default: :test

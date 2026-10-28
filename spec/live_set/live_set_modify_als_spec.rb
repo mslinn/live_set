@@ -139,12 +139,11 @@ RSpec.describe LiveSet, '#modify_als' do
 
     it 'is not converted, because it is already in the Live 11 format' do
       set = Conversions.set_path suite_path, 'live11'
-      original_stdout = $stdout
-      $stdout = StringIO.new
       live_set = described_class.new set
-      expect { live_set.modify_als }.to raise_error SystemExit
-    ensure
-      $stdout = original_stdout
+
+      expect { live_set.modify_als }
+        .to output.to_stdout
+        .and raise_error(SystemExit)
     end
   end
 

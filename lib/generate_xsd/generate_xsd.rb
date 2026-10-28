@@ -1,17 +1,16 @@
-require 'cgi'
 require 'colorator'
 require 'nokogiri'
 require 'zlib'
+require_relative 'generate_xsd_options'
+require_relative 'xsd_builder'
 
-# This program ignores attributes and namespaces, treats text as strings, and assumes consistent child ordering. The
-# generated XSD is a starting point, not a complete description of every XML document the format might allow.
+# Generates an XML Schema (XSD) from one or more Ableton Live sets.
 #
-# With just one XML file, the generator can detect children repeated within that file, but it can’t know that a child is
-# optional if it never sees another instance of the same parent without that child. Multiple representative files help
-# infer that.
+# The sets are read and their structure is handed to XsdBuilder, which turns it into the schema.
+# See lib/generate_xsd/xsd_builder.rb for what the schema describes, and what the generator
+# infers from the sample.
 #
-# Usage: generate_xsd sample1.xml sample2.xml
-#
+# Usage: generate_xsd OPTIONS XSD_FILE_NAME PATH_TO_ALS_FILE...
 class XsdFromXml
   # Generate an XSD from one or more Live sets, and write it to a file.
   #
@@ -19,6 +18,8 @@ class XsdFromXml
   # @return [void]
   def self.run(args)
     options, xsd_file, als_files = parse_options(args)
+
+    check_overwrite(xsd_file, options[:force])
 
     als_files = als_files.map do |file|
       expanded_file = file.expand_env
@@ -29,102 +30,61 @@ class XsdFromXml
 
     trap('SIGINT') { throw :ctrl_c }
 
-    generate_xsd = new xsd_file, als_files, **options
     catch :ctrl_c do
+      generate_xsd = new xsd_file, als_files, **options
       content = generate_xsd.generate
-      File.write(xsd_file, content)
+      generate_xsd.write(content)
       puts "Wrote '#{File.expand_path xsd_file}'".green
-    rescue Exception => e # rubocop:disable Lint/RescueException
-      puts e.full_message
+    rescue StandardError => e
+      warn e.full_message
+      exit 1
     end
   end
 
+  # Refuse to overwrite an existing file, unless the caller asked us to.
+  #
+  # @param path [String] the path of the file to write
+  # @param force [Boolean] whether overwriting was requested
+  # @return [void]
+  def self.check_overwrite(path, force)
+    return if force || !File.exist?(path)
+
+    abort help("File already exists: #{path}. Use --force to overwrite it.")
+  end
+
+  # @param xsd_file [String] the path of the XSD file to write
+  # @param xml_files [Array<String>] the paths of the Live set files to read
+  # @param options [Hash] the command line options
   def initialize(xsd_file, xml_files, **options)
     raise ArgumentError, 'Provide at least one XML file' if xml_files.empty?
 
     @overwrite = options[:force]
-
     @xsd_file = xsd_file
-    @overwrite = options[:force]
-    @xml_docs = []
     @roots = xml_files.map do |xml_file|
       contents = Zlib::GzipReader.open(xml_file, &:read)
-      xml_doc = Nokogiri::Slop contents
+      xml_doc = Nokogiri::XML(contents)
       xml_doc.root || raise(ArgumentError, "#{xml_file} has no root element")
-      @xml_docs << xml_doc
       xml_doc.root
     end
 
-    @root_names = @roots.map(&:name).uniq
-    raise ArgumentError, "XML files have different root elements: #{@root_names.join(', ')}" if @root_names.size > 1
+    root_names = @roots.map(&:name).uniq
+    raise ArgumentError, "XML files have different root elements: #{root_names.join(', ')}" if root_names.size > 1
   end
 
+  # Generate the schema.
+  #
+  # @return [String] the XSD document
   def generate
-    root_name = @root_names.first
-    <<~XSD
-      <?xml version="1.0" encoding="UTF-8"?>
-      <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
-      #{element_declaration(root_name, @roots, 1, root: true)}
-      </xs:schema>
-    XSD
+    XsdBuilder.new(@roots).build
   end
 
-  private
+  # Write the generated schema to the output file.
+  #
+  # @param content [String] the generated schema
+  # @return [void]
+  def write(content)
+    self.class.check_overwrite(@xsd_file, @overwrite)
 
-  def element_declaration(name, instances, depth, **options)
-    root = options.fetch(:root, false)
-    min  = options.fetch(:min, 1)
-    max  = options.fetch(:max, 1)
-
-    indent = '  ' * depth
-    occurrence = + ''
-    occurrence << %( minOccurs="#{min}") unless root || min == 1
-    occurrence << %( maxOccurs="unbounded") if !root && max > 1
-
-    children_by_name = instances.flat_map(&:element_children)
-                                .group_by(&:name)
-
-    return %(#{indent}<xs:element name="#{escape(name)}" type="xs:string"#{occurrence}/>) \
-      if children_by_name.empty?
-
-    lines = [
-      %(#{indent}<xs:element name="#{escape(name)}"#{occurrence}>),
-      %(#{indent}  <xs:complexType>),
-      %(#{indent}    <xs:sequence>)
-    ]
-
-    ordered_names = instances.flat_map { |node| node.element_children.map(&:name) }.uniq
-
-    ordered_names.each do |child_name|
-      lines << process_child(instances, child_name, depth)
-    end
-
-    lines.push(%(#{indent}    </xs:sequence>),
-               %(#{indent}  </xs:complexType>),
-               %(#{indent}</xs:element>))
-
-    lines.join("\n")
-  end
-
-  def process_child(instances, child_name, depth)
-    matches_by_parent = instances.map do |parent|
-      parent.element_children.select { |child| child.name == child_name }
-    end
-
-    child_instances = matches_by_parent.flatten
-    min_occurs = matches_by_parent.any?(&:empty?) ? 0 : 1
-    max_occurs = matches_by_parent.map(&:length).max || 1
-
-    element_declaration(
-      child_name,
-      child_instances,
-      depth + 3,
-      min: min_occurs,
-      max: max_occurs
-    )
-  end
-
-  def escape(value)
-    CGI.escapeHTML(value)
+    File.write(@xsd_file, content, encoding: 'UTF-8')
   end
 end

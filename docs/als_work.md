@@ -1,5 +1,9 @@
 # Working With The Ableton Live ALS File Format
 
+Last Revision: 2026-10-27<br>
+Author: Mike Slinn<br>
+Status: For Discussion
+
 This document is a reference for the how the work of reverse engineering the
 Ableton Live set (ALS) format is being done. This is a HOW-TO document. The WHAT
 document (discussing findings) is [als_notes.md](als_notes.md).
@@ -32,8 +36,8 @@ Live file (or from a collection of them), you can generate an XML Schema (XSD)
 that describes the allowed structure, elements, attributes, and types for that
 version of the format. XSD files are used for XML validation.
 
-By combining XSDs together we can assemble a more complete XML stylesheet.
-One a "good enough" stylesheet exists for two Ableton Live versions (e.g. v11
+By combining XSDs together we can assemble a more complete XSD.
+Once a "good enough" stylesheet exists for two Ableton Live versions (e.g. v11
 and v12), we can use the stylesheets to do much of the reorganizational work of
 transforming bidirectionally between v11 and v12 formats.
 
@@ -58,7 +62,8 @@ template = Nokogiri::XSLT(File.read('template.xslt'))
 transformed_document = template.transform(document)
 
 # Save or output the result
-File.open('output.html', 'w').write(transformed_document)
+# binwrote makes the output byte-identical across platforms
+File.binwrite('output.xml', transformed_document)
 ```
 
 TODO we need a new class for transforming als files using xslt, plus spec unit
@@ -67,21 +72,20 @@ tests and also tests on the ableton live demo als files.
 
 #### Mapping XSD to Ruby Classes (RXSD)
 
-This might be used to assist the analysis of Ableton Live data.
+RXSD (<https://github.com/movitto/RXSD>) was considered for mapping the generated
+XSD to Ruby classes, and rejected. RXSD compiles a schema into Ruby classes on the
+fly, at run time. The classes in this project are written by hand and live in
+`lib/live_set/`, so a run-time generator is the wrong shape for the job. The gem
+is also unmaintained: the last release, 0.5.3, was in May 2016, it depends on
+`libxml-ruby ~> 2.8.0`, a second libxml2 binding alongside the Nokogiri this
+project already uses, and RFC 8134 section 7.1 reports that it could not parse a
+complex schema at all.
 
-To parse W3C XML Schema (`.xsd`) files and translate them into Ruby object
-models or classes in memory, use [RXSD](https://github.com/movitto/RXSD):
-
-```ruby
-require 'rxsd'
-
-xsd_uri = "file:///path/to/schema.xsd"
-schema = RXSD::Parser.parse_xsd(uri: xsd_uri)
-
-# Inspect the generated Ruby classes
-classes = schema.to(:ruby_classes)
-puts classes.map { |c| c.nil? ? "" : "#{c} < #{c.superclass}" }.sort
-```
+Rejecting it costs nothing. The schema `exe/generate_xsd` produces is already an
+index of the format: it lists every element and every attribute of that Live
+version. The format's vocabulary can be read from the schema, and the differences
+between two versions can be found by diffing one schema against another. Neither
+the inventory nor the diff needs the ALS files scanned by hand.
 
 
 #### XSLT Identity Template
@@ -345,12 +349,15 @@ live_10.1.3d1.xsd
 # TODO (low urgency) live 9 & 8
 ```
 
-The following commands were used to generate the above:
+The schemas are not stored in the repository — `.gitignore` excludes `*.xsd` — so
+every developer generates them locally. The `schemas/` directory does not exist in
+a fresh clone, and `generate_xsd` will not create it, so make it first:
 
 ```shell
-exe/generate_xsd schemas/live_12.4d1.xsd   "$ableton_12_demo_set"
-exe/generate_xsd schemas/live_113d1.xsd    "$ableton_11_demo_set"
-exe/generate_xsd schemas/live_10.1.3d1.xsd "$ableton_10_demo_set"
+mkdir -p schemas
+exe/generate_xsd -f schemas/live_12.4d1.xsd   "$ableton_12_demo_set"
+exe/generate_xsd -f schemas/live_11.3d1.xsd   "$ableton_11_demo_set"
+exe/generate_xsd -f schemas/live_10.1.3d1.xsd "$ableton_10_demo_set"
 # TODO (low urgency) live 9 & 8
 ```
 
@@ -386,12 +393,10 @@ require 'zlib'
 
 def read_als(filepath)
   File.open(filepath, 'rb') do |file|
-    begin # Attempt to read as Gzip
-      Zlib::GzipReader.new(file).read
-    rescue Zlib::GzipFile::Error # If it's not a valid gzip file, rewind and read as plain text
-      file.rewind
-      file.read
-    end
+    Zlib::GzipReader.new(file).read # Attempt to read as Gzip
+  rescue Zlib::GzipFile::Error
+    file.rewind # If it's not a valid gzip file, rewind and read as plain text
+    file.read
   end
 end
 ```

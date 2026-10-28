@@ -37,7 +37,7 @@ class XsdFromXml
     remaining = do_parse.order!(args, into: options)
 
     abort help('No XSD file name provided.') if remaining.empty?
-    xsd_file = remaining.shift
+    xsd_file = remaining.shift.expand_env
 
     abort help('No ALS file names provided.') if remaining.empty?
 
