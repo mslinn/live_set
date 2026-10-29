@@ -12,37 +12,48 @@ RSpec.describe LiveVersionConverter do # rubocop:disable RSpec/DescribeClass
   # The lists are deliberately unlike the lists of a real bridge: the elements are named after
   # the transformations they exercise, so that a failing example says which transformation failed.
   class TestConverter < LiveVersionConverter
-    VERSION = {
-      down: { 'MajorVersion' => '5', 'MinorVersion' => '9.0_9000', 'SchemaChangeCount' => '1',
-              'Creator' => 'Test Live 9', 'Revision' => 'down' },
-      up: { 'MajorVersion' => '5', 'MinorVersion' => '10.0_10000', 'SchemaChangeCount' => '2',
-            'Creator' => 'Test Live 10', 'Revision' => 'up' }
-    }.freeze
+    version down: { 'MajorVersion' => '5', 'MinorVersion' => '9.0_9000', 'SchemaChangeCount' => '1',
+                    'Creator' => 'Test Live 9', 'Revision' => 'down' },
+            up:   { 'MajorVersion' => '5', 'MinorVersion' => '10.0_10000', 'SchemaChangeCount' => '2',
+                    'Creator' => 'Test Live 10', 'Revision' => 'up' }
 
-    REMOVE = %w[OldElement].freeze
-    REMOVE_UNDER = %w[Parent/Child].freeze
-    RENAME = { 'NewName' => 'OldName' }.freeze
-    RENAME_UNDER = { 'Parent/NewChild' => 'OldChild' }.freeze
-    EMPTY = { down: %w[Holder], up: [] }.freeze
-    REMOVE_ATTRIBUTE = %w[OldAttribute].freeze
-    DEFAULT_ATTRIBUTE = { 'Event' => { 'Added' => 'yes' } }.freeze
-    ADD = {
-      down: [{ parent: 'Adder', name: 'DownOnly', attributes: { 'Value' => '1' } }],
-      up:   [{ parent: 'Adder', name: 'UpOnly', attributes: { 'Value' => '2' } }]
-    }.freeze
-    ADD_ATTRIBUTE = {
-      down: {},
-      up:   { 'Panel' => { 'Added' => 'yes' } }
-    }.freeze
-    CHILD_ORDER = {
-      down: { 'Adder' => %w[First Second DownOnly], 'Keep' => %w[First Second] },
-      up:   { 'Adder' => %w[First Second UpOnly], 'Keep' => %w[First Second] }
-    }.freeze
+    remove down: %w[OldElement], up: %w[OldElement]
+    remove down: %w[ExtraElement], up: []
+    remove_under down: %w[Parent/Child], up: %w[Parent/Child]
+    rename 'NewName' => 'OldName'
+    rename_under down: { 'Parent/NewChild' => 'OldChild' }, up: { 'Parent/OldChild' => 'NewChild' }
+    empty down: %w[Holder], up: []
+    remove_attribute %w[OldAttribute]
+    default_attribute 'Event' => { 'Added' => 'yes' }
+    add down: [{ parent: 'Adder', name: 'DownOnly', attributes: { 'Value' => '1' } }],
+        up:   [{ parent: 'Adder', name: 'UpOnly', attributes: { 'Value' => '2' } }]
+    add_attribute down: {}, up: { 'Panel' => { 'Added' => 'yes' } }
+    child_order down: { 'Adder' => %w[First Second DownOnly], 'Keep' => %w[First Second] },
+                up:   { 'Adder' => %w[First Second UpOnly], 'Keep' => %w[First Second] }
   end
 
-  # A bridge whose lists the base class must not use.
-  class OtherConverter < TestConverter
-    REMOVE = %w[SomethingElse].freeze
+  # A bridge that stands on its own, and whose lists are not the lists of TestConverter.
+  class OtherConverter < LiveVersionConverter
+    version down: { 'MajorVersion' => '5', 'MinorVersion' => '9.0_9000', 'SchemaChangeCount' => '1',
+                    'Creator' => 'Test Live 9', 'Revision' => 'down' },
+            up:   { 'MajorVersion' => '5', 'MinorVersion' => '10.0_10000', 'SchemaChangeCount' => '2',
+                    'Creator' => 'Test Live 10', 'Revision' => 'up' }
+
+    remove down: %w[SomethingElse], up: []
+    remove_under down: [], up: []
+    rename({})
+    rename_under down: {}, up: {}
+    empty down: [], up: []
+    remove_attribute []
+    default_attribute({})
+    add down: [], up: []
+    add_attribute down: {}, up: {}
+    child_order down: {}, up: {}
+  end
+
+  # A bridge that does not declare every list.
+  class IncompleteConverter < LiveVersionConverter
+    version down: { 'MinorVersion' => '9.0_9000' }, up: { 'MinorVersion' => '10.0_10000' }
   end
 
   # The version of a document.
@@ -169,10 +180,28 @@ RSpec.describe LiveVersionConverter do # rubocop:disable RSpec/DescribeClass
     expect(content_of(document)).to eq ['<Panel Added="no"/>']
   end
 
-  it 'reads the lists of the subclass, and not the lists of the base class' do
+  it 'uses the lists of its own bridge' do
     document = document_for(LIVE_10, '<OldElement/><SomethingElse/>')
     OtherConverter.new(document).convert
     expect(content_of(document)).to eq ['<OldElement/>']
+  end
+
+  it 'refuses a bridge that inherits from another bridge' do
+    expect { Class.new(TestConverter) }.to raise_error(ArgumentError, /does not inherit from another bridge/)
+  end
+
+  it 'names the lists a bridge does not declare' do
+    expect { IncompleteConverter.new(document_for(LIVE_9)) }
+      .to raise_error(ArgumentError, /does not declare: .*child_order/)
+  end
+
+  it 'refuses a list that does not exist' do
+    expect { Class.new(LiveVersionConverter) { remove_undr down: [], up: [] } }
+      .to raise_error(NoMethodError, /remove_undr/)
+  end
+
+  it 'adds a declaration to what the list already holds' do
+    expect(TestConverter.lists[:remove][:down]).to eq %w[OldElement ExtraElement]
   end
 
   it 'calls the special transformations of the subclass' do

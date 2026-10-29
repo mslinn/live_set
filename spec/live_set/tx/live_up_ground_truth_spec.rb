@@ -55,10 +55,10 @@ RSpec.describe Live11And12, 'the Live 12 conversion of a Live 11 set' do
   # @param name [String] the name Live 11 gives the element
   # @return [String] the name Live 12 gives it
   def live12_name(name)
-    renamed = Live11And12::RENAME.invert[name]
+    renamed = Live11And12.lists[:rename].invert[name]
     return renamed if renamed
 
-    Live11And12::RENAME_UNDER[:up].each do |path, new_name|
+    Live11And12.lists[:rename_under][:up].each do |path, new_name|
       return new_name if path.split('/').last == name
     end
 
@@ -211,7 +211,7 @@ RSpec.describe Live11And12, 'the Live 12 conversion of a Live 11 set' do
   #
   # An element the set does not have is checked against the schema of Live 12 instead, which is
   # generated from the demo sets of Live 12 and says what Live writes.
-  Live11And12::CHILD_ORDER[:up].each do |path, order|
+  Live11And12.lists[:child_order][:up].each do |path, order|
     it "writes the children of #{path} in this order" do
       children = child_names(live_12_set, path)
       children = SchemaOrder.of_file(Schemas.path('12'), path.split('/').last) if children.empty?
@@ -223,7 +223,7 @@ RSpec.describe Live11And12, 'the Live 12 conversion of a Live 11 set' do
   # The elements Live 12 has that Live 11 does not.
   #
   # Each one is added by the conversion, with the attributes Live gives it.
-  Live11And12::ADD[:up].group_by { |addition| addition[:parent] }.each do |parent, additions|
+  Live11And12.lists[:add][:up].group_by { |addition| addition[:parent] }.each do |parent, additions|
     it "adds these elements to #{parent}" do
       element = fullest(live_12_set, parent)
 
@@ -263,7 +263,7 @@ RSpec.describe Live11And12, 'the Live 12 conversion of a Live 11 set' do
   # song master values of the set, and the freeze elements of a track.
   it 'removes the elements Live 12 does not have' do
     removed = child_names(live_11_set, 'LiveSet').map { |name| live12_name(name) } - child_names(live_12_set, 'LiveSet')
-    named = Live11And12::REMOVE_UNDER[:up].grep(%r{^LiveSet/}).map { |path| path.split('/').last }
+    named = Live11And12.lists[:remove_under][:up].grep(%r{^LiveSet/}).map { |path| path.split('/').last }
 
     expect(removed - named - %w[ChooserBar SongMasterValues]).to be_empty
     expect(named - removed).to be_empty
@@ -271,7 +271,7 @@ RSpec.describe Live11And12, 'the Live 12 conversion of a Live 11 set' do
 
   it 'removes the elements of the view states Live 12 does not have' do
     removed = child_names(live_11_set, 'LiveSet/ViewStates') - child_names(live_12_set, 'LiveSet/ViewStates')
-    named = Live11And12::REMOVE_UNDER[:up].grep(%r{^ViewStates/}).map { |path| path.split('/').last }
+    named = Live11And12.lists[:remove_under][:up].grep(%r{^ViewStates/}).map { |path| path.split('/').last }
 
     expect(removed - named).to be_empty
     expect(named - removed).to be_empty

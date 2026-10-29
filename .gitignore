@@ -11,5 +11,6 @@
 /pkg/
 /tmp/
 *.xsd
+!/schemas/*.xsd
 *.als
 !sets/**/*.als
