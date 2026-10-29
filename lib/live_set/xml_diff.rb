@@ -11,11 +11,11 @@ require 'nokogiri'
 class XmlDiff
   # @param ours [Nokogiri::XML::Node] the element of the first document
   # @param theirs [Nokogiri::XML::Node] the element of the second document
-  # @param skip [Array<String>] the names of the elements that are not compared at all
+  # @param skip [Array<String>] the paths of the elements that are not compared at all
   def initialize(ours, theirs, skip: [])
     @ours = ours
     @theirs = theirs
-    @skip = skip
+    @skip = skip.map { |path| path.split('/') }
   end
 
   # The differences between the two documents.
@@ -37,7 +37,7 @@ class XmlDiff
   # @param found [Array<String>] the differences found so far
   # @return [void]
   def compare(ours, theirs, path, found)
-    return if @skip.include?(ours.name)
+    return if skipped?(path)
 
     found.concat attribute_differences(ours, theirs, path)
 
@@ -50,6 +50,19 @@ class XmlDiff
     theirs.element_children.map(&:name).tally.each do |name, count|
       found << "#{path}/#{name} only in theirs" if count > ours.element_children.count { |child| child.name == name }
     end
+  end
+
+  # Whether an element is not compared at all.
+  #
+  # A skipped path matches the end of the path of the element, so that a path like
+  # "DeviceChain/DeviceChain" skips that element wherever it is, and a path like "Devices"
+  # skips every element of that name.
+  #
+  # @param path [String] the path of the element
+  # @return [Boolean] whether the element is skipped
+  def skipped?(path)
+    parts = path.split('/')
+    @skip.any? { |skipped| parts.last(skipped.length) == skipped }
   end
 
   # The children of two elements that have the same name, paired up.

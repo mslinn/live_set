@@ -144,19 +144,27 @@ module DemoSets
   # @raise [RuntimeError] when the set has not been made
   def self.require_converted!(version, edition)
     found = converted(version, edition)
-    raise "No Live 12 conversion of the Live #{version} #{edition} demo set was found" if found.nil?
+    raise "No Live 12 conversion of the Live #{version} #{edition} demo set was found in #{CONVERSIONS_DIRECTORY}" unless File.file?(found)
 
     found
   end
+
+  # The directory the converted sets are kept in.
+  #
+  # The converted sets are reference material, not part of the repository: the file Live 12
+  # wrote is a few hundred kilobytes of test data, and it is not checked in. The directory is
+  # in .gitignore.
+  CONVERSIONS_DIRECTORY = File.expand_path('../conversions', __dir__).freeze
 
   # The Live 12 version of a Live 11 demo set, made by opening it in Live 12 and saving it.
   #
   # This is the file the round trip needs: the same material, written by Live 12. It is not one
   # of the demo sets Ableton ships, because Live 12's demo set is a different song.
   #
-  # Live writes a saved set into a Project folder, and names the file after the set it came
-  # from, with "converted to Live 12" added. So the file is looked for in a folder named after
-  # the set, and beside the original.
+  # The file is named after the set it was made from, with "converted to Live 12" added, and it
+  # is kept in the conversions directory. It is not looked for in the Live installation: a
+  # program that writes into the installation of Live changes a tree that belongs to Live, and
+  # the file belongs to this repository.
   #
   # @param version [String] the Live version the set was written in, e.g. "11"
   # @param edition [String] the edition, e.g. "Suite"
@@ -166,17 +174,8 @@ module DemoSets
     source = edition(version, edition, directories)
     return nil if source.nil?
 
-    name = File.basename(source, '.als')
-    song = name.delete_suffix('.als')
-    folder = File.dirname(source)
-    converted = "#{song} converted to Live 12"
-    candidates = [
-      File.join(folder, "#{converted}.als"),
-      File.join(folder, "#{converted} Project", "#{converted}.als"),
-      File.join(folder, "#{song} (Live 12).als")
-    ]
-    candidates += directories(directories).flat_map { |dir| Dir.glob File.join(dir, "#{song}*converted to Live 12*.als") }
-    candidates.find { |path| File.file? path }
+    song = File.basename(source, '.als')
+    File.join(CONVERSIONS_DIRECTORY, "#{song} converted to Live 12.als")
   end
 
   # The prefix that marks an argument as a selector of a demo set, rather than a path.
@@ -187,9 +186,11 @@ module DemoSets
   # A selector names one of the demo sets, so that a command can say which set it means without
   # holding the path of the set on the machine it runs on. The selectors are:
   #
-  #   demo:11:suite        the Live 11 Suite demo set
-  #   demo:12              the demo set of Live 12
-  #   demo:converted:11:suite  the Live 12 conversion of the Live 11 Suite demo set
+  #   demo:11:suite  the Live 11 Suite demo set
+  #   demo:12        the demo set of Live 12
+  #
+  # A set that is not one of the demo sets is named by its path, e.g. the converted set in the
+  # conversions directory.
   #
   # @param argument [String] the path or the selector
   # @return [String] the path of the set
@@ -206,7 +207,6 @@ module DemoSets
   # @raise [ArgumentError] when the selector does not name a set
   def self.resolve(selector)
     case selector
-    when /\Aconverted:(\d+):(\w+)\z/ then require_converted!(Regexp.last_match(1), Regexp.last_match(2))
     when /\A(\d+):(\w+)\z/ then require_edition!(Regexp.last_match(1), Regexp.last_match(2))
     when /\A(\d+)\z/ then require!(Regexp.last_match(1))
     else raise ArgumentError, "cannot tell what set #{selector.inspect} names"
