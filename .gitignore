@@ -12,3 +12,4 @@
 /tmp/
 *.xsd
 *.als
+!sets/**/*.als

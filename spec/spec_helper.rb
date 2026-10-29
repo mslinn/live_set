@@ -131,7 +131,7 @@ end
 # FreezeSequencer holds the rendered audio cache. Some frozen tracks hold their clips only in the
 # FreezeSequencer, so a reader that looks only at the MainSequencer finds nothing.
 #
-# See docs/als_format.md section 11.
+# See docs/als_notes.md, "The two sequencers of a track, and the frozen track that keeps both".
 #
 # @param clip_slots [String] the inner XML of the FreezeSequencer's <ClipSlotList> element
 # @param arrangement_clips [String] the inner XML of the arrangement's <Events> element
@@ -174,7 +174,7 @@ end
 # Builds a Slop-decorated document containing a single GroupTrack.
 #
 # A group track is a summing container. It has no clips, and its Slots are empty. Its DeviceChain
-# has no MainSequencer, only a FreezeSequencer. See docs/als_format.md section 9.
+# has no MainSequencer, only a FreezeSequencer. See docs/als_notes.md, "The group tracks".
 #
 # @param id [String] the group's Id attribute
 # @param name [String] the group's name
@@ -251,7 +251,7 @@ end
 # Builds a <PluginDevice> element holding a VST3 plug-in.
 #
 # A VST3 plug-in has no PlugName. Its name is at PluginDesc/Vst3PluginInfo/Name. See
-# docs/als_format.md section 8.
+# docs/als_notes.md, "The devices of a chain, and the plug-ins among them".
 #
 # @param name [String] the plug-in's name
 # @return [String] the XML of a <PluginDevice> element
@@ -278,7 +278,8 @@ end
 
 # Builds a <PluginDevice> element holding a VST2 plug-in.
 #
-# A VST2 plug-in's name is at PluginDesc/VstPluginInfo/PlugName. See docs/als_format.md section 8.
+# A VST2 plug-in's name is at PluginDesc/VstPluginInfo/PlugName. See docs/als_notes.md, "The
+# devices of a chain, and the plug-ins among them".
 #
 # @param name [String] the plug-in's name
 # @return [String] the XML of a <PluginDevice> element

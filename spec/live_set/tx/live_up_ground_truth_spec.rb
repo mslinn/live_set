@@ -4,24 +4,24 @@ require 'live_set/tx/live_11_and_12'
 require 'demo_sets'
 require 'support/schemas'
 
-# The elements Live 12 adds that the rules add, and not the table of the additions.
+# The elements Live 12 adds that the transformations add, and not the table of the additions.
 #
 # The tuning of a MIDI track depends on the device chain of the track — the notes of a drum
 # rack are not pitches — so it cannot be written in the table.
-ADDED_BY_RULES = { 'MidiTrack' => %w[IsTuned] }.freeze
+ADDED_BY_TRANSFORMATIONS = { 'MidiTrack' => %w[IsTuned] }.freeze
 
 # The ground truth of the up direction: what Live does when it opens a Live 11 set in Live 12
 # and saves it.
 #
 # Ableton ships the Live 11 Suite demo set. Saving that set in Live 12 produces a second file,
-# and that second file is what the up direction has to reproduce. It is the reference the rules
+# and that second file is what the up direction has to reproduce. It is the reference the transformations
 # of the conversion are checked against.
 #
-# The rules are in the tables of Live11And12. This spec says those tables are right, so what
+# The transformations are in the tables of Live11And12. This spec says those tables are right, so what
 # Live does is written down in the repository rather than in a terminal scrollback. When Live
 # changes what it writes, this spec fails and the tables are brought up to date.
 #
-# The rules of the conversion itself are in spec/live_set/tx/live_11_and_12_up_spec.rb.
+# The transformations of the conversion itself are in spec/live_set/tx/live_11_and_12_up_spec.rb.
 RSpec.describe Live11And12, 'the Live 12 conversion of a Live 11 set' do
   let(:live11_path) { DemoSets.require_edition!('11', 'Suite') }
   let(:live12_path) { DemoSets.require_converted!('11', 'Suite') }
@@ -143,6 +143,35 @@ RSpec.describe Live11And12, 'the Live 12 conversion of a Live 11 set' do
     expect(tuned.first.at_xpath('.//DrumGroupDevice')).to be_nil
   end
 
+  # The elements of a set that hold a track.
+  TRACK_ELEMENTS = %w[MidiTrack AudioTrack GroupTrack ReturnTrack MainTrack PreHearTrack].freeze
+
+  # The panel of the device chain of a track.
+  #
+  # Live 12 writes on every track the panel of the device chain that is selected, and the names
+  # of the generator and the transformation that are selected. Live 11 writes none of them.
+  it 'writes the panel of the device chain of every track' do
+    tracks = live_12_set.xpath('//MidiTrack | //AudioTrack | //GroupTrack | //ReturnTrack | //MainTrack | //PreHearTrack')
+
+    expect(tracks).not_to be_empty
+    expect(tracks.map { |track| track['SelectedToolPanel'] }.uniq).to eq ['7']
+    expect(tracks.map { |track| track['SelectedGeneratorName'] }.uniq).to eq ['']
+    expect(tracks.map { |track| track['SelectedTransformationName'] }.uniq).to eq ['']
+  end
+
+  # The attributes are written on the tracks and nowhere else.
+  it 'writes them on the tracks and nowhere else' do
+    elsewhere = live_12_set.xpath('//*[@SelectedToolPanel or @SelectedGeneratorName or @SelectedTransformationName]')
+                          .reject { |element| TRACK_ELEMENTS.include?(element.name) }
+
+    expect(elsewhere.map(&:path)).to be_empty
+  end
+
+  # Live 11 writes none of them.
+  it 'writes them on no track of the Live 11 set' do
+    expect(live_11_set.xpath('//*[@SelectedToolPanel or @SelectedGeneratorName or @SelectedTransformationName]')).to be_empty
+  end
+
   # The names of the tracks.
   #
   # Live 12 calls the track Live 11 calls the master track the main track, and names it "Main".
@@ -223,14 +252,14 @@ RSpec.describe Live11And12, 'the Live 12 conversion of a Live 11 set' do
     end
 
     it "adds nothing else to #{parent}" do
-      named = additions.map { |addition| addition[:name] } + ADDED_BY_RULES.fetch(parent, [])
+      named = additions.map { |addition| addition[:name] } + ADDED_BY_TRANSFORMATIONS.fetch(parent, [])
       expect(added_by_live12(parent) - named - ['SessionScrollPos']).to be_empty
     end
   end
 
   # The elements Live 11 has that Live 12 does not.
   #
-  # Going up, these are removed. The ones the special rules remove are the chooser bar and the
+  # Going up, these are removed. The ones the special transformations remove are the chooser bar and the
   # song master values of the set, and the freeze elements of a track.
   it 'removes the elements Live 12 does not have' do
     removed = child_names(live_11_set, 'LiveSet').map { |name| live12_name(name) } - child_names(live_12_set, 'LiveSet')

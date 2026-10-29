@@ -11,6 +11,12 @@ require_relative 'xsd_builder'
 # See lib/generate_xsd/xsd_builder.rb for what the schema describes, and what the generator
 # infers from the sample.
 #
+# The schema is inferred from the XML stored in the sets it is given, so it describes what those
+# sets contain and nothing more. Newer versions of Live write constructs that older demo sets do
+# not have: the schema inferred from the demo sets alone rejects the file Live wrote when it
+# opened and saved a set of an older version. Give the generator every set of the version you
+# have, not just the demo sets.
+#
 # Usage: generate_xsd OPTIONS XSD_FILE_NAME PATH_TO_ALS_FILE...
 class XsdFromXml
   # Generate an XSD from one or more Live sets, and write it to a file.

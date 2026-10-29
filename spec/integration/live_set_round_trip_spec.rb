@@ -17,7 +17,7 @@ require 'support/gui_harness'
 # about half a minute to start and load a set. The Live 11 launch is part of the round trip,
 # so the spec runs it when the installation is present and the live log is available.
 #
-# See TODO.md N42 and docs/als_format.md section 2.5.
+# See TODO.md N42 and docs/live_11_12_diff.md, "The lane types Live 11 does not have".
 RSpec.describe LiveSet, 'the round trip through Live 11' do # rubocop:disable RSpec/DescribeMethod
   # The official Live 11 demo set supplied with Live 11. This is the source of truth for the
   # round trip.

@@ -3,18 +3,33 @@ require 'nokogiri'
 # The machinery of a conversion between two versions of the Live format.
 #
 # A conversion is made of tables — the elements to remove, the elements to rename, the attributes
-# to give a default value — and of a few rules that are not tables, which a subclass adds by
-# overriding #special_rules.
+# to give a default value — and of a few transformations that a table cannot express, which a
+# subclass adds by overriding #special_transformations.
 #
-# The tables do not say which way the conversion is going. A rule that renames an element matches
-# either spelling and emits the other, so the same table serves both directions. The direction is
-# a property of the document: the version the document carries decides it.
+# The tables do not say which way the conversion is going. A rename matches either spelling and
+# emits the other, so the same table serves both directions. The direction is a property of the
+# document: the version the document carries decides it.
 #
-# A rule that cannot be expressed symmetrically is conditioned on the direction. A table that
-# applies in one direction only is written as a hash with a key for each direction, and the base
-# class takes the one that applies.
+# A transformation that cannot be expressed symmetrically is conditioned on the direction. A
+# table that applies in one direction only is written as a hash with a key for each direction,
+# and the base class takes the one that applies.
 #
-# See docs/cpfir.md, and docs/live_11_12_differences.md.
+# A conversion is a pure function from one document to another: the result depends only on the
+# document, and nothing outside it is touched. See docs/cpfir.md, section 4.
+#
+# The transformations are written by hand. Nothing produces them automatically; the comparison
+# of the two versions is information for the person writing them. See docs/conversion.md,
+# section 3.3.
+#
+# The terms used here are defined in docs/glossary.md.
+#
+# The schema of a version is an index of the format: it lists every element and every attribute
+# of that version, so the differences between two versions are found by diffing one schema
+# against the other. See docs/als_work.md, "Mapping XSD to Ruby Classes", and docs/conversion.md,
+# sections 3.4 and 5.3.
+#
+# The transformations of a version_diff live in the subclass, and the differences between the
+# two versions are summarized in docs/live_11_12_diff.md.
 class LiveVersionConverter
   # The version strings of each direction.
   #
@@ -30,13 +45,13 @@ class LiveVersionConverter
   # The elements the older version does not have, under a named parent.
   #
   # An element that is removed by its name alone would also be removed from the places the older
-  # version needs it, so these rules name the parent the element has to be removed from.
+  # version needs it, so these entries name the parent the element has to be removed from.
   REMOVE_UNDER = [].freeze
 
   # The elements the two versions spell differently.
   #
   # The base class reads this table in both directions, so the name of the element is enough: the
-  # rule renames the element to the other spelling.
+  # rename turns the element into the other spelling.
   RENAME = {}.freeze
 
   # The elements the two versions spell differently, under a named parent.
@@ -57,9 +72,15 @@ class LiveVersionConverter
   # The elements the newer version adds to a set that came from the older one.
   #
   # Each entry names the parent the element goes in, the element itself, the attributes it has,
-  # and the elements it holds. Where the element goes among the children of its parent is not
-  # said here: the order of CHILD_ORDER says that.
+  # and the elements it holds. The element is added at the end of its parent, and the order of
+  # CHILD_ORDER moves it to where the version writes it.
   ADD = { down: [], up: [] }.freeze
+
+  # The attributes the newer version writes on an element.
+  #
+  # The older version does not write them at all, so a set that came from the older version does
+  # not have them either. The attributes go on the elements that are already in the set.
+  ADD_ATTRIBUTE = { down: {}, up: {} }.freeze
 
   # The order the version writes the children of an element in.
   #
@@ -96,7 +117,8 @@ class LiveVersionConverter
     rename_elements
     empty_elements
     default_attributes
-    special_rules
+    add_attributes
+    special_transformations
     additions
     reorder_children
     document
@@ -125,14 +147,14 @@ class LiveVersionConverter
     raise ArgumentError, "cannot tell which version the set is: #{version.inspect}"
   end
 
-  # The table for the direction the set is going.
+  # The constant for the direction the set is going.
   #
-  # A table that applies in both directions is written as it is. A table that applies in one
+  # A list that applies in both directions is written as it is. A list that applies in one
   # direction only is written as a hash with a key for each direction.
   #
-  # @param name [Symbol] the name of the table
-  # @return [Object] the table
-  def table(name)
+  # @param name [Symbol] the name of the constant
+  # @return [Object] the list
+  def constant(name)
     value = self.class.const_get(name)
     return value.fetch(@direction) if value.is_a?(Hash) && value.key?(:down) && value.key?(:up)
 
@@ -142,27 +164,27 @@ class LiveVersionConverter
   # Writes the version strings of the version the set is going to.
   def version_strings
     root = document.at_xpath('/Ableton')
-    strings = table(:VERSION)
+    strings = constant(:VERSION)
     root.attribute_nodes.each { |attribute| attribute.remove unless strings.key?(attribute.name) }
     strings.each { |name, value| root[name] = value }
   end
 
   # Removes the elements the older version does not have.
   def remove_elements
-    table(:REMOVE).each { |name| document.xpath("//#{name}").each(&:remove) }
-    table(:REMOVE_UNDER).each { |path| document.xpath("//#{path}").each(&:remove) }
-    table(:REMOVE_ATTRIBUTE).each do |name|
+    constant(:REMOVE).each { |name| document.xpath("//#{name}").each(&:remove) }
+    constant(:REMOVE_UNDER).each { |path| document.xpath("//#{path}").each(&:remove) }
+    constant(:REMOVE_ATTRIBUTE).each do |name|
       document.xpath("//*[@#{name}]").each { |element| element.remove_attribute(name) }
     end
   end
 
   # Renames the elements the two versions spell differently.
   def rename_elements
-    renames = table(:RENAME)
-    # The rule renames an element to the other spelling, so the table is read in both directions.
+    renames = constant(:RENAME)
+    # A rename turns the element into the other spelling, so the table is read in both directions.
     renames = renames.merge(renames.invert)
     # The elements are collected before any of them is renamed, so that an element renamed into
-    # the name of another rule is not renamed a second time.
+    # the name of another entry is not renamed a second time.
     elements = renames.keys.flat_map { |name| document.xpath("//#{name}") }
     elements.each { |element| element.name = renames[element.name] if renames.key?(element.name) }
 
@@ -171,40 +193,51 @@ class LiveVersionConverter
 
   # Renames the elements the two versions spell differently, under a named parent.
   #
-  # The parent holds the element under a different name in each version, so the path of a rule
+  # The parent holds the element under a different name in each version, so the path of a rename
   # is the path of the element in the version the set is coming from. The elements are collected
-  # before any of them is renamed, so that an element renamed into the path of another rule is
+  # before any of them is renamed, so that an element renamed into the path of another rename is
   # not renamed a second time.
   def rename_elements_under_parent
-    under = table(:RENAME_UNDER)
+    under = constant(:RENAME_UNDER)
     matches = under.keys.flat_map { |path| document.xpath("//#{path}").map { |element| [element, under[path]] } }
     matches.each { |element, name| element.name = name }
   end
 
   # Empties the elements that are empty in the older version.
   def empty_elements
-    table(:EMPTY).each { |path| document.xpath("//#{path}").each { |element| element.children.remove } }
+    constant(:EMPTY).each { |path| document.xpath("//#{path}").each { |element| element.children.remove } }
   end
 
   # Gives the attributes the older version always writes the value it writes.
   def default_attributes
-    table(:DEFAULT_ATTRIBUTE).each do |name, attributes|
+    constant(:DEFAULT_ATTRIBUTE).each do |name, attributes|
       document.xpath("//#{name}").each do |element|
         attributes.each { |attribute, value| element[attribute] = value unless element.attribute(attribute) }
       end
     end
   end
 
-  # The rules that are not tables.
+  # Gives the elements the attributes the newer version writes on them.
+  #
+  # An attribute that is already there is left alone.
+  def add_attributes
+    constant(:ADD_ATTRIBUTE).each do |name, attributes|
+      document.xpath("//#{name}").each do |element|
+        attributes.each { |attribute, value| element[attribute] = value unless element.attribute(attribute) }
+      end
+    end
+  end
+
+  # The transformations that a table cannot express.
   #
   # A subclass overrides this and calls super.
   #
   # @return [void]
-  def special_rules; end
+  def special_transformations; end
 
   # Adds the elements the newer version has and the older one does not.
   def additions
-    table(:ADD).each do |addition|
+    constant(:ADD).each do |addition|
       document.xpath("//#{addition[:parent]}").each do |parent|
         next if parent.at_xpath("./#{addition[:name]}")
 
@@ -227,7 +260,7 @@ class LiveVersionConverter
   #
   # The elements the order does not name keep the place they have, at the end of their parent.
   def reorder_children
-    table(:CHILD_ORDER).each do |name, order|
+    constant(:CHILD_ORDER).each do |name, order|
       document.xpath("//#{name}").each { |parent| reorder_children_of(parent, order) }
     end
   end

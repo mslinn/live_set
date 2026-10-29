@@ -1,17 +1,20 @@
 require 'spec_helper'
 require 'support/live_versions'
 
-# The rules of the conversion between the Live 11 and the Live 12 formats, going up.
+# The transformations of the conversion between the Live 11 and the Live 12 formats, going up.
 #
 # A Live 11 set in, a Live 12 set out. The conversion is lossless: it preserves everything the
 # set contains and changes only how it is expressed. It reproduces what Live itself does when it
 # opens an older set in a newer Live and saves it.
 #
-# The other direction is in live_11_and_12_down_spec.rb. The two files walk the same rules.
-RSpec.describe Live11And12, 'going up to Live 12' do
+# The other direction is in live_11_and_12_down_spec.rb. The two files walk the same transformations.
+RSpec.describe Live11And12, 'going up to Live 12' do # rubocop:disable RSpec/DescribeMethod
+  # The attributes Live 12 writes on every track.
+  TRACK_ATTRIBUTES = ' SelectedGeneratorName="" SelectedToolPanel="7" SelectedTransformationName=""'.freeze
+
   it 'writes the version strings of a Live 12 set' do
     document = live_document(LIVE_11)
-    Live11And12.new(document).convert
+    described_class.new(document).convert
 
     expect(document.root['MinorVersion']).to eq LIVE_12
     expect(document.root['Creator']).to eq 'Ableton Live 12.4.6'
@@ -21,7 +24,8 @@ RSpec.describe Live11And12, 'going up to Live 12' do
 
   it 'renames the master track' do
     expect(convert_fragment(LIVE_11, '<MasterTrack/>'))
-      .to eq ['<MainTrack><ArrangementClipsListWrapper LomId="0"/><TakeLanesListWrapper LomId="0"/></MainTrack>']
+      .to eq ["<MainTrack#{TRACK_ATTRIBUTES}><ArrangementClipsListWrapper LomId=\"0\"/>" \
+              '<TakeLanesListWrapper LomId="0"/></MainTrack>']
   end
 
   it 'renames the width of the mixer, typo and all' do
@@ -52,7 +56,8 @@ RSpec.describe Live11And12, 'going up to Live 12' do
     fragment = '<VelocityDetail Value="0"/><NeedArrangerRefreeze Value="true"/>' \
                '<PostProcessFreezeClips Value="false"/>'
     expect(convert_element(LIVE_11, 'AudioTrack', fragment))
-      .to eq '<AudioTrack><ArrangementClipsListWrapper LomId="0"/><TakeLanesListWrapper LomId="0"/>' \
+      .to eq "<AudioTrack#{TRACK_ATTRIBUTES}><ArrangementClipsListWrapper LomId=\"0\"/>" \
+             '<TakeLanesListWrapper LomId="0"/>' \
              '<PostProcessFreezeClips Value="false"/><IsTuned Value="true"/></AudioTrack>'
   end
 
@@ -89,7 +94,7 @@ RSpec.describe Live11And12, 'going up to Live 12' do
 
   it 'adds the wrappers of a track' do
     expect(convert_element(LIVE_11, 'MidiTrack', '<ClipSlotsListWrapper/><ViewData/>'))
-      .to eq '<MidiTrack><ClipSlotsListWrapper/><ArrangementClipsListWrapper LomId="0"/>' \
+      .to eq "<MidiTrack#{TRACK_ATTRIBUTES}><ClipSlotsListWrapper/><ArrangementClipsListWrapper LomId=\"0\"/>" \
              '<TakeLanesListWrapper LomId="0"/><ViewData/><IsTuned Value="true"/>' \
              '<ControllerLayoutRemoteable Value="0"/><ControllerLayoutCustomization>' \
              '<PitchClassSource Value="0"/><OctaveSource Value="2"/><KeyNoteTarget Value="60"/>' \
@@ -119,10 +124,21 @@ RSpec.describe Live11And12, 'going up to Live 12' do
              '<GroovesListWrapper LomId="0"/></GroovePool>'
   end
 
+  it 'writes the panel of the device chain of a track' do
+    expect(convert_fragment(LIVE_11, '<MidiTrack/>').first)
+      .to include('SelectedToolPanel="7"', 'SelectedGeneratorName=""', 'SelectedTransformationName=""')
+  end
+
+  it 'writes the panel of the device chain of the main track' do
+    expect(convert_fragment(LIVE_11, '<MasterTrack/>').first)
+      .to include('SelectedToolPanel="7"', 'SelectedGeneratorName=""', 'SelectedTransformationName=""')
+  end
+
   it 'adds the settings of the note layout of a MIDI track' do
     fragment = '<DeviceChain/><PitchbendRange/>'
     expect(convert_element(LIVE_11, 'MidiTrack', fragment))
-      .to eq '<MidiTrack><ArrangementClipsListWrapper LomId="0"/><TakeLanesListWrapper LomId="0"/>' \
+      .to eq "<MidiTrack#{TRACK_ATTRIBUTES}><ArrangementClipsListWrapper LomId=\"0\"/>" \
+             '<TakeLanesListWrapper LomId="0"/>' \
              '<DeviceChain/><PitchbendRange/><IsTuned Value="true"/>' \
              '<ControllerLayoutRemoteable Value="0"/><ControllerLayoutCustomization>' \
              '<PitchClassSource Value="0"/><OctaveSource Value="2"/><KeyNoteTarget Value="60"/>' \
@@ -167,7 +183,7 @@ RSpec.describe Live11And12, 'going up to Live 12' do
     fragment = '<MasterTrack><Name><EffectiveName Value="Master"/></Name></MasterTrack>'
     converted = convert_fragment(LIVE_11, fragment).first
 
-    expect(converted).to start_with '<MainTrack>'
+    expect(converted).to start_with '<MainTrack '
     expect(converted).to include '<EffectiveName Value="Main"/>'
   end
 

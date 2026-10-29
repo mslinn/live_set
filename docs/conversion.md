@@ -8,6 +8,7 @@ This document says:
 
 The companion documents are:
 
+- [`glossary.md`](glossary.md) — the terms these documents use.
 - [`als_notes.md`](als_notes.md) — the format itself: what the XML looks like.
 - [`als_work.md`](als_work.md) — the how-to document for working with the format.
 - [`live_control_plan.md`](live_control_plan.md) — the plan for proving a
@@ -19,8 +20,8 @@ validation of the Live 11 conversion) and **N42** (unknown lane `Type` values ma
 
 ## 1. The conversion today
 
-`live_set -11` converts a Live 12 set to the Live 11 format. It is implemented as
-six hand-written edits in `lib/live_set/live_set_class.rb`:
+`live_set -11` converts a Live 12 set to the Live 11 format. It used to be six
+hand-written edits in `lib/live_set/live_set_class.rb`:
 
 | Line    | What it does                                                                                              |
 | ------- | --------------------------------------------------------------------------------------------------------- |
@@ -31,12 +32,16 @@ six hand-written edits in `lib/live_set/live_set_class.rb`:
 | 181–189 | Rewrites a `Saturator`'s `Oversampling` from `"true"`/`"false"` to `"1"`/`"0"`.                           |
 | 47      | Parses the document with `Nokogiri::Slop`.                                                                |
 
-It is not XSLT. There is no transform in this repository yet. `docs/als_work.md` section "XML
-Transformation with XSLT (Nokogiri)" describes the intent, and the same section carries this
-TODO:
+The transform now exists, and it is Ruby rather than XSLT: the base class is
+`lib/live_set/tx/live_version_converter.rb`, the transformations of the 11↔12 version_diff are
+`lib/live_set/tx/live_11_and_12.rb`, and `docs/fix_plan2.md` says why the
+stylesheet was replaced. The line numbers above are those of the code that is
+gone; the table describes what the conversion did, not where it lives now.
 
-> TODO we need a new class for transforming als files using xslt, plus spec unit tests and also
-> tests on the ableton live demo als files.
+A transform is not directional. A rename matches either spelling and emits the
+other, so one set of transformations carries both directions of a
+version_diff, and the direction is a property of the document. See
+`docs/cpfir.md` §4.
 
 
 ## 2. What is wrong with it
@@ -152,15 +157,19 @@ Seven things.
 
 ### 3.1 The conversion must become a transform
 
-The conversion is a difference between two XML formats. XSLT is the tool for
-that, Nokogiri is already a dependency, and `docs/als_work.md` already plans for
-it.
-
-This is also what makes the other six items possible. The difference list
-becomes a set of rules
+The conversion is a difference between two XML formats, and a transform is how
+that difference is expressed: the difference list becomes a set of transformations
 that are applied, rather than code that patches a document in place.
 
-### 3.2 The differences must be written down as rules, not discovered each time
+The transform is Ruby, not XSLT. The stylesheet was written first and then
+replaced, because a transformation is a table entry in Ruby and a template in
+XSLT: in XSLT the up direction needs a second template for every transformation,
+while in Ruby
+the same table is read the other way. `docs/fix_plan2.md` says why, and
+`lib/live_set/tx/` holds the result.
+
+
+### 3.2 The differences must be written down as transformations, not discovered each time
 
 Today the list is six hand-written edits inside the conversion code. A new Live
 release means a new audit of the format, by eye, from scratch.
@@ -172,7 +181,7 @@ the way.
 
 What the comparison shows and what it means are different things. It shows that
 `MainTrack` sits at a path where Live 11 has `MasterTrack`; it cannot show that
-they are the same element. That is a judgement, made when the rule is written.
+they are the same element. That is a judgement, made when the transformation is written.
 
 ### 3.3 The differences must be sorted by kind, and the non-obvious ones hand-written
 
@@ -180,14 +189,14 @@ Section 2.2 lists eight kinds. Each is a different operation:
 
 | Kind                          | How it is expressed                                                         |
 | ----------------------------- | --------------------------------------------------------------------------- |
-| delete an element             | a rule that matches it and emits nothing                                    |
-| delete an attribute           | a rule that matches the attribute and emits nothing                         |
-| rename an element             | a rule that matches the old name and emits the new one                      |
-| rewrite an attribute value    | a rule that matches the attribute and writes a new value                    |
-| add an element with a default | a rule that copies the parent and appends the new child                     |
-| filter by value               | a rule that matches the element and emits it only when its value is allowed |
+| delete an element             | a transformation that matches it and emits nothing                          |
+| delete an attribute           | a transformation that matches the attribute and emits nothing               |
+| rename an element             | a transformation that matches the old name and emits the new one            |
+| rewrite an attribute value    | a transformation that matches the attribute and writes a new value          |
+| add an element with a default | a transformation that copies the parent and appends the new child           |
+| filter by value               | a transformation that matches the element and emits it only when its value is allowed |
 | move an element               | copy it to the new parent, and suppress the original                        |
-| keep everything else          | the identity rule                                                           |
+| keep everything else          | the identity transformation                                                |
 
 All seven operations were exercised against a miniature ALS document and all seven work in
 XSLT 1.0, which is what Nokogiri implements.
@@ -204,21 +213,21 @@ XSLT 1.0, which is what Nokogiri implements.
 | Value not legal in the target              | no — needs the value domain, section 6                                  |
 | Element to be added, and its default       | no — by inspection                                                      |
 
-**The rules are written by hand.** Nothing produces them automatically. The
+**The transformations are written by hand.** Nothing produces them automatically. The
 comparison of the two versions' baselines is information for the person writing
 them.
 
 ### 3.4 Attributes have to be part of the difference list
 
 521 of the 539 errors are attributes the target version does not have. The
-schemas know which attributes exist in which version, so the rules can delete
+schemas know which attributes exist in which version, so the transformations can delete
 them by name.
 
 The blind text substitution at line 121 has to go with them. It works by luck:
 the string `AudioOut/Main` happens to appear only as the value of
 `Target/@Value` in these sets. A substitution over serialized XML cannot know
 that, and will happily rewrite text content or an element name if the string
-ever appears there. It has to be a rule about one specific attribute on one
+ever appears there. It has to be a transformation about one specific attribute on one
 specific element.
 
 ### 3.5 Elements have to be able to be added
@@ -252,8 +261,11 @@ were found by validating the output separately, after the fact. Nothing in the c
 that it produced a set Live 11 cannot open.
 
 A vocabulary check is enough — every element name and every attribute name in the output has to be
-one the target version has. Full XSD validation is not: a schema generated from one set makes
-35,708 "required attribute" claims, most of which are artifacts of that one set.
+one the target version has. The schema of the target version is where that list comes from: it
+lists every element and every attribute of that version, so the names one version has and the
+other does not are found by diffing one schema against the other. Full XSD validation is not: a
+schema generated from one set makes 35,708 "required attribute" claims, most of which are
+artifacts of that one set.
 
 
 ## 4. The pieces
@@ -282,7 +294,7 @@ that differ only in compression are the same set, and everything downstream sees
 
 ### 4.2 The transforms
 
-One transform per adjacent version pair, in each direction:
+One transform per adjacent version_diff, in each direction:
 
 ```text
 live_10 ──▶ live_11 ──▶ live_12
@@ -380,7 +392,7 @@ comparator works on the shapes.
 **Capabilities**
 
 1. **Apply a chain of transforms in order, in memory.** No intermediate files.
-2. **Find the chain for a pair of versions.** Given a source version and a target version, work out
+2. **Find the chain for a version_diff.** Given a source version and a target version, work out
    the ordered list of transforms that connects them, in either direction.
 3. **Pass a set through unchanged** when its header already says it is in the target version.
 4. **Compare two sets** and report the differences as actions.
@@ -389,12 +401,12 @@ comparator works on the shapes.
 
 **What it must not do**
 
-- **Decide what the differences are.** That is the rules' job. The component applies rules; it does
-  not write them.
-- **Generate rules at run time.** The rules are written by hand and checked in.
+- **Decide what the differences are.** That is the transformations' job. The component applies
+  transformations; it does not write them.
+- **Generate transformations at run time.** The transformations are written by hand and checked in.
 - **Open Live.** Proving a converted set works is `docs/live_control_plan.md`'s job.
-- **Lose material it does not understand.** The identity rule copies everything the rules do not
-  mention, with its attributes. That is what makes it safe to run a transform written for one
+- **Lose material it does not understand.** The identity transformation copies everything the
+  transformations do not mention, with its attributes. That is what makes it safe to run a transform written for one
   version against a set that contains something new.
 
 ### 4.6 Putting it together
@@ -416,13 +428,14 @@ everything the newer version added, so it is not the strategy.
 
 These are the things that will bite. The first one was found by testing, not by reading.
 
-1. **A rename shadows every later rule that matches the new name.** A rule matching
-   `MidiEditorLaneModel` that renames it to `ExpressionLane` wins over a later rule matching
-   `ContentLanes/ExpressionLane`, so the later one never runs. Rules that depend on the *result* of
+1. **A rename shadows every later transformation that matches the new name.** A transformation
+   matching `MidiEditorLaneModel` that renames it to `ExpressionLane` wins over a later
+   transformation matching `ContentLanes/ExpressionLane`, so the later one never runs.
+   Transformations that depend on the *result* of
    a rename have to match the source name, or carry an explicit `priority`.
 2. **Moving a node needs two halves.** Copy it to the new parent, and suppress the original. Leave
    out either half and the node is duplicated or lost.
-3. **`xsl:attribute` replaces, it does not add.** A rule that writes an attribute the element
+3. **`xsl:attribute` replaces, it does not add.** A transformation that writes an attribute the element
    already has changes its value.
 4. **`xsl:output indent="yes"` reformats the document.** That is helpful when two sets are going to
    be diffed, because it removes incidental whitespace differences. It also changes the file, so it
@@ -499,7 +512,7 @@ The comparison is symmetric, so one comparison informs both directions.
 `MainTrack` and `MasterTrack` are the same element under two names, and so are
 `MidiEditorLaneModel` and `ExpressionLane`, but a comparison cannot tell that from an unrelated
 pair of elements that happen to sit at the same path. That is settled by inspection, and then
-written into the rules by hand. The same goes for value respellings, moves, and elements that have
+written into the transformations by hand. The same goes for value respellings, moves, and elements that have
 to be added with a default.
 
 ### 5.4 What the baseline is for
@@ -514,8 +527,8 @@ Two jobs:
 ### 5.5 A baseline and a schema are opposite operations on the same corpus
 
 The schema is the union of what can exist; the baseline is the intersection of what always exists.
-The XSD generator's rule — "element optional iff some instance lacked it" — is the union rule. The
-baseline is the intersection rule. They must not be confused: feeding a baseline to the XSD
+The XSD generator's rule — "element optional iff some instance lacked it" — is the union. The
+baseline is the intersection. They must not be confused: feeding a baseline to the XSD
 generator would make every element in it required, which is wrong.
 
 Ableton ships files that resemble the baselines, and they are worth knowing about:
@@ -625,7 +638,7 @@ generator produces one content model per path, a domain is representable per pat
 
 The limitation is the same as the schema's other limitations: it says "these were seen", not "these
 are legal". It is still worth writing down, because it turns a silent wrong value into a
-validation error, and a rule can filter against it.
+validation error, and a transformation can filter against it.
 
 ### 6.5 What to do with an illegal value
 

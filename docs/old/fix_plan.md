@@ -2,10 +2,10 @@
 
 ## Context
 
-The gem converts a Live 12 set into a Live 11 set. The rules that make the two formats differ
+The gem converts a Live 12 set into a Live 11 set. The transformations that make the two formats differ
 currently live as hand-written Ruby in `lib/live_set/live_set_converter.rb`.
 
-We have decided the rules belong in an XSLT stylesheet instead because a that
+We have decided the transformations belong in an XSLT stylesheet instead because a that
 provides a way to associate functionality to nodes in a parsed schema. This can
 be used to transform conformant XML documents. The transformations are
 bidirectional, which means one XSLT stylesheet provides the ability to convert
@@ -40,7 +40,7 @@ Every phase ends at a working state. Nothing in Phase 3 blocks Phase 2.
 ## The "Master" → "Main" rename
 
 The Live 12 developers renamed "Master" to "Main". This is the largest single group of
-differences between the two formats, and it can be stated once instead of rule by rule.
+differences between the two formats, and it can be stated once instead of transformation by transformation.
 
 The schemas make the shape of it plain:
 
@@ -57,12 +57,12 @@ back in four places, and nowhere else.
 
 The rename was not a blind search-and-replace, and the plan must not be one either:
 `MainSequencer` is spelled the same in Live 11 and Live 12, and it has nothing to do with the
-master track. That is the exception that keeps the rule a table rather than a substitution.
+master track. That is the exception that keeps the transformation a table rather than a substitution.
 
-**This simplifies the rules.** Instead of four unrelated rename rules — `MainTrack` →
+**This simplifies the transformations.** Instead of four unrelated rename transformations — `MainTrack` →
 `MasterTrack`, `AutoColorPickerForReturnAndMainTracks` → `AutoColorPickerForReturnAndMasterTracks`,
 `IsSongTempoLeader` → `IsSongTempoMaster`, and `AudioOut/Main` → `AudioOut/Master` — the
-stylesheet has one rule family: *Live 12 says "Main" where Live 11 says "Master"*, expressed as a
+stylesheet has one transformation family: *Live 12 says "Main" where Live 11 says "Master"*, expressed as a
 small table of the four names it applies to, plus the attribute value `AudioOut/Main`. The
 `SongMasterValues` case is not a rename at all: Live 12 keeps the scroll position in
 `LiveSet/SessionScrollPos`, and Live 11 keeps it in `LiveSet/SongMasterValues/SessionScrollerPos`,
@@ -77,20 +77,20 @@ plan states them as such rather than as a list of unexplained differences.
 1. `lib/live_set/tx/` holds one stylesheet per conversion direction. *(exists)*
 2. `LiveSetTransformer` applies a stylesheet by name to a document. *(exists)*
 3. `LiveSetConverter` keeps its current API — `new(set_name, xml_doc, overwrite:).convert` — but
-   its body becomes: transform, then write. The rules leave the Ruby file.
-4. Every template in a stylesheet carries a comment saying why the rule exists. The comments name
-   the difference the rule is about — "Live 12 says Main where Live 11 says Master" — rather than
+   its body becomes: transform, then write. The transformations leave the Ruby file.
+4. Every template in a stylesheet carries a comment saying why the transformation exists. The comments name
+   the difference the transformation is about — "Live 12 says Main where Live 11 says Master" — rather than
    restating the template.
 5. A spec converts a Live 12 demo set and validates the result against the Live 11 schema.
 6. `docs/als_work.md` describes the stylesheet and the `tx` directory.
 
-Not required to be true at the end of this phase: that every rule is in the stylesheet, that the
-spec passes, or that the docs describe every rule.
+Not required to be true at the end of this phase: that every transformation is in the stylesheet, that the
+spec passes, or that the docs describe every transformation.
 
 ## Phase 2 — Major details
 
-**M1 — The rule families the stylesheet has to cover.** The stylesheet must have a template for
-each of these; the Ruby rule for that family is deleted when the stylesheet has it.
+**M1 — The transformation families the stylesheet has to cover.** The stylesheet must have a template for
+each of these; the Ruby transformation for that family is deleted when the stylesheet has it.
 
 | Family | Example |
 | --- | --- |
@@ -110,13 +110,13 @@ each of these; the Ruby rule for that family is deleted when the stylesheet has 
 Where the stylesheet and the old Ruby disagree, the stylesheet wins.
 
 **M2 — `LiveSetConverter` becomes thin.** It reads the set, hands the document to
-`LiveSetTransformer`, and writes the result. The rule constants (`LIVE_12_ONLY`,
-`LIVE_12_ONLY_IN_CONTEXT`, the rename maps, `EMPTY_IN_LIVE_ELEVEN`, …) and the rule methods go
+`LiveSetTransformer`, and writes the result. The transformation constants (`LIVE_12_ONLY`,
+`LIVE_12_ONLY_IN_CONTEXT`, the rename maps, `EMPTY_IN_LIVE_ELEVEN`, …) and the transformation methods go
 away. The class keeps its constructor, its `convert` method, and its logging.
 
 **M3 — The specs.**
 
-- `spec/live_set/tx/live_12_to_live_11_spec.rb` — one example per rule family, on small XML
+- `spec/live_set/tx/live_12_to_live_11_spec.rb` — one example per transformation family, on small XML
   fragments. Fast, and needs no demo set. The rename examples cover the whole table of the
   Master/Main rename, including `MainSequencer`, which must not be touched.
 - An end-to-end example: convert a Live 12 demo set, validate the result against
@@ -125,7 +125,7 @@ away. The class keeps its constructor, its `convert` method, and its logging.
 
 **M4 — The documentation.** `docs/als_work.md`, section "XSLT Implementation" (currently "See
 cpfir.md" plus a TODO): describe the `tx` directory, the transformer, what a stylesheet is for,
-and how a new Live version gets its own stylesheet. Note that the stylesheet is the rule set,
+and how a new Live version gets its own stylesheet. Note that the stylesheet is the transformation set,
 and that the schema is what the result is checked against.
 
 ## Phase 3 — Minor details (noted, not acted on)
@@ -155,7 +155,7 @@ can be tested.
 
 ## Files
 
-- `lib/live_set/tx/live_12_to_live_11.xsl` — the rules (modify)
+- `lib/live_set/tx/live_12_to_live_11.xsl` — the transformations (modify)
 - `lib/live_set/live_set_transformer.rb` — applies a stylesheet (exists, minor changes)
 - `lib/live_set/live_set_converter.rb` — becomes thin (modify)
 - `spec/live_set/tx/live_12_to_live_11_spec.rb` — new

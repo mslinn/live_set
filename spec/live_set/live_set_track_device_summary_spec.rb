@@ -6,7 +6,8 @@ require 'live_set/live_device'
 # its branches, so a member track's real devices are several levels down. A reader that looks only
 # at the top level misses them.
 #
-# See docs/als_format.md sections 8.1 and 9.3.
+# See docs/als_notes.md, "The device chain, and the chains nested inside it", and "The device
+# chain of a group".
 RSpec.describe LiveTrack, '#device_summary' do
   # Builds a track whose chain holds a plug-in.
   def track_with_devices(devices)

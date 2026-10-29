@@ -5,7 +5,7 @@ require 'live_set/live_set_group'
 # not reported alongside the tracks, but its members' audio is routed through its device chain, so
 # its devices are checked.
 #
-# See docs/als_format.md section 9.
+# See docs/als_notes.md, "The group tracks".
 RSpec.describe LiveGroup do
   it 'takes its name from the EffectiveName' do
     group = described_class.new group_track_element(name: 'VOZ')

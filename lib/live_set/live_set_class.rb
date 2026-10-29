@@ -55,7 +55,8 @@ class LiveSet
     # Get AudioTrack elements safely - returns empty NodeSet if none exist
     #
     # Only the tracks that play clips are reported. A group track is a summing container and
-    # holds no clips, so it is not one of these. See docs/als_format.md section 9.1.
+    # holds no clips, so it is not one of these. See docs/als_notes.md, "A group track holds no
+    # clips".
     audio_tracks = begin
       # Use XPath directly on the document to avoid Slop method_missing issues
       result = @xml_doc.xpath('//AudioTrack')
@@ -67,7 +68,7 @@ class LiveSet
 
     # A group track is a summing container, not a track that plays clips. It holds no clips, so it
     # is not reported alongside the tracks, but its members' audio is routed through its device
-    # chain, so its devices are checked. See docs/als_format.md section 9.
+    # chain, so its devices are checked. See docs/als_notes.md, "The group tracks".
     group_tracks = @xml_doc.xpath('//GroupTrack')
 
     @tracks = LiveTracks.new @set_directory, audio_tracks, group_tracks

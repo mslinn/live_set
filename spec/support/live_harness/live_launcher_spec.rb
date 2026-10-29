@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'support/gui_harness'
-require_relative '../../demo_sets'
+require 'demo_sets'
 require_relative 'live_installations'
 
 def running_in_wsl?

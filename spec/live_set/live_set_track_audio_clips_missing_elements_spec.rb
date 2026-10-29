@@ -5,7 +5,7 @@ require 'live_set/live_set_audio_clip'
 # A track is not always shaped the way the code expects. A group track has a DeviceChain but no
 # MainSequencer, and a clip is not always an audio clip with a sample behind it.
 #
-# See docs/als_format.md sections 9.1 and 7.
+# See docs/als_notes.md, "A group track holds no clips", and "The sample references of a clip".
 
 # Builds a track element with the given body.
 def track_element(body)

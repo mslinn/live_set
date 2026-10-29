@@ -43,15 +43,18 @@ This software can:
 8. Report the samples in frozen tracks. During playback, a frozen track
    *shadows* the track with the editable material. Both tracks are reported.
 
-This program has successfully converted the Ableton Live 12 demo project to Live
-9. Other functionality has been tested with Live 8.6 session files.
+The published gem converted the Ableton Live 12 demo project to Live 11. Other
+functionality has been tested with Live 8.6 session files.
 
-The conversion performed by most recently published was a selective removal: it
-wrote the Live 11 version strings, removed the three elements that Live 11 does
-not have, and copied everything else through unchanged. Two elements that Live
-11 *does* have were translated rather than removed, because Live 12 names them
+The conversion the published gem performed was a selective removal: it wrote the
+Live 11 version strings, removed the three elements that Live 11 does not have,
+and copied everything else through unchanged. Two elements that Live 11 *does*
+have were translated rather than removed, because Live 12 names them
 differently — see
-[docs/als_format.md](docs/als_format.md#23-two-elements-the-conversion-translates).
+[docs/live_11_12_diff.md](docs/live_11_12_diff.md#the-elements-the-two-versions-name-differently).
+
+The conversion in this repository is not yet known to produce a set that Live 11
+opens: the lane types are the open risk (TODO.md N42).
 
 This project is transitioning to being driven by XLST transformations, derived
 by recursively running Ableton Live in a GUI test harness. The demo programs
@@ -287,7 +290,7 @@ $ live_set -11 -f path/to/my_set.als
 
 The converted set uses the Live 11.3.21 schema. The sub-version is not
 configurable. For more infomation, see
-[docs/als_format.md](docs/als_format.md#21-converting-a-set-to-live-11-uses-a-fixed-schema).
+[docs/live_11_12_diff.md](docs/live_11_12_diff.md#converting-a-set-to-live-11-uses-a-fixed-schema).
 
 
 ## Experimental features
@@ -306,7 +309,7 @@ code that have a different goal, and fix them.
 TODO One of the experimental options that might be in effect when saving a Live
 set is the ability to save a frozen group track. The group data should be
 converted to maintain the integrity of the data. Also see
-[docs/als_format.md](docs/als_format.md#941-the-optionstxt-hidden-option).
+[docs/als_notes.md](docs/als_notes.md#the-optionstxt-hidden-option).
 
 
 ## Development
@@ -323,9 +326,11 @@ $ code .  # Run Visual Studio Code
 
 ### The File Format
 
-[docs/als_format.md](docs/als_format.md) documents the parts of the Ableton Live
+[docs/als_notes.md](docs/als_notes.md) documents the parts of the Ableton Live
 `.als` format that this project reads, based on a survey of 460 real sets and
-on the official Ableton demo sets. `bin/als_files` re-runs the survey.
+on the official Ableton demo sets. `bin/als_files` re-runs the survey. The terms
+the documents use are defined in
+[docs/glossary.md](docs/glossary.md).
 
 The demo sets are the better evidence when the question is "what does Live 11
 do?", because there is one for each version. Ableton installs them with Live:
@@ -338,6 +343,11 @@ $ bin/als_files "/mnt/c/ProgramData/Ableton/Live 12 Suite/Resources/Core Library
 Ableton documents the location in
 [Location of the default Demo Set](https://help.ableton.com/hc/en-us/articles/209774005-Location-of-the-default-Demo-Set).
 `locate -i "Demo Songs"` finds them.
+
+One Live 11 set is checked in, because no demo set of Live 11 has a return
+track: `sets/live_11/Fascination.als`. It comes from
+[owenbush/ableton-inspector](https://github.com/owenbush/ableton-inspector),
+which is under the MIT license.
 
 
 ### Run the Tests

@@ -6,7 +6,7 @@ require 'live_set/live_set_audio_clip'
 # FreezeSequencer holds the rendered audio cache that replaces it during playback. Some frozen
 # tracks hold their clips only in the FreezeSequencer.
 #
-# See docs/als_format.md section 11.
+# See docs/als_notes.md, "The two sequencers of a track, and the frozen track that keeps both".
 RSpec.describe LiveTrack, '#audio_clips' do
   around { |example| silence_stdout { example.run } }
 

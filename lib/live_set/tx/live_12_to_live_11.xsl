@@ -4,14 +4,14 @@
 <!--
   Converts a Live 12 set to the Live 11 format.
 
-  Each rule below is one of the differences between the two versions of the format. The rules
-  were found by opening a Live 11 demo set in Live 12, saving it, and comparing the two files.
+  Each transformation below is one of the differences between the two versions of the format. The transformations  were found by opening a Live 11 demo set in Live 12, saving it, and comparing the two files.
 
   The stylesheet is applied with Nokogiri, and the result is written by LiveXmlWriter, because
   libxml2 does not write XML the way Live does. The stylesheet decides what the set says; the
   writer decides how the file looks.
 
-  See docs/als_work.md, "XSLT Implementation", and docs/als_format.md sections 2.2 and 2.3.
+  See docs/als_work.md, "Transform Implementation", and docs/live_11_12_diff.md, "The elements the
+  two versions name differently", and "The values the two versions write differently".
 -->
 
 <xsl:output method="xml" encoding="UTF-8" indent="no"/>
@@ -73,7 +73,7 @@
   Live 12 puts some elements inside a parent that Live 11 does not. Live 12 puts
   <MidiControllerRange> inside <CrossFadeState>, and Live 11 puts it inside device parameters.
   Removing such an element by name alone would also remove it from the places Live 11 needs it,
-  so these rules name the parent the element has to be removed from.
+  so these transformations name the parent the element has to be removed from.
 -->
 <xsl:template match="CrossFadeState/MidiControllerRange
                      |LiveSet/ViewStateArrangerMixerVolumeSectionHeight

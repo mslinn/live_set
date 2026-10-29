@@ -2,7 +2,7 @@
 
 # Prints the order of the children of an element in a generated Live schema.
 #
-# The rules of a conversion put elements in a particular place, and the schema is where that
+# The transformations of a conversion put elements in a particular place, and the schema is where that
 # order comes from: it is generated from the demo sets of a Live version, so it records the
 # order Live writes the children of an element in.
 #

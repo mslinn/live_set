@@ -7,8 +7,10 @@ require 'support/schemas'
 # Converts a demo set of one Live version to the other, and validates the result against the
 # schema of the version it was converted to.
 #
-# The schema of a version is generated from the demo sets of that version, so it accepts every
-# set of that version. A converted set that does not validate is not a set of that version.
+# The schema of a version is generated from the XML stored in the sets of that version — the demo
+# sets Ableton ships, and the sets Live wrote by converting a set of an older version — so it
+# accepts every set of that version. A converted set that does not validate is not a set of that
+# version.
 #
 # The schemas are not in the repository — .gitignore excludes *.xsd — so they are generated when
 # they are missing. See spec/support/schemas.rb.
@@ -53,8 +55,10 @@ RSpec.describe LiveSetTransformer, 'converting a demo set' do
     expect(errors).to be_empty, -> { "the converted set does not validate:\n#{distinct(errors).join("\n")}" }
   end
 
-  # The schema of a version is generated from the demo sets of that version, and it is stricter
-  # than Live is: Live writes sets that the schema of their own version rejects.
+  # The schema of a version is generated from the XML stored in the sets of that version, and a
+  # schema inferred from too few sets is stricter than Live is: Live writes sets that the schema
+  # of their own version rejects. The file Live 12 wrote is one of the sets the schema of Live 12
+  # is inferred from, so the schema accepts it.
   it 'tells what Live itself wrote, when the schema of Live 12 rejects it' do
     live_12_written = AlsFile.read(DemoSets.require_converted!('11', 'Suite'))
 

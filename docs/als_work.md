@@ -6,7 +6,8 @@ Status: For Discussion
 
 This document is a reference for the how the work of reverse engineering the
 Ableton Live set (ALS) format is being done. This is a HOW-TO document. The WHAT
-document (discussing findings) is [als_notes.md](als_notes.md).
+document (discussing findings) is [als_notes.md](als_notes.md). The terms these
+documents use are defined in [glossary.md](glossary.md).
 
 <blockquote style="border: 1px solid currentColor; padding: 12px; border-radius: 4px;">
 IMPORTANT: We are not allowing any additional switches or configuration ability
@@ -45,7 +46,7 @@ and most performant choice.
 require 'live_set'
 
 # The identity template: copies everything, so the transformation changes nothing
-# until a rule is added. See "XSLT Identity Template".
+# until a transformation is added. See "XSLT Identity Template".
 IDENTITY_STYLESHEET = <<~XSLT.freeze
   <?xml version="1.0" encoding="UTF-8"?>
   <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
@@ -148,21 +149,28 @@ How it works:
     template, allowing you to alter, replace, or drop it selectively.
 
 
-#### XSLT Implementation
+#### Transform Implementation
 
-See [cpfir.md](cpfir.md).
+The transform is Ruby, and it lives in `lib/live_set/tx/`: the base class is
+`live_version_converter.rb`, and each version_diff has a subclass whose tables
+and special transformations hold the differences of that version_diff. The 11↔12 version_diff is
+`live_11_and_12.rb`.
 
-TODO Discuss needs. We might need a new Ruby subdirectory (`lib/live_set/tx/`)
-dedicated to the transformation in general, and perhaps subclasses of a new
-generic class for each major ableton version (e.g. 8..12). We probably need a
-new class for transforming als files using xslt, plus spec unit tests and also
-tests on the ableton live demo als files. We definitely need unit tests that use
-the ableton demo sets in all Live major versions as input data.
+The architecture is in [cpfir.md](cpfir.md). The transformations of the 11↔12 version_diff are
+`lib/live_set/tx/live_11_and_12.rb`, and the evidence behind each of them is in
+[live_11_12_diff.md](live_11_12_diff.md).
+
+The differences between two versions are found by diffing their schemas. See
+"Mapping XSD to Ruby Classes", below.
 
 
 ### XSD  (XML Schema)
 
-TODO This section is not used at present. We might delete it soon.
+The schemas are used. The schema of a version is the index of that version's
+format, and it is what the transformations are written from and what a converted set is
+checked against. `bin/generate_xsds` generates them, and
+`spec/live_set/tx/live_conversion_spec.rb` validates a converted set against the
+schema of the version it was converted to.
 
 
 #### Generating XSD
@@ -194,6 +202,12 @@ version. The format's vocabulary can be read from the schema, and the difference
 between two versions can be found by diffing one schema against another. Neither
 the inventory nor the diff needs the ALS files scanned by hand.
 
+**This is how the transformations of a version_diff are found.** The names one schema
+has and the other does not are the candidates, and each transformation is then written
+by hand in the subclass for that version_diff. See `docs/conversion.md` §2.2 for the
+kinds of difference and §3.3 for how a transformation is written, and
+`lib/live_set/tx/live_11_and_12.rb` for the transformations of the 11↔12 version_diff.
+
 
 ## Current Work
 
@@ -201,10 +215,12 @@ This document is part of an effort to create the next version of `live_set`. The
 work being added right now is:
 
 1. Perform a proper translation of XML elements between different Live versions.
-   Use XSLT for the work; for example, renaming XML elements, moving XML
-   elements, deleting XML elements, etc..
+   Renaming XML elements, moving XML elements, deleting XML elements, and so on.
 
-   TODO the current code base is not organized this way yet.
+   The code base is organized this way now: the transform is in
+   `lib/live_set/tx/`, and each version_diff has a subclass whose tables and
+   special transformations hold the differences of that version_diff. The transform is Ruby rather
+   than XSLT; `docs/fix_plan2.md` says why.
 
 2. Develop high-level methods that detect and describe the differences between
    two Live sets. Do not assume that the XML schemas are identical for both Live
@@ -310,6 +326,17 @@ developed on were:
 | Live 10 | `C:\ProgramData\Ableton\Live 10 Standard\Resources\Core Library\Lessons\Demo Songs\`        | Ableton Live 10.1.3d1                              |
 | Live 9  | `C:ProgramData\Ableton\Live 9 Standard\Resources\Core Library\Lessons\Samples\Live 9 Demo\` |                                                    |
 | Live 8  | `C:ProgramData\Ableton\Live 8 Standard\`                                                    | Not installed by default, but available from Live. |
+
+
+### Release Notes
+
+The release notes are the other half of the evidence, alongside the sets
+themselves: the release notes tell you what Ableton changed between two
+versions of Live, and the XML stored in the sets of those two versions can be
+inspected to reveal the structure of each one, and comparing the two
+structures reveals the changes between the Live versions that produced those
+files. Where the release notes are, how they were obtained, and what they are
+used for is in [`release_notes/index.md`](release_notes/index.md).
 
 
 ### Bash Environment Variables for Live Demo Sets
@@ -430,6 +457,21 @@ in an `xs:choice` if the sets disagree about their order. All of the Live 10, Li
 and Live 12 demo sets validate against the schema generated from their own version.
 
 
+### Generate Each Schema From Every Set of That Version
+
+The demo sets are not every set of a version. Newer versions of Live write constructs
+that older demo sets do not have: the file Live 12 wrote when it opened and saved the
+Live 11 Suite demo holds `MultibandDynamics`, `Eq8`, `GroupTrack` and other elements the
+Live 12 demo sets do not contain, and the Live 12 schema inferred from the demo sets
+alone rejects that file.
+
+So the schema of a version is inferred from the demo sets of that version *and* from the
+sets Live wrote by converting a set of an older version. The converted sets are kept in
+`conversions/`, which is not in the repository — they are reference material, not code.
+See `spec/support/schemas.rb`, which finds the sets and generates the schemas, and
+`bin/generate_xsds`, which regenerates every schema at once.
+
+
 ## Test Suite
 
 The `live_set` test in `spec/demo_sets.rb` works with the test corpuses, instead
@@ -502,7 +544,7 @@ The real Live version is stored in the `Creator` attribute:
 
 ### Converting a Live 12 Set to Live 11
 
-The rules for converting Live 12 back to Live 11 were figured out by opening a
+The transformations for converting Live 12 back to Live 11 were figured out by opening a
 Live 11 demo set in Live 12, saving it, and comparing the two versions of the
 Live set.
 
@@ -557,8 +599,8 @@ conversion was a selective removal, not a rewrite. It edited the version strings
 on the `Ableton` element, removes those three elements, translated the two that
 Live 11 spells differently, and wrote the rest of the document back out.
 
-* Group tracks are kept, because both Live 11 and 12 support group tracks. See
-  section 9.2.
+* Group tracks are kept, because Live 11 has them as well as Live 12. See
+  [als_notes.md](als_notes.md), "The group tracks".
 
 * Elements the conversion is unaware of are kept. A `FakeGroup` element, a
   `TrackWrapperType` element, or anything else that a future version of Live
@@ -635,7 +677,7 @@ In the demo set, track 132 "Plastic Toy" has a `Saturator` with
 five `Saturator`s have values `"1"` in Live 11 and `"true"` in Live 12.
 
 
-### 2.4 The lanes are a fixed set, and it changed
+### The lanes are a fixed set, and it changed
 
 TODO WTF is this all about? This is a terrible explanation, and reasoning is
 suspect, and the conclusions are probably wrong. We need to follow normal
@@ -701,7 +743,7 @@ caused by is not yet known: the `Type` values are the obvious suspect, but the c
 also differs from a Live 11 set in its `Creator`, `Revision` and `SchemaChangeCount`. See
 TODO.md N42.
 
-### 2.5 What a round trip establishes
+### What a round trip establishes
 
 TODO this section is verbose garbage and should probably be deleted.
 
@@ -731,7 +773,8 @@ lanes Live 11 has never seen, and has lost one that it has:
 | `ExpressionLanes` | 0, 1, 2, 3 | 0, 1, 2, 3, 5 | `Type` 5 is unknown to Live 11 |
 
 The file is a well-formed Live 11 file, but it contains lanes Live 11 has never seen, and Live
-11 crashes on it rather than opening it. See TODO.md N42 and section 2.4.
+11 crashes on it rather than opening it. See TODO.md N42 and "The lanes are a fixed set, and it
+changed", above.
 
 
 ## Every value is in a `Value` attribute
@@ -1084,7 +1127,8 @@ doubled: `DeviceChain` (the track's) contains a `DeviceChain` (the chain) which 
 | `Tuner`                  | 15                                             |
 
 `AudioEffectGroupDevice` is not a device that processes audio itself — it
-**holds** a group's device chain, in its branches. See section 9.3.
+**holds** a group's device chain, in its branches. See "A group's devices are in its
+members' signal path", below.
 
 ### A device chain can be nested
 
@@ -1132,7 +1176,7 @@ rarely have them, and 29 of the 32 Live 11 sets in `$songs` were written by
 repo's own `after_real_pain.xsd` includes `GroupTrack` and `GroupTrackSlot`
 elements.
 
-### 9.1 A group track has no clips
+### A group track has no clips
 
 Measured over the whole corpus:
 
@@ -1154,7 +1198,7 @@ holding eight `GroupTrackSlot` children, but every slot is empty and has no
 group tracks when it reports clips, their sizes, and whether their samples have
 been collected.
 
-### 9.2 A group track is not a track in the data model
+### A group track is not a track in the data model
 
 The membership is a single attribute on the member track. A track's
 `TrackGroupId` holds the `Id` of the group it belongs to, and `-1` means it is
@@ -1173,7 +1217,7 @@ another group. In the sample set `Urban_Agony.als`, group 47 has
 A group track has a full mixer, like a regular track: `Sends`, `Pan`, `Volume`,
 `CrossFadeState`. That is what makes it a submixer.
 
-### 9.2.1 How nesting is represented
+#### How nesting is represented
 
 **`live_set` has found no `FakeGroup` element.** There is a claim that the
 `.als` format uses a `<FakeGroup>` element — a phantom routing target that wraps
@@ -1259,7 +1303,7 @@ There is also a plural `LinkedTrackGroups` element. It appears 439 times in the
 corpus, and it is **always empty**.
 
 
-### 9.3 A group's devices are in its members' signal path
+### A group's devices are in its members' signal path
 
 The output of a track that is a member of a group is routed to the group:
 
@@ -1302,7 +1346,7 @@ native device.
 
 The devices inside the branch are the ones that run. A member's branch holds the
 group's chain together with the member's own devices, so the devices to report
-are at every depth — see section 8.2.
+are at every depth — see "A device chain can be nested", above.
 
 TODO WTF is this discussion about blocking transfers and blocking group device?
 
@@ -1315,7 +1359,7 @@ error naming the group and the tracks whose audio it affects.
 
 Across the corpus, 151 group tracks have a `PluginDevice` in their chain.
 
-### 9.3.1 Freezing a member does not get the group's device out of the way
+#### Freezing a member does not get the group's device out of the way
 
 A group track cannot be frozen, so the device cannot be rendered away by
 freezing the group. Nor does freezing a member help: a frozen member stays
@@ -1334,7 +1378,7 @@ post-mixer", so the bounced audio includes the group's mixer settings and its
 effects, whereas an individual track is bounced pre-mixer.
 
 
-### 9.4 A group track cannot be frozen
+### A group track cannot be frozen
 
 > Note that you can only freeze tracks that hold clips, so it is not possible to
 > freeze a Group Track, a return track, or the Main track.
@@ -1350,7 +1394,7 @@ This answers the question of whether freezing a group track also freezes the
 tracks inside it: **the question does not arise**, because a group track cannot
 be frozen at all.
 
-#### 9.4.1 The `Options.txt` hidden option
+#### The `Options.txt` hidden option
 
 Ableton's `Options.txt` file can enable "a few experimental and unsupported
 features".
@@ -1368,7 +1412,7 @@ frozen, and the group's members are read as unfrozen.
 `"true"` or `"false"` in a `Value` attribute.
 
 
-## 11. Frozen tracks and the `FreezeSequencer`
+## Frozen tracks and the `FreezeSequencer`
 
 A track that is frozen has a second sequencer. `MainSequencer` holds the
 editable material; `FreezeSequencer` holds the rendered audio cache that

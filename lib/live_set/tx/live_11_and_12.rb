@@ -2,12 +2,56 @@ require_relative 'live_version_converter'
 
 # The differences between the Live 11 format and the Live 12 format.
 #
-# The tables hold the differences that are the same whichever way the set is going: a rule that
-# renames an element matches either spelling and emits the other. The special rules hold the
-# ones that cannot be expressed that way, because one version has a construct the other does
-# not.
+# How the down direction works
 #
-# The evidence behind each rule is in docs/live_11_12_differences.md.
+# The direction is not given to the bridge. The bridge reads the version of the document it is
+# handed and converts it to the other version of its version_diff, so one set of transformations
+# carries both directions of the version_diff: a rename matches either spelling and emits the
+# other.
+#
+# The tables hold the transformations:
+#
+#   REMOVE, REMOVE_UNDER         the elements the older version does not have
+#   RENAME, RENAME_UNDER         the elements the two versions name differently
+#   EMPTY                        the elements the older version keeps empty
+#   REMOVE_ATTRIBUTE             the attributes the older version does not have
+#   DEFAULT_ATTRIBUTE            the attributes the older version always writes
+#   ADD, ADD_ATTRIBUTE           what the newer version adds
+#   CHILD_ORDER                  where the children of an element go
+#
+# The transformations that a table cannot express are in #special_transformations. Each of them
+# is a case a table cannot express: a value that the two versions write differently, an element
+# that one version wraps and the other keeps bare, an element that has to move to another parent.
+#
+# Where the names come from
+#
+# The schema of a version is an index of the format: it lists every element and every attribute
+# of that version, so diffing the schema of Live 12 against the schema of Live 11 gives the
+# candidates — the names one version has and the other does not.
+#
+# The diff gives the candidates; it does not decide them. Every name in the tables below was
+# decided by hand, and some of them have been decided wrongly so far. The Live 11 schema is an
+# inference from the XML stored in the sets of Live 11, so a device that Live 11 has, but that no
+# Live 11 demo set happens to contain, is absent from the Live 11 schema, and a diff against that
+# schema says to remove a device Live 11 understands.
+#
+# The release notes of Live 12 are written for the musicians who use Live. They describe the
+# features in the words a musician would use — "the Master Track was renamed to the Main
+# Track" — and they never give an element name, an attribute name, or any part of the file
+# format. So they are a filter over the differences rather than a source of them: they say
+# which differences to expect, and which version introduced each one, and the names
+# themselves have to come from the XML stored in the sets.
+#
+# The release notes tell you what Ableton changed between two versions of Live. The XML stored in
+# the sets of those two versions can be inspected to reveal the structure of each one, and
+# comparing the two structures reveals the changes between the Live versions that produced those
+# files. The release notes of Live 12 are in docs/release_notes/; the differences between the two
+# versions are summarized in docs/live_11_12_diff.md.
+#
+# The kinds of difference, and the operation each kind calls for, are in docs/conversion.md, section
+# 2.2. A transform is not directional: see docs/cpfir.md, section 4.
+#
+# The terms used here are defined in docs/glossary.md.
 class Live11And12 < LiveVersionConverter
   # The version strings of each direction.
   #
@@ -90,7 +134,7 @@ class Live11And12 < LiveVersionConverter
   # Live 12 puts some elements inside a parent that Live 11 does not. Live 12 puts
   # <MidiControllerRange> inside <CrossFadeState>, and Live 11 puts it inside device parameters.
   # Removing such an element by name alone would also remove it from the places Live 11 needs it,
-  # so these rules name the parent the element has to be removed from.
+  # so these entries name the parent the element has to be removed from.
   #
   # Going up, the elements Live 11 has and Live 12 does not are removed the same way. Live 11
   # writes the height of the session mixer as <ViewStateSessionMixerHeight>, and Live 12 writes
@@ -132,7 +176,7 @@ class Live11And12 < LiveVersionConverter
 
   # The elements the two versions spell differently, under a named parent.
   #
-  # The parent holds the element under a different name in each version, so the path of a rule is
+  # The parent holds the element under a different name in each version, so the path of a rename is
   # the path of the element in the version the set is coming from, and the table holds one path
   # for each direction.
   RENAME_UNDER = { # sorted alphabetically by key
@@ -371,6 +415,28 @@ class Live11And12 < LiveVersionConverter
     },
   }.freeze
 
+  # The attributes Live 12 writes on every track.
+  #
+  # They say which panel of the device chain is selected, and Live 11 writes none of them.
+  TRACK_ATTRIBUTES = { # sorted alphabetically by key
+    'SelectedGeneratorName'     => '',
+    'SelectedToolPanel'         => '7',
+    'SelectedTransformationName' => ''
+  }.freeze
+
+  # The attributes the newer version writes on an element.
+  ADD_ATTRIBUTE = {
+    down: {},
+    up: {
+      'AudioTrack'   => TRACK_ATTRIBUTES,
+      'GroupTrack'   => TRACK_ATTRIBUTES,
+      'MainTrack'    => TRACK_ATTRIBUTES,
+      'MidiTrack'    => TRACK_ATTRIBUTES,
+      'PreHearTrack' => TRACK_ATTRIBUTES,
+      'ReturnTrack'  => TRACK_ATTRIBUTES
+    }
+  }.freeze
+
   # The elements of the controller layout customization of a MIDI track.
   #
   # Live 12 writes the settings of the note layout of the track, and Live 11 does not.
@@ -498,10 +564,10 @@ class Live11And12 < LiveVersionConverter
   # Live 11 writes them at the end of the clip, next to the settings of the note editor.
   CLIP_SCALE_ELEMENTS = %w[ScaleInformation IsInKey].freeze
 
-  # The rules that are not tables.
+  # The transformations that a table cannot express.
   #
   # @return [void]
-  def special_rules # TODO: can these be sorted alphabetically?
+  def special_transformations # TODO: can these be sorted alphabetically?
     oversampling
     audio_out_target
     scroll_position

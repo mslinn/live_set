@@ -47,12 +47,47 @@ module Schemas
     creator&.delete_prefix('Ableton Live ')
   end
 
-  # The demo sets of a Live version.
+  # The sets of a Live version.
+  #
+  # The demo sets Ableton ships, the sets Live wrote by converting a set of an older version, and
+  # the sets checked into this repository. A schema is inferred from the sets it is inferred from,
+  # so it has to be inferred from every set of the version that can be found: newer versions of
+  # Live write constructs that older demo sets do not have, and a schema inferred from fewer sets
+  # rejects them.
   #
   # @param version [String] the Live version
   # @return [Array<String>] the paths of the sets
   def self.demo_sets(version)
-    DemoSets.all.select { |found, _| found.start_with?(version) }.values.flatten
+    demos = DemoSets.all.select { |found, _| found.start_with?(version) }.values.flatten
+    demos + converted_sets(version) + checked_in_sets(version)
+  end
+
+  # The sets of a Live version that are checked into this repository.
+  #
+  # The sets live in a directory named for the version, e.g. sets/live_11.
+  #
+  # @param version [String] the Live version, e.g. "11"
+  # @return [Array<String>] the paths of the sets
+  def self.checked_in_sets(version)
+    Dir.glob(File.join(PROJECT_ROOT, 'sets', "live_#{version}", '*.als'))
+  end
+
+  # The sets in the conversions directory that Live wrote in the given version.
+  #
+  # @param version [String] the Live version
+  # @return [Array<String>] the paths of the sets
+  def self.converted_sets(version)
+    Dir.glob(File.join(DemoSets::CONVERSIONS_DIRECTORY, '*.als')).select do |path|
+      version_of(creator_of(path)).start_with?(version)
+    end
+  end
+
+  # The Live version a Creator attribute names.
+  #
+  # @param creator [String, nil] the value of the attribute
+  # @return [String] the version, e.g. "12.4.6"
+  def self.version_of(creator)
+    creator.to_s[/Live\s+([\d.]+)/, 1].to_s
   end
 
   # The Creator attribute of a set.

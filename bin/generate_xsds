@@ -12,11 +12,17 @@
 #
 # Every demo set of an installation is used. A schema inferred from a single set constrains the
 # schema more than Live does, and so rejects the other sets of the same version.
+#
+# The sets Live wrote by converting a set of an older version are used as well. The schema of a
+# version has to describe everything that version writes, and newer versions of Live write
+# constructs that older demo sets do not have: a schema inferred from the demo sets alone
+# rejects the file Live wrote.
 
 set -euo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SCHEMA_DIR="$PROJECT_DIR/schemas"
+CONVERSIONS_DIR="$PROJECT_DIR/conversions"
 ABLTON_HOME="${1:-${ableton_home:-/mnt/c/ProgramData/Ableton}}"
 
 # Use the code in this repository, not an installed gem of the same name.
@@ -56,8 +62,29 @@ for installation in "$ABLTON_HOME"/Live*/; do
 
   version="${creator#Ableton Live }"
   schema="$SCHEMA_DIR/live_${version}.xsd"
-  echo "Generating $schema from ${#demo_sets[@]} demo sets"
-  bundle exec ruby exe/generate_xsd -f "$schema" "${demo_sets[@]}"
+
+  samples=("${demo_sets[@]}")
+  for converted in "$CONVERSIONS_DIR"/*.als; do
+    [ -f "$converted" ] || continue
+    converted_creator="$(zcat "$converted" | grep -m1 -o 'Creator="[^"]*"' | cut -d '"' -f2 || true)"
+    [ -n "$converted_creator" ] || continue
+    converted_version="${converted_creator#Ableton Live }"
+    # The versions differ in their last part — "12.4d1" and "12.4.6" are the same Live — so the
+    # major version decides whether the set belongs to this schema.
+    if [ "${converted_version%%.*}" = "${version%%.*}" ]; then
+      samples+=("$converted")
+    fi
+  done
+
+  # The sets checked into this repository hold what the demo sets do not: no demo set of Live 11
+  # has a return track, for instance.
+  for checked_in in "$PROJECT_DIR"/sets/live_"${version%%.*}"/*.als; do
+    [ -f "$checked_in" ] || continue
+    samples+=("$checked_in")
+  done
+
+  echo "Generating $schema from ${#samples[@]} sets"
+  bundle exec ruby exe/generate_xsd -f "$schema" "${samples[@]}"
   generated=$((generated + 1))
 done
 

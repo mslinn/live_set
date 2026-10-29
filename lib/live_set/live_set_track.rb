@@ -11,7 +11,8 @@ class LiveTrack
   # A track that is frozen keeps both. The MainSequencer holds the editable material, and the
   # FreezeSequencer holds the rendered audio cache that replaces it during playback. A frozen
   # track's clips can be in either, and some are only in the FreezeSequencer, so both have to be
-  # searched. See docs/als_format.md section 11.
+  # searched. See docs/als_notes.md, "The two sequencers of a track, and the frozen track that
+  # keeps both".
   SEQUENCERS = %w[MainSequencer FreezeSequencer].freeze
 
   def initialize(set_directory, audio_track)
@@ -28,8 +29,8 @@ class LiveTrack
     end
 
     # The devices in the track's chain, at any depth. A track in a group holds the group's chain
-    # in an AudioEffectGroupDevice, several levels down. See docs/als_format.md sections 8.1
-    # and 9.3.
+    # in an AudioEffectGroupDevice, several levels down. See docs/als_notes.md, "The device
+    # chain, and the chains nested inside it", and "The device chain of a group".
     @devices = xml_chain_devices(@audio_track).map { |node| LiveDevice.new node }
 
     @audio_clips = define_audio_clips set_directory
@@ -39,10 +40,11 @@ class LiveTrack
   #
   # A track's audio can be in the session view, in the arrangement, and in the take lanes. They are
   # separate clips with separate ids, and the same file can be referenced from more than one of
-  # them. See docs/als_format.md section 6.
+  # them. See docs/als_notes.md, "Where a track's audio is".
   #
   # A frozen track's audio may be in the FreezeSequencer rather than the MainSequencer, so each
-  # source is searched in both sequencers. See docs/als_format.md section 11.
+  # source is searched in both sequencers. See docs/als_notes.md, "The two sequencers of a
+  # track, and the frozen track that keeps both".
   def define_audio_clips(set_directory)
     {
       'Session view' => session_view_clips(set_directory),

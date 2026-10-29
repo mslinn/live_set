@@ -4,9 +4,10 @@ require 'nokogiri'
 #
 # A generated schema describes an element with an xs:sequence, which lists the kinds of child
 # element the element may have, in order. The order is the order Live writes the children in,
-# because the schema is generated from the demo sets of a Live version.
+# because the schema is generated from the XML stored in the demo sets of a Live version.
 #
-# The rules of a conversion put elements in a particular place, and this is where they get it.
+# The transformations of a conversion put elements in a particular place, and this is where they
+# get it.
 class SchemaOrder
   # The namespace of the XML Schema vocabulary.
   NAMESPACE = { 'xs' => 'http://www.w3.org/2001/XMLSchema' }.freeze

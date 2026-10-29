@@ -11,10 +11,11 @@ require_relative '../common/xml'
 # therefore blocks a transfer to Push 3 Standalone just as much as one on a track.
 #
 # A group track cannot be frozen, because only tracks that hold clips can be frozen, and a group
-# track holds no clips. See docs/als_format.md section 9.
+# track holds no clips. See docs/als_notes.md, "The group tracks".
 #
 # live_set does not support experimental features, so a group track is always read as unfrozen,
-# as though no Options.txt option had been specified. See docs/als_format.md section 9.4.1.
+# as though no Options.txt option had been specified. See docs/als_notes.md, "The `Options.txt`
+# hidden option".
 class LiveGroup
   include Xml
 
@@ -60,7 +61,7 @@ class LiveGroup
   # The tracks in this group.
   #
   # A member track's TrackGroupId holds the Id of the group it belongs to, and -1 means the track
-  # is at the top level. See docs/als_format.md section 9.2.
+  # is at the top level. See docs/als_notes.md, "A member track names its group".
   #
   # @param tracks [Array<Nokogiri::XML::Element>] the track elements in the set
   # @return [Array<Nokogiri::XML::Element>] the member tracks

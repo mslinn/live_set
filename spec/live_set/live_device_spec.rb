@@ -4,7 +4,7 @@ require 'live_set/live_device'
 # The devices in a chain are the children of DeviceChain/DeviceChain/Devices. A plug-in is a
 # PluginDevice, and its name is in a different place depending on the plug-in format.
 #
-# See docs/als_format.md section 8.
+# See docs/als_notes.md, "The devices of a chain, and the plug-ins among them".
 RSpec.describe LiveDevice do
   def device_from(xml)
     described_class.new Nokogiri::Slop("<Devices>#{xml}</Devices>").xpath('//Devices/*').first

@@ -1,5 +1,7 @@
 # Architectural Guide: Composing Bidirectional XSLT Transformations in Ruby
 
+The terms used here are defined in [glossary.md](glossary.md).
+
 Function composition in Ruby allows you to link a sequence of isolated, pure
 transformations into a seamless pipeline. This guide covers how to build a
 production-ready, bidirectional XML migration engine using Ruby’s native
@@ -40,7 +42,7 @@ functional operators and Nokogiri.
     double_then_increment.call(4) # => 9
     ```
 
-2. Defining a Single Source of Truth: The Target End-State Rule
+2. Defining a Single Source of Truth: The Target End-State
 
     When managing schema versions (e.g., Ableton Live Sets (ALS files) v8
     through v12), a robust design would use a unified Version-Keyed Registry
@@ -127,7 +129,7 @@ functional operators and Nokogiri.
     class BidirectionalXslt
       # A stylesheet is not directional. It matches the input document and emits
       # something else, so one stylesheet can carry both directions of a version
-      # pair: a rule that renames an element matches either spelling and emits
+      # version_diff: a rename matches either spelling and emits
       # the other. The direction is a property of the document, not of the
       # stylesheet, and the stylesheet can read it from <Ableton MinorVersion>.
       #
@@ -138,7 +140,7 @@ functional operators and Nokogiri.
       # therefore not a functional inverse of the up direction, and down-then-up
       # does not return the original document.
       #
-      # Rules that cannot be expressed symmetrically -- deleting an element only
+      # Transformations that cannot be expressed symmetrically -- deleting an element only
       # the newer version has, adding one the older version lacks -- must be
       # conditioned on the version read from the input document.
       def initialize(up_path, down_path)

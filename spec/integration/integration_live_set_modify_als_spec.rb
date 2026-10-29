@@ -15,7 +15,8 @@ require 'demo_sets'
 # The command is run three times on the same set, and the result is shared by every example
 # that looks at it. See spec/conversions.rb.
 #
-# See docs/als_format.md sections 2.2 and 2.3.
+# See docs/live_11_12_diff.md, "The elements the two versions name differently", and
+# "The values the two versions write differently".
 RSpec.describe LiveSet, '#modify_als' do
   # The Live 12 demo set that Ableton ships.
   let(:live12_path) { DemoSets.path '12' }

@@ -1,12 +1,12 @@
 require 'spec_helper'
 require 'support/live_versions'
 
-# The rules of the conversion between the Live 11 and the Live 12 formats, going down.
+# The transformations of the conversion between the Live 11 and the Live 12 formats, going down.
 #
 # A Live 12 set in, a Live 11 set out. The conversion is lossy: the constructs the Live 11
 # format cannot represent are dropped, and they cannot be recovered.
 #
-# The other direction is in live_11_and_12_up_spec.rb. The two files walk the same rules.
+# The other direction is in live_11_and_12_up_spec.rb. The two files walk the same transformations.
 RSpec.describe Live11And12, 'going down to Live 11' do # rubocop:disable RSpec/DescribeClass
   it 'writes the version strings of a Live 11 set' do
     document = live_document(LIVE_12)

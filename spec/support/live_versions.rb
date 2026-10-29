@@ -32,10 +32,10 @@ end
 
 # Converts an element of a set, and returns the element as it is after the conversion.
 #
-# The rules of a conversion name the parent an element goes in, so an element has to be inside
-# its parent for the rules that add to that parent to find it. The element is put inside its
+# The transformations of a conversion name the parent an element goes in, so an element has to be inside
+# its parent for the transformations that add to that parent to find it. The element is put inside its
 # ancestors here, and taken out again afterwards, so that the example is about the element and
-# not about the elements the rules add to its ancestors.
+# not about the elements the transformations add to its ancestors.
 #
 # @param version [String] the minor version of the set the element is in
 # @param path [String] the path of the element, e.g. "LiveSet/GroovePool"

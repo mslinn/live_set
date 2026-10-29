@@ -10,14 +10,14 @@ class LiveAudioClip
 
   # Every value in an .als file is stored in a Value attribute, e.g.
   # <RelativePath Value="Samples/Imported/song1.mp3" />. This holds for every Live version from
-  # 8.2 to 12.4. See docs/als_format.md section 3.
+  # 8.2 to 12.4. See docs/als_notes.md, "Every value is stored in a `Value` attribute".
   #
   # The file size tag is <OriginalFileSize> in newer versions of Live, and <FileSize> in older
   # ones (like Live 8).
   #
   # Ableton stores the absolute path in a <Path> element and the path relative to the set's
   # directory in a <RelativePath> element. Either may be empty, meaning the file is not in the
-  # project folder. See docs/als_format.md section 7.
+  # project folder. See docs/als_notes.md, "The sample references of a clip".
   #
   # @param audio_clip is an inner <ClipSlot/> element from an Ableton Live .als file as parsed by Nokogiri
   # @return the absolute path to a referenced clip, or nil if the clip is not stored in a file.
@@ -27,7 +27,7 @@ class LiveAudioClip
   # - Internal devices and resampled clips reference internal Ableton data rather than external files.
   #
   # An <AudioClip> is not always inside a <ClipSlot>. Live 12 moved most of them into the
-  # arrangement and the take lanes. See docs/als_format.md section 6.
+  # arrangement and the take lanes. See docs/als_notes.md, "Where a track's audio is".
   #
   # @param set_directory [String] the directory holding the set
   # @param audio_clip [Nokogiri::XML::Element] an <AudioClip> element from an Ableton Live .als file
@@ -51,7 +51,8 @@ class LiveAudioClip
   # The size of the file on disk.
   #
   # The size in the XML is the size of the source file as Live saw it, and it is sometimes zero even
-  # when the file exists and is not empty. See docs/als_format.md section 7.1.
+  # when the file exists and is not empty. See docs/als_notes.md, "Whether a sample has been
+  # collected".
   #
   # @return [Integer] the size in bytes, or zero if the file cannot be found
   def disk_size

@@ -94,7 +94,7 @@ class LiveTracks
   # The error names the tracks whose audio the device affects, so the user knows which ones are
   # involved.
   #
-  # See docs/als_format.md section 9.3.
+  # See docs/als_notes.md, "The device chain of a group".
   #
   # @return [Array<String>] the errors
   def group_errors

@@ -3,14 +3,14 @@ require 'live_set/tx/live_version_converter'
 
 # The base class of a conversion between two versions of the Live format.
 #
-# The base class knows nothing about any particular pair of versions. It applies the tables a
+# The base class knows nothing about any particular version_diff. It applies the tables a
 # subclass supplies, in the order the tables are applied, and it takes the direction from the
 # version the document carries.
 RSpec.describe LiveVersionConverter do # rubocop:disable RSpec/DescribeClass
   # A bridge between two made-up versions, used to test the base class on its own.
   #
   # The tables are deliberately unlike the tables of a real bridge: the elements are named after
-  # the rules they exercise, so that a failing example says which rule failed.
+  # the transformations they exercise, so that a failing example says which transformation failed.
   class TestConverter < LiveVersionConverter
     VERSION = {
       down: { 'MajorVersion' => '5', 'MinorVersion' => '9.0_9000', 'SchemaChangeCount' => '1',
@@ -29,6 +29,10 @@ RSpec.describe LiveVersionConverter do # rubocop:disable RSpec/DescribeClass
     ADD = {
       down: [{ parent: 'Adder', name: 'DownOnly', attributes: { 'Value' => '1' } }],
       up:   [{ parent: 'Adder', name: 'UpOnly', attributes: { 'Value' => '2' } }]
+    }.freeze
+    ADD_ATTRIBUTE = {
+      down: {},
+      up:   { 'Panel' => { 'Added' => 'yes' } }
     }.freeze
     CHILD_ORDER = {
       down: { 'Adder' => %w[First Second DownOnly], 'Keep' => %w[First Second] },
@@ -147,15 +151,33 @@ RSpec.describe LiveVersionConverter do # rubocop:disable RSpec/DescribeClass
     expect(content_of(document)).to eq ['<Event Added="no"/>']
   end
 
+  it 'gives an element the attributes the newer version writes on it' do
+    document = document_for(LIVE_9, '<Panel/>')
+    TestConverter.new(document).convert
+    expect(content_of(document)).to eq ['<Panel Added="yes"/>']
+  end
+
+  it 'does not give an element the attributes of the other direction' do
+    document = document_for(LIVE_10, '<Panel/>')
+    TestConverter.new(document).convert
+    expect(content_of(document)).to eq ['<Panel/>']
+  end
+
+  it 'leaves an attribute alone when the element already has it' do
+    document = document_for(LIVE_9, '<Panel Added="no"/>')
+    TestConverter.new(document).convert
+    expect(content_of(document)).to eq ['<Panel Added="no"/>']
+  end
+
   it 'reads the tables of the subclass, and not the tables of the base class' do
     document = document_for(LIVE_10, '<OldElement/><SomethingElse/>')
     OtherConverter.new(document).convert
     expect(content_of(document)).to eq ['<OldElement/>']
   end
 
-  it 'calls the special rules of the subclass' do
+  it 'calls the special transformations of the subclass' do
     converter = TestConverter.new(document_for(LIVE_10))
-    expect(converter).to receive(:special_rules).and_call_original
+    expect(converter).to receive(:special_transformations).and_call_original
     converter.convert
   end
 

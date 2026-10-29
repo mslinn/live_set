@@ -15,7 +15,8 @@ require 'live_set/live_set_class'
 # Every set is converted once and the result is shared by the examples that look at it. See
 # spec/conversions.rb.
 #
-# See docs/als_format.md sections 2.2 and 2.3.
+# See docs/live_11_12_diff.md, "The elements the two versions name differently", and
+# "The values the two versions write differently".
 RSpec.describe LiveSet, '#modify_als' do
   # The Live 12 demo set that Ableton ships.
   def live12_path
@@ -115,7 +116,7 @@ RSpec.describe LiveSet, '#modify_als' do
 
     it 'removes the elements that Live 11 does not have' do
       # Live 12 writes these; Live 11 has no equivalent for them, so they are removed. See
-      # docs/als_format.md section 2.2.
+      # docs/live_11_12_diff.md, "The elements the two versions name differently".
       expect(converted.xpath('//InstrumentMeld|//Roar|//MxPatchRef')).to be_empty
     end
 
@@ -218,7 +219,7 @@ RSpec.describe LiveSet, '#modify_als' do
 
     it 'keeps the lanes themselves' do
       # Live 11 crashes on a set with no ContentLanes and no ExpressionLanes, so the conversion
-      # has to translate the lanes rather than remove them. See docs/als_format.md section 2.4.
+      # has to translate the lanes rather than remove them. See docs/live_11_12_diff.md, "The lane types".
       expect(converted.xpath('//ContentLanes').length).to eq(1)
     end
 
@@ -233,7 +234,7 @@ RSpec.describe LiveSet, '#modify_als' do
     it 'leaves the lanes Live 11 has no equivalent for alone' do
       # Live 11 numbers its lanes differently within the same family, so there is no mapping
       # from a Live 12 lane to a Live 11 one. The conversion renames the element and leaves the
-      # lane as it is. See TODO.md N42 and docs/als_format.md section 2.4.
+      # lane as it is. See TODO.md N42 and docs/live_11_12_diff.md, "The lane types".
       types = converted.xpath('//ContentLanes/*/Type').map { |node| node['Value'] }.uniq.sort
 
       expect(types).to eq(%w[2 3 4])

@@ -7,7 +7,8 @@ require_relative '../common/xml'
 #
 # A native Ableton device is never a PluginDevice — it is its own element, and the Push 3
 # Standalone has all of them. Every plug-in in the corpus is third-party, though the file does not
-# say so: there is no Manufacturer element anywhere. See docs/als_format.md section 8.
+# say so: there is no Manufacturer element anywhere. See docs/als_notes.md, "The devices of a
+# chain, and the plug-ins among them".
 #
 # A plug-in's name is in a different place depending on the plug-in format:
 #
@@ -15,7 +16,7 @@ require_relative '../common/xml'
 #   PluginDesc/Vst3PluginInfo/Name        for a VST3 plug-in
 #
 # Both shapes are in real sets, and the VST3 shape has no PlugName at all. See
-# docs/als_format.md section 8.
+# docs/als_notes.md, "The devices of a chain, and the plug-ins among them".
 class LiveDevice
   include Xml
 
@@ -37,7 +38,8 @@ class LiveDevice
   # process audio themselves, so they are not reported — but the devices they hold are, because
   # those are the devices that actually run.
   #
-  # See docs/als_format.md sections 8.1 and 9.3.
+  # See docs/als_notes.md, "The device chain, and the chains nested inside it", and "The device
+  # chain of a group".
   CONTAINER_ELEMENTS = %w[AudioEffectGroupDevice DrumGroupDevice InstrumentGroupDevice].freeze
 
   def initialize(node)

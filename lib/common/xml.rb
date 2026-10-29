@@ -88,7 +88,8 @@ module Xml
   # Every device in the chain is found, at any depth.
   #
   # The container devices themselves are not returned. They are not devices that process audio —
-  # they hold devices that do. See docs/als_format.md sections 8.1 and 9.3.
+  # they hold devices that do. See docs/als_notes.md, "The device chain, and the chains nested
+  # inside it", and "The device chain of a group".
   #
   # @param element [Nokogiri::XML::Node, nil] the track or group element
   # @return [Array<Nokogiri::XML::Element>] the devices
