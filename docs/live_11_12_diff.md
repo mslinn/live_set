@@ -4,6 +4,10 @@ The version_diff document for Live 11 and Live 12. The transformations it descri
 the lists of `lib/live_set/tx/live_11_and_12.rb`, and the headings below are
 what the code cites.
 
+The bridge is `Live11And12`. It stands between Live 11 and Live 12, and it
+inherits the machinery of the base class and nothing else: a bridge never
+inherits from another bridge.
+
 The format itself — the elements, the attributes, and the shapes they take — is
 in [als_notes.md](als_notes.md). The release notes of Live 12 are in
 [release_notes/](release_notes/), and what they say is summarized below. The
@@ -101,6 +105,20 @@ one list serves both directions.
 
 The Live 11 spelling of the mixer width has a typo in it, and the typo is part
 of the format.
+
+The Live 12 developers renamed "Master" to "Main". No element or attribute name
+in the Live 12 format contains "Master" at all — zero occurrences across every
+Live 12 demo set. Live 11 has exactly four: `MasterTrack`,
+`AutoColorPickerForReturnAndMasterTracks`, `IsSongTempoMaster` and
+`SongMasterValues`, the last of which is the wrapper of the scroll position.
+The routing target `AudioOut/Master` is a fifth, and it is a value rather than a
+name. So the conversion has to put "Master" back in those places, and nowhere
+else.
+
+The rename is not a substitution over the string "Master": `MainSequencer` is
+spelled the same in Live 11 and Live 12, and it has nothing to do with the
+master track. The pairs are named one by one: the elements in the table above,
+and the routing target in "The values the two versions write differently".
 
 ### The values the two versions write differently
 

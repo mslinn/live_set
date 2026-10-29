@@ -299,9 +299,9 @@ Ableton Live can be configured to enable experimental and unsupported features t
 `Options.txt` file in its Preferences folder. For example, `-_GroupTrackFreeze` allows a group
 track to be bounced as though it were a track.
 
-`live_set` does not search for a file called  `Options.txt`.
+`live_set` does not search for a file called `Options.txt`.
 
-TODO I am uncomfortable with the following conclusion, depending on the staet of
+TODO I am uncomfortable with the following conclusion, depending on the state of
 the XML file. If an ALS file is generated somehow that has a frozen group track, we
 should respect the XML file. We need to follow through and look for docs and
 code that have a different goal, and fix them.

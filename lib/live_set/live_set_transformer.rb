@@ -5,8 +5,8 @@ require_relative 'tx/live_versions'
 #
 # A bridge converts between two versions of the format, and it handles moving both ways: the
 # direction is not passed in. The bridge reads the version of the document it is handed, and
-# converts to the other version of its version_diff. A transform is not directional; the direction is a
-# property of the document. See docs/cpfir.md, "The Lifecycle of a Conversion".
+# converts to the other version of its version_diff. A transform takes its direction from the
+# document it is given. See docs/cpfir.md, "The Lifecycle of a Conversion".
 #
 # The bridges are in the tx subdirectory of this directory, one for each version_diff, and the
 # registry of them is `lib/live_set/tx/live_versions.rb`: it is keyed by the version a bridge

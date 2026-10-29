@@ -1,0 +1,172 @@
+#!/usr/bin/env ruby
+
+# Prints the release notes of a version of Live as markdown.
+#
+# The release notes are the evidence the version_diff documents are built from: they say which
+# differences to expect, and which version introduced each one. They are written for the
+# musicians who use Live, and they never give an element name or an attribute name, so they
+# are a filter over the differences rather than a source of them.
+#
+# The notes are HTML, downloaded from Ableton's web site and kept in docs/release_notes/, one
+# file per version. This tool reads one of them and prints it as markdown, so that the notes
+# can be read, searched, and pasted into a document.
+#
+# Usage: release_notes VERSION [--find PATTERN]
+#
+# VERSION is the version of Live, e.g. 12, and it may name a single release, e.g. 12.0. The
+# notes of a single release are printed when it does.
+#
+# With --find PATTERN, the lines of the notes that match PATTERN are printed, each with the
+# release it belongs to. The pattern is matched without regard to case.
+#
+# Examples:
+#   release_notes 12
+#   release_notes 12.0
+#   release_notes 12 --find "scale awareness"
+#   release_notes 12 > docs/release_notes/live-12.md
+
+require 'nokogiri'
+
+# The directory the release notes are kept in.
+NOTES = File.expand_path('../docs/release_notes', __dir__).freeze
+
+# The heading of a release, e.g. "12.0.25 Release Notes".
+RELEASE = /\A(\d+\.\d+(?:\.\d+)?) Release Notes\z/.freeze
+
+# The level of the heading of an element in the markdown.
+#
+# The heading of a release is a level of its own, and the headings of the sections of a
+# release are below it.
+LEVEL = { 'h2' => 3, 'h3' => 4, 'h4' => 5 }.freeze
+
+# The text of a node, with a line break in it kept as a line break.
+#
+# @param node [Nokogiri::XML::Node] the node
+# @return [String] the text
+def text_of(node)
+  node.children.map do |child|
+    if child.element?
+      child.name == 'br' ? "\n" : text_of(child)
+    else
+      child.content
+    end
+  end.join
+end
+
+# The text of a node, on one line.
+#
+# @param node [Nokogiri::XML::Node] the node
+# @return [String] the text
+def flat_text(node)
+  collapse(text_of(node))
+end
+
+# The text of a string, on one line.
+#
+# @param text [String] the text
+# @return [String] the text
+def collapse(text)
+  text.gsub("\u00a0", ' ').gsub(/\s+/, ' ').strip
+end
+
+# The lines of the text of a node, with its whitespace collapsed.
+#
+# @param node [Nokogiri::XML::Node] the node
+# @return [Array<String>] the lines of text
+def lines_of_text(node)
+  text_of(node).gsub(/[^\S\n]+/, ' ').gsub(/\n{2,}/, "\n").split("\n").map(&:strip).reject(&:empty?)
+end
+
+# The text of a node, without the text of the lists it holds.
+#
+# The items of a nested list are printed in their own right, so the list item that holds them
+# does not repeat them.
+#
+# @param node [Nokogiri::XML::Node] the node
+# @return [String] the text
+def own_text(node)
+  node.children.map do |child|
+    if child.element?
+      %w[ul ol].include?(child.name) ? '' : own_text(child)
+    else
+      child.content
+    end
+  end.join
+end
+
+# The notes of a version, as the lines of a markdown document.
+#
+# @param path [String] the path of the HTML file of the notes
+# @return [Array<Array(String, String)>] the lines, each a release and a line of markdown
+def notes_of(path)
+  document = Nokogiri::HTML(File.read(path))
+  release = nil
+  previous = nil
+  document.css('main h2, main h3, main h4, main p, main li').each_with_object([]) do |node, lines|
+    text = flat_text(node)
+    next if text.empty?
+
+    if node.name == 'h2' && (match = RELEASE.match(text))
+      release = match[1]
+      lines << [release, "## #{text}"]
+      lines << [release, '']
+      previous = :heading
+      next
+    end
+    next if release.nil?
+
+    case node.name
+    when 'h2', 'h3', 'h4'
+      lines << [release, "#{'#' * LEVEL.fetch(node.name)} #{text}"]
+      lines << [release, '']
+      previous = :heading
+    when 'li'
+      indent = '  ' * (node.ancestors('ul').length - 1)
+      lines << [release, "#{indent}- #{collapse(own_text(node))}"]
+      previous = :item
+    when 'p'
+      next if node.ancestors('li').any?
+
+      lines << [release, ''] if previous == :item
+      lines_of_text(node).each_with_index do |line, index|
+        lines << [release, index.zero? ? line : "#{line}  "]
+      end
+      lines << [release, '']
+      previous = :paragraph
+    end
+  end
+end
+
+argv = ARGV.dup
+version = argv.shift
+abort 'Usage: release_notes VERSION [--find PATTERN]' if version.nil?
+
+pattern = nil
+if argv.first == '--find'
+  argv.shift
+  text = argv.shift
+  abort 'Usage: release_notes VERSION [--find PATTERN]' if text.nil?
+
+  pattern = Regexp.new(text, Regexp::IGNORECASE)
+end
+
+live = version.split('.').first
+path = File.join(NOTES, "live-#{live}.html")
+abort "No such file: #{path}" unless File.exist?(path)
+
+notes = notes_of(path)
+
+if pattern
+  notes.each { |release, line| puts "#{release} | #{line}" if line =~ pattern }
+  exit 0
+end
+
+puts "# Live #{live} Release Notes"
+puts
+
+if version.include?('.')
+  notes.each { |release, line| puts line if release == version }
+  exit 0
+end
+
+notes.each { |_release, line| puts line }

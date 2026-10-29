@@ -22,6 +22,11 @@ Naming/FileName:
     - README.md
     - TODO.md
 
+# The keyword arguments of the list declarations are named after the direction they apply to.
+Naming/MethodParameterName:
+  AllowedNames:
+    - up
+
 Gemspec/DeprecatedAttributeAssignment:
   Enabled: false
 

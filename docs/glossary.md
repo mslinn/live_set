@@ -21,7 +21,16 @@ list whichever way the set is going — a rename matches either spelling and emi
 the other. A list that applies in one direction only holds an entry for each
 direction, and the bridge takes the one that applies.
 
-The rest are hand-written methods in the subclass, for the differences that
+Each list is declared by calling the method of the base class that owns it, and
+a bridge has to declare every list, even the ones it has nothing to say about.
+A list that is not declared is an error, and it is named.
+
+A bridge never inherits from another bridge. The conversion from Live 12 to
+Live 9 is the composition of the bridges between Live 12 and Live 11, Live 11
+and Live 10, and Live 10 and Live 9, and each of those bridges stands on its
+own. A bridge inherits the machinery of the base class and nothing else.
+
+The rest are hand-written methods in the bridge, for the differences that
 lists of names cannot express: a value the two versions write differently, an
 element one version wraps and the other keeps bare, an element that has to move
 to another parent.

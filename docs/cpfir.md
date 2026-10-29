@@ -117,6 +117,14 @@ is given and moves it one version, so the direction of the whole conversion is
 decided by the document and not by the caller. The direction is not a
 parameter of any of them.
 
+A bridge stands on its own: no bridge inherits from another bridge. The
+conversion from Live 12 to Live 9 is the composition of the bridges between
+Live 12 and Live 11, Live 11 and Live 10, and Live 10 and Live 9 — there is
+no bridge between Live 12 and Live 9, and no bridge inherits the bridges it is
+built from. The machinery a bridge shares is the machinery of the base class
+and nothing else, and the base class refuses to be the parent of a bridge of
+a bridge.
+
 `LiveVersions.convert(document, from: 11, to: 12)` is the conversion of one
 version into another, and it is the composition of the bridges between them.
 
@@ -135,7 +143,8 @@ leads to.
 
 The bridge itself is a class that inherits the machinery from
 `LiveVersionConverter` and holds the differences between its two versions.
-`Live11And12` is the bridge between Live 11 and Live 12.
+It inherits the machinery and nothing else: a bridge never inherits from
+another bridge. `Live11And12` is the bridge between Live 11 and Live 12.
 
 ```ruby
 class LiveSetTransformer
@@ -162,22 +171,32 @@ The base class holds the machinery, and applies it in this order:
 9. the order the version writes the children of an element in.
 
 The lists of names that the first six and the last three steps work from are
-constants of the subclass, and the machinery reads them through
-`self.class::`, so a subclass supplies them by defining its own. The seventh
-step is the subclass's own: fifteen hand-written methods for the differences a
-list of names cannot express — a value the two versions write differently, an
-element one version wraps and the other keeps bare, an element that has to
-move to another parent.
+declared by the bridge, one call for each list, and the machinery takes them
+from the bridge, so each bridge declares them for the version of Live it
+converts. A bridge has to declare every list, even the ones it has nothing to
+say about: a list that is not declared is an error, and it is named. A list
+that is declared under a name the base class does not have is an error too,
+and it is raised when the bridge is loaded. The seventh step is the bridge's
+own: fifteen hand-written methods for the differences a list of names cannot
+express — a value the two versions write differently, an element one version
+wraps and the other keeps bare, an element that has to move to another parent.
 
 A list of names does not say which way the conversion is going. A rename
 matches either spelling and emits the other, so the same list serves both
 directions. A list that applies in one direction only holds an entry for each
 direction, and the bridge takes the one that applies.
 
-A transformation is not directional. It matches the document it is given and
-emits something else, so one set of transformations carries both directions of
-a version_diff, and the direction is a property of the document. One bridge
-stands between two versions, and it handles moving both ways.
+A removal is a no-op going the other way: it removes the elements only the
+newer version has, and a set of the older version does not have them. An
+insertion adds the elements the version the set is going to has and the
+version it came from lacks, so it is one of the lists that applies in one
+direction only.
+
+A transformation takes its direction from the document it is given: it matches
+the document and emits the equivalent document in the other of the two
+versions. One set of transformations therefore carries both directions of a
+version_diff. One bridge stands between two versions, and it handles moving
+both ways.
 
 The up direction (older version to newer) is lossless: it preserves everything
 the live set contains and changes only how it is expressed. The down
@@ -185,6 +204,11 @@ direction is lossy: constructs the older version cannot represent are dropped
 and cannot be recovered. The down direction is therefore not a functional
 inverse of the up direction, and down-then-up does not return the original
 document.
+
+The up direction is measured against a ground truth.
+`spec/live_set/tx/live_up_ground_truth_spec.rb` checks the lists of the
+bridge against what Live itself wrote when it opened a Live 11 set in Live 12
+and saved it.
 
 ## Comparing Two Live Sets
 

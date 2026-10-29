@@ -2,6 +2,10 @@ require_relative 'live_version_converter'
 
 # The differences between the Live 11 format and the Live 12 format.
 #
+# This class is the bridge between Live 11 and Live 12. It inherits the machinery of the base
+# class and nothing else: a bridge never inherits from another bridge, and a conversion across
+# several versions is the composition of the bridges between them.
+#
 # How the down direction works
 #
 # The direction is not given to the bridge. The bridge reads the version of the document it is
@@ -9,15 +13,19 @@ require_relative 'live_version_converter'
 # carries both directions of the version_diff: a rename matches either spelling and emits the
 # other.
 #
-# The lists hold the transformations:
+# The lists hold the transformations, and each of them is declared by calling the method of the
+# base class that owns it:
 #
-#   REMOVE, REMOVE_UNDER         the elements the older version does not have
-#   RENAME, RENAME_UNDER         the elements the two versions name differently
-#   EMPTY                        the elements the older version keeps empty
-#   REMOVE_ATTRIBUTE             the attributes the older version does not have
-#   DEFAULT_ATTRIBUTE            the attributes the older version always writes
-#   ADD, ADD_ATTRIBUTE           what the newer version adds
-#   CHILD_ORDER                  where the children of an element go
+#   remove, remove_under         the elements the older version does not have
+#   rename, rename_under         the elements the two versions name differently
+#   empty                        the elements the older version keeps empty
+#   remove_attribute             the attributes the older version does not have
+#   default_attribute            the attributes the older version always writes
+#   add, add_attribute           what the newer version adds
+#   child_order                  where the children of an element go
+#
+# The base class owns the lists and this class declares what each of them holds. Every list is
+# declared, even the ones that are empty, and a declaration adds to what the list already holds.
 #
 # The transformations that a list cannot express are in #special_transformations. Each of them
 # is a case a list cannot express: a value that the two versions write differently, an element
@@ -49,8 +57,8 @@ require_relative 'live_version_converter'
 # versions are summarized in docs/live_11_12_diff.md.
 #
 # The kinds of difference, and the operation each kind calls for, are in docs/conversion.md, "The
-# kinds of difference". A transform is not directional: see docs/cpfir.md, "The Lifecycle of a
-# Conversion".
+# kinds of difference". A transform takes its direction from the document it is given: see
+# docs/cpfir.md, "The Lifecycle of a Conversion".
 #
 # The terms used here are defined in docs/glossary.md.
 class Live11And12 < LiveVersionConverter
@@ -59,8 +67,8 @@ class Live11And12 < LiveVersionConverter
   # Live rewrites the revision every time it saves a set, so the value here describes the file
   # rather than the set, and it is left out of any comparison of two sets. See docs/cpfir.md,
   # "Comparing Two Live Sets".
-  VERSION = { # sorted alphabetically by key
-    down: {
+  version(
+    down: { # sorted alphabetically by key
       'Creator'           => 'Ableton Live 11.3.21',
       'MajorVersion'      => '5',
       'MinorVersion'      => '11.0_11300',
@@ -73,8 +81,8 @@ class Live11And12 < LiveVersionConverter
       'MinorVersion'      => '12.0_12402',
       'Revision'          => '0de5c8fa9a692293676cb7700a15afb2046ee1f7',
       'SchemaChangeCount' => '5',
-    },
-  }.freeze
+    }
+  )
 
   # The elements the older version does not have, wherever they appear.
   #
@@ -83,7 +91,7 @@ class Live11And12 < LiveVersionConverter
   # removed. Going up, the elements Live 11 has and Live 12 does not are removed. Neither
   # removal touches the elements the other version has, because they are named in the list of
   # the other direction only.
-  REMOVE = {
+  remove(
     # sorted alphabetically
     down: %w[
       ArrangementClipsListWrapper
@@ -127,8 +135,8 @@ class Live11And12 < LiveVersionConverter
       ViewStateSecondWindowDeviceDetailOpen
       WaveformVerticalZoomFactor
     ],
-    up:   [],
-  }.freeze
+    up:   []
+  )
 
   # The elements the older version does not have, under a named parent.
   #
@@ -142,7 +150,8 @@ class Live11And12 < LiveVersionConverter
   # it as <ViewStateSessionMixerVolumeSectionHeight>; the element is renamed, not removed. The
   # four elements of the view states that Live 12 replaced with a different set of elements are
   # removed, and the three that Live 12 dropped outright are removed.
-  REMOVE_UNDER = { # sorted alphabetically
+  remove_under(
+    # sorted alphabetically
     down: %w[
       AudioClip/IsInKey
       AudioClip/ScaleInformation
@@ -161,27 +170,27 @@ class Live11And12 < LiveVersionConverter
       ViewStates/ArrangerTrackDelay
       ViewStates/SessionMixer
       ViewStates/SessionTrackDelay
-    ],
-  }.freeze
+    ]
+  )
 
   # The elements the two versions spell differently.
   #
   # The base class reads this list in both directions, so the name of the element is enough.
-  RENAME = { # sorted alphabetically by key
+  rename( # sorted alphabetically by key
     'AutoColorPickerForReturnAndMainTracks' => 'AutoColorPickerForReturnAndMasterTracks',
     'IsSongTempoLeader'                     => 'IsSongTempoMaster',
     'MainTrack'                             => 'MasterTrack',
     'ReWireDeviceMidiTargetId'              => 'ReWireSlaveMidiTargetId',
-    'ViewStateSessionTrackWidth'            => 'ViewStateSesstionTrackWidth',
-  }.freeze
+    'ViewStateSessionTrackWidth'            => 'ViewStateSesstionTrackWidth'
+  )
 
   # The elements the two versions spell differently, under a named parent.
   #
   # The parent holds the element under a different name in each version, so the path of a rename is
   # the path of the element in the version the set is coming from, and the list holds one path
   # for each direction.
-  RENAME_UNDER = { # sorted alphabetically by key
-    down: {
+  rename_under(
+    down: { # sorted alphabetically by key
       'ContentLanes/MidiEditorLaneModel'                 => 'ExpressionLane',
       'ExpressionLanes/MidiEditorLaneModel'              => 'ExpressionLane',
       'LiveSet/ViewStateSessionMixerVolumeSectionHeight' => 'ViewStateSessionMixerHeight',
@@ -194,34 +203,34 @@ class Live11And12 < LiveVersionConverter
       'LiveSet/ViewStateSessionMixerHeight' => 'ViewStateSessionMixerVolumeSectionHeight',
       'PatchSlot/Value/MxDPatchRef'         => 'MxPatchRef',
       'ScaleInformation/RootNote'           => 'Root',
-    },
-  }.freeze
+    }
+  )
 
   # The elements that are empty in Live 11.
   #
   # Live 12 has content in them that Live 11 cannot represent, so the conversion drops it. The
   # other way, a Live 11 set has them empty already, so there is nothing to restore.
-  EMPTY = { # sorted alphabetically
-    down: [
+  empty(
+    down: [ # sorted alphabetically
       'AudioSequencer/ClipSlotList',
       'MidiTrack/TakeLanes/TakeLanes',
       'Mixer/Sends',
       'SendsPre',
       'TimeAndValueTransforms'
     ],
-    up:   [],
-  }.freeze
+    up:   []
+  )
 
   # The attributes Live 11 does not have.
   #
   # They record which panel of the device chain is selected, and are not part of the sound of the
   # set.
   # sorted alphabetically
-  REMOVE_ATTRIBUTE = %w[
+  remove_attribute %w[
     SelectedGeneratorName
     SelectedToolPanel
     SelectedTransformationName
-  ].freeze
+  ]
 
   # The attributes Live 11 always writes, and the value it writes.
   #
@@ -233,7 +242,7 @@ class Live11And12 < LiveVersionConverter
   #
   # The attributes are written in the order Live writes them in, so this list is in that order
   # and not in alphabetical order, even though the keys could be sorted.
-  DEFAULT_ATTRIBUTE = { # sorted alphabetically by key
+  default_attribute( # sorted alphabetically by key
     'MidiNoteEvent' => {
       'VelocityDeviation' => '0',
       'Probability'       => '1',
@@ -244,8 +253,8 @@ class Live11And12 < LiveVersionConverter
       'CurveControl1Y' => '0.5',
       'CurveControl2X' => '0.5',
       'CurveControl2Y' => '0.5',
-    },
-  }.freeze
+    }
+  )
 
   # The order Live 12 writes the children of an element in.
   #
@@ -254,7 +263,7 @@ class Live11And12 < LiveVersionConverter
   #
   # The spec spec/live_set/tx/live_up_ground_truth_spec.rb checks the list against the set Live itself wrote, so the
   # list is known to be right rather than believed to be.
-  CHILD_ORDER = {
+  child_order(
     down: {},
     up:   {
       'LiveSet'                                    => %w[
@@ -413,8 +422,8 @@ class Live11And12 < LiveVersionConverter
         PitchClassSource OctaveSource KeyNoteTarget StepSize OctaveEvery AllowedKeys FillerKeysMapTo
       ],
       'MidiClip/Notes/ProbabilityGroupIdGenerator' => %w[NextId],
-    },
-  }.freeze
+    }
+  )
 
   # The attributes Live 12 writes on every track.
   #
@@ -426,7 +435,7 @@ class Live11And12 < LiveVersionConverter
   }.freeze
 
   # The attributes the newer version writes on an element.
-  ADD_ATTRIBUTE = {
+  add_attribute(
     down: {},
     up: {
       'AudioTrack'   => TRACK_ATTRIBUTES,
@@ -436,7 +445,7 @@ class Live11And12 < LiveVersionConverter
       'PreHearTrack' => TRACK_ATTRIBUTES,
       'ReturnTrack'  => TRACK_ATTRIBUTES
     }
-  }.freeze
+  )
 
   # The elements of the controller layout customization of a MIDI track.
   #
@@ -465,7 +474,7 @@ class Live11And12 < LiveVersionConverter
   # Each entry names the parent the element goes in, the element itself, and the attributes it
   # has. Where the element goes among the children of its parent is not said here: the order of
   # CHILD_ORDER says that, and the same order applies to the elements the conversion moves.
-  ADD = {
+  add(
     down: [],
     up:   [
       { parent: 'LiveSet', name: 'SelectedBreakpointValue', attributes: { 'Value' => '0' } },
@@ -550,8 +559,8 @@ class Live11And12 < LiveVersionConverter
 
       { parent: 'FileRef', name: 'SourceHint', attributes: { 'Value' => '' } },
       { parent: 'SourceContext/SourceContext', name: 'LocalFiltersJson', attributes: { 'Value' => '' } }
-    ],
-  }.freeze
+    ]
+  )
 
   # The scales of the two versions, and how they are written.
   #

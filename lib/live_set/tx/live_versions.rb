@@ -12,6 +12,10 @@ require_relative 'live_11_and_12'
 #
 #   LiveVersions.convert(document, from: 11, to: 12)
 #
+# A bridge stands on its own: no bridge inherits from another bridge, so there is no bridge
+# between Live 12 and Live 9, and the conversion from Live 12 to Live 9 is the composition of
+# the bridges between Live 12 and Live 11, Live 11 and Live 10, and Live 10 and Live 9.
+#
 # The terms used here are defined in docs/glossary.md. The architecture is in docs/cpfir.md,
 # "Defining a Single Source of Truth: The Target End-State" and "Dynamically Slicing the
 # Pipeline Intervals".

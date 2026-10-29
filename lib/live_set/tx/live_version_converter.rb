@@ -2,116 +2,270 @@ require 'nokogiri'
 
 # The machinery of a conversion between two versions of the Live format.
 #
-# A conversion is made of lists of names — the elements to remove, the elements to rename, the attributes
-# to give a default value — and of a few transformations that a list cannot express, which a
-# subclass adds by overriding #special_transformations.
+# A bridge is the class that converts a set between two adjacent versions of the Live format.
+# A bridge never inherits from another bridge: a conversion across several versions is the
+# composition of the bridges between them, one after the other, and each of those bridges stands
+# on its own. The base class refuses to be the parent of a bridge of a bridge. See docs/cpfir.md,
+# "Dynamically Slicing the Pipeline Intervals".
+#
+# The base class knows nothing about any particular version_diff. It applies the lists a bridge
+# declares, in the order the lists are applied, and it takes the direction from the version the
+# document carries.
+#
+# A bridge declares its lists by calling the declaration methods below, one method for each
+# list:
+#
+#   version           the version strings of each direction
+#   remove            the elements the older version does not have
+#   remove_under      the elements the older version does not have, under a named parent
+#   rename            the elements the two versions spell differently
+#   rename_under      the elements the two versions spell differently, under a named parent
+#   empty             the elements the older version keeps empty
+#   remove_attribute  the attributes the older version does not have
+#   default_attribute the attributes the older version always writes
+#   add               the elements the newer version adds
+#   add_attribute     the attributes the newer version writes
+#   child_order       the order the version writes the children of an element in
+#
+# A declaration adds to what the list already holds, so a list can be declared in more than one
+# place without any of the declarations losing content.
+#
+# A bridge has to declare every list, even the ones it has nothing to say about. A list that is
+# not declared is an error, and it is named. A list that is declared under a name the base class
+# does not have is an error too, and it is raised when the bridge is loaded.
 #
 # The lists do not say which way the conversion is going. A rename matches either spelling and
 # emits the other, so the same list serves both directions. The direction is a property of the
 # document: the version the document carries decides it.
 #
 # A transformation that cannot be expressed symmetrically is conditioned on the direction. A
-# list that applies in one direction only is written as a hash with a key for each direction,
-# and the base class takes the one that applies.
+# list that applies in one direction only is declared with a value for each direction, and the
+# base class takes the one that applies.
+#
+# The transformations that a list cannot express are written by hand in the bridge, by
+# overriding #special_transformations. Nothing produces them automatically; the comparison of
+# the two versions is information for the person writing them. See docs/conversion.md, "The
+# differences must be sorted by kind, and the non-obvious ones hand-written".
 #
 # A conversion is a pure function from one document to another: the result depends only on the
 # document, and nothing outside it is touched. See docs/cpfir.md, "The Lifecycle of a Conversion".
-#
-# The transformations are written by hand. Nothing produces them automatically; the comparison
-# of the two versions is information for the person writing them. See docs/conversion.md,
-# "The differences must be sorted by kind, and the non-obvious ones hand-written".
-#
-# The terms used here are defined in docs/glossary.md.
 #
 # The schema of a version is an index of the format: it lists every element and every attribute
 # of that version, so the differences between two versions are found by diffing one schema
 # against the other. See docs/als_work.md, "Mapping XSD to Ruby Classes", and docs/conversion.md,
 # "Attributes have to be part of the difference list" and "Why the baselines are what to compare".
 #
-# The transformations of a version_diff live in the subclass, and the differences between the
-# two versions are summarized in docs/live_11_12_diff.md.
+# The terms used here are defined in docs/glossary.md.
+#
+# The transformations of a version_diff live in the bridge, and the differences between the two
+# versions are summarized in docs/live_11_12_diff.md.
 class LiveVersionConverter
-  # The version strings of each direction.
+  # The lists a bridge declares.
+  LISTS = %i[
+    version remove remove_under rename rename_under empty remove_attribute
+    default_attribute add add_attribute child_order
+  ].freeze
+
+  # The lists whose content differs in the two directions.
   #
-  # The :down key holds the strings of the older version, which are written when a set is going
-  # down; the :up key holds the strings of the newer version. The version of the document decides
-  # which way the conversion goes: a document that already carries the newer strings is going
-  # down, and one that carries the older strings is going up.
-  VERSION = { down: {}, up: {} }.freeze
+  # A list of these is declared with a value for each direction, and the base class takes the
+  # one that applies to the direction the set is going.
+  DIRECTIONAL = %i[
+    version remove remove_under rename_under empty add add_attribute child_order
+  ].freeze
 
-  # The elements the older version does not have, wherever they appear.
-  REMOVE = [].freeze
-
-  # The elements the older version does not have, under a named parent.
+  # The lists whose content is the same in the two directions.
   #
-  # An element that is removed by its name alone would also be removed from the places the older
-  # version needs it, so these entries name the parent the element has to be removed from.
-  REMOVE_UNDER = [].freeze
+  # A list of these is declared once, and the base class reads it in both directions.
+  SYMMETRIC = (LISTS - DIRECTIONAL).freeze
 
-  # The elements the two versions spell differently.
-  #
-  # The base class reads this list in both directions, so the name of the element is enough: the
-  # rename turns the element into the other spelling.
-  RENAME = {}.freeze
+  class << self
+    # The lists the bridge declares.
+    #
+    # @return [Hash] the lists, keyed by the name of the list
+    # @raise [ArgumentError] when the bridge does not declare every list
+    def lists
+      declared = @lists ||= {}
+      missing = LISTS - declared.keys
+      raise ArgumentError, "#{name} does not declare: #{missing.join(', ')}" unless missing.empty?
 
-  # The elements the two versions spell differently, under a named parent.
-  #
-  # The path is not the same in both directions — the parent holds the element under a different
-  # name in each version — so this list holds both directions, and the subclass writes them out.
-  RENAME_UNDER = {}.freeze
+      declared
+    end
 
-  # The elements that are empty in the older version.
-  EMPTY = [].freeze
+    # The versions the bridge converts.
+    #
+    # @return [Array<String>] the minor versions of the two versions of the format
+    def versions
+      strings = lists[:version]
+      [strings[:down]['MinorVersion'], strings[:up]['MinorVersion']]
+    end
 
-  # The attributes the older version does not have.
-  REMOVE_ATTRIBUTE = [].freeze
+    # Converts a document.
+    #
+    # The class is a function of a document: it takes a document and returns the converted
+    # document. The registry of the bridges holds them as such functions, and composes them with
+    # `>>`. See docs/cpfir.md, "Defining a Single Source of Truth: The Target End-State" and
+    # "Dynamically Slicing the Pipeline Intervals".
+    #
+    # @param document [Nokogiri::XML::Document] the set to convert
+    # @return [Nokogiri::XML::Document] the converted set
+    def call(document)
+      new(document).convert
+    end
 
-  # The attributes the older version always writes, and the value it writes.
-  DEFAULT_ATTRIBUTE = {}.freeze
+    # Declares the version strings of each direction.
+    #
+    # @param down [Hash] the version strings of the older version
+    # @param up [Hash] the version strings of the newer version
+    # @return [void]
+    def version(down:, up:)
+      declare(:version, down: down, up: up)
+    end
 
-  # The elements the newer version adds to a set that came from the older one.
-  #
-  # Each entry names the parent the element goes in, the element itself, the attributes it has,
-  # and the elements it holds. The element is added at the end of its parent, and the order of
-  # CHILD_ORDER moves it to where the version writes it.
-  ADD = { down: [], up: [] }.freeze
+    # Declares the elements the older version does not have, wherever they appear.
+    #
+    # @param down [Array<String>] the elements to remove going down
+    # @param up [Array<String>] the elements to remove going up
+    # @return [void]
+    def remove(down:, up:)
+      declare(:remove, down: down, up: up)
+    end
 
-  # The attributes the newer version writes on an element.
-  #
-  # The older version does not write them at all, so a set that came from the older version does
-  # not have them either. The attributes go on the elements that are already in the set.
-  ADD_ATTRIBUTE = { down: {}, up: {} }.freeze
+    # Declares the elements the older version does not have, under a named parent.
+    #
+    # @param down [Array<String>] the paths to remove going down
+    # @param up [Array<String>] the paths to remove going up
+    # @return [void]
+    def remove_under(down:, up:)
+      declare(:remove_under, down: down, up: up)
+    end
 
-  # The order the version writes the children of an element in.
-  #
-  # The order says where the elements the conversion adds go, and where the elements that moved
-  # between the versions go. The elements that the order does not name keep the place they have.
-  CHILD_ORDER = { down: {}, up: {} }.freeze
+    # Declares the elements the two versions spell differently.
+    #
+    # The list is read in both directions, so a rename turns the element into the other
+    # spelling whichever spelling it has.
+    #
+    # @param names [Hash] the new spelling of each element, keyed by the old spelling
+    # @return [void]
+    def rename(names)
+      declare(:rename, names)
+    end
 
-  # The versions the bridge converts.
-  #
-  # @return [Array<String>] the minor versions of the two versions of the format
-  def self.versions
-    versions = const_get(:VERSION)
-    [versions[:down]['MinorVersion'], versions[:up]['MinorVersion']]
-  end
+    # Declares the elements the two versions spell differently, under a named parent.
+    #
+    # The parent holds the element under a different name in each version, so the path of a
+    # rename is the path of the element in the version the set is coming from, and the list
+    # holds one path for each direction.
+    #
+    # @param down [Hash] the paths to rename going down, and the names they get
+    # @param up [Hash] the paths to rename going up, and the names they get
+    # @return [void]
+    def rename_under(down:, up:)
+      declare(:rename_under, down: down, up: up)
+    end
 
-  # Converts a document.
-  #
-  # The class is a function of a document: it takes a document and returns the converted
-  # document. The registry of the bridges holds them as such functions, and composes them with
-  # `>>`. See docs/cpfir.md, "Defining a Single Source of Truth: The Target End-State" and
-  # "Dynamically Slicing the Pipeline Intervals".
-  #
-  # @param document [Nokogiri::XML::Document] the set to convert
-  # @return [Nokogiri::XML::Document] the converted set
-  def self.call(document)
-    new(document).convert
+    # Declares the elements that are empty in the older version.
+    #
+    # @param down [Array<String>] the paths to empty going down
+    # @param up [Array<String>] the paths to empty going up
+    # @return [void]
+    def empty(down:, up:)
+      declare(:empty, down: down, up: up)
+    end
+
+    # Declares the attributes the older version does not have.
+    #
+    # @param names [Array<String>] the attributes to remove
+    # @return [void]
+    def remove_attribute(names)
+      declare(:remove_attribute, names)
+    end
+
+    # Declares the attributes the older version always writes, and the value it writes.
+    #
+    # @param names [Hash] the attributes of each element, keyed by the element
+    # @return [void]
+    def default_attribute(names)
+      declare(:default_attribute, names)
+    end
+
+    # Declares the elements the newer version adds to a set that came from the older one.
+    #
+    # Each entry names the parent the element goes in, the element itself, the attributes it
+    # has, and the elements it holds.
+    #
+    # @param down [Array<Hash>] the elements to add going down
+    # @param up [Array<Hash>] the elements to add going up
+    # @return [void]
+    def add(down:, up:)
+      declare(:add, down: down, up: up)
+    end
+
+    # Declares the attributes the newer version writes on an element.
+    #
+    # @param down [Hash] the attributes of each element, keyed by the element
+    # @param up [Hash] the attributes of each element, keyed by the element
+    # @return [void]
+    def add_attribute(down:, up:)
+      declare(:add_attribute, down: down, up: up)
+    end
+
+    # Declares the order the version writes the children of an element in.
+    #
+    # @param down [Hash] the order of the children of each element, keyed by the element
+    # @param up [Hash] the order of the children of each element, keyed by the element
+    # @return [void]
+    def child_order(down:, up:)
+      declare(:child_order, down: down, up: up)
+    end
+
+    # A bridge is never the parent of another bridge.
+    #
+    # @param subclass [Class] the class being defined
+    # @raise [ArgumentError] when the parent is a bridge rather than the base class
+    # @return [void]
+    def inherited(subclass)
+      super
+      return if base?
+
+      raise ArgumentError, "a bridge does not inherit from another bridge: #{subclass} < #{self}"
+    end
+
+    # @return [Boolean] whether this class is the base class rather than a bridge
+    def base?
+      equal?(LiveVersionConverter)
+    end
+
+    private
+
+    # Adds a declaration to the list it belongs to.
+    #
+    # @param name [Symbol] the name of the list
+    # @param value [Object] the content of the declaration
+    # @return [void]
+    def declare(name, value)
+      @lists ||= {}
+      @lists[name] = merge_lists(@lists[name], value)
+    end
+
+    # Adds the content of a declaration to what a list already holds.
+    #
+    # @param existing [Object, nil] what the list holds
+    # @param value [Object] the content of the declaration
+    # @return [Object] what the list holds afterwards
+    def merge_lists(existing, value)
+      return value if existing.nil?
+      return (existing + value).uniq if existing.is_a?(Array) && value.is_a?(Array)
+      return existing.merge(value) { |_key, old, new| merge_lists(old, new) } if existing.is_a?(Hash) && value.is_a?(Hash)
+
+      value
+    end
   end
 
   # @param document [Nokogiri::XML::Document] the set to convert
   def initialize(document)
     @document = document
+    @lists = self.class.lists
     @direction = detect_direction
   end
 
@@ -149,51 +303,49 @@ class LiveVersionConverter
 
   private
 
+  # The content of a list, in the direction the set is going.
+  #
+  # @param name [Symbol] the name of the list
+  # @return [Object] the content of the list
+  def list(name)
+    value = @lists.fetch(name)
+    return value if SYMMETRIC.include?(name)
+
+    value.fetch(@direction)
+  end
+
   # The version the document carries decides the direction of the conversion.
   #
   # @return [Symbol] :down or :up
   def detect_direction
+    strings = @lists[:version]
     version = document.at_xpath('/Ableton')&.[]('MinorVersion').to_s
-    return :down if version == self.class::VERSION[:up]['MinorVersion']
-    return :up if version == self.class::VERSION[:down]['MinorVersion']
+    return :down if version == strings[:up]['MinorVersion']
+    return :up if version == strings[:down]['MinorVersion']
 
     raise ArgumentError, "cannot tell which version the set is: #{version.inspect}"
-  end
-
-  # The constant for the direction the set is going.
-  #
-  # A list that applies in both directions is written as it is. A list that applies in one
-  # direction only is written as a hash with a key for each direction.
-  #
-  # @param name [Symbol] the name of the constant
-  # @return [Object] the list
-  def constant(name)
-    value = self.class.const_get(name)
-    return value.fetch(@direction) if value.is_a?(Hash) && value.key?(:down) && value.key?(:up)
-
-    value
   end
 
   # Writes the version strings of the version the set is going to.
   def version_strings
     root = document.at_xpath('/Ableton')
-    strings = constant(:VERSION)
+    strings = list(:version)
     root.attribute_nodes.each { |attribute| attribute.remove unless strings.key?(attribute.name) }
     strings.each { |name, value| root[name] = value }
   end
 
   # Removes the elements the older version does not have.
   def remove_elements
-    constant(:REMOVE).each { |name| document.xpath("//#{name}").each(&:remove) }
-    constant(:REMOVE_UNDER).each { |path| document.xpath("//#{path}").each(&:remove) }
-    constant(:REMOVE_ATTRIBUTE).each do |name|
+    list(:remove).each { |name| document.xpath("//#{name}").each(&:remove) }
+    list(:remove_under).each { |path| document.xpath("//#{path}").each(&:remove) }
+    list(:remove_attribute).each do |name|
       document.xpath("//*[@#{name}]").each { |element| element.remove_attribute(name) }
     end
   end
 
   # Renames the elements the two versions spell differently.
   def rename_elements
-    renames = constant(:RENAME)
+    renames = list(:rename)
     # A rename turns the element into the other spelling, so the list is read in both directions.
     renames = renames.merge(renames.invert)
     # The elements are collected before any of them is renamed, so that an element renamed into
@@ -211,19 +363,19 @@ class LiveVersionConverter
   # before any of them is renamed, so that an element renamed into the path of another rename is
   # not renamed a second time.
   def rename_elements_under_parent
-    under = constant(:RENAME_UNDER)
+    under = list(:rename_under)
     matches = under.keys.flat_map { |path| document.xpath("//#{path}").map { |element| [element, under[path]] } }
     matches.each { |element, name| element.name = name }
   end
 
   # Empties the elements that are empty in the older version.
   def empty_elements
-    constant(:EMPTY).each { |path| document.xpath("//#{path}").each { |element| element.children.remove } }
+    list(:empty).each { |path| document.xpath("//#{path}").each { |element| element.children.remove } }
   end
 
   # Gives the attributes the older version always writes the value it writes.
   def default_attributes
-    constant(:DEFAULT_ATTRIBUTE).each do |name, attributes|
+    list(:default_attribute).each do |name, attributes|
       document.xpath("//#{name}").each do |element|
         attributes.each { |attribute, value| element[attribute] = value unless element.attribute(attribute) }
       end
@@ -234,7 +386,7 @@ class LiveVersionConverter
   #
   # An attribute that is already there is left alone.
   def add_attributes
-    constant(:ADD_ATTRIBUTE).each do |name, attributes|
+    list(:add_attribute).each do |name, attributes|
       document.xpath("//#{name}").each do |element|
         attributes.each { |attribute, value| element[attribute] = value unless element.attribute(attribute) }
       end
@@ -243,14 +395,14 @@ class LiveVersionConverter
 
   # The transformations that a list cannot express.
   #
-  # A subclass overrides this and calls super.
+  # A bridge overrides this and calls super.
   #
   # @return [void]
   def special_transformations; end
 
   # Adds the elements the newer version has and the older one does not.
   def additions
-    constant(:ADD).each do |addition|
+    list(:add).each do |addition|
       document.xpath("//#{addition[:parent]}").each do |parent|
         next if parent.at_xpath("./#{addition[:name]}")
 
@@ -273,7 +425,7 @@ class LiveVersionConverter
   #
   # The elements the order does not name keep the place they have, at the end of their parent.
   def reorder_children
-    constant(:CHILD_ORDER).each do |name, order|
+    list(:child_order).each do |name, order|
       document.xpath("//#{name}").each { |parent| reorder_children_of(parent, order) }
     end
   end

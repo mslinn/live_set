@@ -19,131 +19,110 @@ The plan for this conversion is this document. The outstanding work of the gem a
 of this plan is outstanding work, it has an identifier in `TODO.md`, and this plan refers to it
 by that identifier.
 
-`validate_asd` validates that a converted set is well-formed XML, and that its structure complies
-with the schema of the version it was written for. The schemas are XML schemas, stored as XSD
-files, one per version of Live. They have a section of their own below.
+## The transformation is Ruby code
 
-Already in place:
+The transformations are Ruby code: `lib/live_set/tx/live_version_converter.rb` holds the
+machinery that applies them, and the bridge for each pair of versions holds what the two
+versions do differently.
 
-- `lib/live_set/live_set_transformer.rb` — applies a transformation to a document.
-- `schemas/live_{10.1.3,11.3,12.4}d1.xsd` — generated from every demo set of each version, so
-  each one accepts all of its version's demo sets.
+The XSLT stylesheet the Ruby replaced, `lib/live_set/tx/live_12_to_live_11.xsl`, stays in the
+repository. It is the only other implementation of these transformations that has ever existed,
+and it was incomplete with errors.
 
-## The transformation is Ruby code, not an XSLT stylesheet
+## Architecture
 
-`lib/live_set/tx/live_12_to_live_11.xsl` was written first, as an XSLT stylesheet. It is 397
-lines and it will certainly grow: every transformation is a template with its own identity handling, and
-the up direction would double it. It is replaced by Ruby code.
+The bidirectionality of the transformations is explained in `docs/cpfir.md`, and proved by the
+specs that walk the same transformations in each direction:
+`spec/live_set/tx/live_11_and_12_up_spec.rb` and
+`spec/live_set/tx/live_11_and_12_down_spec.rb`. **Transformations are bidirectional.**
 
-The Ruby was written and run against the stylesheet on the Live 12 demo set. The two produce
-the same document, node for node:
-
-```
-xslt elements: 236427   ruby elements: 236427
-IDENTICAL
-```
-
-The sizes, and what they mean:
-
-| | lines | of which transformations |
-| --- | --- | --- |
-| the XSLT stylesheet | 397 | 332 without comments |
-| the Ruby, one file | 213 | 156 without comments |
-| the Ruby, base class + subclass | 257 | 100 base, 157 transformations |
-
-The Ruby is shorter and it grows more slowly. A transformation is an entry in a list instead of a template:
-the forty-element removal list is twelve lines of `%w[]` and one loop, against forty lines of
-template. A rename is a hash entry. The special transformations are three to eight plain lines each. And
-none of the XSLT 1.0 constraints apply — no template priorities, no `xsl:copy` that silently
-drops attributes, no user-defined functions, no `xsl:message` that raises.
-
-The decisive argument is the up direction. The up direction (Live 11 → Live 12) has to be
-lossless and faithful to Live's own conversion, and its transformations come from the same experiment that
-produced the down direction: open a Live 11 demo set in Live 12, save it, and compare the two
-files. In XSLT that means a second template for every transformation, and the stylesheet roughly doubles
-to eight hundred lines. In Ruby the same lists are read the other way.
-
-`docs/cpfir.md` said that ALS conversions are handled by XSLT transformations. That
-sentence has changed: the document now describes the Ruby architecture, the
-registry, the pipeline of bridges, and the comparison of two sets.
-
-The stylesheet stays in the repository. It is the only other implementation of these transformations that
-has ever existed, and it is what a node-for-node comparison of the Ruby would be made against.
-
-## The architecture
-
-The bidirectionality is settled in `docs/cpfir.md`, and proved by the `/tmp/bidir.rb`
-experiment: **a transformation is not directional.**
-
-- A transformation that renames an element matches either spelling and emits the other. The direction is a
-  property of the document, not of the transformation.
-- The up direction (older version to newer) is lossless. It preserves everything the set
-  contains and changes only how it is expressed. It must reproduce Live's own conversion:
-  opening an older set in a newer Live and saving it produces a specific document, and the
-  upgrade has to produce that same document, including the elements Live adds and the default
-  values it gives them.
-- The down direction is lossy. Constructs the older version cannot represent are dropped and
-  cannot be recovered, so down-then-up does not return the original document, and the down
-  direction is not a functional inverse of the up direction.
-- Transformations that cannot be expressed symmetrically — deleting an element only the newer version has,
-  adding one the older version lacks — are conditioned on the direction.
-- There are no separate up and down functions, and no separate up and down transformations.
-  `docs/cpfir.md`, "The Lifecycle of a Conversion", says so: a transformation "is not directional.
-  It matches the document it is
-  given and emits something else, so one set of transformations carries both directions of a
-  version_diff", and the direction is a property of the document. One bridge stands between two
-  versions, and it handles moving both ways.
+- A transformation that renames an element matches either spelling and emits the
+  other. The direction is a property of the document, not of the transformation.
+- The up direction (older version to newer) is lossless. It preserves everything
+  the set contains and changes only how it is expressed. It must reproduce
+  Live's own conversion: opening an older set in a newer Live and saving it
+  produces a specific document, and the upgrade has to produce that same
+  document, including the elements Live adds and the default values it gives
+  them.
+- The down direction is lossy. Constructs the older version cannot represent are
+  dropped and cannot be recovered, so down-then-up does not return the original
+  document, and the down direction is not a functional inverse of the up
+  direction.
+- Transformations that cannot be expressed symmetrically — deleting an element
+  only the newer version has, adding one the older version lacks — are
+  conditioned on the direction.
+- There are no separate up and down functions, and no separate up and down
+  transformations.  `docs/cpfir.md`, "The Lifecycle of a Conversion", says so: a
+  transformation takes its direction from the document it is given; it matches
+  the document it is given and emits something else, so one set of
+  transformations carries both directions of a version_diff. One bridge stands
+  between two versions, and it handles schema translations both ways.
 - Because the asymmetry is real, comparing two sets means upgrading both to the same version
   first, and comparing the XML trees there, element by element, with `lib/live_set/xml_diff.rb`.
   Bytes play no part in it.
 
-The registry is keyed by version, the key being the version the bridge leads to, and a conversion
-is a composition of the bridges between the two versions, composed with `>>`.
-`docs/cpfir.md`, "Defining a Single Source of Truth: The Target End-State" through "The Lifecycle of
-a Conversion", has the shape; only the 11↔12 version_diff is in scope now.
+The registry is keyed by version, the key being the version the bridge leads to,
+and a conversion is a composition of the bridges between the two versions,
+composed with `>>`.  `docs/cpfir.md`, "Defining a Single Source of Truth: The
+Target End-State" through "The Lifecycle of a Conversion", has the shape; only
+the 11↔12 version_diff is in scope now.
 
-## The base class and its subclasses
+## Classes
 
-`lib/live_set/tx/live_version_converter.rb` holds the machinery, and knows nothing about any
-particular version_diff:
+`lib/live_set/tx/live_version_converter.rb` holds the machinery, and knows
+nothing about any particular `version_diff`:
 
-- the lists it applies — `VERSION`, `REMOVE`, `REMOVE_UNDER`, `RENAME`, `RENAME_UNDER`,
-  `EMPTY`, `REMOVE_ATTRIBUTE`, `DEFAULT_ATTRIBUTE` — read through `self.class::`, so a
-  subclass supplies them by defining its own;
-- the operations that apply them: `version_strings`, `remove_elements`, `rename_elements`,
-  `empty_elements`, `default_attributes`;
+- the lists it applies — `version`, `remove`, `remove_under`, `rename`,
+  `rename_under`, `empty`, `remove_attribute`, `default_attribute`, `add`,
+  `add_attribute`, `child_order` — each of which a bridge declares by calling
+  the method of the base class that owns it, for the version of Live it
+  converts;
+- the operations that apply them: `version_strings`, `remove_elements`,
+  `rename_elements`, `empty_elements`, `default_attributes`;
 - `convert`, which runs them in order and then calls `special_transformations`.
 
-`lib/live_set/tx/live_11_and_12.rb` holds the differences between the Live 11 format and the
-Live 12 format: the lists, and the fifteen transformations that are not lists — the Saturator's
-`Oversampling` value, the `AudioOut/Main` target, the scroll position, the freeze elements, the
-clip slot's refreeze, the device's `IdRefList`, the MIDI clip's scale information, the chooser
-bar, the MIDI take lanes, the take lane's `LomId`, the device's view data, the source context,
-the tuning, the track names, and the follow action link. A subclass overrides `special_transformations`
-and calls `super`.
+`lib/live_set/tx/live_11_and_12.rb` holds the differences between the Live 11
+format and the Live 12 format: the lists, and the fifteen transformations that
+are not lists — the Saturator's `Oversampling` value, the `AudioOut/Main`
+target, the scroll position, the freeze elements, the clip slot's refreeze, the
+device's `IdRefList`, the MIDI clip's scale information, the chooser bar, the
+MIDI take lanes, the take lane's `LomId`, the device's view data, the source
+context, the tuning, the track names, and the follow action link. A bridge
+overrides `special_transformations` and calls `super`.
 
-The base class is written once. Each further version_diff costs a subclass of lists and
-specials, and nothing else.
+The base class is written once. Each further version_diff costs a bridge of
+lists and specials, and nothing else.
 
-**Where the lists live.** Settled: Ruby constants in the subclass. There is one set per
-bridge, with no direction structure in it, so the argument for a data file — that the data
-would express the direction — does not apply. What is left against it is that YAML resolves
-`"1"` as `1` and `"true"` as `true`, and a misspelled key returns `nil` rather than raising,
-and both of those fail silently in values that go straight into XML attributes.
+**Where the lists live.** The base class owns the lists, and a bridge declares
+what each of them holds. There is one set of lists per bridge, with no
+direction structure in it. A bridge has to declare every list, even the ones it
+has nothing to say about, and a list that is not declared is an error, and it
+is named. A list declared under a name the base class does not have is an error
+too, and it is raised when the bridge is loaded.
 
-## The schemas
+**A bridge stands on its own.** No bridge inherits from another bridge, and the
+base class refuses to be the parent of a bridge of a bridge. A conversion
+across several versions is the composition of the bridges between them.
+
+## Schemas
 
 The schemas are XML schemas, stored as XSD files, one per version of Live, under `schemas/`:
 `schemas/live_10.1.3d1.xsd`, `schemas/live_11.3d1.xsd`, `schemas/live_12.4d1.xsd`, named for
 the version that wrote them. `docs/als_notes.md`, "ALS Schemas", says more about them.
 
-They describe structure, not data: the elements a version writes, the attributes they carry,
-and how they nest. They say nothing about the values those attributes hold. The two things
-are documented apart. `docs/als_notes.md` holds the structure of a set — its elements, their
-nesting, their attributes — and the data a set holds: the values, the sample references, the
-devices. `docs/live_11_12_diff.md` holds what differs between two versions, in both: the
-elements the two versions name differently, the values they write differently, the elements one
-adds, the elements one puts at another depth.
+The schemas are helpful to test conversions: the end-to-end example of Phase 3
+is the conversion validated against the Live 11 schema. Passing it is necessary
+and not sufficient because these schemas are probably incomplete, and making
+them complete would be a huge undertaking.
+
+The schemas describe structure, not data: the elements a version writes, the
+attributes they carry, and how they nest. They say nothing about the values
+those attributes hold. The two things are documented apart. `docs/als_notes.md`
+holds the structure of a set — its elements, their nesting, their attributes —
+and the data a set holds: the values, the sample references, the devices.
+`docs/live_11_12_diff.md` holds what differs between two versions, in both: the
+elements the two versions name differently, the values they write differently,
+the elements one adds, the elements one puts at another depth.
 
 They are generated, not written by hand: `bin/generate_xsds` walks the demo sets of every
 installed version and calls `exe/generate_xsd` on them. `*.xsd` is gitignored, so each machine
@@ -154,46 +133,6 @@ A schema inferred from too few sets is stricter than Live is: it says a construc
 when Live merely does not happen to have written it yet. That is why the schema gap is a thing
 to be recorded rather than a bug to be fixed, and why the Live 11 demo sets having no return
 track says nothing about whether Live 11 has return tracks.
-
-The role the schemas play is the test the conversion is measured against: the end-to-end
-example of Phase 3 is the conversion validated against the Live 11 schema. Passing it is
-necessary and not sufficient — a converted set that validates is one that Live 11 would not
-reject on the elements the schema knows about, and says nothing about the ones it does not.
-
-## The "Master" → "Main" rename
-
-The Live 12 developers renamed "Master" to "Main". This is the largest single group of
-differences between the two formats, and it can be stated once instead of transformation by transformation.
-
-The schemas make the shape of it plain:
-
-| Live 11 | Live 12 |
-| --- | --- |
-| `MasterTrack` | `MainTrack` |
-| `AutoColorPickerForReturnAndMasterTracks` | `AutoColorPickerForReturnAndMainTracks` |
-| `IsSongTempoMaster` | `IsSongTempoLeader` |
-| `SongMasterValues/SessionScrollerPos` | `LiveSet/SessionScrollPos` |
-
-No element or attribute name in the Live 12 format contains "Master" at all — zero occurrences
-across every Live 12 demo set. Live 11 has exactly four. So the conversion has to put "Master"
-back in four places, and nowhere else.
-
-The rename was not a blind search-and-replace, and the plan must not be one either:
-`MainSequencer` is spelled the same in Live 11 and Live 12, and it has nothing to do with the
-master track. That is the exception that keeps the transformation an entry in a list rather than a substitution.
-
-**This simplifies the transformations, and the bidirectionality simplifies them further.** A rename is
-symmetric — it matches either spelling and emits the other — so the four renames above are one
-list, not four transformations. Where a transformation cannot be symmetric, it is conditioned on the direction:
-
-- `MainTrack` ↔ `MasterTrack` — symmetric, one list entry.
-- `AutoColorPickerForReturnAndMainTracks` ↔ `AutoColorPickerForReturnAndMasterTracks` — symmetric.
-- `IsSongTempoLeader` ↔ `IsSongTempoMaster` — symmetric; Live 12 says "Leader", not "Main".
-- `AudioOut/Main` ↔ `AudioOut/Master` — symmetric, an attribute value.
-- `LiveSet/SessionScrollPos` → `SongMasterValues/SessionScrollerPos` — not a rename. Live 12
-  keeps the scroll position where Live 11 keeps it in a wrapper, and Live 11's `SongMasterValues`
-  holds nothing else (the schema says its only child is `SessionScrollerPos`). So the wrapper is
-  built on the way down and unwrapped on the way up.
 
 ## How this plan is built
 
@@ -209,7 +148,7 @@ Every phase ends at a working state. Nothing in a later phase should block an ea
 
 ## Phase 1 — Scaffolding (broad outline, imperfect on purpose) **Done**
 
-1. `lib/live_set/tx/` holds the base class and one subclass per version_diff.
+1. `lib/live_set/tx/` holds the base class and one bridge per version_diff.
 2. `LiveSetTransformer` applies a transformation to a document. It becomes the seam that finds
    the bridge for the version the document holds. The direction is not passed in: the bridge
    reads the version from `<Ableton MinorVersion>` in the document it is handed, and converts to
@@ -226,49 +165,25 @@ direction works, or that the docs describe every transformation.
 
 ## Phase 2 — Major details
 
-**M2 — The bridge knows which way it is going, and the transformations follow.** **Done.** The bridge reads
-the version of the document it is given and converts to the other version of its version_diff. A rename transformation
-emits whichever spelling the document does not have. A removal transformation removes the elements only
-the newer version has — a no-op going the other way, because a Live 11 file does not have them.
-An insertion transformation inserts the elements only the older version has, and it applies only when going
-down. The transformations that cannot be expressed symmetrically — the freeze elements, the clip slot's
-refreeze, the chooser bar, the scale information — get their other half, so that the up
-direction reproduces what Live itself does.
-
-**M3 — The up direction, Live 11 → Live 12.** **Done.** Lossless, and faithful to Live's own
-conversion. The transformations come from the same experiment that produced the down direction: open a
-Live 11 demo set in Live 12, save it, and compare the two files. The acceptance test is
-`docs/cpfir.md`, "The Lifecycle of a Conversion": the upgraded set has to match the set Live itself
-produced, including the elements Live adds and the default values it gives them.
-`spec/live_set/tx/live_up_ground_truth_spec.rb` is that test, and it passes.
-
-**M4 — `LiveSetConverter` becomes thin.** **Done.** It reads the set, hands the document to
-`LiveSetTransformer`, and writes the result. It keeps its constructor,
-its `convert` method, and its logging, and loses its transformations.
-
 **M5 — The specs.** **Partly done.**
 
 - `spec/live_set/tx/live_version_converter_spec.rb` — the base class: that it applies the
-  lists, and that a subclass's lists are read in its place. Small XML fragments, no demo set.
+  lists, and that a bridge's lists are read in its place. Small XML fragments, no demo set.
   **Done.**
 - `spec/live_set/tx/live_11_and_12_spec.rb` — one example per transformation, on small XML fragments.
   Each example gives a document in one version and asserts the document in the other, so the
   symmetry is what is under test. The rename examples cover the whole list of the Master/Main
   rename, including `MainSequencer`, which must not be touched. **Done**, in two files:
   `live_11_and_12_down_spec.rb` and `live_11_and_12_up_spec.rb`.
-- An end-to-end example: convert a Live 12 demo set, validate the result against
-  `schemas/live_11.3d1.xsd`. **Not done, and not here.** It is Phase 3's acceptance criterion:
-  it does not pass until the down-direction work list is done. See "The end-to-end example"
-  in Phase 3.
 - A comparison example: two sets of different versions that hold the same set compare equal once
   both are upgraded, per `docs/cpfir.md`, "Comparing Two Live Sets". **Done.**
   `spec/live_set/tx/live_up_comparison_spec.rb` is that example, and it passes.
 
 **M6 — The documentation.** `docs/als_work.md`, section "Transform Implementation": describe the
-`tx` directory, the base class and its subclasses, the direction, and how a new Live version gets
-its own subclass. **Done.** `docs/cpfir.md`, "The Lifecycle of a Conversion" through "The Conversion
+`tx` directory, the base class and its bridges, the direction, and how a new Live version gets
+its own bridge. **Done.** `docs/cpfir.md`, "The Lifecycle of a Conversion" through "The Conversion
 Edits the Document It Is Given": the sentence that says the conversions are
-XSLT changes, and the `BidirectionalXslt` example becomes the base class and its subclasses.
+XSLT changes, and the `BidirectionalXslt` example becomes the base class and its bridges.
 **Done.** The document now describes the Ruby architecture: the three classes of a conversion
 and the nine steps of the bridge, the registry, the composition of the bridges between two
 versions, and the comparison of two sets by `lib/live_set/xml_diff.rb`. The mutation proxy of
@@ -313,13 +228,17 @@ The end-to-end example lives here, and it is the acceptance criterion of this ph
 demo set converts to a set that validates against the Live 11 schema. It does not pass until
 the down-direction work list is done, which is why it is not in Phase 2.
 
-### The end-to-end example
+### End-to-end Example **Not done**
+
+This is Phase 3's acceptance criterion; it does not pass until the
+down-direction work list is done.
 
 Convert a Live 12 demo set, validate the result against `schemas/live_11.3d1.xsd`. Skipped
 when the schema has not been generated, the way `spec/validate_asd/demo_sets_spec.rb` already
 is. `spec/live_set/tx/live_conversion_spec.rb` is that example. **Not done.** It fails: the
 converted set does not validate against the Live 11 schema, and its failure message is the work
-list below. The contract this example holds the conversion to is **TODO T1**.
+list below. The contract this example holds the conversion to is:
+
 
 ### The down-direction work list
 
@@ -420,7 +339,7 @@ citations. **Done**, D4a to D4g.
   | `lib/live_set/tx/live_11_and_12.rb` | `docs/cpfir.md`, section 4 | "The Lifecycle of a Conversion" |
   | `lib/live_set/live_set_converter.rb` | `docs/cpfir.md` | "The Lifecycle of a Conversion" |
   | `docs/als_work.md`, `docs/live_11_12_diff.md`, `docs/conversion.md`, `docs/index.md` | the same numbers | the same headings |
-  | `docs/fix_plan2.md` — "The architecture", "M3", "M5", "M6", "M7", "D4g", "D8" | `docs/cpfir.md` §2, §4, §5, and `docs/conversion.md` §2.2, §3.3 | the same headings |
+  | `docs/fix_plan2.md` — "Architecture", "M5", "M6", "M7", "D4g", "D8" | `docs/cpfir.md` §2, §4, §5, and `docs/conversion.md` §2.2, §3.3 | the same headings |
 
   The numbering of `docs/conversion.md` is dropped as well, so that its citations read as
   headings like the others: "The conversion today", "What is wrong with it", "The measurement",
@@ -507,8 +426,8 @@ bite, with a spec wherever they can be tested.
 - **Lane `Type` value domains** (`docs/conversion.md`, "Value domains"; TODO N42). The Live 12
   lane numbering is not portable to Live 11, and the converted set keeps lane `Type` values that
   Live 11 does not understand.
-- **Live 9 and Live 8 schemas**, and the subclasses for the version_diffs below 11 (TODO, low
-  urgency). The subclasses are the code side of D8, and the registry of `docs/cpfir.md`,
+- **Live 9 and Live 8 schemas**, and the bridges for the version_diffs below 11 (TODO, low
+  urgency). The bridges are the code side of D8, and the registry of `docs/cpfir.md`,
   "Defining a Single Source of Truth: The Target End-State", composes a conversion from Live 8
   only when the bridges for 9, 10 and 11 are there.
 - **Six rubocop offenses** in `lib/live_set/tx/live_11_and_12.rb`, in the `TRACK_ATTRIBUTES` and

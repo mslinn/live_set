@@ -12,7 +12,7 @@ Read this first. It is the map; the documents it points at are the detail.
 | [`als_notes.md`](als_notes.md) | **The WHAT.** The ALS file format itself: what the XML looks like, and the shapes it takes. Its headings are what the code cites. |
 | [`live_11_12_diff.md`](live_11_12_diff.md) | **The differences between two versions.** A summary of them; the transformations that follow from them are in `lib/live_set/tx/live_11_and_12.rb`, and the headings are what the code cites. |
 | [`als_work.md`](als_work.md) | **The HOW-TO.** How the format is reverse engineered: the XML tools, the two corpora (the Ableton demo sets and the 460-set corpus), how the schemas are generated, and how the test suite is arranged. It was written before the code was rewritten, and it is being reconciled with the code — the open items are in `fix_plan2.md`, Phase 3. |
-| [`fix_plan2.md`](fix_plan2.md) | The plan for the Live 12 → Live 11 conversion in Ruby: why the XSLT stylesheet was replaced by Ruby code, the architecture (a base class and one subclass per version_diff), and the open items in Phase 3. The outstanding work of the gem is in [`../TODO.md`](../TODO.md), whose identifiers this plan cites. |
+| [`fix_plan2.md`](fix_plan2.md) | The plan for the Live 12 → Live 11 conversion in Ruby: why the XSLT stylesheet was replaced by Ruby code, the architecture (a base class and one bridge per version_diff), and the open items in Phase 3. The outstanding work of the gem is in [`../TODO.md`](../TODO.md), whose identifiers this plan cites. |
 | [`cpfir.md`](cpfir.md) | The architectural guide to composing bidirectional transformations in Ruby: pure function composition, the version-keyed registry, the composition of the bridges between two versions, the classes of a conversion, and how two sets are compared. |
 | [`conversion.md`](conversion.md) | What the conversion has to become: the kinds of difference between two Live versions, the pieces of the component, the traps of XSLT 1.0, and the problem of value domains. It is a design document, written before the transform was written in Ruby. |
 | [`live_control_plan.md`](live_control_plan.md) | The plan for proving a conversion by round-tripping it through Ableton Live under program control, using the `gui_harness` gem. |
@@ -78,7 +78,8 @@ The transformations of a version_diff are written by hand, and the process for f
 | Question | Where it is answered |
 | --- | --- |
 | What kinds of difference there are, and what each one is | [`conversion.md`](conversion.md), "The kinds of difference" |
-| Why a transform is not directional, and how it composes | [`cpfir.md`](cpfir.md), "The Lifecycle of a Conversion" |
+| How a transform takes its direction from the document, and how it composes | [`cpfir.md`](cpfir.md), "The Lifecycle of a Conversion" |
+| How a bridge stands on its own, and how a conversion across several versions is the composition of the bridges between them | [`cpfir.md`](cpfir.md), "Dynamically Slicing the Pipeline Intervals" |
 | How a transformation is written, and why nothing writes it for you | [`conversion.md`](conversion.md), "The differences must be sorted by kind, and the non-obvious ones hand-written" |
 | Which elements and attributes a version has | [`als_work.md`](als_work.md), "Mapping XSD to Ruby Classes" — the schema is the index of the format, and two schemas are diffed to find the differences |
 | The differences between Live 11 and Live 12 in particular | [`live_11_12_diff.md`](live_11_12_diff.md) |
@@ -96,6 +97,7 @@ The transformations of a version_diff are written by hand, and the process for f
 | One example per transformation, in each direction | `spec/live_set/tx/live_11_and_12_down_spec.rb`, `spec/live_set/tx/live_11_and_12_up_spec.rb` |
 | The end-to-end check | `spec/live_set/tx/live_conversion_spec.rb` — converts the Live 12 demo set and validates the result against the Live 11 schema |
 | The tools for looking inside sets | `exe/xml_nodes`, `exe/xml_diff`, `exe/generate_xsd`, `exe/xsd_order`, `exe/validate_asd` |
+| The release notes of Live, as markdown | `exe/release_notes` — the notes of a version, or of a single release, or the lines of them that match a pattern |
 | The schemas | generated into `schemas/` by `bin/generate_xsds`; not in the repository, so each computer generates its own |
 
 ## The superseded documents in `docs/old/`

@@ -38,10 +38,9 @@ The transform now exists, and it is Ruby rather than XSLT: the base class is
 stylesheet was replaced. The line numbers above are those of the code that is
 gone; the table describes what the conversion did, not where it lives now.
 
-A transform is not directional. A rename matches either spelling and emits the
-other, so one set of transformations carries both directions of a
-version_diff, and the direction is a property of the document. See
-`docs/cpfir.md`, "The Lifecycle of a Conversion".
+A transform takes its direction from the document it is given. A rename matches either
+spelling and emits the other, so one set of transformations carries both directions of a
+version_diff. See `docs/cpfir.md`, "The Lifecycle of a Conversion".
 
 
 ## What is wrong with it
@@ -318,6 +317,11 @@ two upward transforms, applied in memory, with no intermediate file ever written
 document = live_10_to_live_11(document)
 document = live_11_to_live_12(document)
 ```
+
+One transform stands between two adjacent versions, and it stands on its own: no transform inherits
+from another transform. The conversion from Live 12 to Live 9 is the composition of the transforms
+between Live 12 and Live 11, Live 11 and Live 10, and Live 10 and Live 9 — there is no transform
+between Live 12 and Live 9, and none of them inherits the ones it is built from.
 
 The transforms are written by hand. Nothing produces them automatically.
 
