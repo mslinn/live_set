@@ -1,0 +1,82 @@
+#!/usr/bin/env ruby
+
+# Compares two XML documents element by element, and prints the differences.
+#
+# A Live set is XML, usually gzip-compressed, so the documents can be .als files or any XML
+# files. The two documents are walked in parallel: the children of two elements are matched by
+# their names, and the children that one of the elements has and the other does not are reported
+# as differences.
+#
+# A file may be given as a path, or as a selector of a demo set:
+#
+#   demo:11:suite            the Live 11 Suite demo set
+#   demo:12                  the demo set of Live 12
+#   demo:converted:11:suite  the Live 12 conversion of the Live 11 Suite demo set
+#
+# Usage: xml_diff FILE1 FILE2 [options]
+#
+# Options:
+#   --skip NAME    do not compare the elements with this name, or anything below them. The
+#                   option may be given more than once.
+#   --count        print the number of differences, and nothing else
+#   --max N        print at most N differences
+#
+# The exit status is 0 when the documents are the same, and 1 when they are not.
+#
+# Examples:
+#   xml_diff live11.als live12.als
+#   xml_diff live11.als live12.als --skip Devices --skip DeviceChain
+#   xml_diff live11.als live12.als --count
+
+lib = File.expand_path('../lib', __dir__)
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+dev = File.expand_path('../dev', __dir__)
+$LOAD_PATH.unshift(dev) unless $LOAD_PATH.include?(dev)
+
+require 'live_set/als_file'
+require 'live_set/xml_diff'
+require 'demo_sets'
+
+# The options the tool was given.
+#
+# @return [Hash] the options
+def options(argv)
+  { skip: [], max: nil }.tap do |found|
+    until argv.empty?
+      case argv.first
+      when '--skip' then found[:skip] << argv.shift(2).last
+      when '--count' then found[:count] = argv.shift
+      when '--max'  then found[:max] = argv.shift(2).last.to_i
+      else break
+      end
+    end
+  end
+end
+
+argv = ARGV.dup
+
+if argv.length < 2
+  warn 'Usage: xml_diff FILE1 FILE2 [--skip NAME]... [--count] [--max N]'
+  exit 1
+end
+
+ours_path = DemoSets.path_of(argv.shift)
+theirs_path = DemoSets.path_of(argv.shift)
+found = options(argv)
+
+[ours_path, theirs_path].each do |path|
+  abort "No such file: #{path}" unless File.exist?(path)
+end
+
+differences = XmlDiff.new(AlsFile.read(ours_path).root, AlsFile.read(theirs_path).root, skip: found[:skip]).differences
+
+if found[:count]
+  puts differences.length
+  exit(differences.empty? ? 0 : 1)
+end
+
+differences = differences.first(found[:max]) if found[:max]
+puts differences
+puts 'The documents are the same.' if differences.empty?
+
+exit(differences.empty? ? 0 : 1)

@@ -13,6 +13,9 @@ require 'tmpdir'
 $LOAD_PATH.unshift File.expand_path('../lib', __dir__)
 require 'live_set'
 
+# The development library: the helpers that find the demo sets on the machine.
+$LOAD_PATH.unshift File.expand_path('../dev', __dir__)
+
 # The fixture sets reference sample files that are intentionally not present. Keep their
 # diagnostic output out of the specs that only inspect clip metadata.
 def silence_stdout

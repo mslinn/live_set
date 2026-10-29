@@ -264,7 +264,7 @@ can be tested.
 
 ## Verification
 
-```
+```shell
 bundle exec rubocop
 bundle exec rspec
 bin/generate_xsds          # writes schemas/, which is gitignored

@@ -95,13 +95,42 @@ class LiveXmlWriter
     out << '<' << node.name
     node.attribute_nodes.each { |attribute| write_attribute(attribute, out, policy) }
 
-    if node.children.empty?
+    children = node.children.to_a
+    if children.all? { |child| whitespace?(child) }
       out << ' />'
     else
       out << '>'
-      node.children.each { |child| write_node(child, out, policy) }
+      write_children(children, out, policy)
       out << '</' << node.name << '>'
     end
+  end
+
+  # Writes the children of an element.
+  #
+  # Live writes every element on a line of its own, so the whitespace in front of an element is
+  # written with it. When an element is removed from a set, the whitespace that was in front of
+  # it is left behind, and two whitespace nodes would then follow each other. Live never writes
+  # that, so the first of them is not written.
+  #
+  # @param children [Array<Nokogiri::XML::Node>] the children of the element
+  # @param out [String] the string to write to
+  # @param policy [Symbol] how the attribute values are delimited
+  # @return [void]
+  def write_children(children, out, policy)
+    children.each_with_index do |child, index|
+      following = children[index + 1]
+      next if whitespace?(child) && whitespace?(following)
+
+      write_node(child, out, policy)
+    end
+  end
+
+  # Whether a node is whitespace, and nothing else.
+  #
+  # @param node [Nokogiri::XML::Node, nil] the node
+  # @return [Boolean] whether the node holds nothing but whitespace
+  def whitespace?(node)
+    !node.nil? && node.text? && node.content.strip.empty?
   end
 
   def write_attribute(attribute, out, policy)

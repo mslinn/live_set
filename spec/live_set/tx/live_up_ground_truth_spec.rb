@@ -1,7 +1,14 @@
 require 'spec_helper'
 require 'live_set/als_file'
+require 'live_set/tx/live_11_and_12'
 require 'demo_sets'
 require 'support/schemas'
+
+# The elements Live 12 adds that the rules add, and not the table of the additions.
+#
+# The tuning of a MIDI track depends on the device chain of the track — the notes of a drum
+# rack are not pitches — so it cannot be written in the table.
+ADDED_BY_RULES = { 'MidiTrack' => %w[IsTuned] }.freeze
 
 # The ground truth of the up direction: what Live does when it opens a Live 11 set in Live 12
 # and saves it.
@@ -15,12 +22,12 @@ require 'support/schemas'
 # changes what it writes, this spec fails and the tables are brought up to date.
 #
 # The rules of the conversion itself are in spec/live_set/tx/live_11_and_12_up_spec.rb.
-RSpec.describe 'the Live 12 conversion of a Live 11 set' do
+RSpec.describe Live11And12, 'the Live 12 conversion of a Live 11 set' do
   let(:live11_path) { DemoSets.require_edition!('11', 'Suite') }
   let(:live12_path) { DemoSets.require_converted!('11', 'Suite') }
 
-  let(:live11) { AlsFile.read(live11_path) }
-  let(:live12) { AlsFile.read(live12_path) }
+  let(:live_11_set) { AlsFile.read(live11_path) }
+  let(:live_12_set) { AlsFile.read(live12_path) }
 
   # The names of the children of every element of a path.
   #
@@ -73,8 +80,8 @@ RSpec.describe 'the Live 12 conversion of a Live 11 set' do
   # @param path [String] the path of the parent element
   # @return [Array<String>] the names of the elements
   def added_by_live12(path)
-    old = child_names(live11, live11_path_of(path)).map { |name| live12_name(name) }
-    child_names(live12, path) - old
+    old = child_names(live_11_set, live11_path_of(path)).map { |name| live12_name(name) }
+    child_names(live_12_set, path) - old
   end
 
   # The structure of an element: its name, its attributes, and the structure of its children.
@@ -83,9 +90,9 @@ RSpec.describe 'the Live 12 conversion of a Live 11 set' do
   # @return [Hash] the structure of the element
   def structure(element)
     {
-      name: element.name,
+      name:       element.name,
       attributes: element.attribute_nodes.to_h { |attribute| [attribute.name, attribute.value] },
-      children: element.element_children.map { |child| structure(child) }
+      children:   element.element_children.map { |child| structure(child) },
     }
   end
 
@@ -95,22 +102,77 @@ RSpec.describe 'the Live 12 conversion of a Live 11 set' do
   # @return [Hash] the structure the entry describes
   def expected_structure(addition)
     {
-      name: addition[:name],
+      name:       addition[:name],
       attributes: addition[:attributes],
-      children: addition.fetch(:children, []).map { |child| expected_structure(child) }
+      children:   addition.fetch(:children, []).map { |child| expected_structure(child) },
     }
   end
 
   it 'is the conversion of the set it was made from' do
-    expect(live11.at_xpath('/Ableton')['Creator']).to eq 'Ableton Live 11.3d1'
-    expect(live12.at_xpath('/Ableton')['Creator']).to eq 'Ableton Live 12.4.6'
+    expect(live_11_set.at_xpath('/Ableton')['Creator']).to eq 'Ableton Live 11.3d1'
+    expect(live_12_set.at_xpath('/Ableton')['Creator']).to eq 'Ableton Live 12.4.6'
   end
 
   it 'keeps the material of the set' do
-    expect(live12.xpath('//MidiTrack | //AudioTrack | //GroupTrack | //ReturnTrack').length)
-      .to eq live11.xpath('//MidiTrack | //AudioTrack | //GroupTrack | //ReturnTrack').length
-    expect(live12.xpath('//MidiClip').length).to eq live11.xpath('//MidiClip').length
-    expect(live12.xpath('//MidiNoteEvent').length).to eq live11.xpath('//MidiNoteEvent').length
+    expect(live_12_set.xpath('//MidiTrack | //AudioTrack | //GroupTrack | //ReturnTrack').length)
+      .to eq live_11_set.xpath('//MidiTrack | //AudioTrack | //GroupTrack | //ReturnTrack').length
+    expect(live_12_set.xpath('//MidiClip').length).to eq live_11_set.xpath('//MidiClip').length
+    expect(live_12_set.xpath('//MidiNoteEvent').length).to eq live_11_set.xpath('//MidiNoteEvent').length
+  end
+
+  # The tuning of the set and of its tracks.
+  #
+  # Live 11 writes the name of a scale and says that the set is not in key; Live 12 writes the
+  # index of the scale and says that the set is in key. Live 12 says that a MIDI track is
+  # tuned, unless the track holds a drum rack: the notes of a drum rack are not pitches.
+  it 'says that the set is in key, and writes the scale as an index' do
+    expect(live_11_set.at_xpath('//LiveSet/InKey')['Value']).to eq 'false'
+    expect(live_12_set.at_xpath('//LiveSet/InKey')['Value']).to eq 'true'
+
+    expect(live_11_set.at_xpath('//LiveSet/ScaleInformation/Name')['Value']).to eq 'Major'
+    expect(live_12_set.at_xpath('//LiveSet/ScaleInformation/Name')['Value']).to eq '0'
+  end
+
+  it 'tunes every MIDI track but the one with a drum rack' do
+    tuned = live_12_set.xpath('//MidiTrack[IsTuned/@Value="true"]')
+    untuned = live_12_set.xpath('//MidiTrack[IsTuned/@Value="false"]')
+
+    expect(tuned.length).to eq 13
+    expect(untuned.length).to eq 1
+    expect(untuned.first.at_xpath('.//DrumGroupDevice')).not_to be_nil
+    expect(tuned.first.at_xpath('.//DrumGroupDevice')).to be_nil
+  end
+
+  # The names of the tracks.
+  #
+  # Live 12 calls the track Live 11 calls the master track the main track, and names it "Main".
+  # The pre-hear track follows the main track, and is named after it.
+  it 'names the main track and the pre-hear track' do
+    expect(live_12_set.at_xpath('//MainTrack/Name/EffectiveName')['Value']).to eq 'Main'
+    expect(live_12_set.at_xpath('//PreHearTrack/Name/EffectiveName')['Value']).to eq '0-Main'
+    expect(live_11_set.at_xpath('//MasterTrack/Name/EffectiveName')['Value']).to eq 'Master'
+    expect(live_11_set.at_xpath('//PreHearTrack/Name/EffectiveName')['Value']).to eq 'Master'
+  end
+
+  # The linking of the follow actions of the scenes.
+  #
+  # Live 12 says that a follow action that is enabled is not linked.
+  it 'unlinks the follow actions that are enabled' do
+    actions = live_12_set.xpath('//LiveSet/Scenes/Scene/FollowAction')
+
+    expect(actions.map { |action| action.at_xpath('./IsLinked')['Value'] })
+      .to eq(actions.map { |action| action.at_xpath('./FollowActionEnabled')['Value'] == 'true' ? 'false' : 'true' })
+  end
+
+  # The lanes of the MIDI editor.
+  #
+  # Live 12 writes the lanes of its own session view: it has five lanes of the expressions and
+  # three of the content, where Live 11 has four and two.
+  it 'writes the lanes of the MIDI editor of Live 12' do
+    expect(live_11_set.xpath('//LiveSet/ExpressionLanes/*').length).to eq 4
+    expect(live_12_set.xpath('//LiveSet/ExpressionLanes/*').length).to eq 5
+    expect(live_11_set.xpath('//LiveSet/ContentLanes/*').length).to eq 2
+    expect(live_12_set.xpath('//LiveSet/ContentLanes/*').length).to eq 3
   end
 
   # The order Live 12 writes the children of an element in.
@@ -122,7 +184,7 @@ RSpec.describe 'the Live 12 conversion of a Live 11 set' do
   # generated from the demo sets of Live 12 and says what Live writes.
   Live11And12::CHILD_ORDER[:up].each do |path, order|
     it "writes the children of #{path} in this order" do
-      children = child_names(live12, path)
+      children = child_names(live_12_set, path)
       children = SchemaOrder.of_file(Schemas.path('12'), path.split('/').last) if children.empty?
 
       expect(children).to eq order
@@ -134,7 +196,7 @@ RSpec.describe 'the Live 12 conversion of a Live 11 set' do
   # Each one is added by the conversion, with the attributes Live gives it.
   Live11And12::ADD[:up].group_by { |addition| addition[:parent] }.each do |parent, additions|
     it "adds these elements to #{parent}" do
-      element = fullest(live12, parent)
+      element = fullest(live_12_set, parent)
 
       # The set has no element of this kind, so the schema of Live 12 says what Live writes.
       if element.nil?
@@ -161,7 +223,7 @@ RSpec.describe 'the Live 12 conversion of a Live 11 set' do
     end
 
     it "adds nothing else to #{parent}" do
-      named = additions.map { |addition| addition[:name] }
+      named = additions.map { |addition| addition[:name] } + ADDED_BY_RULES.fetch(parent, [])
       expect(added_by_live12(parent) - named - ['SessionScrollPos']).to be_empty
     end
   end
@@ -171,15 +233,15 @@ RSpec.describe 'the Live 12 conversion of a Live 11 set' do
   # Going up, these are removed. The ones the special rules remove are the chooser bar and the
   # song master values of the set, and the freeze elements of a track.
   it 'removes the elements Live 12 does not have' do
-    removed = child_names(live11, 'LiveSet').map { |name| live12_name(name) } - child_names(live12, 'LiveSet')
+    removed = child_names(live_11_set, 'LiveSet').map { |name| live12_name(name) } - child_names(live_12_set, 'LiveSet')
     named = Live11And12::REMOVE_UNDER[:up].grep(%r{^LiveSet/}).map { |path| path.split('/').last }
 
-    expect(removed - named - ['ChooserBar', 'SongMasterValues']).to be_empty
+    expect(removed - named - %w[ChooserBar SongMasterValues]).to be_empty
     expect(named - removed).to be_empty
   end
 
   it 'removes the elements of the view states Live 12 does not have' do
-    removed = child_names(live11, 'LiveSet/ViewStates') - child_names(live12, 'LiveSet/ViewStates')
+    removed = child_names(live_11_set, 'LiveSet/ViewStates') - child_names(live_12_set, 'LiveSet/ViewStates')
     named = Live11And12::REMOVE_UNDER[:up].grep(%r{^ViewStates/}).map { |path| path.split('/').last }
 
     expect(removed - named).to be_empty

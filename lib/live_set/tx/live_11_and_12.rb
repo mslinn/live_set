@@ -16,17 +16,17 @@ class Live11And12 < LiveVersionConverter
   # section 5.
   VERSION = { # sorted alphabetically by key
     down: {
-      'Creator' => 'Ableton Live 11.3.21',
-      'MajorVersion' => '5',
-      'MinorVersion' => '11.0_11300',
-      'Revision' => '5ac24cad7c51ea0671d49e6b4885371f15b57c1e',
+      'Creator'           => 'Ableton Live 11.3.21',
+      'MajorVersion'      => '5',
+      'MinorVersion'      => '11.0_11300',
+      'Revision'          => '5ac24cad7c51ea0671d49e6b4885371f15b57c1e',
       'SchemaChangeCount' => '3',
     },
     up:   {
-      'Creator' => 'Ableton Live 12.4.6',
-      'MajorVersion' => '5',
-      'MinorVersion' => '12.0_12402',
-      'Revision' => '0de5c8fa9a692293676cb7700a15afb2046ee1f7',
+      'Creator'           => 'Ableton Live 12.4.6',
+      'MajorVersion'      => '5',
+      'MinorVersion'      => '12.0_12402',
+      'Revision'          => '0de5c8fa9a692293676cb7700a15afb2046ee1f7',
       'SchemaChangeCount' => '5',
     },
   }.freeze
@@ -41,47 +41,47 @@ class Live11And12 < LiveVersionConverter
   REMOVE = {
     # sorted alphabetically
     down: %w[
-              ArrangementClipsListWrapper
-              AudioInputsListWrapper
-              AudioOutputsListWrapper
-              AutomationEnvelopesListWrapper
-              BreakoutIsExpanded
-              ComplexProEnvelopeModulationTarget
-              ComplexProFormantsModulationTarget
-              ControllerLayoutCustomization
-              ControllerLayoutRemoteable
-              DefaultGrooveId
-              InstrumentMeld
-              IsTuned
-              IsUndoable
-              IsWaveformVerticalZoomActive
-              KeepRecordMonitoringLatency
-              LocalFiltersJson
-              MidiInputsListWrapper
-              MidiOutputsListWrapper
-              MpePitchBendUsesTuning
-              MpeTuningEnabled
-              MxDIntParameter
-              NoteAlgorithms
-              NoteProbabilityGroups
-              ProbabilityGroupIdGenerator
-              Roar
-              SamplesToAutoWarp
-              SelectedBreakpointValue
-              SelectedDocumentViewInMainWindow
-              ShouldSceneTempoAndTimeSignatureBeVisible
-              SourceHint
-              TakeLanesListWrapper
-              TransientEnvelopeModulationTarget
-              TuningSystems
-              ViewStateMainWindowClipDetailOpen
-              ViewStateMainWindowDeviceDetailOpen
-              ViewStateMainWindowHiddenOtherDocViewTypeClipDetailOpen
-              ViewStateMainWindowHiddenOtherDocViewTypeDeviceDetailOpen
-              ViewStateSecondWindowClipDetailOpen
-              ViewStateSecondWindowDeviceDetailOpen
-              WaveformVerticalZoomFactor
-            ],
+      ArrangementClipsListWrapper
+      AudioInputsListWrapper
+      AudioOutputsListWrapper
+      AutomationEnvelopesListWrapper
+      BreakoutIsExpanded
+      ComplexProEnvelopeModulationTarget
+      ComplexProFormantsModulationTarget
+      ControllerLayoutCustomization
+      ControllerLayoutRemoteable
+      DefaultGrooveId
+      InstrumentMeld
+      IsTuned
+      IsUndoable
+      IsWaveformVerticalZoomActive
+      KeepRecordMonitoringLatency
+      LocalFiltersJson
+      MidiInputsListWrapper
+      MidiOutputsListWrapper
+      MpePitchBendUsesTuning
+      MpeTuningEnabled
+      MxDIntParameter
+      NoteAlgorithms
+      NoteProbabilityGroups
+      ProbabilityGroupIdGenerator
+      Roar
+      SamplesToAutoWarp
+      SelectedBreakpointValue
+      SelectedDocumentViewInMainWindow
+      ShouldSceneTempoAndTimeSignatureBeVisible
+      SourceHint
+      TakeLanesListWrapper
+      TransientEnvelopeModulationTarget
+      TuningSystems
+      ViewStateMainWindowClipDetailOpen
+      ViewStateMainWindowDeviceDetailOpen
+      ViewStateMainWindowHiddenOtherDocViewTypeClipDetailOpen
+      ViewStateMainWindowHiddenOtherDocViewTypeDeviceDetailOpen
+      ViewStateSecondWindowClipDetailOpen
+      ViewStateSecondWindowDeviceDetailOpen
+      WaveformVerticalZoomFactor
+    ],
     up:   [],
   }.freeze
 
@@ -162,7 +162,7 @@ class Live11And12 < LiveVersionConverter
       'MidiTrack/TakeLanes/TakeLanes',
       'Mixer/Sends',
       'SendsPre',
-      'TimeAndValueTransforms',
+      'TimeAndValueTransforms'
     ],
     up:   [],
   }.freeze
@@ -185,31 +185,31 @@ class Live11And12 < LiveVersionConverter
   #
   # Live 11 writes the four curve control attributes of every note event, and Live 12 writes them
   # only when the curve is not the default.
-  DEFAULT_ATTRIBUTE = { # the order of the attributes is the order Live writes them in
+  #
+  # The attributes are written in the order Live writes them in, so this table is in that order
+  # and not in alphabetical order, even though the keys could be sorted.
+  DEFAULT_ATTRIBUTE = { # sorted alphabetically by key
     'MidiNoteEvent' => {
       'VelocityDeviation' => '0',
-      'Probability' => '1',
-      'IsEnabled' => 'true',
+      'Probability'       => '1',
+      'IsEnabled'         => 'true',
     },
     'PerNoteEvent'  => {
       'CurveControl1X' => '0.5',
       'CurveControl1Y' => '0.5',
       'CurveControl2X' => '0.5',
-      'CurveControl2Y' => '0.5'
+      'CurveControl2Y' => '0.5',
     },
   }.freeze
 
   # The order Live 12 writes the children of an element in.
   #
-  # TODO I strongly suspect that the order of these elements is not fixed. We should test this.
-  #
-  # TODO This is suspect: The order is where the conversion learns where to put the elements Live 12 adds, and it is
   # where the elements that moved between the versions are moved to. Live 11 writes the scale of a MIDI clip at the end
   # of the clip, and Live 12 writes it near the beginning; the order says so.
   #
   # The spec spec/live_set/tx/live_up_ground_truth_spec.rb checks the table against the set Live itself wrote, so the
   # table is known to be right rather than believed to be.
-  CHILD_ORDER = { # DO NOT SORT THESE UNTIL WE ARE SURE ORDER DOES NOT MATTER
+  CHILD_ORDER = {
     down: {},
     up:   {
       'LiveSet'                                    => %w[
@@ -307,6 +307,12 @@ class Live11And12 < LiveVersionConverter
         ReWireDeviceMidiTargetId PitchbendRange IsTuned ControllerLayoutRemoteable
         ControllerLayoutCustomization
       ],
+      'GroupTrack'                                 => %w[
+        LomId LomIdView IsContentSelectedInDocument PreferredContentViewMode TrackDelay Name Color
+        AutomationEnvelopes TrackGroupId TrackUnfolded DevicesListWrapper ClipSlotsListWrapper
+        ArrangementClipsListWrapper TakeLanesListWrapper ViewData TakeLanes LinkedTrackGroupId
+        Slots Freeze DeviceChain
+      ],
       'AudioTrack'                                 => %w[
         LomId LomIdView IsContentSelectedInDocument PreferredContentViewMode TrackDelay Name Color
         AutomationEnvelopes TrackGroupId TrackUnfolded DevicesListWrapper ClipSlotsListWrapper
@@ -368,20 +374,23 @@ class Live11And12 < LiveVersionConverter
   # The elements of the controller layout customization of a MIDI track.
   #
   # Live 12 writes the settings of the note layout of the track, and Live 11 does not.
-  CONTROLLER_LAYOUT = [ # the order is the order Live writes the elements in
+  #
+  # The elements are written in the order Live writes them in, so this list is in that order and
+  # not in alphabetical order, even though the names could be sorted.
+  CONTROLLER_LAYOUT = [ # sorted alphabetically by name
     { name: 'PitchClassSource', attributes: { 'Value' => '0' } },
     { name: 'OctaveSource',     attributes: { 'Value' => '2' } },
     { name: 'KeyNoteTarget',    attributes: { 'Value' => '60' } },
     { name: 'StepSize',         attributes: { 'Value' => '1' } },
     { name: 'OctaveEvery',      attributes: { 'Value' => '12' } },
     { name: 'AllowedKeys',      attributes: { 'Value' => '0' } },
-    { name: 'FillerKeysMapTo',  attributes: { 'Value' => '0' } },
+    { name: 'FillerKeysMapTo',  attributes: { 'Value' => '0' } }
   ].freeze
 
   # The elements of the probability group id generator.
   PROBABILITY_GROUP_GENERATOR = [{ # sorted alphabetically by key
     attributes: { 'Value' => '1' },
-    name: 'NextId',
+    name:       'NextId',
   }].freeze
 
   # What Live 12 adds to a set that came from Live 11.
@@ -434,7 +443,6 @@ class Live11And12 < LiveVersionConverter
 
       { parent: 'MidiTrack', name: 'ArrangementClipsListWrapper', attributes: { 'LomId' => '0' } },
       { parent: 'MidiTrack', name: 'TakeLanesListWrapper', attributes: { 'LomId' => '0' } },
-      { parent: 'MidiTrack', name: 'IsTuned', attributes: { 'Value' => 'false' } },
       { parent: 'MidiTrack', name: 'ControllerLayoutRemoteable', attributes: { 'Value' => '0' } },
       { parent: 'MidiTrack', name: 'ControllerLayoutCustomization', attributes: {},
         children: CONTROLLER_LAYOUT },
@@ -463,6 +471,7 @@ class Live11And12 < LiveVersionConverter
       { parent: 'MidiClip', name: 'AccidentalSpellingPreference', attributes: { 'Value' => '3' } },
 
       { parent: 'AudioClip', name: 'AutomationEnvelopesListWrapper', attributes: { 'LomId' => '0' } },
+      { parent: 'AudioClip/SampleRef', name: 'SamplesToAutoWarp', attributes: { 'Value' => '0' } },
       { parent: 'AudioClip', name: 'ScaleInformation', attributes: {},
         children: [{ name: 'Root', attributes: { 'Value' => '0' } },
                    { name: 'Name', attributes: { 'Value' => '0' } }] },
@@ -470,14 +479,29 @@ class Live11And12 < LiveVersionConverter
 
       { parent: 'MidiClip/Notes', name: 'NoteProbabilityGroups', attributes: {} },
       { parent: 'MidiClip/Notes', name: 'ProbabilityGroupIdGenerator', attributes: {},
-        children: PROBABILITY_GROUP_GENERATOR }
+        children: PROBABILITY_GROUP_GENERATOR },
+
+      { parent: 'FileRef', name: 'SourceHint', attributes: { 'Value' => '' } },
+      { parent: 'SourceContext/SourceContext', name: 'LocalFiltersJson', attributes: { 'Value' => '' } }
     ],
   }.freeze
+
+  # The scales of the two versions, and how they are written.
+  #
+  # Live 11 writes the name of a scale, and Live 12 writes its index in the list of the scales
+  # of Live. Only the scales that have been seen in a set of each version are in the table.
+  SCALE_NAMES = { 'Major' => '0' }.freeze
+  SCALE_INDEXES = { '0' => 'Major' }.freeze
+
+  # The elements of a MIDI clip that hold the scale of the clip.
+  #
+  # Live 11 writes them at the end of the clip, next to the settings of the note editor.
+  CLIP_SCALE_ELEMENTS = %w[ScaleInformation IsInKey].freeze
 
   # The rules that are not tables.
   #
   # @return [void]
-  def special_rules # TODO can these be sorted alphabetically?
+  def special_rules # TODO: can these be sorted alphabetically?
     oversampling
     audio_out_target
     scroll_position
@@ -490,6 +514,9 @@ class Live11And12 < LiveVersionConverter
     device_view_data
     id_ref_list
     source_context
+    tuning
+    track_names
+    follow_action_link
 
     super # This must be the last line in the method
   end
@@ -503,7 +530,7 @@ class Live11And12 < LiveVersionConverter
   #
   # A Pedal's Oversampling uses "true"/"false" in both versions, so only a Saturator's is rewritten.
   def oversampling
-    # FIXME This implementation does not test the Live version before outputting a value
+    # FIXME: This implementation does not test the Live version before outputting a value
     values = { 'true' => '1', 'false' => '0', '1' => 'true', '0' => 'false' }
     document.xpath('//Saturator/Oversampling').each do |element|
       value = element['Value'].to_s
@@ -513,7 +540,7 @@ class Live11And12 < LiveVersionConverter
 
   # Live 12 routes to "AudioOut/Main" and Live 11 routes to "AudioOut/Master".
   def audio_out_target
-    # FIXME This implementation does not test the Live version before outputting a value
+    # FIXME: This implementation does not test the Live version before outputting a value
     values = { 'AudioOut/Main' => 'AudioOut/Master', 'AudioOut/Master' => 'AudioOut/Main' }
     document.xpath('//Target').each do |element|
       value = element['Value'].to_s
@@ -606,7 +633,7 @@ class Live11And12 < LiveVersionConverter
     document.xpath('//MidiClip[(ScaleInformation or IsInKey) and ' \
                    '(NoteSpellingPreference or ExpressionGrid)]').each do |clip|
       anchor = clip.at_xpath('./NoteSpellingPreference') || clip.at_xpath('./ExpressionGrid')
-      %w[ScaleInformation IsInKey].each do |name|
+      CLIP_SCALE_ELEMENTS.each do |name|
         element = clip.at_xpath("./#{name}")
         next if element.nil?
 
@@ -634,7 +661,7 @@ class Live11And12 < LiveVersionConverter
     return unless down?
 
     document.xpath('//TakeLane/LomId').remove
-    document.xpath('//TakeLane').each { _1.remove_attribute('Id') }
+    document.xpath('//TakeLane').each { it.remove_attribute('Id') }
   end
 
   # The view data of a device.
@@ -667,5 +694,83 @@ class Live11And12 < LiveVersionConverter
 
     document.xpath('//MxDeviceMidiEffect/SourceContext/Value | //MxDeviceAudioEffect/SourceContext/Value')
             .each { |value| value.children.remove }
+  end
+
+  # The tuning of the set and of its tracks.
+  #
+  # Live 11 writes the name of a scale, and Live 12 writes its index in the list of the scales
+  # of Live. Live 12 says that the set is in key, and that a MIDI track is tuned, unless the
+  # track holds a drum rack: the notes of a drum rack are not pitches.
+  #
+  # Going down, the name of the scale is put back, and the tuning of the tracks is dropped.
+  def tuning
+    if down?
+      document.xpath('//ScaleInformation/Name').each do |name|
+        value = name['Value'].to_s
+        name['Value'] = SCALE_INDEXES[value] if SCALE_INDEXES.key?(value)
+      end
+      return
+    end
+
+    document.xpath('//LiveSet/InKey').each { |in_key| in_key['Value'] = 'true' }
+    document.xpath('//ScaleInformation/Name').each do |name|
+      value = name['Value'].to_s
+      name['Value'] = SCALE_NAMES[value] if SCALE_NAMES.key?(value)
+    end
+    document.xpath('//MidiTrack').each do |track|
+      value = track.at_xpath('.//DrumGroupDevice') ? 'false' : 'true'
+      element = track.at_xpath('./IsTuned')
+      if element.nil?
+        track.add_child(build('IsTuned', 'Value' => value))
+      else
+        element['Value'] = value
+      end
+    end
+  end
+
+  # The name of the track that Live 11 calls the master track.
+  #
+  # Live 12 calls it the main track and names it "Main". The pre-hear track follows the main
+  # track, and Live 12 names it after the main track it follows.
+  def track_names
+    return unless up?
+
+    rename_effective_name('//MainTrack', 'Main')
+    rename_effective_name('//PreHearTrack', "#{lom_id_of('//PreHearTrack')}-Main")
+  end
+
+  # The linking of a follow action.
+  #
+  # Live 12 says that a follow action that is enabled is not linked.
+  def follow_action_link
+    return unless up?
+
+    document.xpath('//LiveSet/Scenes/Scene/FollowAction[FollowActionEnabled/@Value="true"]/IsLinked')
+            .each { |is_linked| is_linked['Value'] = 'false' }
+  end
+
+  # Renames the effective name of the tracks a path finds.
+  #
+  # Only a name that Live 11 gives the master track is renamed: a name the user chose is kept.
+  #
+  # @param path [String] the path of the tracks
+  # @param name [String] the name Live 12 gives the track
+  # @return [void]
+  def rename_effective_name(path, name)
+    document.xpath(path).each do |track|
+      effective = track.at_xpath('./Name/EffectiveName')
+      next if effective.nil?
+      next unless effective['Value'] == 'Master'
+
+      effective['Value'] = name
+    end
+  end
+
+  # The identifier of the first element a path finds.
+  #
+  # @param path [String] the path of the elements
+  # @return [String] the identifier, or zero when there is none
+  def lom_id_of(path)
+    document.xpath(path).first&.at_xpath('./LomId')&.[]('Value') || '0'
   end
 end

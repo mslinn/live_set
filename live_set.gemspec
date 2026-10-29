@@ -23,7 +23,7 @@ Gem::Specification.new do |spec|
   # The baselines/ directory holds the minimum ALS for each Live version. It is not packaged,
   # because it is not yet decided whether an installed user needs it or only a developer does.
   # If it is needed at run time, add 'baselines/**/*' to this list.
-  spec.files                 = Dir['.rubocop.yml', 'LICENSE.*', 'Rakefile', '{lib,spec}/**/*', '*.gemspec', '*.md']
+  spec.files                 = Dir['.rubocop.yml', 'LICENSE.*', 'Rakefile', '{dev,lib,spec}/**/*', '*.gemspec', '*.md']
   spec.homepage              = 'https://mslinn.com/av_studio/553-live_set.html'
   spec.license               = 'Source-available, noncommercial license.'
   spec.metadata = {

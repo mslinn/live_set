@@ -8,7 +8,7 @@ require 'support/live_versions'
 # opens an older set in a newer Live and saves it.
 #
 # The other direction is in live_11_and_12_down_spec.rb. The two files walk the same rules.
-RSpec.describe Live11And12, 'going up to Live 12' do # rubocop:disable RSpec/DescribeClass
+RSpec.describe Live11And12, 'going up to Live 12' do
   it 'writes the version strings of a Live 12 set' do
     document = live_document(LIVE_11)
     Live11And12.new(document).convert
@@ -90,7 +90,7 @@ RSpec.describe Live11And12, 'going up to Live 12' do # rubocop:disable RSpec/Des
   it 'adds the wrappers of a track' do
     expect(convert_element(LIVE_11, 'MidiTrack', '<ClipSlotsListWrapper/><ViewData/>'))
       .to eq '<MidiTrack><ClipSlotsListWrapper/><ArrangementClipsListWrapper LomId="0"/>' \
-             '<TakeLanesListWrapper LomId="0"/><ViewData/><IsTuned Value="false"/>' \
+             '<TakeLanesListWrapper LomId="0"/><ViewData/><IsTuned Value="true"/>' \
              '<ControllerLayoutRemoteable Value="0"/><ControllerLayoutCustomization>' \
              '<PitchClassSource Value="0"/><OctaveSource Value="2"/><KeyNoteTarget Value="60"/>' \
              '<StepSize Value="1"/><OctaveEvery Value="12"/><AllowedKeys Value="0"/>' \
@@ -123,7 +123,7 @@ RSpec.describe Live11And12, 'going up to Live 12' do # rubocop:disable RSpec/Des
     fragment = '<DeviceChain/><PitchbendRange/>'
     expect(convert_element(LIVE_11, 'MidiTrack', fragment))
       .to eq '<MidiTrack><ArrangementClipsListWrapper LomId="0"/><TakeLanesListWrapper LomId="0"/>' \
-             '<DeviceChain/><PitchbendRange/><IsTuned Value="false"/>' \
+             '<DeviceChain/><PitchbendRange/><IsTuned Value="true"/>' \
              '<ControllerLayoutRemoteable Value="0"/><ControllerLayoutCustomization>' \
              '<PitchClassSource Value="0"/><OctaveSource Value="2"/><KeyNoteTarget Value="60"/>' \
              '<StepSize Value="1"/><OctaveEvery Value="12"/><AllowedKeys Value="0"/>' \
@@ -143,5 +143,52 @@ RSpec.describe Live11And12, 'going up to Live 12' do # rubocop:disable RSpec/Des
   it 'does not add the constructs of Live 12 to a set that is going down' do
     expect(convert_fragment(LIVE_12, '<MidiTrack><ClipSlotsListWrapper/><ViewData/></MidiTrack>'))
       .to eq ['<MidiTrack><ClipSlotsListWrapper/><ViewData/></MidiTrack>']
+  end
+
+  it 'tunes a MIDI track' do
+    expect(convert_element(LIVE_11, 'MidiTrack', '<DeviceChain/>')).to include('<IsTuned Value="true"/>')
+  end
+
+  it 'does not tune a MIDI track that holds a drum rack' do
+    fragment = '<DeviceChain><DeviceChain><Devices><DrumGroupDevice/></Devices></DeviceChain></DeviceChain>'
+    expect(convert_element(LIVE_11, 'MidiTrack', fragment)).to include('<IsTuned Value="false"/>')
+  end
+
+  it 'says that the set is in key' do
+    expect(convert_element(LIVE_11, 'LiveSet', '<InKey Value="false"/>')).to include('<InKey Value="true"/>')
+  end
+
+  it 'writes the scale of the set as an index' do
+    fragment = '<ScaleInformation><RootNote Value="0"/><Name Value="Major"/></ScaleInformation>'
+    expect(convert_element(LIVE_11, 'LiveSet', fragment)).to include('<Name Value="0"/>')
+  end
+
+  it 'names the track Live 11 calls the master track' do
+    fragment = '<MasterTrack><Name><EffectiveName Value="Master"/></Name></MasterTrack>'
+    converted = convert_fragment(LIVE_11, fragment).first
+
+    expect(converted).to start_with '<MainTrack>'
+    expect(converted).to include '<EffectiveName Value="Main"/>'
+  end
+
+  it 'names the pre-hear track after the main track' do
+    fragment = '<LomId Value="0"/><Name><EffectiveName Value="Master"/></Name>'
+    expect(convert_element(LIVE_11, 'PreHearTrack', fragment)).to include('<EffectiveName Value="0-Main"/>')
+  end
+
+  it 'unlinks a follow action that is enabled' do
+    fragment = '<IsLinked Value="true"/><FollowActionEnabled Value="true"/>'
+    expect(convert_element(LIVE_11, 'LiveSet/Scenes/Scene/FollowAction', fragment))
+      .to include('<IsLinked Value="false"/>')
+  end
+
+  it 'says whether the samples of a clip are warped' do
+    fragment = '<FileRef/><LastModDate Value="1"/><SourceContext/>'
+    expect(convert_element(LIVE_11, 'AudioClip/SampleRef', fragment)).to include('<SamplesToAutoWarp Value="0"/>')
+  end
+
+  it 'says where the sample of a clip came from' do
+    fragment = '<FileRef/><LastModDate Value="1"/><SourceContext><SourceContext/></SourceContext>'
+    expect(convert_element(LIVE_11, 'AudioClip/SampleRef', fragment)).to include('<SourceHint Value=""/>')
   end
 end

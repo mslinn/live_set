@@ -178,4 +178,38 @@ module DemoSets
     candidates += directories(directories).flat_map { |dir| Dir.glob File.join(dir, "#{song}*converted to Live 12*.als") }
     candidates.find { |path| File.file? path }
   end
+
+  # The prefix that marks an argument as a selector of a demo set, rather than a path.
+  SELECTOR_PREFIX = 'demo:'.freeze
+
+  # The path of a set, given either a path or a selector.
+  #
+  # A selector names one of the demo sets, so that a command can say which set it means without
+  # holding the path of the set on the machine it runs on. The selectors are:
+  #
+  #   demo:11:suite        the Live 11 Suite demo set
+  #   demo:12              the demo set of Live 12
+  #   demo:converted:11:suite  the Live 12 conversion of the Live 11 Suite demo set
+  #
+  # @param argument [String] the path or the selector
+  # @return [String] the path of the set
+  def self.path_of(argument)
+    return argument unless argument.start_with?(SELECTOR_PREFIX)
+
+    resolve(argument.delete_prefix(SELECTOR_PREFIX))
+  end
+
+  # The path of the demo set a selector names.
+  #
+  # @param selector [String] the selector
+  # @return [String] the path of the set
+  # @raise [ArgumentError] when the selector does not name a set
+  def self.resolve(selector)
+    case selector
+    when /\Aconverted:(\d+):(\w+)\z/ then require_converted!(Regexp.last_match(1), Regexp.last_match(2))
+    when /\A(\d+):(\w+)\z/ then require_edition!(Regexp.last_match(1), Regexp.last_match(2))
+    when /\A(\d+)\z/ then require!(Regexp.last_match(1))
+    else raise ArgumentError, "cannot tell what set #{selector.inspect} names"
+    end
+  end
 end

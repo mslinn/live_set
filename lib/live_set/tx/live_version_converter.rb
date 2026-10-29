@@ -228,17 +228,66 @@ class LiveVersionConverter
   # The elements the order does not name keep the place they have, at the end of their parent.
   def reorder_children
     table(:CHILD_ORDER).each do |name, order|
-      document.xpath("//#{name}").each do |parent|
-        children = parent.element_children.to_a
-        known = children.select { |child| order.include?(child.name) }
-        rest = children - known
-        sorted = known.sort_by.with_index { |child, index| [order.index(child.name), index] }
+      document.xpath("//#{name}").each { |parent| reorder_children_of(parent, order) }
+    end
+  end
 
-        known.each(&:unlink)
-        sorted.each { |child| parent.add_child(child) }
-        rest.each { |child| parent.add_child(child) }
+  # Puts the children of one element in the order the version writes them in.
+  #
+  # The whitespace Live writes in front of an element goes with the element, so that the set is
+  # written with the indentation Live writes it with.
+  #
+  # @param parent [Nokogiri::XML::Node] the parent
+  # @param order [Array<String>] the names of the children, in the order the version writes them
+  # @return [void]
+  def reorder_children_of(parent, order)
+    children = parent.element_children.to_a
+    known = children.select { |child| order.include?(child.name) }
+    rest = children - known
+    sorted = known.sort_by.with_index { |child, index| [order.index(child.name), index] }
+
+    spaces = spaces_before(parent)
+    (sorted + rest).each do |child|
+      space = spaces[child]
+      child.unlink
+      space&.unlink
+      insert_child(parent, child, space)
+    end
+  end
+
+  # The whitespace in front of each child of an element.
+  #
+  # @param parent [Nokogiri::XML::Node] the parent
+  # @return [Hash] the whitespace node in front of each child, as { child => whitespace }
+  def spaces_before(parent)
+    spaces = {}
+    space = nil
+    parent.children.each do |child|
+      if child.text?
+        space = child.content.strip.empty? ? child : nil
+      elsif child.element?
+        spaces[child] = space unless space.nil?
+        space = nil
       end
     end
+    spaces
+  end
+
+  # Puts an element at the end of a parent, in front of the whitespace that closes the parent.
+  #
+  # @param parent [Nokogiri::XML::Node] the parent
+  # @param element [Nokogiri::XML::Node] the element to add
+  # @param space [Nokogiri::XML::Node, nil] the whitespace in front of the element
+  # @return [void]
+  def insert_child(parent, element, space)
+    closing = parent.children.last
+    if closing.nil? || closing.type != Nokogiri::XML::Node::TEXT_NODE
+      parent.add_child(element)
+      return
+    end
+
+    closing.add_previous_sibling(space) unless space.nil?
+    closing.add_previous_sibling(element)
   end
 
   # Builds an element of the document.

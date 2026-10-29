@@ -1,0 +1,53 @@
+#!/usr/bin/env ruby
+
+# Converts a Live set to the other version of the format, and writes it out.
+#
+# The direction is not given: the version of the set decides which way the conversion goes, and
+# the set is written in the version it is converted to.
+#
+# A file may be given as a path, or as a selector of a demo set:
+#
+#   demo:11:suite            the Live 11 Suite demo set
+#   demo:12                  the demo set of Live 12
+#   demo:converted:11:suite  the Live 12 conversion of the Live 11 Suite demo set
+#
+# Usage: convert FILE [--out PATH]
+#
+# Options:
+#   --out PATH   the file to write the converted set to. The name of the converted set is
+#                derived from the name of the set it was converted from, and is written to the
+#                working directory when this option is not given.
+
+lib = File.expand_path('../lib', __dir__)
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+dev = File.expand_path('../dev', __dir__)
+$LOAD_PATH.unshift(dev) unless $LOAD_PATH.include?(dev)
+
+require 'live_set/als_file'
+require 'live_set/live_set_transformer'
+require 'demo_sets'
+
+argv = ARGV.dup
+out = nil
+until argv.empty?
+  case argv.first
+  when '--out' then out = argv.shift(2).last
+  else break
+  end
+end
+
+if argv.length != 1
+  warn 'Usage: convert FILE [--out PATH]'
+  exit 1
+end
+
+path = DemoSets.path_of(argv.first)
+abort "No such file: #{path}" unless File.exist?(path)
+
+document = AlsFile.read(path)
+LiveSetTransformer.new(document).transform
+
+out ||= "#{File.basename(path, '.als')} (converted).als"
+AlsFile.write(out, document, File.mtime(path))
+
+puts out

@@ -26,6 +26,14 @@ RSpec.describe LiveVersionConverter do # rubocop:disable RSpec/DescribeClass
     EMPTY = { down: %w[Holder], up: [] }.freeze
     REMOVE_ATTRIBUTE = %w[OldAttribute].freeze
     DEFAULT_ATTRIBUTE = { 'Event' => { 'Added' => 'yes' } }.freeze
+    ADD = {
+      down: [{ parent: 'Adder', name: 'DownOnly', attributes: { 'Value' => '1' } }],
+      up:   [{ parent: 'Adder', name: 'UpOnly', attributes: { 'Value' => '2' } }]
+    }.freeze
+    CHILD_ORDER = {
+      down: { 'Adder' => %w[First Second DownOnly], 'Keep' => %w[First Second] },
+      up:   { 'Adder' => %w[First Second UpOnly], 'Keep' => %w[First Second] }
+    }.freeze
   end
 
   # A bridge whose tables the base class must not use.
@@ -153,5 +161,38 @@ RSpec.describe LiveVersionConverter do # rubocop:disable RSpec/DescribeClass
 
   it 'lists the versions it converts' do
     expect(TestConverter.versions).to eq [LIVE_9, LIVE_10]
+  end
+
+  it 'adds the element the newer version has, and not the one the older version has' do
+    document = document_for(LIVE_10, '<Adder/>')
+    TestConverter.new(document).convert
+    expect(content_of(document)).to eq ['<Adder><DownOnly Value="1"/></Adder>']
+  end
+
+  it 'adds the other element when the set is going the other way' do
+    document = document_for(LIVE_9, '<Adder/>')
+    TestConverter.new(document).convert
+    expect(content_of(document)).to eq ['<Adder><UpOnly Value="2"/></Adder>']
+  end
+
+  it 'does not add an element the parent already has' do
+    document = document_for(LIVE_10, '<Adder><DownOnly Value="x"/></Adder>')
+    TestConverter.new(document).convert
+    expect(content_of(document)).to eq ['<Adder><DownOnly Value="x"/></Adder>']
+  end
+
+  it 'puts the children of an element in the order the version writes them in' do
+    document = document_for(LIVE_10, '<Adder><Second/><First/></Adder>')
+    TestConverter.new(document).convert
+    expect(content_of(document)).to eq ['<Adder><First/><Second/><DownOnly Value="1"/></Adder>']
+  end
+
+  # Live writes the whitespace between the elements of a set as text nodes, so the whitespace in
+  # front of an element goes with the element when it is moved.
+  it 'moves the whitespace in front of an element with the element' do
+    document = document_for(LIVE_10, "<Keep>\n\t<Second/>\n\t<First/>\n</Keep>")
+    TestConverter.new(document).convert
+    expect(document.at_xpath('//Keep').to_xml(save_with: Nokogiri::XML::Node::SaveOptions::AS_XML))
+      .to eq "<Keep>\n\t<First/>\n\t<Second/>\n</Keep>"
   end
 end
