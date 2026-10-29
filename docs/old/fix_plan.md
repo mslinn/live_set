@@ -167,7 +167,7 @@ can be tested.
 ```
 bundle exec rubocop
 bundle exec rspec
-bin/generate_xsds          # writes schemas/, which is gitignored
+bin/generate_xsds          # rewrites schemas/, which is checked in
 bundle exec rspec spec/validate_asd/demo_sets_spec.rb
 ```
 

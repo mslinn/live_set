@@ -10,6 +10,9 @@ require 'support/schemas'
 # rack are not pitches — so it cannot be written in the list.
 ADDED_BY_TRANSFORMATIONS = { 'MidiTrack' => %w[IsTuned] }.freeze
 
+# The elements of a set that hold a track.
+TRACK_ELEMENTS = %w[MidiTrack AudioTrack GroupTrack ReturnTrack MainTrack PreHearTrack].freeze
+
 # The ground truth of the up direction: what Live does when it opens a Live 11 set in Live 12
 # and saves it.
 #
@@ -22,7 +25,7 @@ ADDED_BY_TRANSFORMATIONS = { 'MidiTrack' => %w[IsTuned] }.freeze
 # changes what it writes, this spec fails and the lists are brought up to date.
 #
 # The transformations of the conversion itself are in spec/live_set/tx/live_11_and_12_up_spec.rb.
-RSpec.describe Live11And12, 'the Live 12 conversion of a Live 11 set' do
+RSpec.describe Live11And12, 'the Live 12 conversion of a Live 11 set' do # rubocop:disable RSpec/DescribeMethod
   let(:live11_path) { DemoSets.require_edition!('11', 'Suite') }
   let(:live12_path) { DemoSets.require_converted!('11', 'Suite') }
 
@@ -143,9 +146,6 @@ RSpec.describe Live11And12, 'the Live 12 conversion of a Live 11 set' do
     expect(tuned.first.at_xpath('.//DrumGroupDevice')).to be_nil
   end
 
-  # The elements of a set that hold a track.
-  TRACK_ELEMENTS = %w[MidiTrack AudioTrack GroupTrack ReturnTrack MainTrack PreHearTrack].freeze
-
   # The panel of the device chain of a track.
   #
   # Live 12 writes on every track the panel of the device chain that is selected, and the names
@@ -162,7 +162,7 @@ RSpec.describe Live11And12, 'the Live 12 conversion of a Live 11 set' do
   # The attributes are written on the tracks and nowhere else.
   it 'writes them on the tracks and nowhere else' do
     elsewhere = live_12_set.xpath('//*[@SelectedToolPanel or @SelectedGeneratorName or @SelectedTransformationName]')
-                          .reject { |element| TRACK_ELEMENTS.include?(element.name) }
+                           .reject { |element| TRACK_ELEMENTS.include?(element.name) }
 
     expect(elsewhere.map(&:path)).to be_empty
   end
@@ -211,7 +211,7 @@ RSpec.describe Live11And12, 'the Live 12 conversion of a Live 11 set' do
   #
   # An element the set does not have is checked against the schema of Live 12 instead, which is
   # generated from the demo sets of Live 12 and says what Live writes.
-  Live11And12.lists[:child_order][:up].each do |path, order|
+  described_class.lists[:child_order][:up].each do |path, order|
     it "writes the children of #{path} in this order" do
       children = child_names(live_12_set, path)
       children = SchemaOrder.of_file(Schemas.path('12'), path.split('/').last) if children.empty?
@@ -223,7 +223,7 @@ RSpec.describe Live11And12, 'the Live 12 conversion of a Live 11 set' do
   # The elements Live 12 has that Live 11 does not.
   #
   # Each one is added by the conversion, with the attributes Live gives it.
-  Live11And12.lists[:add][:up].group_by { |addition| addition[:parent] }.each do |parent, additions|
+  described_class.lists[:add][:up].group_by { |addition| addition[:parent] }.each do |parent, additions|
     it "adds these elements to #{parent}" do
       element = fullest(live_12_set, parent)
 
@@ -263,7 +263,7 @@ RSpec.describe Live11And12, 'the Live 12 conversion of a Live 11 set' do
   # song master values of the set, and the freeze elements of a track.
   it 'removes the elements Live 12 does not have' do
     removed = child_names(live_11_set, 'LiveSet').map { |name| live12_name(name) } - child_names(live_12_set, 'LiveSet')
-    named = Live11And12.lists[:remove_under][:up].grep(%r{^LiveSet/}).map { |path| path.split('/').last }
+    named = described_class.lists[:remove_under][:up].grep(%r{^LiveSet/}).map { |path| path.split('/').last }
 
     expect(removed - named - %w[ChooserBar SongMasterValues]).to be_empty
     expect(named - removed).to be_empty
@@ -271,7 +271,7 @@ RSpec.describe Live11And12, 'the Live 12 conversion of a Live 11 set' do
 
   it 'removes the elements of the view states Live 12 does not have' do
     removed = child_names(live_11_set, 'LiveSet/ViewStates') - child_names(live_12_set, 'LiveSet/ViewStates')
-    named = Live11And12.lists[:remove_under][:up].grep(%r{^ViewStates/}).map { |path| path.split('/').last }
+    named = described_class.lists[:remove_under][:up].grep(%r{^ViewStates/}).map { |path| path.split('/').last }
 
     expect(removed - named).to be_empty
     expect(named - removed).to be_empty

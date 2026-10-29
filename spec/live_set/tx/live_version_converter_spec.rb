@@ -6,60 +6,61 @@ require 'live_set/tx/live_version_converter'
 # The base class knows nothing about any particular version_diff. It applies the lists a
 # subclass supplies, in the order the lists are applied, and it takes the direction from the
 # version the document carries.
-RSpec.describe LiveVersionConverter do # rubocop:disable RSpec/DescribeClass
-  # A bridge between two made-up versions, used to test the base class on its own.
-  #
-  # The lists are deliberately unlike the lists of a real bridge: the elements are named after
-  # the transformations they exercise, so that a failing example says which transformation failed.
-  class TestConverter < LiveVersionConverter
-    version down: { 'MajorVersion' => '5', 'MinorVersion' => '9.0_9000', 'SchemaChangeCount' => '1',
-                    'Creator' => 'Test Live 9', 'Revision' => 'down' },
-            up:   { 'MajorVersion' => '5', 'MinorVersion' => '10.0_10000', 'SchemaChangeCount' => '2',
-                    'Creator' => 'Test Live 10', 'Revision' => 'up' }
 
-    remove down: %w[OldElement], up: %w[OldElement]
-    remove down: %w[ExtraElement], up: []
-    remove_under down: %w[Parent/Child], up: %w[Parent/Child]
-    rename 'NewName' => 'OldName'
-    rename_under down: { 'Parent/NewChild' => 'OldChild' }, up: { 'Parent/OldChild' => 'NewChild' }
-    empty down: %w[Holder], up: []
-    remove_attribute %w[OldAttribute]
-    default_attribute 'Event' => { 'Added' => 'yes' }
-    add down: [{ parent: 'Adder', name: 'DownOnly', attributes: { 'Value' => '1' } }],
-        up:   [{ parent: 'Adder', name: 'UpOnly', attributes: { 'Value' => '2' } }]
-    add_attribute down: {}, up: { 'Panel' => { 'Added' => 'yes' } }
-    child_order down: { 'Adder' => %w[First Second DownOnly], 'Keep' => %w[First Second] },
-                up:   { 'Adder' => %w[First Second UpOnly], 'Keep' => %w[First Second] }
-  end
+# A bridge between two made-up versions, used to test the base class on its own.
+#
+# The lists are deliberately unlike the lists of a real bridge: the elements are named after
+# the transformations they exercise, so that a failing example says which transformation failed.
+class TestConverter < LiveVersionConverter
+  version down: { 'MajorVersion' => '5', 'MinorVersion' => '9.0_9000', 'SchemaChangeCount' => '1',
+                  'Creator' => 'Test Live 9', 'Revision' => 'down' },
+          up:   { 'MajorVersion' => '5', 'MinorVersion' => '10.0_10000', 'SchemaChangeCount' => '2',
+                  'Creator' => 'Test Live 10', 'Revision' => 'up' }
 
-  # A bridge that stands on its own, and whose lists are not the lists of TestConverter.
-  class OtherConverter < LiveVersionConverter
-    version down: { 'MajorVersion' => '5', 'MinorVersion' => '9.0_9000', 'SchemaChangeCount' => '1',
-                    'Creator' => 'Test Live 9', 'Revision' => 'down' },
-            up:   { 'MajorVersion' => '5', 'MinorVersion' => '10.0_10000', 'SchemaChangeCount' => '2',
-                    'Creator' => 'Test Live 10', 'Revision' => 'up' }
+  remove down: %w[OldElement], up: %w[OldElement]
+  remove down: %w[ExtraElement], up: []
+  remove_under down: %w[Parent/Child], up: %w[Parent/Child]
+  rename 'NewName' => 'OldName'
+  rename_under down: { 'Parent/NewChild' => 'OldChild' }, up: { 'Parent/OldChild' => 'NewChild' }
+  empty down: %w[Holder], up: []
+  remove_attribute %w[OldAttribute]
+  default_attribute 'Event' => { 'Added' => 'yes' }
+  add down: [{ parent: 'Adder', name: 'DownOnly', attributes: { 'Value' => '1' } }],
+      up:   [{ parent: 'Adder', name: 'UpOnly', attributes: { 'Value' => '2' } }]
+  add_attribute down: {}, up: { 'Panel' => { 'Added' => 'yes' } }
+  child_order down: { 'Adder' => %w[First Second DownOnly], 'Keep' => %w[First Second] },
+              up:   { 'Adder' => %w[First Second UpOnly], 'Keep' => %w[First Second] }
+end
 
-    remove down: %w[SomethingElse], up: []
-    remove_under down: [], up: []
-    rename({})
-    rename_under down: {}, up: {}
-    empty down: [], up: []
-    remove_attribute []
-    default_attribute({})
-    add down: [], up: []
-    add_attribute down: {}, up: {}
-    child_order down: {}, up: {}
-  end
+# A bridge that stands on its own, and whose lists are not the lists of TestConverter.
+class OtherConverter < LiveVersionConverter
+  version down: { 'MajorVersion' => '5', 'MinorVersion' => '9.0_9000', 'SchemaChangeCount' => '1',
+                  'Creator' => 'Test Live 9', 'Revision' => 'down' },
+          up:   { 'MajorVersion' => '5', 'MinorVersion' => '10.0_10000', 'SchemaChangeCount' => '2',
+                  'Creator' => 'Test Live 10', 'Revision' => 'up' }
 
-  # A bridge that does not declare every list.
-  class IncompleteConverter < LiveVersionConverter
-    version down: { 'MinorVersion' => '9.0_9000' }, up: { 'MinorVersion' => '10.0_10000' }
-  end
+  remove down: %w[SomethingElse], up: []
+  remove_under down: [], up: []
+  rename({})
+  rename_under down: {}, up: {}
+  empty down: [], up: []
+  remove_attribute []
+  default_attribute({})
+  add down: [], up: []
+  add_attribute down: {}, up: {}
+  child_order down: {}, up: {}
+end
 
-  # The version of a document.
-  LIVE_9 = '9.0_9000'.freeze
-  LIVE_10 = '10.0_10000'.freeze
+# A bridge that does not declare every list.
+class IncompleteConverter < LiveVersionConverter
+  version down: { 'MinorVersion' => '9.0_9000' }, up: { 'MinorVersion' => '10.0_10000' }
+end
 
+# The version of a document.
+LIVE_9 = '9.0_9000'.freeze
+LIVE_10 = '10.0_10000'.freeze
+
+RSpec.describe LiveVersionConverter do
   # Builds a document of a version.
   #
   # @param version [String] the minor version of the set
@@ -99,7 +100,7 @@ RSpec.describe LiveVersionConverter do # rubocop:disable RSpec/DescribeClass
     document.root['Extra'] = 'gone'
     TestConverter.new(document).convert
     expect(document.root.attribute_nodes.map(&:name)).to contain_exactly('MajorVersion', 'MinorVersion',
-                                                                      'SchemaChangeCount', 'Creator', 'Revision')
+                                                                         'SchemaChangeCount', 'Creator', 'Revision')
   end
 
   it 'removes the elements the older version does not have' do
@@ -206,8 +207,10 @@ RSpec.describe LiveVersionConverter do # rubocop:disable RSpec/DescribeClass
 
   it 'calls the special transformations of the subclass' do
     converter = TestConverter.new(document_for(LIVE_10))
-    expect(converter).to receive(:special_transformations).and_call_original
+    allow(converter).to receive(:special_transformations).and_call_original
     converter.convert
+
+    expect(converter).to have_received(:special_transformations)
   end
 
   it 'lists the versions it converts' do

@@ -4,8 +4,9 @@
 #
 # Usage: bin/generate_xsds [ABLTON_HOME]
 #
-# The schemas are written to the schemas/ subdirectory of this project. They are not stored in
-# the repository — .gitignore excludes *.xsd — so every computer has to generate its own.
+# The schemas are written to the schemas/ subdirectory of this project. They are checked in, so
+# that a new contributor and a new machine can work with the latest information without having
+# to install Live first; running this script again regenerates them.
 #
 # The name of a schema comes from the Creator attribute of the demo sets, which holds the version
 # of Live that wrote them: sets written by "Ableton Live 12.4d1" produce schemas/live_12.4d1.xsd.

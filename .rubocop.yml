@@ -22,9 +22,14 @@ Naming/FileName:
     - README.md
     - TODO.md
 
-# The keyword arguments of the list declarations are named after the direction they apply to.
+# The keyword arguments of the list declarations are named after the direction they apply to, and
+# the others are named after what they are: the version a conversion comes from and the version it
+# goes to, and the id of the thing a fragment describes.
 Naming/MethodParameterName:
   AllowedNames:
+    - from
+    - id
+    - to
     - up
 
 Gemspec/DeprecatedAttributeAssignment:

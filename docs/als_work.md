@@ -172,6 +172,12 @@ checked against. `bin/generate_xsds` generates them, and
 `spec/live_set/tx/live_conversion_spec.rb` validates a converted set against the
 schema of the version it was converted to.
 
+These schemas are inferred from the demo sets of a version, so they are as
+incomplete as those sets. Live ships a description of the format of its own,
+which is complete for the version; it is described in
+[live_schemas.md](live_schemas.md), and the open questions are tracked as
+**TODO L1**.
+
 
 #### Generating XSD
 
@@ -406,9 +412,9 @@ live_10.1.3d1.xsd
 # TODO (low urgency) live 9 & 8
 ```
 
-The schemas are not stored in the repository — `.gitignore` excludes `*.xsd` — so
-every developer generates them locally. The `schemas/` directory does not exist in
-a fresh clone, and `generate_xsd` will not create it, so make it first:
+The schemas are checked in, so that a new contributor and a new machine can work
+with them without having to install Live first. To regenerate them, make the
+directory if it is not there and run `exe/generate_xsd` for each version:
 
 ```shell
 mkdir -p schemas

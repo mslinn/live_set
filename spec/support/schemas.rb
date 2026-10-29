@@ -4,9 +4,9 @@ require 'nokogiri'
 
 # The schemas of the Live versions, generated from the demo sets of each version.
 #
-# The schemas are not in the repository — .gitignore excludes *.xsd — so every computer has to
-# generate its own. A spec that skips when the schema is missing proves nothing, so the schema
-# is generated when it is not there, and the spec fails when it cannot be generated.
+# The schemas are checked in, so they are there on a fresh clone. A spec that skips when the
+# schema is missing proves nothing, so the schema is generated when it is not there, and the
+# spec fails when it cannot be generated.
 #
 # See bin/generate_xsds, which generates the schemas of every version at once.
 module Schemas

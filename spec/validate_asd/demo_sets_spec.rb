@@ -8,8 +8,8 @@ require 'demo_sets'
 # The largest demo set of a version is the one that is checked. It holds the most of everything
 # Ableton writes, so a schema that is too strict rejects it.
 #
-# The schemas are not in the repository — .gitignore excludes *.xsd — so the examples are skipped
-# when the developer has not generated them. See docs/als_work.md, "XSD Schemas".
+# The schemas are checked in, so the examples run on a fresh clone. A version whose schema is
+# not there has no example, and the examples are skipped. See docs/als_work.md, "XSD Schemas".
 RSpec.describe ValidateAsd, 'the demo sets of each Live version' do # rubocop:disable RSpec/DescribeMethod
   # The directory the schemas are written to.
   let(:schema_dir) { File.expand_path('../../schemas', __dir__) }

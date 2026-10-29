@@ -12,9 +12,9 @@ require 'support/schemas'
 # accepts every set of that version. A converted set that does not validate is not a set of that
 # version.
 #
-# The schemas are not in the repository — .gitignore excludes *.xsd — so they are generated when
-# they are missing. See spec/support/schemas.rb.
-RSpec.describe LiveSetTransformer, 'converting a demo set' do
+# The schemas are checked in, so they are generated only when they are missing. See
+# spec/support/schemas.rb.
+RSpec.describe LiveSetTransformer, 'converting a demo set' do # rubocop:disable RSpec/DescribeMethod
   # The demo set of a Live version.
   let(:live_12_set) { DemoSets.require!('12') }
   let(:live_11_set) { DemoSets.require_edition!('11', 'Suite') }

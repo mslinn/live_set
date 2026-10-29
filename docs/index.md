@@ -11,6 +11,7 @@ Read this first. It is the map; the documents it points at are the detail.
 | [`glossary.md`](glossary.md) | **The TERMS.** The words the other documents use, and what each of them means here. |
 | [`als_notes.md`](als_notes.md) | **The WHAT.** The ALS file format itself: what the XML looks like, and the shapes it takes. Its headings are what the code cites. |
 | [`live_11_12_diff.md`](live_11_12_diff.md) | **The differences between two versions.** A summary of them; the transformations that follow from them are in `lib/live_set/tx/live_11_and_12.rb`, and the headings are what the code cites. |
+| [`live_schemas.md`](live_schemas.md) | **The schemas Live ships.** Every installation carries a description of the format, one file per format version; these are Live's own, and more complete than the XSDs this repository infers. The open questions are tracked as **TODO L1**. |
 | [`als_work.md`](als_work.md) | **The HOW-TO.** How the format is reverse engineered: the XML tools, the two corpora (the Ableton demo sets and the 460-set corpus), how the schemas are generated, and how the test suite is arranged. It was written before the code was rewritten, and it is being reconciled with the code — the open items are in `fix_plan2.md`, Phase 3. |
 | [`fix_plan2.md`](fix_plan2.md) | The plan for the Live 12 → Live 11 conversion in Ruby: why the XSLT stylesheet was replaced by Ruby code, the architecture (a base class and one bridge per version_diff), and the open items in Phase 3. The outstanding work of the gem is in [`../TODO.md`](../TODO.md), whose identifiers this plan cites. |
 | [`cpfir.md`](cpfir.md) | The architectural guide to composing bidirectional transformations in Ruby: pure function composition, the version-keyed registry, the composition of the bridges between two versions, the classes of a conversion, and how two sets are compared. |
@@ -81,7 +82,7 @@ The transformations of a version_diff are written by hand, and the process for f
 | How a transform takes its direction from the document, and how it composes | [`cpfir.md`](cpfir.md), "The Lifecycle of a Conversion" |
 | How a bridge stands on its own, and how a conversion across several versions is the composition of the bridges between them | [`cpfir.md`](cpfir.md), "Dynamically Slicing the Pipeline Intervals" |
 | How a transformation is written, and why nothing writes it for you | [`conversion.md`](conversion.md), "The differences must be sorted by kind, and the non-obvious ones hand-written" |
-| Which elements and attributes a version has | [`als_work.md`](als_work.md), "Mapping XSD to Ruby Classes" — the schema is the index of the format, and two schemas are diffed to find the differences |
+| Which elements and attributes a version has | [`als_work.md`](als_work.md), "Mapping XSD to Ruby Classes" — the schema is the index of the format, and two schemas are diffed to find the differences. Live ships schemas of its own, which are more complete; they are in [`live_schemas.md`](live_schemas.md) |
 | The differences between Live 11 and Live 12 in particular | [`live_11_12_diff.md`](live_11_12_diff.md) |
 | The transformations themselves | `lib/live_set/tx/live_11_and_12.rb` — the lists, the special transformations, and the comment block that describes how the conversion works |
 
@@ -98,7 +99,7 @@ The transformations of a version_diff are written by hand, and the process for f
 | The end-to-end check | `spec/live_set/tx/live_conversion_spec.rb` — converts the Live 12 demo set and validates the result against the Live 11 schema |
 | The tools for looking inside sets | `exe/xml_nodes`, `exe/xml_diff`, `exe/generate_xsd`, `exe/xsd_order`, `exe/validate_asd` |
 | The release notes of Live, as markdown | `exe/release_notes` — the notes of a version, or of a single release, or the lines of them that match a pattern |
-| The schemas | generated into `schemas/` by `bin/generate_xsds`; not in the repository, so each computer generates its own |
+| The schemas | generated into `schemas/` by `bin/generate_xsds`; checked in, so a new contributor and a new machine can use them without installing Live |
 
 ## The superseded documents in `docs/old/`
 
@@ -112,5 +113,5 @@ The transformations of a version_diff are written by hand, and the process for f
 | Document | What it is for |
 | --- | --- |
 | [`../README.md`](../README.md) | What the program does, how to install and use it, and the sample report. |
-| [`../TODO.md`](../TODO.md) | The outstanding work of the gem, with the stable identifiers (`T1`, `N42`, `GH1`, …) that the code and the other documents cite. The plan the conversion is measured against is in [`fix_plan2.md`](fix_plan2.md). |
+| [`../TODO.md`](../TODO.md) | The outstanding work of the gem, with the stable identifiers (`T1`, `N42`, `GH1`, `L1`, …) that the code and the other documents cite. The plan the conversion is measured against is in [`fix_plan2.md`](fix_plan2.md). |
 | [`../sets/README.md`](../sets/README.md) | The reference sets checked into this repository, and why each one is here. |

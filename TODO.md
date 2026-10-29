@@ -105,3 +105,11 @@ The claim that a `FakeGroup` routing wrapper exists has not been confirmed from 
 #### N50. Known crash path missing as a failing regression
 
 The current Live 11 crash behavior should be captured as a compact failing regression fixture before treating a fix as complete.
+
+#### L1. Live ships its own schemas; use them
+
+Every Live installation carries a directory of schemas of the format, one file per format version, named after the `MinorVersion` of a set. They are Live's own description of the format, and they are more complete than the XSDs this repository infers from the demo sets: 114 of the element names in `schemas/vocab_live11.txt` are in Live's schema for 11.0 and cannot be in the inferred one, because no Live 11 demo set contains them.
+
+What is known is written down in `docs/live_schemas.md`. What is left is to settle whether the files give the nesting and the order of the children of an element, whether every format version a set can name has a file, and what the `Class` and `Type` attributes say about the values an element holds.
+
+Then the version_diff documents should be rebuilt on them. The differences between two versions are currently found by diffing two inferred schemas; diffing two of Live's own would give them directly, and would give them for Live 8, Live 9 and Live 10 as well, which is the work of **D8**. The four final schema files should be checked into `schemas/`, so that a new contributor has them without installing Live.

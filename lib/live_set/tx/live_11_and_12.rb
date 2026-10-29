@@ -429,21 +429,21 @@ class Live11And12 < LiveVersionConverter
   #
   # They say which panel of the device chain is selected, and Live 11 writes none of them.
   TRACK_ATTRIBUTES = { # sorted alphabetically by key
-    'SelectedGeneratorName'     => '',
-    'SelectedToolPanel'         => '7',
-    'SelectedTransformationName' => ''
+    'SelectedGeneratorName'      => '',
+    'SelectedToolPanel'          => '7',
+    'SelectedTransformationName' => '',
   }.freeze
 
   # The attributes the newer version writes on an element.
   add_attribute(
     down: {},
-    up: {
+    up:   {
       'AudioTrack'   => TRACK_ATTRIBUTES,
       'GroupTrack'   => TRACK_ATTRIBUTES,
       'MainTrack'    => TRACK_ATTRIBUTES,
       'MidiTrack'    => TRACK_ATTRIBUTES,
       'PreHearTrack' => TRACK_ATTRIBUTES,
-      'ReturnTrack'  => TRACK_ATTRIBUTES
+      'ReturnTrack'  => TRACK_ATTRIBUTES,
     }
   )
 

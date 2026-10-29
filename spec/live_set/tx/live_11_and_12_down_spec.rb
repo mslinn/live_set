@@ -7,10 +7,10 @@ require 'support/live_versions'
 # format cannot represent are dropped, and they cannot be recovered.
 #
 # The other direction is in live_11_and_12_up_spec.rb. The two files walk the same transformations.
-RSpec.describe Live11And12, 'going down to Live 11' do # rubocop:disable RSpec/DescribeClass
+RSpec.describe Live11And12, 'going down to Live 11' do # rubocop:disable RSpec/DescribeMethod
   it 'writes the version strings of a Live 11 set' do
     document = live_document(LIVE_12)
-    Live11And12.new(document).convert
+    described_class.new(document).convert
 
     expect(document.root['MinorVersion']).to eq LIVE_11
     expect(document.root['Creator']).to eq 'Ableton Live 11.3.21'

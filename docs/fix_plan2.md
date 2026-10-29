@@ -125,8 +125,10 @@ elements the two versions name differently, the values they write differently,
 the elements one adds, the elements one puts at another depth.
 
 They are generated, not written by hand: `bin/generate_xsds` walks the demo sets of every
-installed version and calls `exe/generate_xsd` on them. `*.xsd` is gitignored, so each machine
-generates its own. Each one is generated from every demo set of its version, so each accepts
+installed version and calls `exe/generate_xsd` on them. They are checked in, so that a new
+contributor and a new machine can work with the latest information without having to install
+Live first; regenerating them is a matter of running `bin/generate_xsds` again. Each one is
+generated from every demo set of its version, so each accepts
 all of its version's demo sets.
 
 A schema inferred from too few sets is stricter than Live is: it says a construct is illegal
@@ -234,7 +236,7 @@ This is Phase 3's acceptance criterion; it does not pass until the
 down-direction work list is done.
 
 Convert a Live 12 demo set, validate the result against `schemas/live_11.3d1.xsd`. Skipped
-when the schema has not been generated, the way `spec/validate_asd/demo_sets_spec.rb` already
+when the schema is not there, the way `spec/validate_asd/demo_sets_spec.rb` already
 is. `spec/live_set/tx/live_conversion_spec.rb` is that example. **Not done.** It fails: the
 converted set does not validate against the Live 11 schema, and its failure message is the work
 list below. The contract this example holds the conversion to is:
@@ -467,7 +469,7 @@ bite, with a spec wherever they can be tested.
 ```shell
 bundle exec rubocop
 bundle exec rspec
-bin/generate_xsds          # writes schemas/, which is gitignored
+bin/generate_xsds          # rewrites schemas/, which is checked in
 bundle exec rspec spec/validate_asd/demo_sets_spec.rb
 ```
 

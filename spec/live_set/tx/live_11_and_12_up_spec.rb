@@ -8,10 +8,11 @@ require 'support/live_versions'
 # opens an older set in a newer Live and saves it.
 #
 # The other direction is in live_11_and_12_down_spec.rb. The two files walk the same transformations.
-RSpec.describe Live11And12, 'going up to Live 12' do # rubocop:disable RSpec/DescribeMethod
-  # The attributes Live 12 writes on every track.
-  TRACK_ATTRIBUTES = ' SelectedGeneratorName="" SelectedToolPanel="7" SelectedTransformationName=""'.freeze
 
+# The attributes Live 12 writes on every track.
+TRACK_ATTRIBUTES = ' SelectedGeneratorName="" SelectedToolPanel="7" SelectedTransformationName=""'.freeze
+
+RSpec.describe Live11And12, 'going up to Live 12' do # rubocop:disable RSpec/DescribeMethod
   it 'writes the version strings of a Live 12 set' do
     document = live_document(LIVE_11)
     described_class.new(document).convert

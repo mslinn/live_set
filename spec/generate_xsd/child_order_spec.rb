@@ -51,5 +51,4 @@ RSpec.describe ChildOrder do
       end
     end
   end
-
 end

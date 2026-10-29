@@ -42,7 +42,7 @@ KNOWN_DIFFERENCES = {
 # cannot reproduce those, so they are known differences, and this spec says which ones they are.
 #
 # The ground truth of what Live does is in spec/live_set/tx/live_up_ground_truth_spec.rb.
-RSpec.describe Live11And12, 'the up conversion of the Live 11 Suite demo set' do
+RSpec.describe Live11And12, 'the up conversion of the Live 11 Suite demo set' do # rubocop:disable RSpec/DescribeMethod
   let(:live11_path) { DemoSets.require_edition!('11', 'Suite') }
   let(:live12_path) { DemoSets.require_converted!('11', 'Suite') }
 
