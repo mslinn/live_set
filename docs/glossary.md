@@ -150,8 +150,9 @@ A transformation does not say which way it goes. A rename matches either
 spelling and emits the other, so the same transformation carries both
 directions.
 
-In [cpfir.md](cpfir.md) the word is used in the XSLT sense, where a stylesheet
-compiles to a transformation — that is the whole conversion there, not one
+In `lib/live_set/tx/live_12_to_live_11.xsl`, the stylesheet that is kept for
+comparison, the word is used in the XSLT sense: a stylesheet compiles to a
+transformation, and that transformation is the whole conversion there, not one
 operation.
 
 ## Up direction and down direction

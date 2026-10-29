@@ -10,9 +10,9 @@ require_relative 'tx/live_version_converter'
 # property of the document. See docs/cpfir.md, section 4.
 #
 # The bridges are in the tx subdirectory of this directory, one for each version_diff, and
-# the list of them is the version-keyed registry of docs/cpfir.md, section 2. The transformations
-# of a bridge are the differences between the two versions it bridges, and how they are found is
-# in docs/conversion.md, sections 2.2 and 3.3.
+# the list of them is to become the version-keyed registry of docs/cpfir.md, section 2. The
+# transformations of a bridge are the differences between the two versions it bridges, and how
+# they are found is in docs/conversion.md, sections 2.2 and 3.3.
 class LiveSetTransformer
   # The bridges, each of which converts between two versions of the format.
   BRIDGES = [Live11And12].freeze

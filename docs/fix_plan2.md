@@ -6,7 +6,7 @@ The gem converts a Live 12 set into a Live 11 set.
 
 `LiveSetConverter` reads a set, hands the parsed document to `LiveSetTransformer`, and
 writes the result. The transformer looks at the version of the set, finds the bridge for that
-version, and applies it. The bridge for Live 11 and Live 12 is
+version, and applies it. The bridge between Live 11 and Live 12 is
 `lib/live_set/tx/live_11_and_12.rb`: it holds what the two versions do differently, as
 lists and as hand-written code, and it inherits the machinery that applies them from
 `lib/live_set/tx/live_version_converter.rb`. A bridge is not told which way to convert; it
@@ -58,8 +58,9 @@ produced the down direction: open a Live 11 demo set in Live 12, save it, and co
 files. In XSLT that means a second template for every transformation, and the stylesheet roughly doubles
 to eight hundred lines. In Ruby the same lists are read the other way.
 
-`docs/cpfir.md` says that ALS conversions are handled by XSLT transformations. That sentence
-changes.
+`docs/cpfir.md` said that ALS conversions are handled by XSLT transformations. That
+sentence has changed: the document now describes the Ruby architecture, the
+registry, the pipeline of bridges, and the comparison of two sets.
 
 The stylesheet stays in the repository. It is the only other implementation of these transformations that
 has ever existed, and it is what a node-for-node comparison of the Ruby would be made against.
@@ -82,16 +83,16 @@ experiment: **a transformation is not directional.**
 - Transformations that cannot be expressed symmetrically — deleting an element only the newer version has,
   adding one the older version lacks — are conditioned on the direction.
 - There are no separate up and down functions, and no separate up and down transformations.
-  `docs/cpfir.md` §4 says so: a transformation "is not directional. It matches the input document
-  and emits something else, so one stylesheet can carry both directions of a version_diff", and
-  the direction is a property of the document. One bridge stands between two versions, and it
-  handles moving both ways.
+  `docs/cpfir.md` §4 says so: a transformation "is not directional. It matches the document it is
+  given and emits something else, so one set of transformations carries both directions of a
+  version_diff", and the direction is a property of the document. One bridge stands between two
+  versions, and it handles moving both ways.
 - Because the asymmetry is real, comparing two sets means upgrading both to the same version
-  first, and comparing the XML trees there (canonicalized, per XML C14N, with the whitespace
-  removed). Bytes play no part in it.
+  first, and comparing the XML trees there, element by element, with `lib/live_set/xml_diff.rb`.
+  Bytes play no part in it.
 
-The registry is keyed by version, each entry holding the step up to the next version and the step
-down to the previous one, and a conversion is a pipeline of those steps composed with `>>`.
+The registry is keyed by version, the key being the version the bridge leads to, and a conversion
+is a composition of the bridges between the two versions, composed with `>>`.
 `docs/cpfir.md` §2–§4 has the shape; only the 11↔12 version_diff is in scope now.
 
 ## The base class and its subclasses
@@ -254,7 +255,10 @@ its `convert` method, and its logging, and loses its transformations.
 `tx` directory, the base class and its subclasses, the direction, and how a new Live version gets
 its own subclass. **Done.** `docs/cpfir.md` §4–§6: the sentence that says the conversions are
 XSLT changes, and the `BidirectionalXslt` example becomes the base class and its subclasses.
-**Not done.**
+**Done.** The document now describes the Ruby architecture: the three classes of a conversion
+and the nine steps of the bridge, the registry, the composition of the bridges between two
+versions, and the comparison of two sets by `lib/live_set/xml_diff.rb`. The mutation proxy of
+the old §6 is gone: the conversion edits the document it is given, and the section says so.
 
 **M7 — A file of bidirectional pure functions for every Live version.** One file holds, for every
 version of Live, the pure functions that translate a set to and from the previous version of
@@ -376,17 +380,17 @@ citations.
 
   | Where | The citation | The heading it becomes |
   | --- | --- | --- |
-  | `docs/cpfir.md` | its numbered sections 1–6 | headings: "Core Principles of Pure Function Composition", "Defining a Single Source of Truth: The Target End-State", "Dynamically Slicing the Pipeline Intervals", "The Functional XSLT Engine Lifecycle", "Comparing Two Live Sets", "Optimization Refinement: Memory-Safe DOM Processing" |
-  | `lib/live_set/live_set_transformer.rb:10` | `docs/cpfir.md`, section 4 | "The Functional XSLT Engine Lifecycle" |
+  | `docs/cpfir.md` | its numbered sections 1–6 | headings: "Core Principles of Pure Function Composition", "Defining a Single Source of Truth: The Target End-State", "Dynamically Slicing the Pipeline Intervals", "The Lifecycle of a Conversion", "Comparing Two Live Sets", "The Conversion Edits the Document It Is Given" |
+  | `lib/live_set/live_set_transformer.rb:10` | `docs/cpfir.md`, section 4 | "The Lifecycle of a Conversion" |
   | `lib/live_set/live_set_transformer.rb:13` | `docs/cpfir.md`, section 2 | "Defining a Single Source of Truth: The Target End-State" |
   | `lib/live_set/live_set_transformer.rb:15` | `docs/conversion.md`, sections 2.2 and 3.3 | "The kinds of difference" and "The differences must be sorted by kind, and the non-obvious ones hand-written" |
-  | `lib/live_set/tx/live_version_converter.rb:18` | `docs/cpfir.md`, section 4 | "The Functional XSLT Engine Lifecycle" |
+  | `lib/live_set/tx/live_version_converter.rb:18` | `docs/cpfir.md`, section 4 | "The Lifecycle of a Conversion" |
   | `lib/live_set/tx/live_version_converter.rb:21` | `docs/conversion.md`, section 3.3 | "The differences must be sorted by kind, and the non-obvious ones hand-written" |
   | `lib/live_set/tx/live_version_converter.rb:25` | `docs/conversion.md`, sections 3.4 and 5.3 | "Attributes have to be part of the difference list" and "Why the baselines are what to compare" |
   | `lib/live_set/tx/live_11_and_12.rb:51` | `docs/conversion.md`, section 2.2 | "The kinds of difference" |
-  | `lib/live_set/tx/live_11_and_12.rb:52` | `docs/cpfir.md`, section 4 | "The Functional XSLT Engine Lifecycle" |
+  | `lib/live_set/tx/live_11_and_12.rb:52` | `docs/cpfir.md`, section 4 | "The Lifecycle of a Conversion" |
   | `lib/live_set/tx/live_11_and_12.rb:57` | `docs/cpfir.md` | "Comparing Two Live Sets" |
-  | `lib/live_set/live_set_converter.rb:12` | `docs/cpfir.md` | "The Functional XSLT Engine Lifecycle" |
+  | `lib/live_set/live_set_converter.rb:12` | `docs/cpfir.md` | "The Lifecycle of a Conversion" |
   | `docs/als_work.md:92`, `docs/als_work.md:158`, `docs/als_work.md:206`, `docs/als_work.md:550`, `docs/live_11_12_diff.md:232`, `docs/conversion.md:43`, `docs/index.md:65`–`:67` | the same numbers | the same headings |
   | `docs/fix_plan2.md` — "The architecture", "M3", "M5", "M6", "M7", "D4g", "D8" | `docs/cpfir.md` §2, §4, §5, and `docs/conversion.md` §2.2, §3.3 | the same headings |
 
@@ -503,7 +507,7 @@ bite, with a spec wherever they can be tested.
 - `docs/live_8_9_diff.md`, `docs/live_9_10_diff.md`, `docs/live_10_11_diff.md` — the version_diff
   documents for the older versions (new)
 - `docs/als_work.md` — "Transform Implementation" (modify)
-- `docs/cpfir.md` — the XSLT sentences (modify)
+- `docs/cpfir.md` — the XSLT sentences, replaced with the Ruby architecture (modify)
 
 ## Verification
 

@@ -1,325 +1,242 @@
-# Architectural Guide: Composing Bidirectional XSLT Transformations in Ruby
+# Architectural Guide: Composing Bidirectional Transformations in Ruby
 
 The terms used here are defined in [glossary.md](glossary.md).
 
 Function composition in Ruby allows you to link a sequence of isolated, pure
-transformations into a seamless pipeline. This guide covers how to build a
-production-ready, bidirectional XML migration engine using Ruby’s native
-functional operators and Nokogiri.
+transformations into a seamless pipeline. This guide covers how a
+production-ready, bidirectional XML migration engine is built from Ruby's native
+function operators and Nokogiri.
 
-1. Core Principles of Pure Function Composition
+## 1. Core Principles of Pure Function Composition
 
-    A function is pure if it has no side effects and always returns the same
-    output given the same input. Ruby 2.6+ supports native functional
-    composition on `Proc` and `Method` objects using forward (`>>`) and backward (`<<`)
-    pipeline operators. [1]
+A function is pure if it has no side effects and always returns the same
+output given the same input. Ruby 2.6+ supports native functional composition on
+`Proc` and `Method` objects using forward (`>>`) and backward (`<<`) pipeline
+operators.
 
-    ```ruby
-    # Define pure lambdas
-    add_three  = ->(x) { x + 3 }
-    square     = ->(x) { x * x }
-    to_string  = ->(x) { "Result: #{x}" }
+```ruby
+# Define pure lambdas
+add_three  = ->(x) { x + 3 }
+square     = ->(x) { x * x }
+to_string  = ->(x) { "Result: #{x}" }
 
-    # Forward composition (Left-to-Right sequence)
-    pipeline = add_three >> square >> to_string
-    pipeline.call(5) # => "Result: 64"
+# Forward composition (Left-to-Right sequence)
+pipeline = add_three >> square >> to_string
+pipeline.call(5) # => "Result: 64"
 
-    # Backward composition (Right-to-Left sequence)
-    compose = to_string << square << add_three
-    compose.call(5) # => "Result: 64"
-    ```
+# Backward composition (Right-to-Left sequence)
+compose = to_string << square << add_three
+compose.call(5) # => "Result: 64"
+```
 
-    If transformations are organized as class methods, they can be unbound into
-    `Method` objects using `#method` and composed: [1]
+If transformations are organized as class methods, they can be unbound into
+`Method` objects using `#method` and composed:
 
-    ```ruby
-    module MathOperations
-      def self.double(x) = x * 2
-      def self.increment(x) = x + 1
-    end
+```ruby
+module MathOperations
+  def self.double(x) = x * 2
+  def self.increment(x) = x + 1
+end
 
-    double_then_increment = MathOperations.method(:double) >> MathOperations.method(:increment)
-    double_then_increment.call(4) # => 9
-    ```
+double_then_increment = MathOperations.method(:double) >> MathOperations.method(:increment)
+double_then_increment.call(4) # => 9
+```
 
-2. Defining a Single Source of Truth: The Target End-State
+A conversion in this program is a pure function in this sense. It takes a
+document and returns a document, the result depends only on the document, and
+nothing outside it is touched.
 
-    When managing schema versions (e.g., Ableton Live Sets (ALS files) v8
-    through v12), a robust design would use a unified Version-Keyed Registry
-    where the key represents the desired end state (the version we are moving
-    TO). [1]
+## 2. Defining a Single Source of Truth: The Target End-State
 
-    ALS conversions are handled by XSLT transformations, which are inherently
-    bidirectional.
+When managing schema versions (e.g., Ableton Live Sets (ALS files) v8
+through v12), a robust design uses a unified version-keyed registry where the
+key represents the version being moved *to*.
 
-    Because ALS version conversions are therefore also bidirectional, each key
-    points to a specialized translation bridge object that handles the logic
-    required to enter that version from its neighboring version. [1]
+ALS conversions are bidirectional, so each key points to a bridge: the part of
+the program that converts a set between that version and the one before it.
+The bridge holds what the two versions do differently, and it handles moving
+both ways.
 
-    ```ruby
-    # Single Source of Truth
-    # The key reflects the target destination version.
-    VERSION_REGISTRY = {
-      8  => nil,              # Base version (nothing transforms up TO v8)
-      9  => xslt_v8_to_9,     # Moves up TO v9 forward, or down TO v8 via inverse
-      10 => xslt_v9_to_10,    # Moves up TO v10 forward, or down TO v9 via inverse
-      11 => xslt_v10_to_11,   # Moves up TO v11 forward, or down TO v10 via inverse
-      12 => xslt_v11_to_12    # Moves up TO v12 forward, or down TO v11 via inverse
-    }.freeze
-    ```
+```ruby
+# The bridge for each version of Live, keyed by the version the bridge leads to.
+BRIDGES = {
+  9  => Live8And9,     # Moves up TO v9 forward, or down TO v8 via inverse
+  10 => Live9And10,    # Moves up TO v10 forward, or down TO v9 via inverse
+  11 => Live10And11,   # Moves up TO v11 forward, or down TO v10 via inverse
+  12 => Live11And12    # Moves up TO v12 forward, or down TO v11 via inverse
+}.freeze
+```
 
-    **Conceptual Visual Model**
+**Conceptual Visual Model**
 
-    ```plain
-    [v8] <=== key 9 (xslt_v8_to_9) ===> [v9] <=== key 10 (xslt_v9_to_10) ===> [v10] <=== key 11 (xslt_v10_to_11) ===> [v11] <=== key 12 (xslt_v11_to_12) ===> [v12]
+```plain
+[v8] <=== key 9 (Live8And9) ===> [v9] <=== key 10 (Live9And10) ===> [v10] <=== key 11 (Live10And11) ===> [v11] <=== key 12 (Live11And12) ===> [v12]
 
-    UPWARD PATH (from: 8, to: 12)    => Target versions: [9, 10, 11, 12]  => Operation: .forward
-    DOWNWARD PATH (from: 12, to: 8)  => Target versions: [11, 10, 9, 8]  => Operation: .inverse (Executed 11 -> 10 -> 9 -> 8)
-    ```
+UPWARD PATH (from: 8, to: 12)    => Bridges: [9, 10, 11, 12]
+DOWNWARD PATH (from: 12, to: 8)  => Bridges: [12, 11, 10, 9]
+```
 
-3. Dynamically Slicing the Pipeline Intervals
+A bridge is not told which way to convert. It reads the version out of the
+document it is handed and converts it to the other of the two versions it
+knows, so the same bridge carries both directions, and the direction is a
+property of the document rather than of the bridge.
 
-    By leveraging the target end-state registry layout, you can write semantic
-    builders that filter keys dynamically and compose them using
-    `Enumerable#reduce` (`:>>`). [1]
+Only Live 11 and Live 12 have a bridge today, so only the 11↔12 version_diff
+is in scope, and its bridge is the class `Live11And12`. The bridges of the
+other version_diffs do not exist yet.
 
-    ```ruby
-    # Extract and chain upgrade transformations
-    def build_upgrade_pipeline(from:, to:)
-      # For from: 8, to: 12 -> Selects target destinations 9, 10, 11, 12
-      bridges = VERSION_REGISTRY.select do |target_version, transformation|
-        target_version > from && target_version <= to && transformation
-      end.values
+`lib/live_set/tx/live_versions.rb` is to hold the registry, and each entry of
+it is to be a function of a document — it takes a document and returns a
+document — so that the bridges of two versions can be composed with `>>`. The
+class of the bridge is behind the function; the function is what the registry
+holds.
 
-      steps = bridges.map(&:forward)
-      steps.reduce(:>>) # Links: v8_to_9, v9_to_10 >> v10_to_11 >> v11_to_12
-    end
+## 3. Dynamically Slicing the Pipeline Intervals
 
-    # Extract and chain downgrade transformations
-    def build_downgrade_pipeline(from:, to:)
-      # For from: 12, to: 8 -> Selects target destinations 11, 10, 9, 8
-      # (Bridges stored at keys 12, 11, 10, 9 are required to accomplish this path)
-      bridges = VERSION_REGISTRY.select do |target_version, transformation|
-        target_version > to && target_version <= from && transformation
-      end.values
+Because the registry is keyed by the version a bridge leads to, the bridges
+between two versions are the keys between them, and a conversion from one
+version to another is the composition of those bridges.
 
-      # Convert bridges to inverses, then reverse the sequence to run highest version first
-      steps = bridges.map(&:inverse).reverse
-      steps.reduce(:>>) # Links: v12_to_11 >> v11_to_10 >> v10_to_9 >> v9_to_8
-    end
-    ```
+```ruby
+# The bridges between two versions, in the order they are applied.
+#
+# For from: 8, to: 12 -> the bridges keyed 9, 10, 11 and 12
+# For from: 12, to: 8 -> the bridges keyed 12, 11, 10 and 9
+def bridges_between(from:, to:)
+  keys = to > from ? (from + 1..to).to_a : (to + 1..from).to_a.reverse
+  keys.map { |version| BRIDGES.fetch(version) }
+end
 
-4. The Functional XSLT Engine Lifecycle
+# The composition of them.
+bridges_between(from: 8, to: 12).reduce(:>>)
+```
 
-    XSLT engines behave differently than traditional Ruby DOM-mutation scripts.
-    When executing an XSLT transformation via Nokogiri, the input document is
-    never mutated in-place; instead, the engine generates an entirely new
-    `Nokogiri::XML::Document` instance. [1]
+Each entry of the registry is a function of a document, so the bridges
+compose. Each bridge in the composition reads the version of the document it
+is given and moves it one version, so the direction of the whole conversion is
+decided by the document and not by the caller. The direction is not a
+parameter of any of them.
 
-    Additionally, string serialization must be managed using the stylesheet's
-    own rules (such as matching your `<xsl:output>` settings) rather than a
-    generic `.to_xml` call. [1]
+## 4. The Lifecycle of a Conversion
 
-    **Designing the Bidirectional XSLT Wrapper**
+A conversion is made of three classes and one document.
 
-    Each bridge class wraps the respective compiled forward and inverse
-    stylesheets into standard functional callables: [1]
+`LiveSetConverter` reads a set and writes the converted set next to it. It
+does nothing else: it hands the parsed document to `LiveSetTransformer`, and
+writes what comes back.
 
-    ```ruby
-    class BidirectionalXslt
-      # A stylesheet is not directional. It matches the input document and emits
-      # something else, so one stylesheet can carry both directions of a version
-      # version_diff: a rename matches either spelling and emits
-      # the other. The direction is a property of the document, not of the
-      # stylesheet, and the stylesheet can read it from <Ableton MinorVersion>.
-      #
-      # The up direction (older version to newer) is lossless: it preserves
-      # everything the live set contains and changes only how it is expressed.
-      # The down direction is lossy: constructs the older version cannot
-      # represent are dropped and cannot be recovered. The down direction is
-      # therefore not a functional inverse of the up direction, and down-then-up
-      # does not return the original document.
-      #
-      # Transformations that cannot be expressed symmetrically -- deleting an element only
-      # the newer version has, adding one the older version lacks -- must be
-      # conditioned on the version read from the input document.
-      def initialize(up_path, down_path)
-        @up_tx   = Nokogiri::XSLT(File.read(up_path))   # a transform, compiled from a stylesheet
-        @down_tx = Nokogiri::XSLT(File.read(down_path)) # a transform, compiled from a stylesheet
-      end
+`LiveSetTransformer` finds the bridge for the version the document carries,
+and applies it.
 
-      # Applies the transform to an XML document, and returns a transformed live set
-      def forward
-        ->(doc) { @up_tx.transform(doc) }
-      end
+The bridge itself is a class that inherits the machinery from
+`LiveVersionConverter` and holds the differences between its two versions.
+`Live11And12` is the bridge between Live 11 and Live 12.
 
-      # Applies the transform to an XML document, and returns a transformed live set.
-      #
-      # The name says inverse, but the down direction is not an inverse. It
-      # loses what the older version cannot represent.
-      def inverse
-        ->(doc) { @down_tx.transform(doc) }
-      end
+```ruby
+class LiveSetTransformer
+  # The bridges, each of which converts between two versions of the format.
+  BRIDGES = [Live11And12].freeze
 
-      # Output rendering following the stylesheet's own rules
-      def serialize(doc, direction:)
-        tx = direction == :up ? @up_tx : @down_tx
-        tx.serialize(doc)
-      end
-    end
-    ```
+  # The bridge that converts a document.
+  def self.bridge_for(document)
+    version = version_of(document)
+    bridge = BRIDGES.find { |candidate| candidate.versions.include?(version) }
+    raise ArgumentError, "no bridge converts a set of version #{version.inspect}" if bridge.nil?
 
-    **The Orchestration Method**
+    bridge
+  end
 
-    The orchestrator establishes input and output boundaries ("bookends"). The
-    raw XML string is parsed at entry, passed through the in-memory AST
-    pipeline, and serialized at exit. [1]
+  def transform
+    self.class.bridge_for(@document).new(@document).convert
+  end
+end
+```
 
-    ```ruby
-    # Converts an XML document from one Live version to another.
-    #
-    # The upgrade must reproduce Live's own conversion. Opening an older set in
-    # a newer Live and saving it produces a specific document; the upgrade has
-    # to produce that same document, including the elements Live adds and the
-    # default values it gives them. Without that, an upgraded old set differs
-    # structurally from the same set saved natively in the new version, and
-    # every comparison reports differences that belong to the transform rather
-    # than to the live sets.
-    def migrate_xml(xml_string, from:, to:)
-      return xml_string if from == to # Identity guard clause
+The bridge reads the version of the document it is handed, and works out which
+way the set has to go: up to the newer version, or down to the older one. A
+document whose version the bridge does not know is an error.
 
-      parse_xml = ->(str) { Nokogiri::XML(str) }
+The base class holds the machinery, and applies it in this order:
 
-      if from > to
-        direction = :down
-        in_memory_pipeline = build_downgrade_pipeline(from: from, to: to)
+1. the version strings of the version the set is going to;
+2. the removal of the elements and attributes the older version does not have;
+3. the rename of the elements the two versions spell differently;
+4. the emptying of the elements the older version keeps empty;
+5. the default attributes the older version always writes;
+6. the attributes the newer version writes;
+7. the special transformations;
+8. the elements the newer version adds;
+9. the order the version writes the children of an element in.
 
-        # Select the bridge that handled the final step down (to + 1)
-        # For to: 8, this safely grabs key 9 (xslt_v8_to_9) to use its serialization format
-        final_bridge = VERSION_REGISTRY[to + 1]
-      else
-        direction = :up
-        in_memory_pipeline = build_upgrade_pipeline(from: from, to: to)
-        final_bridge = VERSION_REGISTRY[to]
-      end
+The lists of names that the first six and the last three steps work from are
+constants of the subclass, and the machinery reads them through
+`self.class::`, so a subclass supplies them by defining its own. The seventh
+step is the subclass's own: fifteen hand-written methods for the differences a
+list of names cannot express — a value the two versions write differently, an
+element one version wraps and the other keeps bare, an element that has to
+move to another parent.
 
-      # Each step is written in the format of the version it lands in, so the
-      # writer is chosen by the target version, not by the direction.
-      serialize_xml = ->(final_doc) { final_bridge.serialize(final_doc, direction: direction) }
+A list of names does not say which way the conversion is going. A rename
+matches either spelling and emits the other, so the same list serves both
+directions. A list that applies in one direction only holds an entry for each
+direction, and the bridge takes the one that applies.
 
-      # Compose and execute the complete pipeline
-      full_process = parse_xml >> in_memory_pipeline >> serialize_xml
-      full_process.call(xml_string)
-    end
-    ```
+A transformation is not directional. It matches the document it is given and
+emits something else, so one set of transformations carries both directions of
+a version_diff, and the direction is a property of the document. One bridge
+stands between two versions, and it handles moving both ways.
 
-5. Comparing Two Live Sets
+The up direction (older version to newer) is lossless: it preserves everything
+the live set contains and changes only how it is expressed. The down
+direction is lossy: constructs the older version cannot represent are dropped
+and cannot be recovered. The down direction is therefore not a functional
+inverse of the up direction, and down-then-up does not return the original
+document.
 
-    Two sets cannot be compared directly, because the same set is written
-    differently in each Live version. Both are brought to a common version
-    first, and the comparison is made there.
+## 5. Comparing Two Live Sets
 
-    ```ruby
-    # Compares two live sets for equality.
-    #
-    # Both documents are upgraded, never downgraded. A downgrade drops the
-    # constructs the older version cannot represent, so two sets that differ
-    # only in those constructs would compare equal.
-    #
-    # The upgrade is lossless, so the base version does not decide what the
-    # comparison can see. It is chosen for where the upgrade is most faithful
-    # to Live's own.
-    #
-    # Bytes play no part in the comparison. The gzip header, the mtime and the
-    # writer's formatting all lie outside the equality relation.
-    #
-    # Revision and SchemaChangeCount describe the file rather than the live
-    # set: Live rewrites them every time it saves a set, so two files holding
-    # the same set do not agree on them. They are excluded from the comparison.
-    # What else to exclude is not settled yet.
-    def equal?(left, right, base_version:)
-      left_doc = upgrade_to(left, base_version)
-      right_doc = upgrade_to(right, base_version)
+Two sets cannot be compared directly, because the same set is written
+differently in each Live version. Both are brought to a common version first,
+and the comparison is made there.
 
-      # Nokogiri's == is not structural equality, so the trees are compared as
-      # XML canonicalized per XML C14N.
-      canonicalize(left_doc) == canonicalize(right_doc)
-    end
+The comparison is made by `lib/live_set/xml_diff.rb`, which walks two
+documents in parallel: the children of two elements are matched by their
+names, the children with the same name are compared with each other in the
+order they come, and the children that one of the elements has and the other
+does not are reported as differences. `exe/xml_diff` is the tool that runs it,
+and it prints the differences it finds.
 
-    # XML canonicalization (C14N) of a document, for comparison.
-    #
-    # Whitespace-only text nodes are removed first, because Live indents its
-    # XML and the indentation is not part of the set. Canonicalization then
-    # normalizes attribute order and quoting.
-    def canonicalize(doc)
-      doc.xpath('//text()').each { |node| node.remove if node.content.strip.empty? }
-      doc.canonicalize
-    end
-    ```
+Bytes play no part in the comparison. The gzip header, the mtime and the
+writer's formatting all lie outside the equality relation.
 
-6. Optimization Refinement: Memory-Safe DOM Processing
+Revision and SchemaChangeCount describe the file rather than the live set:
+Live rewrites them every time it saves a set, so two files holding the same
+set do not agree on them. A converted set is given a fixed Revision instead,
+so that it can be recognized as the result of a conversion rather than a set
+saved by Live. What else to exclude is not settled yet.
 
-    While XSLT steps naturally produce fresh immutable document instances, there
-    are cases where you may choose to inject standard Ruby/Nokogiri
-    DOM-manipulation steps directly into your functional pipeline (e.g.,
-    filtering out large attributes or rewriting nodes before compilation). [1]
+The up direction has a reference to be compared against: a Live 11 set is
+opened in Live 12 and saved, and the file Live wrote is the ground truth the
+conversion is measured against. `spec/live_set/tx/live_up_comparison_spec.rb`
+is that comparison, and it names the differences that a conversion cannot
+reproduce — the ones that come from the state of the machine Live ran on, and
+from the state of the session view.
 
-    Passing strings between Ruby steps causes parsing bloat. Conversely, using
-    deep copying (`.dup`) inside every function avoids structural mutability
-    side effects but hits CPU performance when processing massive XML
-    structures. [1]
+## 6. The Conversion Edits the Document It Is Given
 
-    **Optimization: The Single-Pass Mutation Proxy**
+An XSLT engine builds a new document for every step it takes, so the memory
+of a conversion is the sum of its steps. The conversion in this program is
+Ruby, and it does not work that way: the bridge is handed a document and
+edits it in place, and returns the same document. There is no copy, and no
+proxy to guard against one, because the document is the caller's and the
+caller knows it is being converted.
 
-    Because the pipeline executes sequentially and each step runs once, you can
-    enforce an Isolated Mutation contract. To guarantee functional isolation
-    safely without manual .dup calls, wrap the initial document in a proxy
-    container that monitors and enforces a mutate-at-most-once state constraint.
-    [1]
+The consequence to remember is that the document the caller passed in *is* the
+converted set once the conversion is done. A spec that converts a set and then
+compares it with something else compares the document it started with:
 
-    ```ruby
-    class MutationSafeDocument
-      attr_reader :document
-
-      def initialize(nokogiri_doc, mutated = false)
-        @document = nokogiri_doc
-        @mutated  = mutated
-      end
-
-      def mutated?
-        @mutated
-      end
-
-      # Clones the expensive underlying C-node tree exactly once when first written to.
-      # Subsequent steps receive an O(1) pass-through of the already isolated workspace.
-      def ensure_mutable!
-        if mutated?
-          self
-        else
-          MutationSafeDocument.new(@document.dup, true)
-        end
-      end
-    end
-    ```
-
-    **Implementing DOM Manipulation Steps with the Proxy**
-
-    Your non-XSLT preprocessing steps handle this wrapper, protecting the pipeline's overall purity without redundant object allocation overhead: [1]
-
-    ```ruby
-    v11_to_10_dom_preprocessing = ->(proxy) {
-      writable_proxy = proxy.ensure_mutable!
-      doc = writable_proxy.document
-
-      # Perform isolated modifications directly on the AST
-      if legacy_node = doc.at_css('user_id')
-        legacy_node.name = 'uid'
-      end
-
-      writable_proxy # Pass the safe proxy to the next pipeline block
-    }
-    ```
-
-    This single-pass proxy technique balances design parameters, offering
-    flat-scale memory allocations, safety from external mutation leaks, and
-    lightweight unit testing capabilities. [1]
+```ruby
+document = AlsFile.read(live11_path)
+described_class.new(document).convert
+document # the converted set
+```
