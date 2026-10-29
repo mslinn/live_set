@@ -18,7 +18,7 @@ Open questions live in [`TODO.md`](../TODO.md). The ones this document touches a
 validation of the Live 11 conversion) and **N42** (unknown lane `Type` values may crash Live 11).
 
 
-## 1. The conversion today
+## The conversion today
 
 `live_set -11` converts a Live 12 set to the Live 11 format. It used to be six
 hand-written edits in `lib/live_set/live_set_class.rb`:
@@ -41,12 +41,12 @@ gone; the table describes what the conversion did, not where it lives now.
 A transform is not directional. A rename matches either spelling and emits the
 other, so one set of transformations carries both directions of a
 version_diff, and the direction is a property of the document. See
-`docs/cpfir.md` §4.
+`docs/cpfir.md`, "The Lifecycle of a Conversion".
 
 
-## 2. What is wrong with it
+## What is wrong with it
 
-### 2.1 The measurement
+### The measurement
 
 The Live 12 demo set was converted with the current code, and the result was
 validated against a freshly generated Live 11 schema:
@@ -88,7 +88,7 @@ Two caveats about these numbers:
   artifact of generating the schema from a single set, not something the
   conversion did wrong.
 
-### 2.2 The kinds of difference
+### The kinds of difference
 
 Every difference between two Live versions falls into one of eight kinds. Each
 kind needs a different operation, so the list of differences has to be sorted by
@@ -119,7 +119,7 @@ Three notes on this table:
   (`ClipSlotList` appears 33 times in each). Nothing in the demo sets needs to
   move. The 460-set corpus would be the place to look for a move.
 
-### 2.3 The lane values
+### The lane values
 
 The lanes are the one known crash risk. A lane is identified by the container it
 is in and its `Type` value, and the set of lanes is the same in every set of a
@@ -151,11 +151,11 @@ drop it, map it, keep it, or refuse to convert — is an open research question.
 It is not top priority, and the research is tedious.
 
 
-## 3. What must change
+## What must change
 
 Seven things.
 
-### 3.1 The conversion must become a transform
+### The conversion must become a transform
 
 The conversion is a difference between two XML formats, and a transform is how
 that difference is expressed: the difference list becomes a set of transformations
@@ -169,7 +169,7 @@ the same list is read the other way. `docs/fix_plan2.md` says why, and
 `lib/live_set/tx/` holds the result.
 
 
-### 3.2 The differences must be written down as transformations, not discovered each time
+### The differences must be written down as transformations, not discovered each time
 
 Today the list is six hand-written edits inside the conversion code. A new Live
 release means a new audit of the format, by eye, from scratch.
@@ -183,7 +183,7 @@ What the comparison shows and what it means are different things. It shows that
 `MainTrack` sits at a path where Live 11 has `MasterTrack`; it cannot show that
 they are the same element. That is a judgement, made when the transformation is written.
 
-### 3.3 The differences must be sorted by kind, and the non-obvious ones hand-written
+### The differences must be sorted by kind, and the non-obvious ones hand-written
 
 Section 2.2 lists eight kinds. Each is a different operation:
 
@@ -210,14 +210,14 @@ XSLT 1.0, which is what Nokogiri implements.
 | Attribute value respelled                  | no — the comparison shows *that* the value differs, not what it becomes |
 | Element renamed                            | no — by inspection                                                      |
 | Element moved                              | no — by inspection                                                      |
-| Value not legal in the target              | no — needs the value domain, section 6                                  |
+| Value not legal in the target              | no — needs the value domain, "Value domains"                             |
 | Element to be added, and its default       | no — by inspection                                                      |
 
 **The transformations are written by hand.** Nothing produces them automatically. The
 comparison of the two versions' baselines is information for the person writing
 them.
 
-### 3.4 Attributes have to be part of the difference list
+### Attributes have to be part of the difference list
 
 521 of the 539 errors are attributes the target version does not have. The
 schemas know which attributes exist in which version, so the transformations can delete
@@ -230,7 +230,7 @@ that, and will happily rewrite text content or an element name if the string
 ever appears there. It has to be a transformation about one specific attribute on one
 specific element.
 
-### 3.5 Elements have to be able to be added
+### Elements have to be able to be added
 
 Live 11 puts `VelocityDetail` and `NeedArrangerRefreeze` on every MIDI track.
 Live 12 has neither.  A converted set has to grow them, with the values Live 11
@@ -249,12 +249,12 @@ everything Live 12 added:
 | rename values            | `AudioOut/Master` → `AudioOut/Main`, `Oversampling` `"1"`/`"0"` → `"true"`/`"false"`                                            |
 
 
-### 3.6 Value domains have to be known
+### Value domains have to be known
 
 The schemas say `xs:string` for every attribute, so they say nothing about which values are legal.
-See section 6.
+See "Value domains".
 
-### 3.7 The output has to be checked before it is reported as converted
+### The output has to be checked before it is reported as converted
 
 The conversion prints `Conversion complete` and exits 0, whatever it produced. The 539 errors above
 were found by validating the output separately, after the fact. Nothing in the conversion notices
@@ -268,9 +268,9 @@ schema generated from one set makes 35,708 "required attribute" claims, most of 
 artifacts of that one set.
 
 
-## 4. The pieces
+## The pieces
 
-### 4.1 The reader
+### The reader
 
 An `.als` file is an XML document. Most are gzip-compressed, but uncompressed ones are used for
 testing. `docs/als_work.md` has the method:
@@ -292,7 +292,7 @@ Compression is not a property of a Live version, and it is not the comparator's 
 that differ only in compression are the same set, and everything downstream sees a
 `Nokogiri::XML::Document` either way.
 
-### 4.2 The transforms
+### The transforms
 
 One transform per adjacent version_diff, in each direction:
 
@@ -321,7 +321,7 @@ document = live_11_to_live_12(document)
 
 The transforms are written by hand. Nothing produces them automatically.
 
-### 4.3 The baselines
+### The baselines
 
 One hand-maintained XML file per Live version, at the root of the repository:
 
@@ -333,12 +333,12 @@ baselines/live_12.xml
 
 They are read at run time, not computed. The target version's baseline is the starting point of a
 transform, so the output of a conversion has the target version's structure by construction. See
-section 5.
+"Baselines".
 
 The directory is not packaged in the gem. `live_set.gemspec` has a comment saying so, and saying
 that it is not yet decided whether an installed user needs the baselines or only a developer does.
 
-### 4.4 The comparator
+### The comparator
 
 The comparator works on XML nodes. It corresponds nodes between two documents and reports each
 difference as an action.
@@ -371,7 +371,7 @@ comparator works on the shapes.
 | **move** | the node is in both, at a different position |
 | **create** | the node is needed but absent |
 
-### 4.5 The component
+### The component
 
 **Inputs**
 
@@ -409,7 +409,7 @@ comparator works on the shapes.
   transformations do not mention, with its attributes. That is what makes it safe to run a transform written for one
   version against a set that contains something new.
 
-### 4.6 Putting it together
+### Putting it together
 
 To compare two sets:
 
@@ -424,7 +424,7 @@ Upgrading rather than reducing to the lowest common denominator is a choice. Red
 lowest common denominator is one of the actions the comparator can report, but it throws away
 everything the newer version added, so it is not the strategy.
 
-### 4.7 Traps in XSLT 1.0
+### Traps in XSLT 1.0
 
 These are the things that will bite. The first one was found by testing, not by reading.
 
@@ -442,7 +442,7 @@ These are the things that will bite. The first one was found by testing, not by 
    has to be a deliberate choice, not an accident.
 5. **Whitespace between elements is preserved** unless `xsl:strip-space` says otherwise.
 
-### 4.8 Open questions
+### Open questions
 
 1. **Which version do two sets get compared at?** Upgrading the older one is the strategy, but the
    target version still has to be chosen. The newest version both can reach is the obvious answer
@@ -454,9 +454,9 @@ These are the things that will bite. The first one was found by testing, not by 
    on save, so a byte-exact comparison across a round trip through Live will not hold.
 
 
-## 5. Baselines
+## Baselines
 
-### 5.1 What a baseline is
+### What a baseline is
 
 The baseline for a Live version is the **minimum ALS for that version**:
 
@@ -467,7 +467,7 @@ The baseline for a Live version is the **minimum ALS for that version**:
 It is the lowest frame into which material can be placed. It is not a file to be found; it is
 discovered and then maintained by hand.
 
-### 5.2 How it was discovered
+### How it was discovered
 
 Take any set of that version and remove two things:
 
@@ -491,7 +491,7 @@ The two halves of the derivation come from different places:
 The schema knows that `EffectiveName` is a required attribute of `Name`. It does not know that the
 value is `"Untitled"`.
 
-### 5.3 Why the baselines are what to compare
+### Why the baselines are what to compare
 
 A demo set's difference from another demo set contains song content, which is noise. Two baselines
 differ only in format.
@@ -515,7 +515,7 @@ pair of elements that happen to sit at the same path. That is settled by inspect
 written into the transformations by hand. The same goes for value respellings, moves, and elements that have
 to be added with a default.
 
-### 5.4 What the baseline is for
+### What the baseline is for
 
 Two jobs:
 
@@ -524,7 +524,7 @@ Two jobs:
   element the target version does not have is never carried over, because the copy is explicit.
 - **It is the comparator's frame.** It says which nodes are structure and which carry material.
 
-### 5.5 A baseline and a schema are opposite operations on the same corpus
+### A baseline and a schema are opposite operations on the same corpus
 
 The schema is the union of what can exist; the baseline is the intersection of what always exists.
 The XSD generator's rule — "element optional iff some instance lacked it" — is the union. The
@@ -544,7 +544,7 @@ They are useful as a check on a hand-maintained baseline, and the artist's templ
 idea at a different level: a template is a baseline that redefines what "empty" means to one
 artist.
 
-### 5.6 One open question
+### One open question
 
 **Are lanes part of a baseline, or are they list members that get stripped?** If lanes are
 stripped, the lane `Type` question in 2.3 leaves the baseline comparison and has to be handled
@@ -553,16 +553,16 @@ them — including the types the target version has never had — shows up in th
 belongs.
 
 
-## 6. Value domains
+## Value domains
 
-### 6.1 The question
+### The question
 
 Every value in an `.als` file is stored in a `Value` attribute. The generated schemas type all of
 them as `xs:string`, so a schema says nothing about which values are legal in a given version.
 
-The lane `Type` is the case that matters, and it is the known crash risk. See section 2.3.
+The lane `Type` is the case that matters, and it is the known crash risk. See "The lane values".
 
-### 6.2 What the other parsers do
+### What the other parsers do
 
 Every other ALS parser and converter was looked at. **None of them records value domains.** They
 all treat a value as an opaque string.
@@ -608,7 +608,7 @@ but it publishes no value domain for the format, and it does not read sets at al
 There is no published schema for the ALS format with typed values, and the format has no public
 specification.
 
-### 6.3 What that means here
+### What that means here
 
 The value domains have to be produced by this project. There are three possible sources:
 
@@ -622,7 +622,7 @@ The value domains have to be produced by this project. There are three possible 
 lanes is the same in every set of a given Live version. So for the lanes the corpus gives the
 complete answer rather than a sample of one.
 
-### 6.4 How a domain can be written down
+### How a domain can be written down
 
 XSD can express a value domain with a simple type restricted by enumeration. Because the XSD
 generator produces one content model per path, a domain is representable per path:
@@ -640,7 +640,7 @@ The limitation is the same as the schema's other limitations: it says "these wer
 are legal". It is still worth writing down, because it turns a silent wrong value into a
 validation error, and a transformation can filter against it.
 
-### 6.5 What to do with an illegal value
+### What to do with an illegal value
 
 Open. Tracked as **TODO N42** and **TODO T1**. The options are to drop the lane, to map it to
 another one, to leave it alone, or to refuse the conversion. The research needed to choose is

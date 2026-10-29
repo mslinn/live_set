@@ -26,7 +26,7 @@ RSpec.describe LiveSet, '#modify_als' do
   # The Live 11 demo set that the round trip uses.
   #
   # It is the "Suite" edition, which has the most tracks, a group track, and the most
-  # Oversampling elements. See TODO.md N39.
+  # Oversampling elements. See TODO.md T1.
   def suite_path
     DemoSets.edition '11', 'Suite'
   end
@@ -149,7 +149,7 @@ RSpec.describe LiveSet, '#modify_als' do
   end
 
   describe 'a round trip' do
-    # The round trip is the test for the N39 question: convert a Live 12 set to Live 11, and
+    # The round trip is the test for the T1 question: convert a Live 12 set to Live 11, and
     # compare the result with the set that Live 11 itself wrote.
     #
     # The Live 12 file is the Live 11 demo set opened in Live 12 and saved. It is the same
@@ -157,7 +157,7 @@ RSpec.describe LiveSet, '#modify_als' do
     # not a difference between two songs. The Live 12 demo set Ableton ships cannot be used for
     # this, because it is a different song.
     #
-    # See TODO.md N39.
+    # See TODO.md T1.
 
     # The set as Live 11 wrote it.
     def as_live11

@@ -48,16 +48,17 @@ require_relative 'live_version_converter'
 # files. The release notes of Live 12 are in docs/release_notes/; the differences between the two
 # versions are summarized in docs/live_11_12_diff.md.
 #
-# The kinds of difference, and the operation each kind calls for, are in docs/conversion.md, section
-# 2.2. A transform is not directional: see docs/cpfir.md, section 4.
+# The kinds of difference, and the operation each kind calls for, are in docs/conversion.md, "The
+# kinds of difference". A transform is not directional: see docs/cpfir.md, "The Lifecycle of a
+# Conversion".
 #
 # The terms used here are defined in docs/glossary.md.
 class Live11And12 < LiveVersionConverter
   # The version strings of each direction.
   #
   # Live rewrites the revision every time it saves a set, so the value here describes the file
-  # rather than the set, and it is left out of any comparison of two sets. See docs/cpfir.md
-  # section 5.
+  # rather than the set, and it is left out of any comparison of two sets. See docs/cpfir.md,
+  # "Comparing Two Live Sets".
   VERSION = { # sorted alphabetically by key
     down: {
       'Creator'           => 'Ableton Live 11.3.21',

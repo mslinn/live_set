@@ -1,8 +1,20 @@
 # TODO
 
-Outstanding work on `live_set`. This is a description of work in progress; when
-an item is completed its entry is deleted, and anything worth keeping is written
-up in another Markdown file in `docs/` and/or the code itself.
+The outstanding work of the `live_set` gem, and nothing else.
+
+Every item has an identifier, and the identifiers are stable: the code, the
+specs and the documents cite them, so an identifier is never reused, and it
+never changes what it means. When an item is completed its entry is deleted,
+and anything worth keeping is written up in another Markdown file in `docs/`
+and/or the code itself.
+
+The plan for the Live 12 → Live 11 conversion is `docs/fix_plan2.md`. That
+document holds the steps of that plan and the work list of the down direction.
+This file holds the outstanding work of the gem as a whole, and the two overlap
+where an item belongs to the conversion: **T1** is the contract the conversion
+has to meet, and **N42** is the lane `Type` risk the conversion carries. Such
+an item is described here, and the plan and the code refer to it by its
+identifier.
 
 This project was developed for WSL, which implies Windows 10 or 11.
 It performs round-trip validation of Live 11 -> Live 12 -> Live 11 sets

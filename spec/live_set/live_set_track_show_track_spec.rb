@@ -3,7 +3,8 @@ require 'live_set/live_set_track'
 
 RSpec.describe LiveTrack, '#show_track' do
   # Builds a track without running #initialize, so that the frozen state can be
-  # exercised independently of the clip parsing discussed in TODO.md S3.
+  # exercised independently of the clip parsing, which is in
+  # lib/live_set/live_set_track.rb.
   def track_with(frozen:, clip_count:)
     track = described_class.allocate
     track.instance_variable_set(:@audio_track, audio_track_element(freeze: frozen.to_s))

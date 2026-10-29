@@ -7,7 +7,7 @@ transformations into a seamless pipeline. This guide covers how a
 production-ready, bidirectional XML migration engine is built from Ruby's native
 function operators and Nokogiri.
 
-## 1. Core Principles of Pure Function Composition
+## Core Principles of Pure Function Composition
 
 A function is pure if it has no side effects and always returns the same
 output given the same input. Ruby 2.6+ supports native functional composition on
@@ -46,7 +46,7 @@ A conversion in this program is a pure function in this sense. It takes a
 document and returns a document, the result depends only on the document, and
 nothing outside it is touched.
 
-## 2. Defining a Single Source of Truth: The Target End-State
+## Defining a Single Source of Truth: The Target End-State
 
 When managing schema versions (e.g., Ableton Live Sets (ALS files) v8
 through v12), a robust design uses a unified version-keyed registry where the
@@ -85,13 +85,13 @@ Only Live 11 and Live 12 have a bridge today, so only the 11↔12 version_diff
 is in scope, and its bridge is the class `Live11And12`. The bridges of the
 other version_diffs do not exist yet.
 
-`lib/live_set/tx/live_versions.rb` is to hold the registry, and each entry of
-it is to be a function of a document — it takes a document and returns a
-document — so that the bridges of two versions can be composed with `>>`. The
-class of the bridge is behind the function; the function is what the registry
-holds.
+`lib/live_set/tx/live_versions.rb` holds the registry. An entry is a bridge,
+and a bridge is a function of a document: `Live11And12.call(document)` takes a
+document and returns the converted document. The class of the bridge is behind
+the function; the function is what the registry holds. That is what lets the
+bridges of two versions be composed with `>>`.
 
-## 3. Dynamically Slicing the Pipeline Intervals
+## Dynamically Slicing the Pipeline Intervals
 
 Because the registry is keyed by the version a bridge leads to, the bridges
 between two versions are the keys between them, and a conversion from one
@@ -103,8 +103,8 @@ version to another is the composition of those bridges.
 # For from: 8, to: 12 -> the bridges keyed 9, 10, 11 and 12
 # For from: 12, to: 8 -> the bridges keyed 12, 11, 10 and 9
 def bridges_between(from:, to:)
-  keys = to > from ? (from + 1..to).to_a : (to + 1..from).to_a.reverse
-  keys.map { |version| BRIDGES.fetch(version) }
+  keys = to > from ? ((from + 1)..to).to_a : ((to + 1)..from).to_a.reverse
+  keys.map { |version| BRIDGES.fetch(version).method(:call) }
 end
 
 # The composition of them.
@@ -117,7 +117,10 @@ is given and moves it one version, so the direction of the whole conversion is
 decided by the document and not by the caller. The direction is not a
 parameter of any of them.
 
-## 4. The Lifecycle of a Conversion
+`LiveVersions.convert(document, from: 11, to: 12)` is the conversion of one
+version into another, and it is the composition of the bridges between them.
+
+## The Lifecycle of a Conversion
 
 A conversion is made of three classes and one document.
 
@@ -126,7 +129,9 @@ does nothing else: it hands the parsed document to `LiveSetTransformer`, and
 writes what comes back.
 
 `LiveSetTransformer` finds the bridge for the version the document carries,
-and applies it.
+and applies it. The bridges themselves are held in the registry of
+`lib/live_set/tx/live_versions.rb`, which is keyed by the version each bridge
+leads to.
 
 The bridge itself is a class that inherits the machinery from
 `LiveVersionConverter` and holds the differences between its two versions.
@@ -134,20 +139,8 @@ The bridge itself is a class that inherits the machinery from
 
 ```ruby
 class LiveSetTransformer
-  # The bridges, each of which converts between two versions of the format.
-  BRIDGES = [Live11And12].freeze
-
-  # The bridge that converts a document.
-  def self.bridge_for(document)
-    version = version_of(document)
-    bridge = BRIDGES.find { |candidate| candidate.versions.include?(version) }
-    raise ArgumentError, "no bridge converts a set of version #{version.inspect}" if bridge.nil?
-
-    bridge
-  end
-
   def transform
-    self.class.bridge_for(@document).new(@document).convert
+    LiveVersions.bridge_for(self.class.version_of(@document)).call(@document)
   end
 end
 ```
@@ -193,7 +186,7 @@ and cannot be recovered. The down direction is therefore not a functional
 inverse of the up direction, and down-then-up does not return the original
 document.
 
-## 5. Comparing Two Live Sets
+## Comparing Two Live Sets
 
 Two sets cannot be compared directly, because the same set is written
 differently in each Live version. Both are brought to a common version first,
@@ -222,7 +215,7 @@ is that comparison, and it names the differences that a conversion cannot
 reproduce — the ones that come from the state of the machine Live ran on, and
 from the state of the session view.
 
-## 6. The Conversion Edits the Document It Is Given
+## The Conversion Edits the Document It Is Given
 
 An XSLT engine builds a new document for every step it takes, so the memory
 of a conversion is the sum of its steps. The conversion in this program is

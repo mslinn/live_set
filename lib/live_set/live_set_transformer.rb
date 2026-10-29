@@ -1,35 +1,20 @@
 require 'nokogiri'
-require_relative 'tx/live_11_and_12'
-require_relative 'tx/live_version_converter'
+require_relative 'tx/live_versions'
 
 # Converts a live set to another version of the Live format.
 #
 # A bridge converts between two versions of the format, and it handles moving both ways: the
 # direction is not passed in. The bridge reads the version of the document it is handed, and
 # converts to the other version of its version_diff. A transform is not directional; the direction is a
-# property of the document. See docs/cpfir.md, section 4.
+# property of the document. See docs/cpfir.md, "The Lifecycle of a Conversion".
 #
-# The bridges are in the tx subdirectory of this directory, one for each version_diff, and
-# the list of them is to become the version-keyed registry of docs/cpfir.md, section 2. The
-# transformations of a bridge are the differences between the two versions it bridges, and how
-# they are found is in docs/conversion.md, sections 2.2 and 3.3.
+# The bridges are in the tx subdirectory of this directory, one for each version_diff, and the
+# registry of them is `lib/live_set/tx/live_versions.rb`: it is keyed by the version a bridge
+# leads to, and a conversion from one version to another is the composition of the bridges
+# between them. The transformations of a bridge are the differences between the two versions it
+# bridges, and how they are found is in docs/conversion.md, "The kinds of difference" and "The
+# differences must be sorted by kind, and the non-obvious ones hand-written".
 class LiveSetTransformer
-  # The bridges, each of which converts between two versions of the format.
-  BRIDGES = [Live11And12].freeze
-
-  # The bridge that converts a document.
-  #
-  # @param document [Nokogiri::XML::Document] the document to convert
-  # @return [Class] the bridge
-  # @raise [ArgumentError] when no bridge converts the document
-  def self.bridge_for(document)
-    version = version_of(document)
-    bridge = BRIDGES.find { |candidate| candidate.versions.include?(version) }
-    raise ArgumentError, "no bridge converts a set of version #{version.inspect}" if bridge.nil?
-
-    bridge
-  end
-
   # The version of a document.
   #
   # The version is the minor version of the set, e.g. "12.0_12402". The major version is no help:
@@ -50,6 +35,6 @@ class LiveSetTransformer
   #
   # @return [Nokogiri::XML::Document] the converted set
   def transform
-    self.class.bridge_for(@document).new(@document).convert
+    LiveVersions.bridge_for(self.class.version_of(@document)).call(@document)
   end
 end

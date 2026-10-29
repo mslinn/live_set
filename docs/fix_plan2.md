@@ -14,6 +14,11 @@ reads the version of the set it is given and converts it to the other of the two
 
 The terms these documents use are defined in `docs/glossary.md`.
 
+The plan for this conversion is this document. The outstanding work of the gem as a whole is in
+`TODO.md`, and the identifiers there are the ones the code and the documents cite. Where an item
+of this plan is outstanding work, it has an identifier in `TODO.md`, and this plan refers to it
+by that identifier.
+
 `validate_asd` validates that a converted set is well-formed XML, and that its structure complies
 with the schema of the version it was written for. The schemas are XML schemas, stored as XSD
 files, one per version of Live. They have a section of their own below.
@@ -83,7 +88,8 @@ experiment: **a transformation is not directional.**
 - Transformations that cannot be expressed symmetrically — deleting an element only the newer version has,
   adding one the older version lacks — are conditioned on the direction.
 - There are no separate up and down functions, and no separate up and down transformations.
-  `docs/cpfir.md` §4 says so: a transformation "is not directional. It matches the document it is
+  `docs/cpfir.md`, "The Lifecycle of a Conversion", says so: a transformation "is not directional.
+  It matches the document it is
   given and emits something else, so one set of transformations carries both directions of a
   version_diff", and the direction is a property of the document. One bridge stands between two
   versions, and it handles moving both ways.
@@ -93,7 +99,8 @@ experiment: **a transformation is not directional.**
 
 The registry is keyed by version, the key being the version the bridge leads to, and a conversion
 is a composition of the bridges between the two versions, composed with `>>`.
-`docs/cpfir.md` §2–§4 has the shape; only the 11↔12 version_diff is in scope now.
+`docs/cpfir.md`, "Defining a Single Source of Truth: The Target End-State" through "The Lifecycle of
+a Conversion", has the shape; only the 11↔12 version_diff is in scope now.
 
 ## The base class and its subclasses
 
@@ -117,6 +124,12 @@ and calls `super`.
 
 The base class is written once. Each further version_diff costs a subclass of lists and
 specials, and nothing else.
+
+**Where the lists live.** Settled: Ruby constants in the subclass. There is one set per
+bridge, with no direction structure in it, so the argument for a data file — that the data
+would express the direction — does not apply. What is left against it is that YAML resolves
+`"1"` as `1` and `"true"` as `true`, and a misspelled key returns `nil` rather than raising,
+and both of those fail silently in values that go straight into XML attributes.
 
 ## The schemas
 
@@ -225,8 +238,8 @@ direction reproduces what Live itself does.
 **M3 — The up direction, Live 11 → Live 12.** **Done.** Lossless, and faithful to Live's own
 conversion. The transformations come from the same experiment that produced the down direction: open a
 Live 11 demo set in Live 12, save it, and compare the two files. The acceptance test is
-`docs/cpfir.md` §4: the upgraded set has to match the set Live itself produced, including the
-elements Live adds and the default values it gives them.
+`docs/cpfir.md`, "The Lifecycle of a Conversion": the upgraded set has to match the set Live itself
+produced, including the elements Live adds and the default values it gives them.
 `spec/live_set/tx/live_up_ground_truth_spec.rb` is that test, and it passes.
 
 **M4 — `LiveSetConverter` becomes thin.** **Done.** It reads the set, hands the document to
@@ -248,27 +261,30 @@ its `convert` method, and its logging, and loses its transformations.
   it does not pass until the down-direction work list is done. See "The end-to-end example"
   in Phase 3.
 - A comparison example: two sets of different versions that hold the same set compare equal once
-  both are upgraded, per `docs/cpfir.md` §5. **Done.**
+  both are upgraded, per `docs/cpfir.md`, "Comparing Two Live Sets". **Done.**
   `spec/live_set/tx/live_up_comparison_spec.rb` is that example, and it passes.
 
 **M6 — The documentation.** `docs/als_work.md`, section "Transform Implementation": describe the
 `tx` directory, the base class and its subclasses, the direction, and how a new Live version gets
-its own subclass. **Done.** `docs/cpfir.md` §4–§6: the sentence that says the conversions are
+its own subclass. **Done.** `docs/cpfir.md`, "The Lifecycle of a Conversion" through "The Conversion
+Edits the Document It Is Given": the sentence that says the conversions are
 XSLT changes, and the `BidirectionalXslt` example becomes the base class and its subclasses.
 **Done.** The document now describes the Ruby architecture: the three classes of a conversion
 and the nine steps of the bridge, the registry, the composition of the bridges between two
 versions, and the comparison of two sets by `lib/live_set/xml_diff.rb`. The mutation proxy of
-the old §6 is gone: the conversion edits the document it is given, and the section says so.
+the old section 6 is gone: the conversion edits the document it is given, and the section says so.
 
 **M7 — A file of bidirectional pure functions for every Live version.** One file holds, for every
 version of Live, the pure functions that translate a set to and from the previous version of
 Live: the bridge between Live 11 and Live 10, the bridge between Live 10 and Live 9, and so on.
-That is the version-keyed registry of `docs/cpfir.md`, section 2, with the bridges of the
+That is the version-keyed registry of `docs/cpfir.md`, "Defining a Single Source of Truth: The
+Target End-State", with the bridges of the
 registry as pure functions rather than as objects that are handed a document. A function is
 pure, so a conversion is a composition of functions, and the direction is not passed to them:
-the direction is a property of the document, which the function reads. **Not done.** The
-bridges are classes today (`lib/live_set/tx/live_11_and_12.rb`), and
-`LiveSetTransformer::BRIDGES` is a list of them rather than a registry keyed by version.
+the direction is a property of the document, which the function reads. **Done.** The registry
+is `lib/live_set/tx/live_versions.rb`, keyed by the version the bridge leads to, and
+`LiveSetTransformer::BRIDGES` is gone: the transformer asks the registry for the bridge of the
+version the document carries.
 
 The file is `lib/live_set/tx/live_versions.rb`. It holds the bridge for every version of Live,
 and each entry is the pure function that takes a document and returns a document. The registry
@@ -278,8 +294,16 @@ a parameter of any of them: each reads the version out of the document it is han
 the other of the two versions. The entry for Live 12 is the bridge that stands between Live 12
 and Live 11, and it is the one that exists today, as a class.
 
+How it is done: a bridge is a class, and it is a function of a document — `Live11And12.call(document)`
+takes a document and returns the converted document, which is `LiveVersionConverter.call` in the
+base class. The registry holds the bridges as those functions, so they compose with `>>`:
+`LiveVersions.bridges_between(from:, to:)` gives the bridges between two versions in the order
+they are applied, and `LiveVersions.convert(document, from:, to:)` is their composition.
+`spec/live_set/tx/live_versions_spec.rb` is the example.
+
 Why this belongs in Phase 2 and not Phase 3: it is the architecture the rest of the work
-assumes, and it is what the registry of `docs/cpfir.md` section 2 describes. The bridges
+assumes, and it is what the registry of `docs/cpfir.md`, "Defining a Single Source of Truth: The
+Target End-State", describes. The bridges
 themselves — the Live 10↔9 and the Live 9↔8 — are Phase 3 work, because their transformations do not
 exist yet (D8).
 
@@ -295,13 +319,14 @@ Convert a Live 12 demo set, validate the result against `schemas/live_11.3d1.xsd
 when the schema has not been generated, the way `spec/validate_asd/demo_sets_spec.rb` already
 is. `spec/live_set/tx/live_conversion_spec.rb` is that example. **Not done.** It fails: the
 converted set does not validate against the Live 11 schema, and its failure message is the work
-list below.
+list below. The contract this example holds the conversion to is **TODO T1**.
 
 ### The down-direction work list
 
 Each name below is a construct the converted set carries that the Live 11 schema does not
 accept. What each one becomes is decided by the kind of difference it is, and the kinds are in
-`docs/conversion.md` §2.2. A construct Live 11 does not have is a transformation that removes it; a
+`docs/conversion.md`, "The kinds of difference". A construct Live 11 does not have is a transformation
+that removes it; a
 construct Live 11 does have, but the Live 11 schema does not declare, is a gap in the schema —
 the schema is an inference from the XML stored in the sets of that version, and a schema
 inferred from too few sets is stricter than Live is. Which of the two a name is cannot be read
@@ -310,10 +335,12 @@ published device lists.
 
 The transformations are written by hand, in `lib/live_set/tx/live_11_and_12.rb`, each with a comment
 naming the difference it is about. Nothing produces them automatically
-(`docs/conversion.md` §3.3). The vocabulary a transformation needs comes from the schemas: the schema of
+(`docs/conversion.md`, "The differences must be sorted by kind, and the non-obvious ones
+hand-written"). The vocabulary a transformation needs comes from the schemas: the schema of
 a version lists every element and every attribute of that version, and the differences between
 two versions are found by diffing one schema against the other (`docs/als_work.md`, "Mapping
-XSD to Ruby Classes"; `docs/conversion.md` §3.4 and §5.3).
+XSD to Ruby Classes"; `docs/conversion.md`, "Attributes have to be part of the difference list"
+and "Why the baselines are what to compare").
 
 The items are grouped by the construct they belong to, so that names are worked on together.
 The grouping is provisional: it says which names are settled in one sitting, and each name is
@@ -374,29 +401,30 @@ citations.
 - **D4e — The specs cite the headings. Done.**
 - **D4f — `README.md` links to the headings. Done.**
 - **D4g — `docs/conversion.md` and `docs/cpfir.md` keep their numbers, and the code still cites
-  them by number. Not done.** Their numbers are their own, not the ones `als_format.md` had, so
+  them by number. Done.** Their numbers are their own, not the ones `als_format.md` had, so
   they were not part of the first pass. Until they are reconciled with the headings, the code
-  cites headings in one document and numbers in another. The work is:
+  cites headings in one document and numbers in another.
 
-  | Where | The citation | The heading it becomes |
+  The numbers are gone from both documents now, and everything that cited them cites the
+  headings instead:
+
+  | Where | The citation | The heading it became |
   | --- | --- | --- |
-  | `docs/cpfir.md` | its numbered sections 1–6 | headings: "Core Principles of Pure Function Composition", "Defining a Single Source of Truth: The Target End-State", "Dynamically Slicing the Pipeline Intervals", "The Lifecycle of a Conversion", "Comparing Two Live Sets", "The Conversion Edits the Document It Is Given" |
-  | `lib/live_set/live_set_transformer.rb:10` | `docs/cpfir.md`, section 4 | "The Lifecycle of a Conversion" |
-  | `lib/live_set/live_set_transformer.rb:13` | `docs/cpfir.md`, section 2 | "Defining a Single Source of Truth: The Target End-State" |
-  | `lib/live_set/live_set_transformer.rb:15` | `docs/conversion.md`, sections 2.2 and 3.3 | "The kinds of difference" and "The differences must be sorted by kind, and the non-obvious ones hand-written" |
-  | `lib/live_set/tx/live_version_converter.rb:18` | `docs/cpfir.md`, section 4 | "The Lifecycle of a Conversion" |
-  | `lib/live_set/tx/live_version_converter.rb:21` | `docs/conversion.md`, section 3.3 | "The differences must be sorted by kind, and the non-obvious ones hand-written" |
-  | `lib/live_set/tx/live_version_converter.rb:25` | `docs/conversion.md`, sections 3.4 and 5.3 | "Attributes have to be part of the difference list" and "Why the baselines are what to compare" |
-  | `lib/live_set/tx/live_11_and_12.rb:51` | `docs/conversion.md`, section 2.2 | "The kinds of difference" |
-  | `lib/live_set/tx/live_11_and_12.rb:52` | `docs/cpfir.md`, section 4 | "The Lifecycle of a Conversion" |
-  | `lib/live_set/tx/live_11_and_12.rb:57` | `docs/cpfir.md` | "Comparing Two Live Sets" |
-  | `lib/live_set/live_set_converter.rb:12` | `docs/cpfir.md` | "The Lifecycle of a Conversion" |
-  | `docs/als_work.md:92`, `docs/als_work.md:158`, `docs/als_work.md:206`, `docs/als_work.md:550`, `docs/live_11_12_diff.md:232`, `docs/conversion.md:43`, `docs/index.md:65`–`:67` | the same numbers | the same headings |
+  | `docs/cpfir.md` | its numbered sections 1–6 | "Core Principles of Pure Function Composition", "Defining a Single Source of Truth: The Target End-State", "Dynamically Slicing the Pipeline Intervals", "The Lifecycle of a Conversion", "Comparing Two Live Sets", "The Conversion Edits the Document It Is Given" |
+  | `lib/live_set/live_set_transformer.rb` | `docs/cpfir.md`, section 4 | "The Lifecycle of a Conversion" |
+  | `lib/live_set/live_set_transformer.rb` | `docs/conversion.md`, sections 2.2 and 3.3 | "The kinds of difference" and "The differences must be sorted by kind, and the non-obvious ones hand-written" |
+  | `lib/live_set/tx/live_version_converter.rb` | `docs/cpfir.md`, section 4 | "The Lifecycle of a Conversion" |
+  | `lib/live_set/tx/live_version_converter.rb` | `docs/conversion.md`, section 3.3 | "The differences must be sorted by kind, and the non-obvious ones hand-written" |
+  | `lib/live_set/tx/live_version_converter.rb` | `docs/conversion.md`, sections 3.4 and 5.3 | "Attributes have to be part of the difference list" and "Why the baselines are what to compare" |
+  | `lib/live_set/tx/live_11_and_12.rb` | `docs/conversion.md`, section 2.2 | "The kinds of difference" |
+  | `lib/live_set/tx/live_11_and_12.rb` | `docs/cpfir.md`, section 4 | "The Lifecycle of a Conversion" |
+  | `lib/live_set/live_set_converter.rb` | `docs/cpfir.md` | "The Lifecycle of a Conversion" |
+  | `docs/als_work.md`, `docs/live_11_12_diff.md`, `docs/conversion.md`, `docs/index.md` | the same numbers | the same headings |
   | `docs/fix_plan2.md` — "The architecture", "M3", "M5", "M6", "M7", "D4g", "D8" | `docs/cpfir.md` §2, §4, §5, and `docs/conversion.md` §2.2, §3.3 | the same headings |
 
   The numbering of `docs/conversion.md` is dropped as well, so that its citations read as
-  headings like the others: "The conversion today", "The measurement", "The kinds of
-  difference", "The lane values", "What must change", "The conversion must become a
+  headings like the others: "The conversion today", "What is wrong with it", "The measurement",
+  "The kinds of difference", "The lane values", "What must change", "The conversion must become a
   transform", "The differences must be written down as transformations, not discovered each time", "The
   differences must be sorted by kind, and the non-obvious ones hand-written", "Attributes have
   to be part of the difference list", "Elements have to be able to be added", "Value domains
@@ -407,6 +435,10 @@ citations.
   for", "A baseline and a schema are opposite operations on the same corpus", "One open
   question", "Value domains", "The question", "What the other parsers do", "What that means
   here", "How a domain can be written down", "What to do with an illegal value".
+
+  The references inside `docs/conversion.md` to its own sections became references to its own
+  headings: "section 6" is "Value domains", "section 5" is "Baselines", and "section 2.3" is
+  "The lane values".
 
 **D5 — `docs/als_notes.md` routes the reader.** A reader who does not yet know which document to
 open should find the way from the format to the version_diff documents. The outline of
@@ -441,14 +473,15 @@ or deleted as superseded. **Not done.**
 | `docs/als_work.md:1012` | the `PluginDevice` FIXME: the name is not where the code looks for it |
 | `docs/als_work.md:1057` | the paragraph about telling a third-party plug-in from a native device |
 | `docs/als_work.md:1072` | the elements the code looks for that no real set has |
-| `docs/als_work.md:1086` | cites **TODO N21**, which is not an identifier in `TODO.md` |
+| `docs/als_work.md:1086` | cites **TODO N21**, which is not an identifier in `TODO.md`. **Done.** The citation is gone: the passage now says the code has been rewritten, and points at `lib/live_set/live_device.rb`. The two other dangling identifiers were `TODO.md N39` (`spec/live_set/live_set_modify_als_spec.rb`, twice — now T1, which is the question it was) and `TODO.md S3` (`spec/live_set/live_set_track_show_track_spec.rb` — now the code that does the clip parsing). |
 | `docs/als_work.md:1337` | the discussion of blocking transfers and blocking group devices |
 | `docs/live_control_plan.md:18`, `:63`, `:95`, `:116`, `:148`, `:173`, `:175`, `:319` | the plan for proving a conversion by running Live |
 
 **D8 — A version_diff document for every two adjacent versions.** `docs/live_8_9_diff.md`,
 `docs/live_9_10_diff.md`, `docs/live_10_11_diff.md` and `docs/live_11_12_diff.md`. Each holds the
 newer version's release notes summarized, and then the format differences that follow from them,
-organized by the kinds of difference in `docs/conversion.md` §2.2. The release notes of the newer
+organized by the kinds of difference in `docs/conversion.md`, "The kinds of difference". The release
+notes of the newer
 version supply the items, because every difference is something the newer version changed.
 **Not done.** `docs/live_11_12_diff.md` is written; the other three are not.
 
@@ -466,30 +499,22 @@ not yet verified: `ExpressionLane`/`ContentLanes`, `GroovePool`, `MpeSettings`, 
 These are the items that do not block anything: they are added one at a time, in the order they
 bite, with a spec wherever they can be tested.
 
-- **Byte-for-byte equality with the output of the old Ruby converter.** The transformation is
-  the reference; whitespace and attribute order are not worth chasing yet.
-- **Lane `Type` value domains** (`docs/conversion.md`, "Value domains").
-- **The stale line-number table** in `docs/conversion.md`, "The conversion today". It goes when
-  D4g drops the numbers of that document.
+- **Lane `Type` value domains** (`docs/conversion.md`, "Value domains"; TODO N42). The Live 12
+  lane numbering is not portable to Live 11, and the converted set keeps lane `Type` values that
+  Live 11 does not understand.
 - **Live 9 and Live 8 schemas**, and the subclasses for the version_diffs below 11 (TODO, low
-  urgency).
+  urgency). The subclasses are the code side of D8, and the registry of `docs/cpfir.md`,
+  "Defining a Single Source of Truth: The Target End-State", composes a conversion from Live 8
+  only when the bridges for 9, 10 and 11 are there.
 - **Six rubocop offenses** in `lib/live_set/tx/live_11_and_12.rb`, in the `TRACK_ATTRIBUTES` and
   `ADD_ATTRIBUTE` hashes: alignment of the keys, and a trailing comma. All are autocorrectable.
-- **Where the lists live.** Settled: Ruby constants in the subclass. There is one set per
-  bridge, with no direction structure in it, so the argument for a data file — that the data
-  would express the direction — does not apply. What is left against it is that YAML resolves
-  `"1"` as `1` and `"true"` as `true`, and a misspelled key returns `nil` rather than raising,
-  and both of those fail silently in values that go straight into XML attributes.
-- **The stale citation of `docs/als_format.md`**, a document that does not exist. The citations
-  now point at `docs/als_notes.md`, which holds the format, and at
-  `docs/live_11_12_diff.md`, which holds the differences between two versions. **Done.**
-- **The Ruby against the stylesheet it replaces.** A node-for-node comparison of the Ruby with
-  `lib/live_set/tx/live_12_to_live_11.xsl` on the Live 12 demo set, as a spec. What it is
-  worth is not settled: the stylesheet has the same gaps in its transformations that the Ruby has, so the
-  comparison is not a test of correctness, and it is not the test the conversion is measured
-  against either — that is the Live 11 schema. What it does show is that the rewrite did not
-  lose what the stylesheet had, and the stylesheet is the only other implementation of these
-  transformations that has ever existed.
+- **The Ruby against the stylesheet it replaces.** The two have already been compared node for
+  node on the Live 12 demo set, and the result was identical; what is left is to make that
+  comparison a spec. What it is worth is not settled: the stylesheet has the same gaps in its
+  transformations that the Ruby has, so the comparison is not a test of correctness, and it is not
+  the test the conversion is measured against either — that is the Live 11 schema. What it does
+  show is that the rewrite did not lose what the stylesheet had, and the stylesheet is the only
+  other implementation of these transformations that has ever existed.
 
 ## Files
 
@@ -498,16 +523,20 @@ bite, with a spec wherever they can be tested.
 - `lib/live_set/tx/live_versions.rb` — the version-keyed registry of the pure functions (new)
 - `lib/live_set/tx/live_12_to_live_11.xsl` — kept: the XSLT the Ruby replaces, kept for
   comparison
-- `lib/live_set/live_set_transformer.rb` — maps a target version to a conversion
+- `lib/live_set/live_set_transformer.rb` — finds the bridge for the version the document carries,
+  and applies it
 - `lib/live_set/live_set_converter.rb` — becomes thin (modify)
 - `spec/live_set/tx/live_version_converter_spec.rb` — new
 - `spec/live_set/tx/live_11_and_12_down_spec.rb`, `spec/live_set/tx/live_11_and_12_up_spec.rb` —
   one example per transformation, in each direction (new)
 - `spec/live_set/tx/live_conversion_spec.rb` — the end-to-end conversion example (new)
+- `spec/live_set/tx/live_versions_spec.rb` — the registry of the bridges (new)
 - `docs/live_8_9_diff.md`, `docs/live_9_10_diff.md`, `docs/live_10_11_diff.md` — the version_diff
   documents for the older versions (new)
 - `docs/als_work.md` — "Transform Implementation" (modify)
 - `docs/cpfir.md` — the XSLT sentences, replaced with the Ruby architecture (modify)
+- `docs/conversion.md` — the numbers dropped, the headings cited (modify)
+- `docs/glossary.md`, `docs/index.md` — the terms and the map (modify)
 
 ## Verification
 

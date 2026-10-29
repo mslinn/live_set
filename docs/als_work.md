@@ -90,7 +90,7 @@ stream itself differs.
 
 TODO `als_delta` must compare XML trees, not XML strings. It reads the sets
 with `AlsFile`, and the trees have to be brought to a common version before
-they are compared. See docs/cpfir.md, section 5.
+they are compared. See docs/cpfir.md, "Comparing Two Live Sets".
 
 
 #### XSLT Identity Template
@@ -204,8 +204,9 @@ the inventory nor the diff needs the ALS files scanned by hand.
 
 **This is how the transformations of a version_diff are found.** The names one schema
 has and the other does not are the candidates, and each transformation is then written
-by hand in the subclass for that version_diff. See `docs/conversion.md` §2.2 for the
-kinds of difference and §3.3 for how a transformation is written, and
+by hand in the subclass for that version_diff. See `docs/conversion.md`, "The kinds of
+difference", for the kinds of difference and "The differences must be sorted by kind, and the
+non-obvious ones hand-written" for how a transformation is written, and
 `lib/live_set/tx/live_11_and_12.rb` for the transformations of the 11↔12 version_diff.
 
 
@@ -1084,7 +1085,7 @@ other 1187 have no `Path` at all.
 
 TODO what does the following statement mean, and what should be done?
 
-The elements `live_set` currently looks for are all absent from real sets:
+The elements `live_set` used to look for are all absent from real sets:
 
 | Element                                                      | Occurrences in 40 sets |
 | ------------------------------------------------------------ | ---------------------- |
@@ -1096,7 +1097,8 @@ The elements `live_set` currently looks for are all absent from real sets:
 | `<ClapPlugin>`, `<PluginId>`                                 | 0                      |
 | `<VstPreset>`                                                | 10, in one file        |
 
-See TODO.md N21 for the plan to rewrite this.
+The code has been rewritten since: `lib/live_set/live_device.rb` reads the elements a device
+chain actually holds, and a plug-in is a `PluginDevice`.
 
 ### The device chain
 

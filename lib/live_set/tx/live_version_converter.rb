@@ -15,18 +15,18 @@ require 'nokogiri'
 # and the base class takes the one that applies.
 #
 # A conversion is a pure function from one document to another: the result depends only on the
-# document, and nothing outside it is touched. See docs/cpfir.md, section 4.
+# document, and nothing outside it is touched. See docs/cpfir.md, "The Lifecycle of a Conversion".
 #
 # The transformations are written by hand. Nothing produces them automatically; the comparison
 # of the two versions is information for the person writing them. See docs/conversion.md,
-# section 3.3.
+# "The differences must be sorted by kind, and the non-obvious ones hand-written".
 #
 # The terms used here are defined in docs/glossary.md.
 #
 # The schema of a version is an index of the format: it lists every element and every attribute
 # of that version, so the differences between two versions are found by diffing one schema
 # against the other. See docs/als_work.md, "Mapping XSD to Ruby Classes", and docs/conversion.md,
-# sections 3.4 and 5.3.
+# "Attributes have to be part of the difference list" and "Why the baselines are what to compare".
 #
 # The transformations of a version_diff live in the subclass, and the differences between the
 # two versions are summarized in docs/live_11_12_diff.md.
@@ -94,6 +94,19 @@ class LiveVersionConverter
   def self.versions
     versions = const_get(:VERSION)
     [versions[:down]['MinorVersion'], versions[:up]['MinorVersion']]
+  end
+
+  # Converts a document.
+  #
+  # The class is a function of a document: it takes a document and returns the converted
+  # document. The registry of the bridges holds them as such functions, and composes them with
+  # `>>`. See docs/cpfir.md, "Defining a Single Source of Truth: The Target End-State" and
+  # "Dynamically Slicing the Pipeline Intervals".
+  #
+  # @param document [Nokogiri::XML::Document] the set to convert
+  # @return [Nokogiri::XML::Document] the converted set
+  def self.call(document)
+    new(document).convert
   end
 
   # @param document [Nokogiri::XML::Document] the set to convert

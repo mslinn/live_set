@@ -9,8 +9,8 @@ require_relative 'live_set_transformer'
 # the set and applies it. This class reads the set, hands the document to the transformer, and
 # writes the result.
 #
-# See docs/live_11_12_diff.md for the differences between the versions, and docs/cpfir.md
-# for the architecture.
+# See docs/live_11_12_diff.md for the differences between the versions, and docs/cpfir.md,
+# "The Lifecycle of a Conversion", for the architecture.
 class LiveSetConverter
   # @param set_name [String] the path of the set to convert
   # @param xml_doc [Nokogiri::XML::Document] the set to convert

@@ -144,7 +144,7 @@ class LiveTrack
   # The size of the track's audio, counting each file once.
   #
   # The same file can be referenced from the session view, the arrangement and the take lanes at the same time. It
-  # occupies space once, so it is counted once. See docs/ section 6.4.
+  # occupies space once, so it is counted once. See docs/als_notes.md, "Where a track's audio is".
   #
   # @return [Integer] the size in bytes
   def track_size

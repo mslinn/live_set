@@ -12,7 +12,7 @@ Read this first. It is the map; the documents it points at are the detail.
 | [`als_notes.md`](als_notes.md) | **The WHAT.** The ALS file format itself: what the XML looks like, and the shapes it takes. Its headings are what the code cites. |
 | [`live_11_12_diff.md`](live_11_12_diff.md) | **The differences between two versions.** A summary of them; the transformations that follow from them are in `lib/live_set/tx/live_11_and_12.rb`, and the headings are what the code cites. |
 | [`als_work.md`](als_work.md) | **The HOW-TO.** How the format is reverse engineered: the XML tools, the two corpora (the Ableton demo sets and the 460-set corpus), how the schemas are generated, and how the test suite is arranged. It was written before the code was rewritten, and it is being reconciled with the code — the open items are in `fix_plan2.md`, Phase 3. |
-| [`fix_plan2.md`](fix_plan2.md) | The plan for the Live 12 → Live 11 conversion in Ruby: why the XSLT stylesheet was replaced by Ruby code, the architecture (a base class and one subclass per version_diff), and the open items in Phase 3. |
+| [`fix_plan2.md`](fix_plan2.md) | The plan for the Live 12 → Live 11 conversion in Ruby: why the XSLT stylesheet was replaced by Ruby code, the architecture (a base class and one subclass per version_diff), and the open items in Phase 3. The outstanding work of the gem is in [`../TODO.md`](../TODO.md), whose identifiers this plan cites. |
 | [`cpfir.md`](cpfir.md) | The architectural guide to composing bidirectional transformations in Ruby: pure function composition, the version-keyed registry, the composition of the bridges between two versions, the classes of a conversion, and how two sets are compared. |
 | [`conversion.md`](conversion.md) | What the conversion has to become: the kinds of difference between two Live versions, the pieces of the component, the traps of XSLT 1.0, and the problem of value domains. It is a design document, written before the transform was written in Ruby. |
 | [`live_control_plan.md`](live_control_plan.md) | The plan for proving a conversion by round-tripping it through Ableton Live under program control, using the `gui_harness` gem. |
@@ -37,7 +37,7 @@ which sense it is used in should go there first.
 
 ## The headings the code cites
 
-The code cites the headings of two documents. The headings used to carry section
+The code cites the headings of four documents. The headings used to carry section
 numbers, which were the ones `docs/als_format.md` had; that document is not in
 this repository, and it was split into `als_notes.md` and a version_diff
 document. The numbers are gone, and the headings are cited instead.
@@ -62,6 +62,14 @@ document. The numbers are gone, and the headings are cited instead.
 | Freezing a group track | `als_notes.md` |
 | The `Options.txt` hidden option | `als_notes.md` |
 | The two sequencers of a track, and the frozen track that keeps both | `als_notes.md` |
+| The Lifecycle of a Conversion | `cpfir.md` |
+| Comparing Two Live Sets | `cpfir.md` |
+| Defining a Single Source of Truth: The Target End-State | `cpfir.md` |
+| Dynamically Slicing the Pipeline Intervals | `cpfir.md` |
+| The kinds of difference | `conversion.md` |
+| The differences must be sorted by kind, and the non-obvious ones hand-written | `conversion.md` |
+| Attributes have to be part of the difference list | `conversion.md` |
+| Why the baselines are what to compare | `conversion.md` |
 
 ## How a transformation is found
 
@@ -69,9 +77,9 @@ The transformations of a version_diff are written by hand, and the process for f
 
 | Question | Where it is answered |
 | --- | --- |
-| What kinds of difference there are, and what each one is | [`conversion.md`](conversion.md) §2.2 |
-| Why a transform is not directional, and how it composes | [`cpfir.md`](cpfir.md) §4 |
-| How a transformation is written, and why nothing writes it for you | [`conversion.md`](conversion.md) §3.3 |
+| What kinds of difference there are, and what each one is | [`conversion.md`](conversion.md), "The kinds of difference" |
+| Why a transform is not directional, and how it composes | [`cpfir.md`](cpfir.md), "The Lifecycle of a Conversion" |
+| How a transformation is written, and why nothing writes it for you | [`conversion.md`](conversion.md), "The differences must be sorted by kind, and the non-obvious ones hand-written" |
 | Which elements and attributes a version has | [`als_work.md`](als_work.md), "Mapping XSD to Ruby Classes" — the schema is the index of the format, and two schemas are diffed to find the differences |
 | The differences between Live 11 and Live 12 in particular | [`live_11_12_diff.md`](live_11_12_diff.md) |
 | The transformations themselves | `lib/live_set/tx/live_11_and_12.rb` — the lists, the special transformations, and the comment block that describes how the conversion works |
@@ -82,6 +90,7 @@ The transformations of a version_diff are written by hand, and the process for f
 | --- | --- |
 | The transformations of the Live 11 ↔ Live 12 conversion | `lib/live_set/tx/live_11_and_12.rb` — the lists, the special transformations, and the comment block that describes how the conversion works |
 | The machinery the transformations run on | `lib/live_set/tx/live_version_converter.rb` — knows nothing about any particular version_diff |
+| The registry of the bridges, keyed by the version each one leads to | `lib/live_set/tx/live_versions.rb` — the conversion from one version to another is the composition of the bridges between them |
 | The seam that finds the bridge for a set | `lib/live_set/live_set_transformer.rb` |
 | Reading a set, converting it, writing it out | `lib/live_set/live_set_converter.rb` |
 | One example per transformation, in each direction | `spec/live_set/tx/live_11_and_12_down_spec.rb`, `spec/live_set/tx/live_11_and_12_up_spec.rb` |
@@ -101,5 +110,5 @@ The transformations of a version_diff are written by hand, and the process for f
 | Document | What it is for |
 | --- | --- |
 | [`../README.md`](../README.md) | What the program does, how to install and use it, and the sample report. |
-| [`../TODO.md`](../TODO.md) | The outstanding work, with the identifiers (`T1`, `N42`, `GH1`, …) that the code and the other documents cite. |
+| [`../TODO.md`](../TODO.md) | The outstanding work of the gem, with the stable identifiers (`T1`, `N42`, `GH1`, …) that the code and the other documents cite. The plan the conversion is measured against is in [`fix_plan2.md`](fix_plan2.md). |
 | [`../sets/README.md`](../sets/README.md) | The reference sets checked into this repository, and why each one is here. |

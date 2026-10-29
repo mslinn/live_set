@@ -104,9 +104,10 @@ the lane types of the version it is converted to. See
 
 ## Registry
 
-The list of bridges, keyed by version. `LiveSetTransformer::BRIDGES` holds the
-list today; it is to become a registry keyed by version, in which the key is the
-version a bridge leads to. See [fix_plan2.md](fix_plan2.md), M7.
+The list of bridges, keyed by version. The registry is in
+`lib/live_set/tx/live_versions.rb`, and the key is the version a bridge leads
+to: the entry for 12 is the bridge between Live 11 and Live 12. See
+[fix_plan2.md](fix_plan2.md), M7.
 
 ## Schema
 
