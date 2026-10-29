@@ -392,7 +392,7 @@ which version introduced it, and the release notes say which that is. **Done.**
 
 **D4 — Section numbers are dropped, and the headings are what the code cites.** The numbers
 came from `docs/als_format.md`, which no longer exists, and they were load-bearing in 32
-citations.
+citations. **Done**, D4a to D4g.
 
 - **D4a — The numbers are gone from `docs/als_notes.md`. Done.**
 - **D4b — The numbers are gone from `docs/als_work.md`. Done.**
@@ -444,18 +444,23 @@ citations.
 open should find the way from the format to the version_diff documents. The outline of
 `docs/als_notes.md` becomes: an early section that introduces the version_diff documents and
 their headings, and short stub sections that point at a specific heading of a version_diff
-document, wherever one exists. Where none exists, one is written. **Done**, for the Live 11 and
-Live 12 document: the routing section is in place, and it is followed by stubs for "The lane
-types" and "The schema a converted set is written to". The other three version_diff documents
-are not written yet, so there is nothing to stub.
+document, wherever one exists. Where none exists, one is written.
 
-**D6 — The index is the map, and it is cleaned up first.** `docs/index.md` says what each document
-is for, and where the code lives. **Done**, and it is being kept current as the documents change.
+**Done.** The routing section is in place, and it is followed by stubs for "The lane types" and
+"The schema a converted set is written to"; each stub names a heading of
+`docs/live_11_12_diff.md`, and each of those headings exists. The other three version_diff
+documents are not written yet (D8), so there is nothing to stub for them. Where a stub needs a
+heading that does not exist, that heading is written, in the difference document it belongs to.
 
-**D7 — The TODO and FIXME comments in the documents are answered.** They are the work list for
-the documentation. `docs/index.md` is cleaned up first, because the index is the map the other
-repairs are made against. Then each comment is answered, moved to `TODO.md` with an identifier,
-or deleted as superseded. **Not done.**
+**D6 — The index is the map, and it is cleaned up first.** **Done**
+`docs/index.md` says what each document
+is for, and where the code lives. , and it is being kept current as the documents change.
+
+**D7 — The TODO and FIXME comments in the documents are answered.** **Not done.**
+They are the work list for the documentation. `docs/index.md` is cleaned
+up first, because the index is the map the other repairs are made against. Then
+each comment is answered, moved to `TODO.md` with an identifier, or deleted as
+superseded.
 
 | Where | The comment |
 | --- | --- |
