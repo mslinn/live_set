@@ -1,67 +1,51 @@
 require 'spec_helper'
 require 'live_set/live_set_scene'
+require 'support/live_sets'
 
+# A scene of a set, and the tempo it carries.
+#
+# The scene is a real one, from the Live 11 Suite demo set. No scene in the corpus has a tempo of
+# its own, so that case is made by changing the value of one real element.
 RSpec.describe LiveScene do
-  # Parses a <Scene> element and builds a LiveScene from it.
-  def scene_from(xml)
-    described_class.new Nokogiri::Slop(xml).xpath('//Scene').first
+  # The path of the set the scene is in.
+  def path
+    LiveSets.suite
+  end
+
+  # A scene of the set.
+  def scene_element
+    @scene_element ||= LiveSets.node(path, '//Scenes/Scene[@Id="1"]')
+  end
+
+  # The scene.
+  def scene
+    @scene ||= described_class.new scene_element
+  end
+
+  # The scene with a tempo of its own.
+  def scene_with_tempo
+    @scene_with_tempo ||= begin
+      element = LiveSets.with_attribute scene_element, 'Id', '999'
+      element.at_xpath('./IsTempoEnabled')['Value'] = 'true'
+      described_class.new element
+    end
   end
 
   describe '#initialize' do
-    context 'when the values are element text, as in Live 12' do
-      let(:scene) do
-        scene_from(<<~XML)
-          <Scene Id="1">
-            <Name Value="Scene 1"/>
-            <Tempo Value="120"/>
-            <IsTempoEnabled Value="true"/>
-          </Scene>
-        XML
-      end
-
-      it 'reads the name' do
-        expect(scene.instance_variable_get(:@name)).to eq('Scene 1')
-      end
-
-      it 'reads the tempo as a float' do
-        expect(scene.instance_variable_get(:@tempo)).to eq(120.0)
-      end
+    it 'reads the name' do
+      expect(scene.instance_variable_get(:@name)).to eq('Verse A')
     end
 
-    context 'when the values are Value attributes, as in Live 8' do
-      let(:scene) do
-        scene_from(<<~XML)
-          <Scene Id="2">
-            <Name Value="Scene 2"/>
-            <Tempo Value="140"/>
-            <IsTempoEnabled Value="true"/>
-          </Scene>
-        XML
-      end
-
-      it 'reads the name' do
-        expect(scene.instance_variable_get(:@name)).to eq('Scene 2')
-      end
-
-      it 'reads the tempo as a float' do
-        expect(scene.instance_variable_get(:@tempo)).to eq(140.0)
-      end
+    it 'reads the id' do
+      expect(scene.instance_variable_get(:@id)).to eq('1')
     end
 
-    context 'when the scene has no tempo of its own' do
-      let(:scene) do
-        scene_from(<<~XML)
-          <Scene Id="3">
-            <Name Value="Scene 3"/>
-            <Tempo Value="120"/>
-            <IsTempoEnabled Value="false"/>
-          </Scene>
-        XML
-      end
+    it 'leaves the tempo nil when the scene has no tempo of its own' do
+      expect(scene.instance_variable_get(:@tempo)).to be_nil
+    end
 
-      it 'leaves the tempo nil' do
-        expect(scene.instance_variable_get(:@tempo)).to be_nil
-      end
+    it 'reads the tempo as a float when the scene has one' do
+      expect(scene_with_tempo.instance_variable_get(:@tempo)).to eq(120.0)
     end
   end
 end

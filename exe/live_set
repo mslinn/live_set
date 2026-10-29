@@ -6,4 +6,4 @@ else
   require 'live_set'
 end
 
-LiveSet.run(ARGV)
+exit LiveSet.run(ARGV)

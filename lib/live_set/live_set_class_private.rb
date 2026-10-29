@@ -9,8 +9,8 @@ class LiveSet
     set_directory = File.realpath(File.dirname(@set_name))
     Log.debug "Set directory: #{set_directory}"
     api_path = File.join(set_directory, 'Ableton Project Info')
-    puts "Warning: '#{api_path}' is not present".red unless File.exist? api_path
-    puts "Warning: '#{api_path}' is not a directory".red unless Dir.exist? api_path
+    Log.warn "Warning: '#{api_path}' is not present" unless File.exist? api_path
+    Log.warn "Warning: '#{api_path}' is not a directory" unless Dir.exist? api_path
 
     Log.debug "Checking parent directories for 'Ableton Project Info'"
     cur_dir = Pathname.new(set_directory).parent
@@ -33,7 +33,7 @@ class LiveSet
   # Ask user if they want to disable an extra 'Ableton Project Info' directory in a parent.
   # These directories can mess up Ableton Live.
   def add_dash_suffix(cur_dir, path)
-    puts "Warning: 'Ableton Project Info' exists in parent directory '#{cur_dir.to_path}'".red
+    Log.warn "Warning: 'Ableton Project Info' exists in parent directory '#{cur_dir.to_path}'"
     return unless HighLine.agree("\nDo you want the directory to be disabled by suffixing a dash to its name? ")
 
     Log.debug "Renaming #{path} to #{path}-"

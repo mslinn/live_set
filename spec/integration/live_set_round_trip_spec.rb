@@ -1,9 +1,71 @@
 require 'spec_helper'
 require 'stringio'
+require 'zlib'
 require 'conversions'
 require 'demo_sets'
-require 'support/live_harness/live_installations'
+require 'live_installations'
 require 'support/gui_harness'
+
+# The conversion and the launch of Live are done once, and every example of the spec below
+# looks at the same results.
+#
+# The conversion has to happen before Live is launched: Live is launched with the converted set,
+# so the set has to be there when Live starts. The launch takes about half a minute, and the
+# examples ask the same questions about the same launch, so Live is launched once as well.
+module RoundTrip
+  class << self
+    # The Live 12 version of the Live 11 Suite demo set.
+    #
+    # @return [String] the path of the set
+    def source
+      DemoSets.converted '11', 'Suite'
+    end
+
+    # The copy of the set that is converted.
+    #
+    # @return [String] the path of the copy
+    def set
+      Conversions.set_path source, 'round-trip'
+    end
+
+    # The converted set.
+    #
+    # @return [String] the path of the converted set
+    def converted
+      Conversions.output_path set
+    end
+
+    # What the conversion did.
+    #
+    # The conversion writes the set next to the copy it converts, so it is done once: a second
+    # conversion would find the set that is already there.
+    #
+    # @return [LiveSetConverter::Result] what the conversion did
+    def conversion
+      @conversion ||= silence_output { LiveSet.new(set).modify_als }
+    end
+
+    # The converted set, read back as XML.
+    #
+    # @return [Nokogiri::XML::Document] the converted set
+    def document
+      @document ||= Nokogiri::XML Zlib::GzipReader.open(converted, &:read)
+    end
+
+    # What happened when Live was launched with the converted set.
+    #
+    # @return [Object] the result of the launch
+    def launch
+      @launch ||= begin
+        conversion
+        installation = LiveInstallations.version '11'
+        preferences = LiveInstallations.preferences '11'
+        log_path = preferences && File.join(preferences, 'Log.txt')
+        GuiHarness::LiveLauncher.launch installation.executable, converted, log: log_path, timeout: 13
+      end
+    end
+  end
+end
 
 # The round trip: an original Live 11 set is saved in Live 12, converted back to the Live 11
 # format, read back as XML, and then opened in Live 11. The point is to prove that the
@@ -28,19 +90,10 @@ RSpec.describe LiveSet, 'the round trip through Live 11' do # rubocop:disable RS
   let(:live12_path) { DemoSets.converted '11', 'Suite' }
 
   # The set, converted to the Live 11 format.
-  let(:converted_path) { Conversions.output_path Conversions.set_path live12_path, 'round-trip' }
+  let(:converted_path) { RoundTrip.converted }
 
   # The converted set, read back as XML.
-  # The test set refers to samples that are not copied into the temporary conversion directory.
-  # Loading it prints one warning for every missing sample; those warnings are expected here and
-  # would otherwise bury the RSpec output.
-  let(:converted_document) do
-    original_stdout = $stdout
-    $stdout = StringIO.new
-    Conversions.in_process live12_path
-  ensure
-    $stdout = original_stdout
-  end
+  let(:converted_document) { RoundTrip.document }
 
   # The Live 11 installation.
   let(:installation) { LiveInstallations.version '11' }
@@ -50,12 +103,7 @@ RSpec.describe LiveSet, 'the round trip through Live 11' do # rubocop:disable RS
   let(:log_path) { preferences && File.join(preferences, 'Log.txt') }
 
   # What happened when Live was launched with the converted set.
-  let(:result) do
-    @result ||= GuiHarness::LiveLauncher.launch installation.executable,
-                                                converted_path,
-                                                log:     log_path,
-                                                timeout: 30
-  end
+  let(:result) { RoundTrip.launch }
 
   around do |example|
     example.run
@@ -67,10 +115,10 @@ RSpec.describe LiveSet, 'the round trip through Live 11' do # rubocop:disable RS
   end
 
   before do
-    skip 'the Live 11 demo set is not installed' if live11_path.nil? || !File.exist?(live11_path)
-    skip 'the Live 12 version of the Live 11 demo set has not been made yet' if live12_path.nil? || !File.exist?(live12_path)
-    skip 'Live 11 is not installed' if installation.nil? || installation.executable.nil?
-    skip 'Live 11 preferences are not available' if preferences.nil? || log_path.nil?
+    require_fixture 'the Live 11 Suite demo set', live11_path
+    require_fixture 'the Live 12 conversion of the Live 11 Suite demo set', live12_path
+    require_fixture 'the Live 11 executable', installation&.executable
+    require_fixture 'the Live 11 preferences log', log_path
   end
 
   describe 'opening the converted set in Live 11' do
@@ -98,11 +146,10 @@ RSpec.describe LiveSet, 'the round trip through Live 11' do # rubocop:disable RS
 
   describe 'converting the set' do
     it 'writes a set' do
-      set = Conversions.set_path live12_path, 'round-trip'
+      conversion = RoundTrip.conversion
 
-      expect { described_class.new(set).modify_als }
-        .to output.to_stdout
-
+      expect(conversion.status).to eq(:converted)
+      expect(conversion.path).to eq(converted_path)
       expect(File.exist?(converted_path)).to be true
     end
   end

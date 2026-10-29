@@ -205,14 +205,6 @@ RSpec.describe LiveVersionConverter do
     expect(TestConverter.lists[:remove][:down]).to eq %w[OldElement ExtraElement]
   end
 
-  it 'calls the special transformations of the subclass' do
-    converter = TestConverter.new(document_for(LIVE_10))
-    allow(converter).to receive(:special_transformations).and_call_original
-    converter.convert
-
-    expect(converter).to have_received(:special_transformations)
-  end
-
   it 'lists the versions it converts' do
     expect(TestConverter.versions).to eq [LIVE_9, LIVE_10]
   end

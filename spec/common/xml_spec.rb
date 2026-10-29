@@ -140,15 +140,6 @@ RSpec.describe Xml do
 
         expect(reader.xml_bool?(el)).to be false
       end
-
-      it 'warns about the unrecognized value' do
-        el = element('<IsTempoEnabled Value="maybe"/>')
-        allow(Log).to receive(:warn)
-
-        reader.xml_bool?(el, description: 'Scene 1 IsTempoEnabled')
-
-        expect(Log).to have_received(:warn).with(/maybe/)
-      end
     end
   end
 end

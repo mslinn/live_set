@@ -4,12 +4,11 @@ require 'common/run'
 RSpec.describe Run do
   subject(:runner) { Class.new { include Run }.new }
 
-  # Captures the status that the runner exits with, or nil if it does not exit.
-  def exit_status_for(command, success_statuses: [0])
-    allow(Log).to receive(:error)
+  # The status the runner reports for a command that failed, or nil if it did not fail.
+  def failure_status_for(command, success_statuses: [0])
     runner.run_capture_stdout(command, success_statuses: success_statuses)
     nil
-  rescue SystemExit => e
+  rescue Run::Failed => e
     e.status
   end
 
@@ -51,23 +50,23 @@ RSpec.describe Run do
       end
 
       it 'exits when that status is not listed' do
-        expect(exit_status_for("diff #{file_a} #{file_b}")).to eq(1)
+        expect(failure_status_for("diff #{file_a} #{file_b}")).to eq(1)
       end
     end
 
     context 'when the command fails' do
       it 'does not exit when the status is a success status' do
-        expect(exit_status_for("diff #{file_a} #{file_b}", success_statuses: [0, 1])).to be_nil
+        expect(failure_status_for("diff #{file_a} #{file_b}", success_statuses: [0, 1])).to be_nil
       end
 
       it 'exits when the status is not a success status' do
-        expect(exit_status_for("diff #{file_a} /nonexistent/file", success_statuses: [0, 1])).to eq(2)
+        expect(failure_status_for("diff #{file_a} /nonexistent/file", success_statuses: [0, 1])).to eq(2)
       end
     end
 
     context 'when the exit status is reported' do
       it 'reports the exit code rather than the raw wait status' do
-        expect(exit_status_for("diff #{file_a} #{file_b}")).to eq(1)
+        expect(failure_status_for("diff #{file_a} #{file_b}")).to eq(1)
       end
     end
 

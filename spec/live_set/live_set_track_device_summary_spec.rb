@@ -1,6 +1,7 @@
 require 'spec_helper'
 require 'live_set/live_set_track'
 require 'live_set/live_device'
+require 'support/live_sets'
 
 # A track's device chain can be nested. An AudioEffectGroupDevice holds a group's device chain in
 # its branches, so a member track's real devices are several levels down. A reader that looks only
@@ -8,76 +9,50 @@ require 'live_set/live_device'
 #
 # See docs/als_notes.md, "The device chain, and the chains nested inside it", and "The device
 # chain of a group".
+#
+# The tracks are real ones, from the checked-in set with return tracks and a third-party device.
+# That set holds the only device chain in the corpus that is nested in a group branch, and the
+# only plug-in in the corpus.
 RSpec.describe LiveTrack, '#device_summary' do
-  # Builds a track whose chain holds a plug-in.
-  def track_with_devices(devices)
-    xml = <<~XML
-      <AudioTrack Id="1">
-        <Name><EffectiveName Value="T"/></Name>
-        <Freeze Value="false"/>
-        <DeviceChain>
-          <DeviceChain>
-            <Devices>
-              #{devices}
-            </Devices>
-          </DeviceChain>
-        </DeviceChain>
-      </AudioTrack>
-    XML
-    Nokogiri::Slop(xml).xpath('//AudioTrack').first
+  around { |example| silence_output { example.run } }
+
+  # The path of the set the tracks are in.
+  def path
+    LiveSets.fascination
   end
 
-  # Builds a track whose chain holds an AudioEffectGroupDevice, whose branch holds a plug-in.
+  # The track whose chain holds a group branch, with native devices in the branch.
   def track_with_group_branch
-    xml = <<~XML
-      <AudioTrack Id="1">
-        <Name><EffectiveName Value="Member"/></Name>
-        <Freeze Value="false"/>
-        <DeviceChain>
-          <DeviceChain>
-            <Devices>
-              <AudioEffectGroupDevice>
-                <Branches>
-                  <AudioEffectBranch>
-                    <DeviceChain>
-                      <AudioToAudioDeviceChain>
-                        <Devices>
-                          #{plugin_device_xml(name: 'OTT')}
-                        </Devices>
-                      </AudioToAudioDeviceChain>
-                    </DeviceChain>
-                  </AudioEffectBranch>
-                </Branches>
-              </AudioEffectGroupDevice>
-            </Devices>
-          </DeviceChain>
-        </DeviceChain>
-      </AudioTrack>
-    XML
-    Nokogiri::Slop(xml).xpath('//AudioTrack').first
+    @track_with_group_branch ||= described_class.new LiveSets.directory(path),
+                                                     LiveSets.node(path, '//AudioTrack[@Id="20"]')
   end
 
-  it 'finds a plug-in nested in a group branch' do
-    track = described_class.new '/tmp', track_with_group_branch
-
-    expect(track.device_summary).to include('OTT')
+  # The track whose chain holds a plug-in.
+  #
+  # The only plug-in in the corpus is on a MIDI track. LiveTrack reads the device chain of any
+  # track element, so the same track serves here.
+  def track_with_plugin
+    @track_with_plugin ||= described_class.new LiveSets.directory(path),
+                                               LiveSets.node(path, '//MidiTrack[@Id="16"]')
   end
 
-  it 'reports a plug-in nested in a group branch as blocking' do
-    track = described_class.new '/tmp', track_with_group_branch
-
-    expect(track.blocking_devices.length).to eq(1)
+  it 'finds the devices nested in a group branch' do
+    expect(track_with_group_branch.device_summary).to include('Eq8', 'Compressor2', 'Saturator')
   end
 
   it 'does not report the group device itself as a device' do
-    track = described_class.new '/tmp', track_with_group_branch
-
-    expect(track.device_summary).not_to include('AudioEffectGroupDevice')
+    expect(track_with_group_branch.device_summary).not_to include('AudioEffectGroupDevice')
   end
 
-  it 'finds a plug-in in the top level of the chain' do
-    track = described_class.new '/tmp', track_with_devices(plugin_device_xml(name: 'Kontakt'))
+  it 'finds a plug-in in the chain' do
+    expect(track_with_plugin.device_summary).to include('Kontakt 7')
+  end
 
-    expect(track.device_summary).to include('Kontakt')
+  it 'reports a plug-in as blocking' do
+    expect(track_with_plugin.blocking_devices.length).to eq(1)
+  end
+
+  it 'does not report the native devices in a group branch as blocking' do
+    expect(track_with_group_branch.blocking_devices).to be_empty
   end
 end

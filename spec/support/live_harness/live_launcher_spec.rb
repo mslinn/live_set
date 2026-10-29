@@ -1,12 +1,7 @@
 require 'spec_helper'
 require 'support/gui_harness'
 require 'demo_sets'
-require_relative 'live_installations'
-
-def running_in_wsl?
-  ENV['WSL_DISTRO_NAME'] || ENV['WSL_INTEROP'] ||
-    (File.exist?('/proc/version') && File.read('/proc/version').downcase.include?('microsoft'))
-end
+require 'live_installations'
 
 RSpec.describe GuiHarness::LiveLauncher do
   let(:ableton_home) { '/mnt/c/ProgramData/Ableton' }
@@ -67,22 +62,22 @@ RSpec.describe GuiHarness::LiveLauncher do
 
   describe 'GUI visibility matrix', :live_integration do
     before do
-      skip 'this is a WSL + Windows Ableton Live integration test' unless running_in_wsl?
+      require_wsl
 
       @installation = LiveInstallations.version('11')
-      skip 'Live 11 is not installed on this machine' if @installation.nil? || @installation.executable.nil?
+      require_fixture 'the Live 11 executable', @installation&.executable
 
       @demo_set = DemoSets.edition('11', 'Suite')
-      skip 'the Live 11 demo set is not installed on this machine' if @demo_set.nil? || !File.exist?(@demo_set)
+      require_fixture 'the Live 11 Suite demo set', @demo_set
 
       @log_path = LiveInstallations.preferences('11')
-      skip 'Live 11 has no writable Preferences directory configured' if @log_path.nil?
+      require_fixture 'the Live 11 preferences directory', @log_path
       @log_path = File.join(@log_path, 'Log.txt')
     end
 
     %i[normal minimized hidden].each do |visibility|
       it "succeeds when the launcher is #{visibility}" do
-        result = described_class.launch(@installation.executable, @demo_set, log: @log_path, timeout: 30, visibility: visibility)
+        result = described_class.launch(@installation.executable, @demo_set, log: @log_path, timeout: 13, visibility: visibility)
 
         expect(result).to be_a(described_class::Result)
         expect(result.success?).to be(true)
@@ -91,7 +86,7 @@ RSpec.describe GuiHarness::LiveLauncher do
 
       it "fails cleanly when the launcher is #{visibility}" do
         missing_set = File.join(Dir.pwd, 'spec', 'support', 'live_harness', 'missing_live_set.als')
-        result = described_class.launch(@installation.executable, missing_set, log: @log_path, timeout: 30, visibility: visibility)
+        result = described_class.launch(@installation.executable, missing_set, log: @log_path, timeout: 13, visibility: visibility)
 
         expect(result).to be_a(described_class::Result)
         expect(result.outcome).to(satisfy { |outcome| %i[blocked unknown crashed].include?(outcome) })
@@ -205,21 +200,21 @@ RSpec.describe GuiHarness::LiveLauncher do
 
   describe 'real Live integration', :live_integration do
     before do
-      skip 'this is a WSL + Windows Ableton Live integration test' unless running_in_wsl?
+      require_wsl
 
       @installation = LiveInstallations.version('11')
-      skip 'Live 11 is not installed on this machine' if @installation.nil? || @installation.executable.nil?
+      require_fixture 'the Live 11 executable', @installation&.executable
 
       @demo_set = DemoSets.edition('11', 'Suite')
-      skip 'the Live 11 demo set is not installed on this machine' if @demo_set.nil? || !File.exist?(@demo_set)
+      require_fixture 'the Live 11 Suite demo set', @demo_set
 
       @log_path = LiveInstallations.preferences('11')
-      skip 'Live 11 has no writable Preferences directory configured' if @log_path.nil?
+      require_fixture 'the Live 11 preferences directory', @log_path
       @log_path = File.join(@log_path, 'Log.txt')
     end
 
     it 'launches the real app and reports the actual launcher outcome' do
-      result = described_class.launch(@installation.executable, @demo_set, log: @log_path, timeout: 30)
+      result = described_class.launch(@installation.executable, @demo_set, log: @log_path, timeout: 13)
 
       expect(result).to be_a(described_class::Result)
       expect(result.exit_code).to be_a(Integer)

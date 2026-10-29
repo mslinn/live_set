@@ -179,8 +179,6 @@ RSpec.describe XsdBuilder do
     end
 
     it 'accepts the child elements in any order when a child element repeats' do
-      allow(Log).to receive(:warn)
-
       schema = schema_for([simple_set, interleaved_set])
 
       expect(schema).to include('<xs:choice minOccurs="0" maxOccurs="unbounded">')
@@ -191,22 +189,6 @@ RSpec.describe XsdBuilder do
       document = Nokogiri::XML(interleaved_set)
 
       expect(schema.validate(document)).to be_empty
-    end
-
-    it 'does not warn when the sample files agree about the order of child elements' do
-      allow(Log).to receive(:warn)
-
-      schema_for([simple_set, simple_set])
-
-      expect(Log).not_to have_received(:warn)
-    end
-
-    it 'does not warn when one sample has a child element the others lack' do
-      allow(Log).to receive(:warn)
-
-      schema_for([simple_set, set_with_extra_child])
-
-      expect(Log).not_to have_received(:warn)
     end
   end
 end

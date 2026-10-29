@@ -1,85 +1,58 @@
 require 'spec_helper'
 require 'live_set/live_set_track'
 require 'live_set/live_set_audio_clip'
+require 'support/live_sets'
 
+# The clips of a track, and where they come from.
+#
+# The track is a real one: the "Lead" track of the Live 11 Suite demo set. It has clips in the
+# session view, in the arrangement and in the take lanes, and every one of its 27 clips refers
+# to the same file.
 RSpec.describe LiveTrack, '#audio_clips' do
-  around { |example| silence_stdout { example.run } }
+  around { |example| silence_output { example.run } }
 
-  # Builds a track with clips in the session view, the arrangement, and a take lane.
-  def track_for(session: 0, arrangement: 0, take_lane: 0)
-    slots = (1..session).map { |i| clip_slot_xml(id: i.to_s, relative_path: "Samples/Imported/s#{i}.mp3") }.join
-    arrangement_xml = (1..arrangement).map do |i|
-      audio_clip_xml(id: (100 + i).to_s, relative_path: "Samples/Imported/a#{i}.mp3")
-    end.join
-    take_lane_xml = (1..take_lane).map do |i|
-      audio_clip_xml(id: (200 + i).to_s, relative_path: "Samples/Imported/t#{i}.mp3")
-    end.join
-
-    described_class.new '/tmp', audio_track_element(
-      clip_slots:        slots,
-      arrangement_clips: arrangement_xml,
-      take_lane_clips:   take_lane_xml
-    )
+  # The path of the set the track is in.
+  def path
+    LiveSets.suite
   end
 
-  # Builds a track in which the same file is referenced from all three sources.
-  def track_with_shared_file
-    shared = audio_clip_xml(id: '0', relative_path: 'Samples/Imported/shared.mp3', file_size: '1000')
-    slot = "<ClipSlot Id=\"0\"><LomId Value=\"0\"/><ClipSlot><Value>#{shared}</Value></ClipSlot></ClipSlot>"
-
-    described_class.new '/tmp', audio_track_element(
-      clip_slots:        slot,
-      arrangement_clips: shared,
-      take_lane_clips:   shared
-    )
+  # The track.
+  def track
+    @track ||= described_class.new LiveSets.directory(path),
+                                   LiveSets.node(path, '//AudioTrack[@Id="150"]')
   end
 
   it 'groups the clips by where they come from' do
-    track = track_for(session: 1, arrangement: 1, take_lane: 1)
-
     expect(track.audio_clips.keys).to eq(['Session view', 'Arrangement', 'Take lanes'])
   end
 
-  it 'finds a clip in a single session-view slot' do
-    track = track_for(session: 1)
-
-    expect(track.audio_clips['Session view'].length).to eq(1)
-  end
-
-  it 'finds all of the clips in several session-view slots' do
-    track = track_for(session: 3)
-
+  it 'finds the clips in the session view' do
     expect(track.audio_clips['Session view'].length).to eq(3)
   end
 
   it 'finds the clips in the arrangement' do
-    track = track_for(arrangement: 2)
-
-    expect(track.audio_clips['Arrangement'].length).to eq(2)
+    expect(track.audio_clips['Arrangement'].length).to eq(21)
   end
 
   it 'finds the clips in the take lanes' do
-    track = track_for(take_lane: 2)
-
-    expect(track.audio_clips['Take lanes'].length).to eq(2)
-  end
-
-  it 'reports no clips for a track that has none' do
-    track = track_for
-
-    expect(track.distinct_clips).to be_empty
+    expect(track.audio_clips['Take lanes'].length).to eq(3)
   end
 
   it 'reads the sample path from each clip' do
-    track = track_for(session: 2)
-
-    expect(track.audio_clips['Session view'].map(&:relative_path))
-      .to eq(['Samples/Imported/s1.mp3', 'Samples/Imported/s2.mp3'])
+    expect(track.audio_clips['Session view'].map(&:relative_path).uniq)
+      .to eq(['Samples/Loops/Tonal/Vocal/Vocal Demo Lead Takes.aif'])
   end
 
-  it 'lists the reference in each source' do
-    track = track_with_shared_file
+  it 'finds the same file in each of the three sources' do
+    expect(track.audio_clips.values.map { |clips| clips.map(&:relative_path).uniq.length })
+      .to eq([1, 1, 1])
+  end
 
-    expect(track.audio_clips.values.map(&:length)).to eq([1, 1, 1])
+  it 'reports no clips for a track that has none' do
+    # A MIDI track holds clips in its slots, but they are MIDI clips, and there are no audio
+    # clips in it at all.
+    midi = described_class.new LiveSets.directory(path), LiveSets.node(path, '//MidiTrack')
+
+    expect(midi.distinct_clips).to be_empty
   end
 end

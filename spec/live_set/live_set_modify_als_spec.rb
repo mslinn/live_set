@@ -1,5 +1,7 @@
 require 'spec_helper'
+require 'fileutils'
 require 'stringio'
+require 'tmpdir'
 require 'conversions'
 require 'demo_sets'
 require 'live_set/live_set_class'
@@ -58,7 +60,7 @@ RSpec.describe LiveSet, '#modify_als' do
       Conversions.in_process live12_path
     end
 
-    before { skip 'the Live 12 demo set is not installed' if live12_path.nil? }
+    before { require_fixture 'the Live 12 demo set', live12_path }
 
     it 'writes the Live 11 creator' do
       expect(converted.at('//Ableton')['Creator']).to eq('Ableton Live 11.3.21')
@@ -80,7 +82,7 @@ RSpec.describe LiveSet, '#modify_als' do
       Conversions.read_set live12_path
     end
 
-    before { skip 'the Live 12 demo set is not installed' if live12_path.nil? }
+    before { require_fixture 'the Live 12 demo set', live12_path }
 
     it 'keeps every track' do
       expect(converted.xpath('//AudioTrack').length).to eq(original.xpath('//AudioTrack').length)
@@ -136,15 +138,90 @@ RSpec.describe LiveSet, '#modify_als' do
   end
 
   describe 'a complete Live 11 set' do
-    before { skip 'the Live 11 demo set is not installed' if suite_path.nil? }
+    before { require_fixture 'the Live 11 Suite demo set', suite_path }
 
     it 'is not converted, because it is already in the Live 11 format' do
       set = Conversions.set_path suite_path, 'live11'
       live_set = described_class.new set
 
-      expect { live_set.modify_als }
-        .to output.to_stdout
-        .and raise_error(SystemExit)
+      result = live_set.modify_als
+
+      expect(result.status).to eq(:already_compatible)
+    end
+
+    it 'writes no set, because there is nothing to convert' do
+      set = Conversions.set_path suite_path, 'live11'
+      live_set = described_class.new set
+
+      live_set.modify_als
+
+      expect(File.exist?(Conversions.output_path(set))).to be false
+    end
+  end
+
+  describe 'a set that has already been converted' do
+    # The conversion writes the converted set next to the set it was given. A set that is
+    # already there must not be destroyed by a conversion that was not asked to overwrite it:
+    # the gzip writer truncates the file it opens, so without the check a conversion would
+    # silently destroy the previous result.
+    #
+    # Each example needs a set that has not been converted yet, so the copy is made for the
+    # example rather than shared.
+    def set
+      @set ||= begin
+        directory = Dir.mktmpdir 'live_set_spec_'
+        path = File.join directory, 'set.als'
+        FileUtils.cp live12_path, path
+        path
+      end
+    end
+
+    # The set the conversion writes.
+    def converted
+      Conversions.output_path set
+    end
+
+    before { require_fixture 'the Live 12 demo set', live12_path }
+
+    it 'writes the converted set next to the set it was given' do
+      described_class.new(set).modify_als
+
+      expect(File.dirname(converted)).to eq File.dirname(set)
+    end
+
+    it 'leaves the set it was given alone' do
+      before = File.read set
+
+      described_class.new(set).modify_als
+
+      expect(File.read(set)).to eq before
+    end
+
+    it 'refuses to write over the converted set' do
+      described_class.new(set).modify_als
+
+      expect { described_class.new(set).modify_als }
+        .to raise_error(LiveSetConverter::AlreadyExists)
+    end
+
+    it 'leaves the converted set alone when it refuses' do
+      described_class.new(set).modify_als
+      before = File.read converted
+
+      begin
+        described_class.new(set).modify_als
+      rescue LiveSetConverter::AlreadyExists # rubocop:disable Lint/SuppressedException
+      end
+
+      expect(File.read(converted)).to eq before
+    end
+
+    it 'writes over the converted set when it is asked to' do
+      described_class.new(set).modify_als
+
+      result = described_class.new(set, force: true).modify_als
+
+      expect(result.overwritten).to be true
     end
   end
 
@@ -175,8 +252,8 @@ RSpec.describe LiveSet, '#modify_als' do
     end
 
     before do
-      skip 'the Live 11 demo set is not installed' if suite_path.nil?
-      skip 'the Live 12 version of the Live 11 demo set has not been made yet' if suite_in_live12_path.nil?
+      require_fixture 'the Live 11 Suite demo set', suite_path
+      require_fixture 'the Live 12 conversion of the Live 11 Suite demo set', suite_in_live12_path
     end
 
     it 'has the same number of tracks as the Live 11 set' do

@@ -31,5 +31,8 @@
     "titleBar.inactiveBackground": "#4246b899",
     "titleBar.inactiveForeground": "#e7e7e799"
   },
-  "peacock.remoteColor": "#4246b8"
+  "peacock.remoteColor": "#4246b8",
+  "files.watcherExclude": {
+    "**/target/**": true
+  }
 }

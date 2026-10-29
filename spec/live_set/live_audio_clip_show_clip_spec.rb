@@ -1,67 +1,77 @@
 require 'spec_helper'
-require 'stringio'
 require 'live_set/live_set_audio_clip'
+require 'support/live_sets'
 
+# How a clip is shown in a report.
+#
+# The clip is a real one, from the Live 11 Suite demo set. No clip in the corpus has a
+# LastModDate of zero or no LastModDate at all, so those two cases are made from the real clip:
+# the value of the element is changed, or the element is removed. The clip is real, and only the
+# one value differs.
 RSpec.describe LiveAudioClip, '#show_clip' do
-  around do |example|
-    original_stdout = $stdout
-    $stdout = StringIO.new
-    example.run
-  ensure
-    $stdout = original_stdout
+  around { |example| silence_output { example.run } }
+
+  # The path of the set the clip is in.
+  def path
+    LiveSets.suite
   end
 
-  # Builds an <AudioClip> element, with or without a LastModDate.
-  def clip_with(last_mod_date: '1707598944')
-    lmd = last_mod_date ? "<LastModDate Value=\"#{last_mod_date}\"/>" : ''
-    xml = <<~XML
-      <AudioClip Id="0" Time="0">
-        <SampleRef>
-          <FileRef>
-            <RelativePath Value="Samples/Imported/song.mp3"/>
-            <OriginalFileSize Value="3626186"/>
-          </FileRef>
-          #{lmd}
-        </SampleRef>
-      </AudioClip>
-    XML
+  # A clip of the "Lead" track.
+  def clip_element
+    @clip_element ||= LiveSets.node(path, '//AudioTrack[@Id="150"]//AudioClip')
+  end
 
-    Nokogiri::Slop(xml).xpath('//AudioClip').first
+  # The clip.
+  def clip
+    @clip ||= described_class.new LiveSets.directory(path), clip_element
+  end
+
+  # The clip with a LastModDate of zero.
+  def clip_with_zero_last_mod_date
+    @clip_with_zero_last_mod_date ||= begin
+      element = LiveSets.with_attribute clip_element, 'Id', '999'
+      element.at_xpath('./SampleRef/LastModDate')['Value'] = '0'
+      described_class.new LiveSets.directory(path), element
+    end
+  end
+
+  # The clip with no LastModDate.
+  def clip_without_last_mod_date
+    @clip_without_last_mod_date ||= begin
+      element = LiveSets.without clip_element, './SampleRef/LastModDate'
+      described_class.new LiveSets.directory(path), element
+    end
   end
 
   context 'when the clip has a LastModDate' do
     it 'reports the time' do
-      clip = described_class.new '/tmp', clip_with
+      expect(clip.last_modified.strftime('%Y-%m-%d %H:%M:%S')).to eq('2024-01-19 16:31:07')
+    end
 
-      expect(clip.last_modified.strftime('%Y-%m-%d %H:%M:%S')).to eq('2024-02-10 21:02:24')
+    it 'shows the path, the size and the time' do
+      expect(clip.show_clip).to eq(['    Samples/Loops/Tonal/Vocal/Vocal Demo Lead Takes.aif',
+                                    ' 38.1 MB',
+                                    '2024-01-19 16:31:07'])
     end
   end
 
   context 'when the LastModDate is zero' do
     it 'has no time rather than the epoch' do
-      clip = described_class.new '/tmp', clip_with(last_mod_date: '0')
-
-      expect(clip.last_modified).to be_nil
+      expect(clip_with_zero_last_mod_date.last_modified).to be_nil
     end
 
     it 'still shows the clip' do
-      clip = described_class.new '/tmp', clip_with(last_mod_date: '0')
-
-      expect(clip.show_clip.first).to include('song.mp3')
+      expect(clip_with_zero_last_mod_date.show_clip.first).to include('Vocal Demo Lead Takes.aif')
     end
   end
 
   context 'when the clip has no LastModDate' do
     it 'has no time rather than the epoch' do
-      clip = described_class.new '/tmp', clip_with(last_mod_date: nil)
-
-      expect(clip.last_modified).to be_nil
+      expect(clip_without_last_mod_date.last_modified).to be_nil
     end
 
     it 'still shows the clip' do
-      clip = described_class.new '/tmp', clip_with(last_mod_date: nil)
-
-      expect(clip.show_clip.first).to include('song.mp3')
+      expect(clip_without_last_mod_date.show_clip.first).to include('Vocal Demo Lead Takes.aif')
     end
   end
 end

@@ -12,6 +12,29 @@ require_relative 'live_set_transformer'
 # See docs/live_11_12_diff.md for the differences between the versions, and docs/cpfir.md,
 # "The Lifecycle of a Conversion", for the architecture.
 class LiveSetConverter
+  # The error raised when the set the conversion would write is already there, and the user did
+  # not ask for it to be overwritten.
+  class AlreadyExists < StandardError
+    # @return [String] the path of the set that is already there
+    attr_reader :path
+
+    # @param path [String] the path of the set that is already there
+    def initialize(path)
+      @path = path
+      super("Error: #{path} already exists. Use -f to overwrite it.")
+    end
+  end
+
+  # The outcome of a conversion.
+  #
+  # @!attribute status
+  #   @return [Symbol] :converted when a set was written
+  # @!attribute path
+  #   @return [String, nil] the path of the set that was written
+  # @!attribute overwritten
+  #   @return [Boolean] whether the set that was written was already there
+  Result = Struct.new(:status, :path, :overwritten, keyword_init: true)
+
   # @param set_name [String] the path of the set to convert
   # @param xml_doc [Nokogiri::XML::Document] the set to convert
   # @param overwrite [Boolean] whether an existing converted set may be overwritten
@@ -23,9 +46,29 @@ class LiveSetConverter
 
   # Converts the set, and writes the converted set next to the set that was converted.
   #
-  # @return [void]
+  # @return [Result] what the conversion did
+  # @raise [AlreadyExists] when the set is already there and may not be overwritten
   def convert
-    write_conversion(transform)
+    document = transform
+    path = converted_path
+    overwritten = File.exist? path
+    raise AlreadyExists, path if overwritten && !@overwrite
+
+    # The set is written the way Live writes it, so that the converted set is a Live 11 set and
+    # not merely XML that happens to mean the same thing.
+    AlsFile.write(path, document, File.mtime(@set_name))
+    Result.new status: :converted, path: path, overwritten: overwritten
+  end
+
+  # The path of the set the conversion writes.
+  #
+  # The converted set is written next to the set that was converted.
+  #
+  # @return [String] the path of the converted set
+  def converted_path
+    set_path = File.dirname @set_name
+    new_set_name = File.basename @set_name, '.als'
+    File.join set_path, "#{new_set_name}_11.als"
   end
 
   private
@@ -35,32 +78,5 @@ class LiveSetConverter
   # @return [Nokogiri::XML::Document] the converted set
   def transform
     LiveSetTransformer.new(@xml_doc).transform
-  end
-
-  # Writes the converted set next to the set that was converted.
-  #
-  # An existing set is not overwritten unless the user asks for it. The gzip writer truncates the
-  # file it opens, so without this check a conversion would silently destroy the previous result.
-  #
-  # The set is written the way Live writes it, so that the converted set is a Live 11 set and not
-  # merely XML that happens to mean the same thing.
-  #
-  # @param document [Nokogiri::XML::Document] the converted set
-  # @return [void]
-  def write_conversion(document)
-    set_path = File.dirname @set_name
-    new_set_name = File.basename @set_name, '.als'
-    new_set_path = File.join set_path, "#{new_set_name}_11.als"
-
-    if File.exist? new_set_path
-      abort "Error: #{new_set_path} already exists. Use -f to overwrite it." unless @overwrite
-
-      puts "Overwriting existing #{new_set_path}".green
-    else
-      puts "Writing #{new_set_path}".green
-    end
-
-    AlsFile.write(new_set_path, document, File.mtime(@set_name))
-    puts 'Conversion complete'.green
   end
 end

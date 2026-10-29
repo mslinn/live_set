@@ -80,7 +80,7 @@ class LiveAudioClip
       begin
         constructed_path.realpath.to_s
       rescue Errno::ENOENT, Errno::ELOOP => e
-        puts "Warning: File path does not exist (from source system): #{constructed_path}\n#{e}".yellow
+        Log.warn "Warning: File path does not exist (from source system): #{constructed_path}\n#{e}"
         constructed_path.to_s
       end
     elsif absolute_path_xml && !absolute_path_xml.empty?

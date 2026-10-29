@@ -115,7 +115,7 @@ module Schemas
 
     raise "Generating the schema of Live #{version} produced no file" unless File.exist?(file)
 
-    puts "Generated #{file}"
+    Log.warn "Generated #{file}"
     file
   end
 end

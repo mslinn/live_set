@@ -22,8 +22,8 @@ by that identifier.
 ## The transformation is Ruby code
 
 The transformations are Ruby code: `lib/live_set/tx/live_version_converter.rb` holds the
-machinery that applies them, and the bridge for each pair of versions holds what the two
-versions do differently.
+machinery that applies them, and the bridge implements the bidirectional XML transformation
+between versions.
 
 The XSLT stylesheet the Ruby replaced, `lib/live_set/tx/live_12_to_live_11.xsl`, stays in the
 repository. It is the only other implementation of these transformations that has ever existed,

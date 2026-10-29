@@ -42,7 +42,7 @@ RSpec.describe ValidateAsd, 'the demo sets of each Live version' do # rubocop:di
 
   it 'validates the largest demo set against the schema of its own version' do
     checked = demo_sets.compact
-    skip 'no schemas have been generated. Run bin/generate_xsds to generate them.' if checked.empty?
+    require_fixture 'a generated schema', schemas.values.first
 
     invalid = checked.reject do |version, set_path|
       document = Nokogiri::XML(Zlib::GzipReader.open(set_path, &:read))
@@ -55,8 +55,8 @@ RSpec.describe ValidateAsd, 'the demo sets of each Live version' do # rubocop:di
 
   it 'validates a demo set the way the command does' do
     version, set_path = demo_sets.find { |_candidate, path| !path.nil? }
-    skip 'no schemas have been generated. Run bin/generate_xsds to generate them.' if version.nil?
+    require_fixture 'a generated schema', schemas.values.first
 
-    expect(silence_stdout { described_class.new(set_path, schema_for(version)).validate }).to be true
+    expect(silence_output { described_class.new(set_path, schema_for(version)).validate }).to be_empty
   end
 end

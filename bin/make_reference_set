@@ -1,0 +1,91 @@
+#!/usr/bin/env ruby
+
+# Makes a reference set of one version of Live from a reference set of the version before it.
+#
+# Usage: bin/make_reference_set VERSION NAME [SOURCE]
+#
+# The set is made by running Live: the source set is opened in the version of Live that is asked
+# for, and Live saves it under the name that is given. Live writes a set as a project folder: a
+# directory that holds the set and what Live writes around it, and that a file manager shows as a
+# file. The directory is `sets/live_<version>/<name> Project`, and the set in it is
+# `<name>.als`.
+#
+# The source is a reference set of the version before the one that is asked for. It defaults to
+# the only set in `sets/live_<version - 1>`.
+#
+# The set is written into the repository, so the tool says what it wrote and where. The set is
+# checked in afterwards, by hand: `git add` the directory, and the icon file in it.
+#
+# The tool needs the version of Live to be installed, and it needs the GUI harness, which is a
+# development dependency of this project.
+
+$LOAD_PATH.unshift File.expand_path('../dev', __dir__)
+$LOAD_PATH.unshift File.expand_path('../lib', __dir__)
+
+require 'fileutils'
+require 'gui_harness'
+require 'live_installations'
+
+# The name of the directory of a reference set of a version.
+#
+# @param version [String] the version, e.g. "12"
+# @return [String] the name of the directory
+def reference_directory(version)
+  "sets/live_#{version}"
+end
+
+# The path of the set the tool writes.
+#
+# @param version [String] the version, e.g. "12"
+# @param name [String] the name of the set
+# @return [String] the path of the set
+def reference_path(version, name)
+  File.join reference_directory(version), "#{name} Project", "#{name}.als"
+end
+
+# The reference sets of a version.
+#
+# @param version [String] the version, e.g. "11"
+# @return [Array<String>] the paths of the sets
+def reference_sets(version)
+  Dir.glob File.join(reference_directory(version), '**', '*.als')
+end
+
+version, name, source = ARGV
+if version.nil? || name.nil?
+  abort <<~USAGE
+
+    Usage: bin/make_reference_set VERSION NAME [SOURCE]
+
+    VERSION is the version of Live the set is made with, e.g. 12.
+    NAME is the name of the set, e.g. Fascination_12_converted_by_live.
+    SOURCE is the set that is opened in Live. It defaults to the only reference set of the
+    version before VERSION.
+
+  USAGE
+end
+
+installation = LiveInstallations.version version
+abort "Live #{version} is not installed." if installation.nil? || installation.executable.nil?
+
+source ||= reference_sets((version.to_i - 1).to_s).first
+abort "There is no reference set of Live #{(version.to_i - 1).to_s} to open." if source.nil?
+
+path = reference_path version, name
+preferences = LiveInstallations.preferences version
+log = preferences && File.join(preferences, 'Log.txt')
+
+puts "Opening #{source} in Live #{version}"
+result = GuiHarness::LiveLauncher.launch installation.executable,
+                                          source,
+                                          log:     log,
+                                          save:    path,
+                                          timeout: 13,
+                                          debug:   true
+
+puts "The set was not saved." unless result.saved
+abort "Live put up a dialog: #{result.dialog}" if result.dialog
+puts result.output unless result.saved
+
+puts "Wrote #{path}" if result.saved
+puts "Live did not load the set." unless result.loaded

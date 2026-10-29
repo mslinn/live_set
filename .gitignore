@@ -14,3 +14,6 @@
 !/schemas/*.xsd
 *.als
 !sets/**/*.als
+# What Live writes around a set, in a project folder.
+Desktop.ini
+Ableton Project Info/

@@ -111,6 +111,24 @@ and two versions do not have the same ones, so a converted set has to be given
 the lane types of the version it is converted to. See
 [live_11_12_diff.md](live_11_12_diff.md), "The lane types".
 
+## Pair
+
+The word is not used in these documents. Where two versions of Live are concerned,
+the words are "bridge" and "version_diff"; where the same set in two versions is
+concerned, the words are "reference sets".
+
+## Reference sets
+
+Sets that are checked in, so that they are the same for everyone who works on this
+project. The demo sets Ableton ships are not reference sets: they are installed with
+Live, and they differ from one machine to the next.
+
+`sets/live_11/Fascination.als` and the Live 12 version of it,
+`sets/live_12/Fascination_12_converted_by_live Project/Fascination_12_converted_by_live.als`,
+are the reference sets for Live 11 and Live 12. They are the same set in the two
+versions, so the conversion down to Live 11 can be proved against the set Live 11
+itself wrote.
+
 ## Registry
 
 The list of bridges, keyed by version. The registry is in

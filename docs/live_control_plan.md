@@ -44,6 +44,8 @@ In more detail, the Ableton Live harness must:
 Log parsing is a secondary source of evidence; the process-owned window probe is
 the primary source of truth for user-visible failure states.
 
+Ableton Live is a singleton app. Only one instance can run per operating system.
+
 The harness shall be implemented as a Ruby Gem called `gui_harness`.
 Use the template Git project as a starting point to create the new gem.
 

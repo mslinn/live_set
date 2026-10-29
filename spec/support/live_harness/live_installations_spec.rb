@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'support/live_harness/live_installations'
+require 'live_installations'
 
 RSpec.describe LiveInstallations do
   # A temporary directory to hold a fake installation.

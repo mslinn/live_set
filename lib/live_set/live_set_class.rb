@@ -6,6 +6,7 @@ require 'pathname'
 require 'zlib'
 require_relative '../common/log'
 require_relative 'als_file'
+require_relative 'live_set_converter'
 
 # See https://www.ionos.ca/digitalguide/websites/web-development/xpath-tutorial/
 # See https://www.scrapingbee.com/webscraping-questions/selenium/how-to-find-elements-by-xpath-selenium
@@ -15,7 +16,7 @@ class LiveSet
   # Report on a Live set, or convert it to the Live 11 format.
   #
   # @param args [Array<String>] the command line arguments
-  # @return [void]
+  # @return [Integer] the exit status of the command
   def self.run(args)
     options, remaining = parse_options(args)
 
@@ -28,9 +29,31 @@ class LiveSet
     live_set = new set_name, **options
 
     if options[:convert11]
-      live_set.modify_als
+      report_conversion live_set.modify_als
     else
-      live_set.show
+      puts live_set.show
+    end
+    0
+  rescue LiveSetConverter::AlreadyExists => e
+    puts e.message.red
+    1
+  end
+
+  # Says what a conversion did.
+  #
+  # @param result [LiveSetConverter::Result] what the conversion did
+  # @return [void]
+  def self.report_conversion(result)
+    case result.status
+    when :already_compatible
+      puts 'The Live set is already compatible with Live 11.'.yellow
+    when :converted
+      if result.overwritten
+        puts "Overwriting existing #{result.path}".green
+      else
+        puts "Writing #{result.path}".green
+      end
+      puts 'Conversion complete'.green
     end
   end
 
@@ -62,7 +85,7 @@ class LiveSet
       result = @xml_doc.xpath('//AudioTrack')
       result
     rescue StandardError => e
-      puts "Error accessing AudioTrack elements: #{e.message}".red
+      Log.error "Error accessing AudioTrack elements: #{e.message}"
       []
     end
 
@@ -75,10 +98,10 @@ class LiveSet
     @scenes = @live_set.Scenes.map { |scene| LiveScene.new scene }
   end
 
-  # @return multiline string containing Live session metadata
+  # @return [String] multiline string containing Live session metadata
   def show
     check_ableton_project_info
-    puts <<~END_SHOW
+    <<~END_SHOW
       #{@set_name}
         Created by #{@ableton['Creator']}
         Major version #{@ableton['MajorVersion']}
@@ -92,11 +115,10 @@ class LiveSet
   # Writes out a Live 11 session
   #
   # The conversion itself is done by LiveSetConverter.
+  #
+  # @return [LiveSetConverter::Result] what the conversion did
   def modify_als
-    if @minor_version.start_with? '11.'
-      puts 'The Live set is already compatible with Live 11.'.yellow
-      exit 0
-    end
+    return LiveSetConverter::Result.new status: :already_compatible if @minor_version.start_with? '11.'
 
     LiveSetConverter.new(@set_name, @xml_doc, overwrite: @overwrite).convert
   end
