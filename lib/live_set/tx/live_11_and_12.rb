@@ -9,7 +9,7 @@ require_relative 'live_version_converter'
 # carries both directions of the version_diff: a rename matches either spelling and emits the
 # other.
 #
-# The tables hold the transformations:
+# The lists hold the transformations:
 #
 #   REMOVE, REMOVE_UNDER         the elements the older version does not have
 #   RENAME, RENAME_UNDER         the elements the two versions name differently
@@ -19,8 +19,8 @@ require_relative 'live_version_converter'
 #   ADD, ADD_ATTRIBUTE           what the newer version adds
 #   CHILD_ORDER                  where the children of an element go
 #
-# The transformations that a table cannot express are in #special_transformations. Each of them
-# is a case a table cannot express: a value that the two versions write differently, an element
+# The transformations that a list cannot express are in #special_transformations. Each of them
+# is a case a list cannot express: a value that the two versions write differently, an element
 # that one version wraps and the other keeps bare, an element that has to move to another parent.
 #
 # Where the names come from
@@ -29,7 +29,7 @@ require_relative 'live_version_converter'
 # of that version, so diffing the schema of Live 12 against the schema of Live 11 gives the
 # candidates — the names one version has and the other does not.
 #
-# The diff gives the candidates; it does not decide them. Every name in the tables below was
+# The diff gives the candidates; it does not decide them. Every name in the lists below was
 # decided by hand, and some of them have been decided wrongly so far. The Live 11 schema is an
 # inference from the XML stored in the sets of Live 11, so a device that Live 11 has, but that no
 # Live 11 demo set happens to contain, is absent from the Live 11 schema, and a diff against that
@@ -77,10 +77,10 @@ class Live11And12 < LiveVersionConverter
 
   # The elements the older version does not have, wherever they appear.
   #
-  # The table is read in the direction the set is going, because the two directions do not
+  # The list is read in the direction the set is going, because the two directions do not
   # remove the same elements. Going down, the elements Live 12 has and Live 11 does not are
   # removed. Going up, the elements Live 11 has and Live 12 does not are removed. Neither
-  # removal touches the elements the other version has, because they are named in the table of
+  # removal touches the elements the other version has, because they are named in the list of
   # the other direction only.
   REMOVE = {
     # sorted alphabetically
@@ -165,7 +165,7 @@ class Live11And12 < LiveVersionConverter
 
   # The elements the two versions spell differently.
   #
-  # The base class reads this table in both directions, so the name of the element is enough.
+  # The base class reads this list in both directions, so the name of the element is enough.
   RENAME = { # sorted alphabetically by key
     'AutoColorPickerForReturnAndMainTracks' => 'AutoColorPickerForReturnAndMasterTracks',
     'IsSongTempoLeader'                     => 'IsSongTempoMaster',
@@ -177,7 +177,7 @@ class Live11And12 < LiveVersionConverter
   # The elements the two versions spell differently, under a named parent.
   #
   # The parent holds the element under a different name in each version, so the path of a rename is
-  # the path of the element in the version the set is coming from, and the table holds one path
+  # the path of the element in the version the set is coming from, and the list holds one path
   # for each direction.
   RENAME_UNDER = { # sorted alphabetically by key
     down: {
@@ -230,7 +230,7 @@ class Live11And12 < LiveVersionConverter
   # Live 11 writes the four curve control attributes of every note event, and Live 12 writes them
   # only when the curve is not the default.
   #
-  # The attributes are written in the order Live writes them in, so this table is in that order
+  # The attributes are written in the order Live writes them in, so this list is in that order
   # and not in alphabetical order, even though the keys could be sorted.
   DEFAULT_ATTRIBUTE = { # sorted alphabetically by key
     'MidiNoteEvent' => {
@@ -251,8 +251,8 @@ class Live11And12 < LiveVersionConverter
   # where the elements that moved between the versions are moved to. Live 11 writes the scale of a MIDI clip at the end
   # of the clip, and Live 12 writes it near the beginning; the order says so.
   #
-  # The spec spec/live_set/tx/live_up_ground_truth_spec.rb checks the table against the set Live itself wrote, so the
-  # table is known to be right rather than believed to be.
+  # The spec spec/live_set/tx/live_up_ground_truth_spec.rb checks the list against the set Live itself wrote, so the
+  # list is known to be right rather than believed to be.
   CHILD_ORDER = {
     down: {},
     up:   {
@@ -555,7 +555,7 @@ class Live11And12 < LiveVersionConverter
   # The scales of the two versions, and how they are written.
   #
   # Live 11 writes the name of a scale, and Live 12 writes its index in the list of the scales
-  # of Live. Only the scales that have been seen in a set of each version are in the table.
+  # of Live. Only the scales that have been seen in a set of each version are in the list.
   SCALE_NAMES = { 'Major' => '0' }.freeze
   SCALE_INDEXES = { '0' => 'Major' }.freeze
 
@@ -564,7 +564,7 @@ class Live11And12 < LiveVersionConverter
   # Live 11 writes them at the end of the clip, next to the settings of the note editor.
   CLIP_SCALE_ELEMENTS = %w[ScaleInformation IsInKey].freeze
 
-  # The transformations that a table cannot express.
+  # The transformations that a list cannot express.
   #
   # @return [void]
   def special_transformations # TODO: can these be sorted alphabetically?
@@ -722,7 +722,7 @@ class Live11And12 < LiveVersionConverter
   #
   # Live 12 gives every take lane a LomId and an Id attribute. Live 11 gives it neither.
   #
-  # Going up, the LomId is added by the table of the elements Live 12 adds.
+  # Going up, the LomId is added by the list of the elements Live 12 adds.
   def take_lane_lom_id
     return unless down?
 

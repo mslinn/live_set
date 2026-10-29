@@ -152,7 +152,7 @@ How it works:
 #### Transform Implementation
 
 The transform is Ruby, and it lives in `lib/live_set/tx/`: the base class is
-`live_version_converter.rb`, and each version_diff has a subclass whose tables
+`live_version_converter.rb`, and each version_diff has a subclass whose lists
 and special transformations hold the differences of that version_diff. The 11↔12 version_diff is
 `live_11_and_12.rb`.
 
@@ -218,7 +218,7 @@ work being added right now is:
    Renaming XML elements, moving XML elements, deleting XML elements, and so on.
 
    The code base is organized this way now: the transform is in
-   `lib/live_set/tx/`, and each version_diff has a subclass whose tables and
+   `lib/live_set/tx/`, and each version_diff has a subclass whose lists and
    special transformations hold the differences of that version_diff. The transform is Ruby rather
    than XSLT; `docs/fix_plan2.md` says why.
 

@@ -26,8 +26,11 @@ lists of names cannot express: a value the two versions write differently, an
 element one version wraps and the other keeps bare, an element that has to move
 to another parent.
 
-The differences between the two versions are written down in the `version_diff`
-document; the bridge provides the conversions that express them.
+The differences between a version and the previous version are memorialized in
+the appropriate `version_diff` document. For example, the bridge
+`lib/live_set/tx/live_11_and_12.rb` provides the conversions that transform the
+Live 11 XML to and from Live 12 XML, and the differences between those two
+versions are recorded in [live_11_12_diff.md](live_11_12_diff.md).
 
 ## Conversion
 
@@ -75,7 +78,7 @@ about the format, and it belongs in [als_notes.md](als_notes.md).
 Which way a conversion is going: `:up` from an older version to a newer one, or
 `:down` from a newer one to an older. The direction is a property of the
 document, not of the bridge: the bridge reads the version out of the document and
-converts it to the other version of its pair.
+converts it to the other of the two versions.
 
 ## Format
 
@@ -101,7 +104,7 @@ the lane types of the version it is converted to. See
 
 ## Registry
 
-The table of bridges, keyed by version. `LiveSetTransformer::BRIDGES` holds the
+The list of bridges, keyed by version. `LiveSetTransformer::BRIDGES` holds the
 list today; it is to become a registry keyed by version, in which the key is the
 version a bridge leads to. See [fix_plan2.md](fix_plan2.md), M7.
 
@@ -126,25 +129,16 @@ root element is `Ableton`. The version of Live that wrote it is in the
 
 ## Special transformation
 
-A transformation that a table cannot express: a value the two versions write
-differently, an element one version wraps and the other keeps bare, an element
-that has to move to another parent. They are the hand-written methods of a
-bridge's `special_transformations`. There are fifteen of them in
+A transformation that a list of names cannot express: a value the two versions
+write differently, an element one version wraps and the other keeps bare, an
+element that has to move to another parent. They are the hand-written methods of
+a bridge's `special_transformations`. There are fifteen of them in
 `lib/live_set/tx/live_11_and_12.rb`.
 
 ## Structure
 
 The elements a document has, the attributes they carry, and how they nest. It is
 what a schema describes. Structure is distinct from data.
-
-## Table
-
-The data a bridge applies, read from the base class: `REMOVE`, `REMOVE_UNDER`,
-`RENAME`, `RENAME_UNDER`, `EMPTY`, `REMOVE_ATTRIBUTE`, `DEFAULT_ATTRIBUTE`,
-`ADD`, `ADD_ATTRIBUTE`, `CHILD_ORDER`, and `VERSION`. Each table names one kind
-of difference and says how it is expressed. A table that applies in both
-directions is written as it is; a table that applies in one direction only is
-written as a hash with a key for each direction.
 
 ## Transformation
 
@@ -179,6 +173,6 @@ and 12 all write `MajorVersion="5"`.
 
 ## Version_diff
 
-A pair of adjacent versions of Live, together with the differences between them.
+Two adjacent versions of Live, together with the differences between them.
 The document for a version_diff is one of `live_8_9_diff.md`, `live_9_10_diff.md`,
 `live_10_11_diff.md`, `live_11_12_diff.md`; the code for one is a bridge.

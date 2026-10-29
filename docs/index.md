@@ -74,13 +74,13 @@ The transformations of a version_diff are written by hand, and the process for f
 | How a transformation is written, and why nothing writes it for you | [`conversion.md`](conversion.md) §3.3 |
 | Which elements and attributes a version has | [`als_work.md`](als_work.md), "Mapping XSD to Ruby Classes" — the schema is the index of the format, and two schemas are diffed to find the differences |
 | The differences between Live 11 and Live 12 in particular | [`live_11_12_diff.md`](live_11_12_diff.md) |
-| The transformations themselves | `lib/live_set/tx/live_11_and_12.rb` — the tables, the special transformations, and the comment block that describes how the conversion works |
+| The transformations themselves | `lib/live_set/tx/live_11_and_12.rb` — the lists, the special transformations, and the comment block that describes how the conversion works |
 
 ## Where the code is
 
 | Thing | Where it lives |
 | --- | --- |
-| The transformations of the Live 11 ↔ Live 12 conversion | `lib/live_set/tx/live_11_and_12.rb` — the tables, the special transformations, and the comment block that describes how the conversion works |
+| The transformations of the Live 11 ↔ Live 12 conversion | `lib/live_set/tx/live_11_and_12.rb` — the lists, the special transformations, and the comment block that describes how the conversion works |
 | The machinery the transformations run on | `lib/live_set/tx/live_version_converter.rb` — knows nothing about any particular version_diff |
 | The seam that finds the bridge for a set | `lib/live_set/live_set_transformer.rb` |
 | Reading a set, converting it, writing it out | `lib/live_set/live_set_converter.rb` |

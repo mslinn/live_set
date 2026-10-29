@@ -4,10 +4,10 @@ require 'live_set/tx/live_11_and_12'
 require 'demo_sets'
 require 'support/schemas'
 
-# The elements Live 12 adds that the transformations add, and not the table of the additions.
+# The elements Live 12 adds that the transformations add, and not the list of the additions.
 #
 # The tuning of a MIDI track depends on the device chain of the track — the notes of a drum
-# rack are not pitches — so it cannot be written in the table.
+# rack are not pitches — so it cannot be written in the list.
 ADDED_BY_TRANSFORMATIONS = { 'MidiTrack' => %w[IsTuned] }.freeze
 
 # The ground truth of the up direction: what Live does when it opens a Live 11 set in Live 12
@@ -17,9 +17,9 @@ ADDED_BY_TRANSFORMATIONS = { 'MidiTrack' => %w[IsTuned] }.freeze
 # and that second file is what the up direction has to reproduce. It is the reference the transformations
 # of the conversion are checked against.
 #
-# The transformations are in the tables of Live11And12. This spec says those tables are right, so what
+# The transformations are in the lists of Live11And12. This spec says those lists are right, so what
 # Live does is written down in the repository rather than in a terminal scrollback. When Live
-# changes what it writes, this spec fails and the tables are brought up to date.
+# changes what it writes, this spec fails and the lists are brought up to date.
 #
 # The transformations of the conversion itself are in spec/live_set/tx/live_11_and_12_up_spec.rb.
 RSpec.describe Live11And12, 'the Live 12 conversion of a Live 11 set' do
@@ -96,7 +96,7 @@ RSpec.describe Live11And12, 'the Live 12 conversion of a Live 11 set' do
     }
   end
 
-  # The structure an entry of the table of the elements Live 12 adds describes.
+  # The structure an entry of the list of the elements Live 12 adds describes.
   #
   # @param addition [Hash] the entry
   # @return [Hash] the structure the entry describes

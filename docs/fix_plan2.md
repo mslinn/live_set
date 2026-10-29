@@ -8,7 +8,7 @@ The gem converts a Live 12 set into a Live 11 set.
 writes the result. The transformer looks at the version of the set, finds the bridge for that
 version, and applies it. The bridge for Live 11 and Live 12 is
 `lib/live_set/tx/live_11_and_12.rb`: it holds what the two versions do differently, as
-tables and as hand-written code, and it inherits the machinery that applies them from
+lists and as hand-written code, and it inherits the machinery that applies them from
 `lib/live_set/tx/live_version_converter.rb`. A bridge is not told which way to convert; it
 reads the version of the set it is given and converts it to the other of the two.
 
@@ -46,7 +46,7 @@ The sizes, and what they mean:
 | the Ruby, one file | 213 | 156 without comments |
 | the Ruby, base class + subclass | 257 | 100 base, 157 transformations |
 
-The Ruby is shorter and it grows more slowly. A transformation is a table entry instead of a template:
+The Ruby is shorter and it grows more slowly. A transformation is an entry in a list instead of a template:
 the forty-element removal list is twelve lines of `%w[]` and one loop, against forty lines of
 template. A rename is a hash entry. The special transformations are three to eight plain lines each. And
 none of the XSLT 1.0 constraints apply — no template priorities, no `xsl:copy` that silently
@@ -56,7 +56,7 @@ The decisive argument is the up direction. The up direction (Live 11 → Live 12
 lossless and faithful to Live's own conversion, and its transformations come from the same experiment that
 produced the down direction: open a Live 11 demo set in Live 12, save it, and compare the two
 files. In XSLT that means a second template for every transformation, and the stylesheet roughly doubles
-to eight hundred lines. In Ruby the same tables are read the other way.
+to eight hundred lines. In Ruby the same lists are read the other way.
 
 `docs/cpfir.md` says that ALS conversions are handled by XSLT transformations. That sentence
 changes.
@@ -99,7 +99,7 @@ down to the previous one, and a conversion is a pipeline of those steps composed
 `lib/live_set/tx/live_version_converter.rb` holds the machinery, and knows nothing about any
 particular version_diff:
 
-- the tables it applies — `VERSION`, `REMOVE`, `REMOVE_UNDER`, `RENAME`, `RENAME_UNDER`,
+- the lists it applies — `VERSION`, `REMOVE`, `REMOVE_UNDER`, `RENAME`, `RENAME_UNDER`,
   `EMPTY`, `REMOVE_ATTRIBUTE`, `DEFAULT_ATTRIBUTE` — read through `self.class::`, so a
   subclass supplies them by defining its own;
 - the operations that apply them: `version_strings`, `remove_elements`, `rename_elements`,
@@ -107,14 +107,14 @@ particular version_diff:
 - `convert`, which runs them in order and then calls `special_transformations`.
 
 `lib/live_set/tx/live_11_and_12.rb` holds the differences between the Live 11 format and the
-Live 12 format: the tables, and the fifteen transformations that are not tables — the Saturator's
+Live 12 format: the lists, and the fifteen transformations that are not lists — the Saturator's
 `Oversampling` value, the `AudioOut/Main` target, the scroll position, the freeze elements, the
 clip slot's refreeze, the device's `IdRefList`, the MIDI clip's scale information, the chooser
 bar, the MIDI take lanes, the take lane's `LomId`, the device's view data, the source context,
 the tuning, the track names, and the follow action link. A subclass overrides `special_transformations`
 and calls `super`.
 
-The base class is written once. Each further version_diff costs a subclass of tables and
+The base class is written once. Each further version_diff costs a subclass of lists and
 specials, and nothing else.
 
 ## The schemas
@@ -166,13 +166,13 @@ back in four places, and nowhere else.
 
 The rename was not a blind search-and-replace, and the plan must not be one either:
 `MainSequencer` is spelled the same in Live 11 and Live 12, and it has nothing to do with the
-master track. That is the exception that keeps the transformation a table rather than a substitution.
+master track. That is the exception that keeps the transformation an entry in a list rather than a substitution.
 
 **This simplifies the transformations, and the bidirectionality simplifies them further.** A rename is
 symmetric — it matches either spelling and emits the other — so the four renames above are one
-table, not four transformations. Where a transformation cannot be symmetric, it is conditioned on the direction:
+list, not four transformations. Where a transformation cannot be symmetric, it is conditioned on the direction:
 
-- `MainTrack` ↔ `MasterTrack` — symmetric, one table entry.
+- `MainTrack` ↔ `MasterTrack` — symmetric, one list entry.
 - `AutoColorPickerForReturnAndMainTracks` ↔ `AutoColorPickerForReturnAndMasterTracks` — symmetric.
 - `IsSongTempoLeader` ↔ `IsSongTempoMaster` — symmetric; Live 12 says "Leader", not "Main".
 - `AudioOut/Main` ↔ `AudioOut/Master` — symmetric, an attribute value.
@@ -235,11 +235,11 @@ its `convert` method, and its logging, and loses its transformations.
 **M5 — The specs.** **Partly done.**
 
 - `spec/live_set/tx/live_version_converter_spec.rb` — the base class: that it applies the
-  tables, and that a subclass's tables are read in its place. Small XML fragments, no demo set.
+  lists, and that a subclass's lists are read in its place. Small XML fragments, no demo set.
   **Done.**
 - `spec/live_set/tx/live_11_and_12_spec.rb` — one example per transformation, on small XML fragments.
   Each example gives a document in one version and asserts the document in the other, so the
-  symmetry is what is under test. The rename examples cover the whole table of the Master/Main
+  symmetry is what is under test. The rename examples cover the whole list of the Master/Main
   rename, including `MainSequencer`, which must not be touched. **Done**, in two files:
   `live_11_and_12_down_spec.rb` and `live_11_and_12_up_spec.rb`.
 - An end-to-end example: convert a Live 12 demo set, validate the result against
@@ -271,12 +271,12 @@ and each entry is the pure function that takes a document and returns a document
 is keyed by version, and the key is the version the bridge leads *to*, so that a conversion
 from one version to another is the composition of the steps between them. The direction is not
 a parameter of any of them: each reads the version out of the document it is handed and emits
-the other version of its pair. The entry for Live 12 is the bridge that stands between Live 12
+the other of the two versions. The entry for Live 12 is the bridge that stands between Live 12
 and Live 11, and it is the one that exists today, as a class.
 
 Why this belongs in Phase 2 and not Phase 3: it is the architecture the rest of the work
 assumes, and it is what the registry of `docs/cpfir.md` section 2 describes. The bridges
-themselves — the Live 10↔9 and Live 9↔8 pairs — are Phase 3 work, because their transformations do not
+themselves — the Live 10↔9 and the Live 9↔8 — are Phase 3 work, because their transformations do not
 exist yet (D8).
 
 ## Phase 3 — The details
@@ -441,14 +441,14 @@ or deleted as superseded. **Not done.**
 | `docs/als_work.md:1337` | the discussion of blocking transfers and blocking group devices |
 | `docs/live_control_plan.md:18`, `:63`, `:95`, `:116`, `:148`, `:173`, `:175`, `:319` | the plan for proving a conversion by running Live |
 
-**D8 — A version_diff document for every pair of adjacent versions.** `docs/live_8_9_diff.md`,
+**D8 — A version_diff document for every two adjacent versions.** `docs/live_8_9_diff.md`,
 `docs/live_9_10_diff.md`, `docs/live_10_11_diff.md` and `docs/live_11_12_diff.md`. Each holds the
 newer version's release notes summarized, and then the format differences that follow from them,
 organized by the kinds of difference in `docs/conversion.md` §2.2. The release notes of the newer
 version supply the items, because every difference is something the newer version changed.
 **Not done.** `docs/live_11_12_diff.md` is written; the other three are not.
 
-The evidence for the Live 10↔11 pair is gathered but not written down. What is known:
+The evidence for Live 10↔11 is gathered but not written down. What is known:
 Live 10 has `<SceneNames><Scene Id="38" Value="Scene 1">`, with a `ColorIndex` child; Live 11
 has `<Scenes><Scene Id="0">`, with `<Name Value="Intro"/>`, `<FollowAction>`, `<Color>`,
 `<Tempo>`, `<TimeSignatureId>`, `<IsTempoEnabled>` and `<TimeSignatureEnabled>` children. So
@@ -471,7 +471,7 @@ bite, with a spec wherever they can be tested.
   urgency).
 - **Six rubocop offenses** in `lib/live_set/tx/live_11_and_12.rb`, in the `TRACK_ATTRIBUTES` and
   `ADD_ATTRIBUTE` hashes: alignment of the keys, and a trailing comma. All are autocorrectable.
-- **Where the tables live.** Settled: Ruby constants in the subclass. There is one set per
+- **Where the lists live.** Settled: Ruby constants in the subclass. There is one set per
   bridge, with no direction structure in it, so the argument for a data file — that the data
   would express the direction — does not apply. What is left against it is that YAML resolves
   `"1"` as `1` and `"true"` as `true`, and a misspelled key returns `nil` rather than raising,
@@ -501,7 +501,7 @@ bite, with a spec wherever they can be tested.
   one example per transformation, in each direction (new)
 - `spec/live_set/tx/live_conversion_spec.rb` — the end-to-end conversion example (new)
 - `docs/live_8_9_diff.md`, `docs/live_9_10_diff.md`, `docs/live_10_11_diff.md` — the version_diff
-  documents for the older pairs (new)
+  documents for the older versions (new)
 - `docs/als_work.md` — "Transform Implementation" (modify)
 - `docs/cpfir.md` — the XSLT sentences (modify)
 

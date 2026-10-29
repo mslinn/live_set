@@ -57,13 +57,13 @@ back in four places, and nowhere else.
 
 The rename was not a blind search-and-replace, and the plan must not be one either:
 `MainSequencer` is spelled the same in Live 11 and Live 12, and it has nothing to do with the
-master track. That is the exception that keeps the transformation a table rather than a substitution.
+master track. That is the exception that keeps the transformation an entry in a list rather than a substitution.
 
 **This simplifies the transformations.** Instead of four unrelated rename transformations — `MainTrack` →
 `MasterTrack`, `AutoColorPickerForReturnAndMainTracks` → `AutoColorPickerForReturnAndMasterTracks`,
 `IsSongTempoLeader` → `IsSongTempoMaster`, and `AudioOut/Main` → `AudioOut/Master` — the
 stylesheet has one transformation family: *Live 12 says "Main" where Live 11 says "Master"*, expressed as a
-small table of the four names it applies to, plus the attribute value `AudioOut/Main`. The
+small list of the four names it applies to, plus the attribute value `AudioOut/Main`. The
 `SongMasterValues` case is not a rename at all: Live 12 keeps the scroll position in
 `LiveSet/SessionScrollPos`, and Live 11 keeps it in `LiveSet/SongMasterValues/SessionScrollerPos`,
 so the conversion has to build the wrapper. (Live 11's `SongMasterValues` holds nothing else —
@@ -117,7 +117,7 @@ away. The class keeps its constructor, its `convert` method, and its logging.
 **M3 — The specs.**
 
 - `spec/live_set/tx/live_12_to_live_11_spec.rb` — one example per transformation family, on small XML
-  fragments. Fast, and needs no demo set. The rename examples cover the whole table of the
+  fragments. Fast, and needs no demo set. The rename examples cover the whole list of the
   Master/Main rename, including `MainSequencer`, which must not be touched.
 - An end-to-end example: convert a Live 12 demo set, validate the result against
   `schemas/live_11.3d1.xsd`. Skipped when the schema has not been generated, the way

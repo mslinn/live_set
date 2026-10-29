@@ -2,16 +2,16 @@ require 'nokogiri'
 
 # The machinery of a conversion between two versions of the Live format.
 #
-# A conversion is made of tables — the elements to remove, the elements to rename, the attributes
-# to give a default value — and of a few transformations that a table cannot express, which a
+# A conversion is made of lists of names — the elements to remove, the elements to rename, the attributes
+# to give a default value — and of a few transformations that a list cannot express, which a
 # subclass adds by overriding #special_transformations.
 #
-# The tables do not say which way the conversion is going. A rename matches either spelling and
-# emits the other, so the same table serves both directions. The direction is a property of the
+# The lists do not say which way the conversion is going. A rename matches either spelling and
+# emits the other, so the same list serves both directions. The direction is a property of the
 # document: the version the document carries decides it.
 #
 # A transformation that cannot be expressed symmetrically is conditioned on the direction. A
-# table that applies in one direction only is written as a hash with a key for each direction,
+# list that applies in one direction only is written as a hash with a key for each direction,
 # and the base class takes the one that applies.
 #
 # A conversion is a pure function from one document to another: the result depends only on the
@@ -50,14 +50,14 @@ class LiveVersionConverter
 
   # The elements the two versions spell differently.
   #
-  # The base class reads this table in both directions, so the name of the element is enough: the
+  # The base class reads this list in both directions, so the name of the element is enough: the
   # rename turns the element into the other spelling.
   RENAME = {}.freeze
 
   # The elements the two versions spell differently, under a named parent.
   #
   # The path is not the same in both directions — the parent holds the element under a different
-  # name in each version — so this table holds both directions, and the subclass writes them out.
+  # name in each version — so this list holds both directions, and the subclass writes them out.
   RENAME_UNDER = {}.freeze
 
   # The elements that are empty in the older version.
@@ -181,7 +181,7 @@ class LiveVersionConverter
   # Renames the elements the two versions spell differently.
   def rename_elements
     renames = constant(:RENAME)
-    # A rename turns the element into the other spelling, so the table is read in both directions.
+    # A rename turns the element into the other spelling, so the list is read in both directions.
     renames = renames.merge(renames.invert)
     # The elements are collected before any of them is renamed, so that an element renamed into
     # the name of another entry is not renamed a second time.
@@ -228,7 +228,7 @@ class LiveVersionConverter
     end
   end
 
-  # The transformations that a table cannot express.
+  # The transformations that a list cannot express.
   #
   # A subclass overrides this and calls super.
   #

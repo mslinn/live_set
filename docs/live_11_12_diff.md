@@ -1,7 +1,7 @@
 # The Differences Between the Live 11 and the Live 12 Formats
 
 The version_diff document for Live 11 and Live 12. The transformations it describes are
-the tables of `lib/live_set/tx/live_11_and_12.rb`, and the headings below are
+the lists of `lib/live_set/tx/live_11_and_12.rb`, and the headings below are
 what the code cites.
 
 The format itself — the elements, the attributes, and the shapes they take — is
@@ -85,7 +85,7 @@ The later releases add devices and revise them, and the notes of each are in
 ### The elements the two versions name differently
 
 A rename is symmetric: it matches either spelling and emits the other, so
-one table serves both directions.
+one list serves both directions.
 
 | Live 11 | Live 12 |
 | --- | --- |
@@ -123,7 +123,7 @@ four levels: the set itself, a track, a clip, and a device. Their values are
 the defaults Live gives them, and their positions follow the order of the
 Live 12 schema.
 
-The names are in the `ADD` table of `lib/live_set/tx/live_11_and_12.rb`. Three
+The names are in the `ADD` list of `lib/live_set/tx/live_11_and_12.rb`. Three
 of the additions are not elements but splits: the mixer of the arrangement view
 and the mixer of the session view are each one element in Live 11 and several
 in Live 12.
@@ -190,7 +190,7 @@ saved by Live at all.
 
 ### The down direction is settled
 
-The down direction (Live 12 → Live 11) is implemented in the tables of
+The down direction (Live 12 → Live 11) is implemented in the lists of
 `Live11And12`. It was checked node for node against the stylesheet it
 replaced, on the Live 12 demo set, and the two produce the same document.
 
@@ -202,7 +202,7 @@ of it.
 
 The up direction does not yet reproduce the device-level part of Live's own
 conversion. Three things stand in the way, and each needs the Live 12 schema
-and a table of defaults:
+and a list of defaults:
 
 1. **Devices whose parameters were restructured.** Live 11's `WaveShaper` has
    the parameters `Curve`, `Damp`, `Depth`, `Lin` and `Period`; Live 12's has

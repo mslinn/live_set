@@ -162,10 +162,10 @@ that difference is expressed: the difference list becomes a set of transformatio
 that are applied, rather than code that patches a document in place.
 
 The transform is Ruby, not XSLT. The stylesheet was written first and then
-replaced, because a transformation is a table entry in Ruby and a template in
+replaced, because a transformation is an entry in a list in Ruby and a template in
 XSLT: in XSLT the up direction needs a second template for every transformation,
 while in Ruby
-the same table is read the other way. `docs/fix_plan2.md` says why, and
+the same list is read the other way. `docs/fix_plan2.md` says why, and
 `lib/live_set/tx/` holds the result.
 
 

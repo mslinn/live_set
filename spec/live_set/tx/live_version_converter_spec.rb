@@ -3,13 +3,13 @@ require 'live_set/tx/live_version_converter'
 
 # The base class of a conversion between two versions of the Live format.
 #
-# The base class knows nothing about any particular version_diff. It applies the tables a
-# subclass supplies, in the order the tables are applied, and it takes the direction from the
+# The base class knows nothing about any particular version_diff. It applies the lists a
+# subclass supplies, in the order the lists are applied, and it takes the direction from the
 # version the document carries.
 RSpec.describe LiveVersionConverter do # rubocop:disable RSpec/DescribeClass
   # A bridge between two made-up versions, used to test the base class on its own.
   #
-  # The tables are deliberately unlike the tables of a real bridge: the elements are named after
+  # The lists are deliberately unlike the lists of a real bridge: the elements are named after
   # the transformations they exercise, so that a failing example says which transformation failed.
   class TestConverter < LiveVersionConverter
     VERSION = {
@@ -40,7 +40,7 @@ RSpec.describe LiveVersionConverter do # rubocop:disable RSpec/DescribeClass
     }.freeze
   end
 
-  # A bridge whose tables the base class must not use.
+  # A bridge whose lists the base class must not use.
   class OtherConverter < TestConverter
     REMOVE = %w[SomethingElse].freeze
   end
@@ -169,7 +169,7 @@ RSpec.describe LiveVersionConverter do # rubocop:disable RSpec/DescribeClass
     expect(content_of(document)).to eq ['<Panel Added="no"/>']
   end
 
-  it 'reads the tables of the subclass, and not the tables of the base class' do
+  it 'reads the lists of the subclass, and not the lists of the base class' do
     document = document_for(LIVE_10, '<OldElement/><SomethingElse/>')
     OtherConverter.new(document).convert
     expect(content_of(document)).to eq ['<OldElement/>']
