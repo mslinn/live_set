@@ -42,7 +42,7 @@ class LiveKeys
 
     script = write_powershell_keypress_script
     output, status = Open3.capture2e 'powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass',
-                                     '-File', GuiHarness::LiveLauncher.windows_path(script),
+                                     '-File', GuiHarness::Live::Launcher.windows_path(script),
                                      '-Process', process_id.to_s, '-Keys', keys
     status.success? && output.include?('SENT')
   rescue Errno::EACCES, Errno::ENOENT, Errno::EROFS
@@ -67,7 +67,7 @@ class LiveKeys
   def windows_directory
     @windows_directory ||= begin
       dir = ENV['TEMP'] || ENV['TMP'] || 'C:\\Windows\\Temp'
-      wsl = GuiHarness::LiveLauncher.windows_path dir
+      wsl = GuiHarness::Live::Launcher.windows_path dir
       # A Windows path that is not on a mounted drive cannot be reached from WSL.
       wsl.start_with?('/mnt/') ? wsl : '/mnt/c/Windows/Temp'
     end

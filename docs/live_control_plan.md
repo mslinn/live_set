@@ -136,7 +136,10 @@ This plan uses the following terms:
   checked by the harness.
 - `harness`: the Ruby test infrastructure that launches Live, watches the log,
   answers dialogs, and reports the outcome. The harness is a test framework;
-  the round trip is the scenario that uses it.
+  the round trip is the scenario that uses it. The harness is the `gui_harness`
+  gem, which is in two layers: a generic capability, and an Ableton Live
+  specialization. `live_set` uses the Live layer, `GuiHarness::Live::Launcher`.
+  The design is in the `gui_harness` gem, in `docs/gui_harness_design.md`.
 - `research finding`: an observation or fact established from Live's behavior,
   documentation, or log files.
 - `implementation action`: describes what the code in this repository is meant
@@ -310,6 +313,32 @@ older running instance, then the second instance exits.
 This first version of a test harness shall close any pre-existing Live instance
 before each run, and shut it down after the test completes.
 
+### Live asks for permission the first time it runs
+
+Every version of Live registers the file types of its sets when it starts, and
+that registration needs the permission of an administrator. Live asks for it
+with a UAC prompt, on the secure desktop, where no program of the session can
+answer it. Live waits for the answer, and it waits at the very start: the log
+stops at `RegisterFileTypeAssociations: Start`, and the set is never loaded.
+
+The prompt is per version, not per machine:
+
+- the first time a version of Live runs, it asks;
+- switching to another version asks again, for that version;
+- running a version again does not ask, provided the user accepted the first
+  time.
+
+A run of a version that has been authorized therefore starts straight away, and
+a run of a version that has not is held up until the user answers the prompt.
+The harness does not start Live at all while a prompt is waiting, and reports
+the run as blocked by the installer rather than as a set that was loaded.
+
+Only Live 11 and Live 12 can be authorized on this machine. Live 8, Live 9 and
+Live 10 start, but they cannot save sets: the registration cannot be completed
+for them, so a set they are given is never written back. A support request has
+been sent to Ableton, asking for a way to authorize those three versions; see
+**N54** in `TODO.md`.
+
 ### Live writes a log of what it does
 
 This log can be used to get an approximate idea of what Live did.
@@ -358,6 +387,16 @@ So the recovery prompt is a consequence of the files being in `Preferences\`.
 recovery procedure is the same thing in reverse: move them from `Crash\` back up
 to `Preferences\`, and the prompt comes back.
 
+The harness does this itself, before it starts Live. The Live layer of
+`gui_harness` looks for `CrashRecoveryInfo.cfg` next to the log — the log is in
+Live's Preferences folder, so that is where the point is — and moves the three
+files into `Crash\`, named the way Live names them, `<timestamp>_<name>`. A run
+therefore starts without a recovery prompt, and the evidence of what crashed is
+kept where Live keeps it.
+
+The point is also the evidence that the last session of Live ended badly: a Live
+that was closed leaves no point behind.
+
 The files are:
 
 ```text
@@ -376,6 +415,12 @@ BaseFiles/Ninajirachi - In The Rain (Live 11 Suite Demo).als
 
 That is the best evidence available of "which set Live was working on when it fell over" —
 better than the log, which says only that Live crashed.
+
+Nothing needs that information at the moment. The harness archives the point before it
+starts Live, so the set path is not in the pending file any more; it is in the archived
+copy in `Crash\`, whose name carries the time of the crash. If a report ever has to name
+the set that caused a crash, it can be read from there — `LiveRecovery` reads the UTF-16LE
+strings out of the file, and the archived copy is the same file.
 
 **The log records the recovery prompt, with its text:**
 
@@ -398,9 +443,39 @@ three lines for this class of failure, so it adds little:
 > A serious program error has occurred.
 > Live will shut down after this message box is closed.
 
-The text is also hard to get at: Live is a Qt app, so `GetWindowText` on its
-dialog returns nothing. UI Automation is the only technology guaranteed to be
-available that can read crash dialog text.
+The text is also hard to get at, because Live draws its own windows. A dialog of
+Live has the window class `Ableton Live Window Class` and not `#32770`, so it
+is not a Windows dialog, and it has no child windows of its own. Everything that
+is asked of the window comes back empty:
+
+| what is asked of the window | what comes back |
+| -------------------------- | --------------- |
+| `GetWindowText`            | the empty string |
+| `EnumChildWindows`         | no children |
+| UI Automation, control view | no name, no descendants, not modal |
+| UI Automation, raw view    | no children |
+| MSAA `IAccessible`         | no name, no children |
+
+So UI Automation cannot read the text of a crash dialog, and neither can MSAA.
+The pixels are the one place the text survives: `PrintWindow` with
+`PW_RENDERFULLCONTENT` captures the window, and the built-in Windows OCR engine
+(`Windows.Media.Ocr`) reads the capture. On Live's main window that reads the
+title, the menu bar and the mixer labels correctly; on a dialog it reads most of
+the text, and it drops the words in the middle of a line. The OCR is therefore
+good enough to tell a crash dialog from another dialog, and not good enough to
+be the text of record.
+
+Three notes for a capture, from what had to be found out the hard way:
+
+- `PW_RENDERFULLCONTENT` (0x2) is needed. A plain `PrintWindow` often returns a
+  blank or a partial image.
+- A dialog of Live is small, and the OCR has few pixels to work with. Capturing
+  it larger, or upscaling the capture, recovers more of the text.
+- The process that captures the window has to be at the same integrity level as
+  the application, or the capture fails silently.
+
+Tesseract reads the same capture and is more accurate on some fonts, at the
+price of another dependency.
 
 
 ### The harness must classify the top-level dialog and know how to dismiss it

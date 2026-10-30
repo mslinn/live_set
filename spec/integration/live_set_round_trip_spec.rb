@@ -61,7 +61,7 @@ module RoundTrip
         installation = LiveInstallations.version '11'
         preferences = LiveInstallations.preferences '11'
         log_path = preferences && File.join(preferences, 'Log.txt')
-        GuiHarness::LiveLauncher.launch installation.executable, converted, log: log_path, timeout: 13
+        GuiHarness::Live::Launcher.launch installation.executable, converted, log: log_path, timeout: 13
       end
     end
   end

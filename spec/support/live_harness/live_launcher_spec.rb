@@ -3,7 +3,7 @@ require 'support/gui_harness'
 require 'demo_sets'
 require 'live_installations'
 
-RSpec.describe GuiHarness::LiveLauncher do
+RSpec.describe GuiHarness::Live::Launcher do
   let(:ableton_home) { '/mnt/c/ProgramData/Ableton' }
 
   let(:ableton_8_home) { "#{ableton_home}/Live 8" }

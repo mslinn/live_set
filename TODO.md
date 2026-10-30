@@ -190,6 +190,22 @@ is a set by a user of Live rather than a demo set, so the demo set is still want
 is the one whose structure the schema was inferred from, and the Live 12 version of it is what
 the round trip opens in Live 11.
 
+#### N54. Live 8, Live 9 and Live 10 cannot be authorized
+
+Every version of Live registers the file types of its sets when it starts, and that registration
+needs the permission of an administrator. On this machine only Live 11 and Live 12 can be
+authorized. Live 8, Live 9 and Live 10 start, but they cannot save sets: the registration cannot
+be completed for them, so a set they are given is never written back.
+
+A support request has been sent to Ableton, asking for a way to authorize Live 8, Live 9 and
+Live 10. Until there is an answer, the round trip through those versions cannot be proved by
+running Live, and the examples that need them are the ones that are skipped.
+
+The prompt is per version, and it only comes once per version: the first time a version runs it
+asks, switching to another version asks again for that version, and running a version again does
+not ask, provided the user accepted the first time. `docs/live_control_plan.md` describes the
+behavior and what the harness does with it.
+
 #### L1. Live ships its own schemas; use them
 
 Every Live installation carries a directory of schemas of the format, one file per format version, named after the `MinorVersion` of a set. They are Live's own description of the format, and they are more complete than the XSDs this repository infers from the demo sets: 114 of the element names in `schemas/vocab_live11.txt` are in Live's schema for 11.0 and cannot be in the inferred one, because no Live 11 demo set contains them.
