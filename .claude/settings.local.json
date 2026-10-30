@@ -22,7 +22,8 @@
       "Bash(rg -rn \"ableton\\\\.com|release notes|Release Notes\" docs/ README.md TODO.md)",
       "Bash(rg -n \"RSpec.describe|describe \" spec/live_set/tx/*.rb)",
       "Bash(powershell.exe -NoProfile -ExecutionPolicy Bypass -Command '$env:GUI_HARNESS_DEBUG='\\\\''1'\\\\''; & '\\\\''C:\\\\Windows\\\\Temp\\\\gh_probe.ps1'\\\\'' -Exe notepad.exe -Set '\\\\''C:/path/that/does/not/exist/x.txt'\\\\'' -TimeoutSeconds 3')",
-      "Bash(powershell.exe -NoProfile -ExecutionPolicy Bypass -Command '$env:GUI_HARNESS_DEBUG='\\\\''1'\\\\''; & '\\\\''C:\\\\Windows\\\\Temp\\\\gh_probe.ps1'\\\\'' -Exe '\\\\''C:\\\\ProgramData\\\\Ableton\\\\Live 11 Suite\\\\Program\\\\Ableton Live 11 Suite.exe'\\\\'' -Set '\\\\''C:\\\\ProgramData\\\\Ableton\\\\Live 11 Suite\\\\Resources\\\\Core Library\\\\Lessons\\\\Demo Songs\\\\Ninajirachi - In The Rain \\(Live 11 Suite Demo\\).als'\\\\'' -TimeoutSeconds 25 -Log '\\\\''C:\\\\Users\\\\Mike Slinn\\\\AppData\\\\Roaming\\\\Ableton\\\\Live 11.3.43\\\\Preferences\\\\Log.txt'\\\\''')"
+      "Bash(powershell.exe -NoProfile -ExecutionPolicy Bypass -Command '$env:GUI_HARNESS_DEBUG='\\\\''1'\\\\''; & '\\\\''C:\\\\Windows\\\\Temp\\\\gh_probe.ps1'\\\\'' -Exe '\\\\''C:\\\\ProgramData\\\\Ableton\\\\Live 11 Suite\\\\Program\\\\Ableton Live 11 Suite.exe'\\\\'' -Set '\\\\''C:\\\\ProgramData\\\\Ableton\\\\Live 11 Suite\\\\Resources\\\\Core Library\\\\Lessons\\\\Demo Songs\\\\Ninajirachi - In The Rain \\(Live 11 Suite Demo\\).als'\\\\'' -TimeoutSeconds 25 -Log '\\\\''C:\\\\Users\\\\Mike Slinn\\\\AppData\\\\Roaming\\\\Ableton\\\\Live 11.3.43\\\\Preferences\\\\Log.txt'\\\\''')",
+      "WebSearch"
     ]
   }
 }

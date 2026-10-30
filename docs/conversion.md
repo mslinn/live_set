@@ -93,6 +93,7 @@ Every difference between two Live versions falls into one of eight kinds. Each
 kind needs a different operation, so the list of differences has to be sorted by
 kind before anything can be done with it.
 
+<!-- markdownlint-disable MD013 -->
 | Kind                          | Example, measured on the demo sets                                                                                                                 | Operation           |
 | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
 | Element in the source only    | `InstrumentMeld` (2), `Roar` (10), `MxPatchRef` (5), `ArrangementClipsListWrapper` (45), `TakeLanesListWrapper` (19)                               | delete              |
@@ -103,6 +104,7 @@ kind before anything can be done with it.
 | Value not legal in the target | lane `Type` 2 and 3 in `ContentLanes`, `Type` 5 in `ExpressionLanes`                                                                               | filter or translate |
 | Element at a different depth  | *none found in the demo sets*                                                                                                                      | move                |
 | Everything else               |                                                                                                                                                    | keep unchanged      |
+<!-- markdownlint-enable MD013 -->
 
 Three notes on this table:
 
@@ -186,16 +188,16 @@ they are the same element. That is a judgement, made when the transformation is 
 
 Section 2.2 lists eight kinds. Each is a different operation:
 
-| Kind                          | How it is expressed                                                         |
-| ----------------------------- | --------------------------------------------------------------------------- |
-| delete an element             | a transformation that matches it and emits nothing                          |
-| delete an attribute           | a transformation that matches the attribute and emits nothing               |
-| rename an element             | a transformation that matches the old name and emits the new one            |
-| rewrite an attribute value    | a transformation that matches the attribute and writes a new value          |
-| add an element with a default | a transformation that copies the parent and appends the new child           |
+| Kind                          | How it is expressed                                                                   |
+| ----------------------------- | ------------------------------------------------------------------------------------- |
+| delete an element             | a transformation that matches it and emits nothing                                    |
+| delete an attribute           | a transformation that matches the attribute and emits nothing                         |
+| rename an element             | a transformation that matches the old name and emits the new one                      |
+| rewrite an attribute value    | a transformation that matches the attribute and writes a new value                    |
+| add an element with a default | a transformation that copies the parent and appends the new child                     |
 | filter by value               | a transformation that matches the element and emits it only when its value is allowed |
-| move an element               | copy it to the new parent, and suppress the original                        |
-| keep everything else          | the identity transformation                                                |
+| move an element               | copy it to the new parent, and suppress the original                                  |
+| keep everything else          | the identity transformation                                                           |
 
 All seven operations were exercised against a miniature ALS document and all seven work in
 XSLT 1.0, which is what Nokogiri implements.
@@ -209,7 +211,7 @@ XSLT 1.0, which is what Nokogiri implements.
 | Attribute value respelled                  | no — the comparison shows *that* the value differs, not what it becomes |
 | Element renamed                            | no — by inspection                                                      |
 | Element moved                              | no — by inspection                                                      |
-| Value not legal in the target              | no — needs the value domain, "Value domains"                             |
+| Value not legal in the target              | no — needs the value domain, "Value domains"                            |
 | Element to be added, and its default       | no — by inspection                                                      |
 
 **The transformations are written by hand.** Nothing produces them automatically. The
@@ -377,7 +379,7 @@ comparator works on the shapes.
 
 ### The component
 
-**Inputs**
+#### Inputs
 
 | # | Input | Notes |
 | --- | --- | --- |
@@ -386,14 +388,14 @@ comparator works on the shapes.
 | 3 | The target version | The same. |
 | 4 | The target baseline | The baseline for the target version. |
 
-**Outputs**
+#### Outputs
 
 | # | Output | Notes |
 | --- | --- | --- |
 | 1 | The converted document | A `Nokogiri::XML::Document` in the target version's format. |
 | 2 | A report | The differences, as actions. |
 
-**Capabilities**
+#### Capabilities
 
 1. **Apply a chain of transforms in order, in memory.** No intermediate files.
 2. **Find the chain for a version_diff.** Given a source version and a target version, work out
@@ -403,7 +405,7 @@ comparator works on the shapes.
 5. **Refuse to report success when something went wrong.** A failed stage, or an output with names
    the target version does not have, is an error, not a conversion.
 
-**What it must not do**
+#### What it must not do
 
 - **Decide what the differences are.** That is the transformations' job. The component applies
   transformations; it does not write them.
@@ -475,10 +477,12 @@ discovered and then maintained by hand.
 
 Take any set of that version and remove two things:
 
-| What to remove | How to know what to remove |
-| --- | --- |
-| The optional attributes | An attribute is required iff every instance carried it. The XSD generator already computes this: 35,708 of 35,716 attribute declarations in the Live 11 schema are `use="required"`. |
+<!-- markdownlint-disable MD060 MD013 -->
+| What to remove           | How to know what to remove |
+| ------------------------ | -------------------------- |
+| The optional attributes  | An attribute is required iff every instance carried it. The XSD generator already computes this: 35,708 of 35,716 attribute declarations in the Live 11 schema are `use="required"`.  |
 | The members of the lists | An element is optional iff some instance of that parent lacked it. The XSD generator already computes this too: 99 of 44,695 element declarations in the Live 11 schema are optional. |
+<!-- markdownlint-enable MD060 MD013 -->
 
 Both are decided **per path**, not per element name, because the XSD generator produces one content
 model per path. Live 11 has 31,190 content models against 1,808 distinct element names. That is
@@ -616,11 +620,13 @@ specification.
 
 The value domains have to be produced by this project. There are three possible sources:
 
-| Source | What it gives | What it costs |
-| --- | --- | --- |
-| The corpus | The values that were seen, per element path, per Live version. The XSD generator can record these mechanically, the same way it records structure. | It records what was seen, not what is legal. A value never seen is indistinguishable from an illegal value. |
-| Live itself | The authority. | It can only be consulted by opening sets in Live and seeing what it accepts. That is what `docs/live_control_plan.md` does. |
-| Hand-written knowledge | The values that matter. | Tedious, and it goes stale. |
+<!-- markdownlint-disable MD060 MD013 -->
+| Source                 | What it gives                 | What it costs |
+| ---------------------- | ----------------------------- | ------------- |
+| The corpus             | The values that were seen, per element path, per Live version. The XSD generator can record these mechanically, the same way it records structure. | It records what was seen, not what is legal. A value never seen is indistinguishable from an illegal value. |
+| Live itself            | The authority.                | It can only be consulted by opening sets in Live and seeing what it accepts. That is what `docs/live_control_plan.md` does. |
+| Hand-written knowledge | The values that matter.       | Tedious, and it goes stale. |
+<!-- markdownlint-enable MD060 MD013 -->
 
 **The lane case is the good case.** The lanes are application state, not material, and the set of
 lanes is the same in every set of a given Live version. So for the lanes the corpus gives the

@@ -718,9 +718,9 @@ no lanes of those types, so it cannot render them; and a Live 11 set has a lane 
 The conversion does not try to reconcile this. It renames the element and leaves the lanes alone,
 because:
 
-- **The `Type` values are not portable.** There is no mapping from a Live 12 lane to a Live 11
+* **The `Type` values are not portable.** There is no mapping from a Live 12 lane to a Live 11
   lane, because the two versions number their lanes differently within the same family.
-- **The lanes are application state, not material.** They record which panel is open and how wide
+* **The lanes are application state, not material.** They record which panel is open and how wide
   it is. Nothing in the set's audio depends on them.
 
 Whether Live 11 tolerates a lane of an unknown `Type` is not known. It is a small thing to test:
@@ -736,7 +736,7 @@ unknown `Type`:
 This is not a theoretical problem. The round-tripped file was opened in Live 11 Suite 11.3.43
 and it crashed Live, with the log showing the exception a second after `Begin ExchangeDocument`:
 
-```
+```text
 2026-10-22T16:22:56.753332: info: Default App: Begin ExchangeDocument
 2026-10-22T16:22:58.144252: info: Exception: Windows Exception
 2026-10-22T16:22:58.144280: info: Exception: Fatal Error: Unhandled exception
@@ -830,7 +830,7 @@ A track's `<Name>` element has four children, all of which are `Value` attribute
 | `EffectiveName`          | The name Ableton resolved. Accounts for renames, and for the numbering it adds to duplicate tracks. |
 | `UserName`               | The raw name the user typed. Often empty.                                                           |
 | `Annotation`             | Free text the user typed. Not a name.                                                               |
-| `MemorizedFirstClipName` | A clip name, not a track name.                                                                  |
+| `MemorizedFirstClipName` | A clip name, not a track name.                                                                      |
 
 For Live 9+, `EffectiveName` is the display named for the track, and `UserName`
 is the fallback value. For Live 8, `UserName` contains the track name.
@@ -1236,7 +1236,7 @@ That is a statement about the evidence, not a proof of absence. The corpus is
 one person's collection, and it holds 314 nested group tracks, so nesting
 plainly does occur. The evidence against `FakeGroup` is:
 
-| Check | Result |
+| Check                                                                                                  | Result                                                  |
 | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------- |
 | The string "fake", any case, anywhere in 460 sets                                                      | **0** occurrences — not an element, attribute, or value |
 | The string "fake" in the 61,000-line `evasiva.xml` test file in `pyableton`                            | **0** occurrences                                       |
@@ -1247,12 +1247,14 @@ plainly does occur. The evidence against `FakeGroup` is:
 And the specific elements that the claim names do not appear either. In a
 120-file sample:
 
+<!-- markdownlint-disable MD013 MD060 -->
 | Element                                      | Occurrences |
-| -------------------------------------------- | ---         |
+| -------------------------------------------- | ----------- |
 | `TrackWrapperType`                           | 0           |
-| `RoutingTarget`                              | 0                                                                                                                                                                                                                                |
+| `RoutingTarget`                              | 0           |
 | any element matching `*Wrapper*`             | only the real ones: `ParametersListWrapper`, `DevicesListWrapper`, `ClipSlotsListWrapper`, `ArrangementClipsListWrapper`, `TakeLanesListWrapper`, `SendsListWrapper`, `ChainsListWrapper`, `ReturnChainsListWrapper`, and others |
 | any attribute *value* containing "FakeGroup" | 0           |
+<!-- markdownlint-enable MD013 MD060 -->
 
 The strongest evidence is structural. A nested group and a top-level group have
 **exactly the same child elements** — the same 21 of them, in the same order,
@@ -1293,9 +1295,9 @@ routed into group 27, which is routed into Main.
 
 Two things follow:
 
-- **The hierarchy is recoverable** by following `TrackGroupId` up from a track.
+* **The hierarchy is recoverable** by following `TrackGroupId` up from a track.
   Nothing needs to be inferred.
-- **A track's own routing target is not enough to know its group.** A member
+* **A track's own routing target is not enough to know its group.** A member
   routed to `AudioOut/GroupTrack` does not say *which* group. That is what
   `TrackGroupId` is for.
 

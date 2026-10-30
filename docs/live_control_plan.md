@@ -280,11 +280,11 @@ Set](https://help.ableton.com/hc/en-us/articles/209774005-Location-of-the-defaul
 
 Four installations are present on the machine this was developed on:
 
-* Live 8.4.2 Standard
-* Live 9.7.7_64 Standard
-* Live 10.1.43 Standard
-* Live 11.3.43 Suite
-* Live 12 Suite
+- Live 8.4.2 Standard
+- Live 9.7.7_64 Standard
+- Live 10.1.43 Standard
+- Live 11.3.43 Suite
+- Live 12 Suite
 
 ### Windows and WSL Roles
 
@@ -409,13 +409,15 @@ The harness is not allowed to treat every modal window as the same thing. It has
 *top-level UI dialog* itself, read the visible text, classify which dialog family it is, and then
 choose the right dismissal action. The harness should understand the following cases explicitly:
 
-| Dialog family | Typical text | Required handling |
-| --- | --- | --- |
-| Normal load | no dialog | continue; the set loads and the log reaches `End ExchangeDocument` |
-| Recovery prompt | `Would you like to recover your work?` | classify as recovery state; dismiss it with `No` / `n` and confirm the log says `Restore Document: Rejected by the user` |
+<!-- markdownlint-disable MD060 MD013 -->
+| Dialog family         | Typical text                                             | Required handling                                                                                                               |
+| --------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Normal load           | no dialog                                                | continue; the set loads and the log reaches `End ExchangeDocument`                                                              |
+| Recovery prompt       | `Would you like to recover your work?`                   | classify as recovery state; dismiss it with `No` / `n` and confirm the log says `Restore Document: Rejected by the user`        |
 | Serious program error | `A serious program error has occurred.` or `fatal error` | classify as fatal; record the exact dialog text and mark the run as failed; do not continue as though it were a harmless prompt |
-| Save changes? | `Save changes?` or equivalent modal prompt | classify as a save prompt; answer `n` and confirm the action instead of silently guessing |
-| Unknown modal dialog | any other top-level dialog | capture the text, mark the run as blocked or failed, and do not suppress the message |
+| Save changes?         | `Save changes?` or equivalent modal prompt               | classify as a save prompt; answer `n` and confirm the action instead of silently guessing                                       |
+| Unknown modal dialog  | any other top-level dialog                               | capture the text, mark the run as blocked or failed, and do not suppress the message                                            |
+<!-- markdownlint-enable MD060 MD013 -->
 
 The point is not to hide the dialog; it is to recognise it, answer the right button or key,
 confirm that the answer landed, and keep the result honest.

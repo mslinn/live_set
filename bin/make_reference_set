@@ -36,11 +36,24 @@ end
 
 # The path of the set the tool writes.
 #
+# Live writes a set as a project folder: a directory that holds the set and what Live writes
+# around it, and that a file manager shows as a file. Live makes the folder itself, so the
+# path that is given to Live has no folder and no extension.
+#
 # @param version [String] the version, e.g. "12"
 # @param name [String] the name of the set
 # @return [String] the path of the set
 def reference_path(version, name)
   File.join reference_directory(version), "#{name} Project", "#{name}.als"
+end
+
+# The path that is given to Live, and that Live writes the set under.
+#
+# @param version [String] the version, e.g. "12"
+# @param name [String] the name of the set
+# @return [String] the path
+def save_path(version, name)
+  File.join reference_directory(version), name
 end
 
 # The reference sets of a version.
@@ -72,18 +85,26 @@ source ||= reference_sets((version.to_i - 1).to_s).first
 abort "There is no reference set of Live #{(version.to_i - 1).to_s} to open." if source.nil?
 
 path = reference_path version, name
+target = save_path version, name
 preferences = LiveInstallations.preferences version
 log = preferences && File.join(preferences, 'Log.txt')
+
+# The source set is opened in Live, and Live saves it under the new name. Live writes the set
+# as a project folder: a directory that holds the set and what Live writes around it, and
+# that Live makes itself.
+FileUtils.mkdir_p reference_directory(version)
 
 puts "Opening #{source} in Live #{version}"
 result = GuiHarness::LiveLauncher.launch installation.executable,
                                           source,
                                           log:     log,
-                                          save:    path,
+                                          save:    target,
                                           timeout: 13,
                                           debug:   true
 
 puts "The set was not saved." unless result.saved
+result.messages.each { |message| puts "Live put up a message box: #{message}" }
+puts "Live was installing packages." if result.updater
 abort "Live put up a dialog: #{result.dialog}" if result.dialog
 puts result.output unless result.saved
 
