@@ -20,6 +20,27 @@ same set, opened in Live 12 and saved. Live 12 saves a set as a project folder, 
 the `.als` file in it. The rest of the folder is what Live writes around the set, and is not
 checked in.
 
+## How the Live 12 set is made
+
+Live has to be running to make it, and the set is made by opening the Live 11 set in Live 12 and
+saving it. `bin/make_reference_set` does that:
+
+```shell
+bundle exec ruby bin/make_reference_set 12 Fascination_12_converted_by_live sets/live_11/Fascination.als
+```
+
+The tool opens the set in Live 12, waits for Live to say that it has loaded it, and saves it
+under the name that was given. The set is written as the Live that is installed writes it, so a
+set written by another build of Live 12 is not the same set. The set is checked in afterwards, by
+hand:
+
+```shell
+git add "sets/live_12/Fascination_12_converted_by_live Project/Fascination_12_converted_by_live.als"
+```
+
+The tool needs the version of Live that is asked for to be installed, and it needs the GUI
+harness, which is a development dependency of this project.
+
 ## The samples of these sets
 
 The samples of `live_11/Fascination.als` are not in the repository, and the Live 12 version

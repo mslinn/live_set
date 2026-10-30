@@ -105,6 +105,7 @@ RSpec.describe GuiHarness::LiveLauncher do
         Loading document "#{winpath}"
         Begin ExchangeDocument
         End ExchangeDocument
+        Loading command-line document: done.
       TEXT
 
       status = Struct.new(:exitstatus, keyword_init: true).new(exitstatus: 0)
@@ -118,6 +119,27 @@ RSpec.describe GuiHarness::LiveLauncher do
       expect(result.crashed).to be false
       expect(result.loaded).to be true
       expect(result.log).to include('End ExchangeDocument')
+    end
+
+    it 'reports a document that could not be loaded as not loaded' do
+      output = <<~TEXT
+        DIALOG: The document "C:/missing.als" is corrupt and cannot be loaded.
+        DIALOG_TYPE: unknown
+        DISMISS_ACTION: none
+        CRASHED: no
+        --- LOG ---
+        Begin ExchangeDocument
+        End ExchangeDocument
+        error: Failed to load command-line document: The document "C:/missing.als" is corrupt and cannot be loaded.
+        Loading command-line document: done.
+      TEXT
+
+      status = Struct.new(:exitstatus, keyword_init: true).new(exitstatus: 0)
+      result = described_class.send(:parse, output, status)
+
+      expect(result.loaded).to be false
+      expect(result.outcome).to eq(:unknown)
+      expect(result.dialog).to include('cannot be loaded')
     end
 
     it 'detects a fatal crash from the launcher output' do

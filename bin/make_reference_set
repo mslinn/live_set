@@ -14,7 +14,8 @@
 # the only set in `sets/live_<version - 1>`.
 #
 # The set is written into the repository, so the tool says what it wrote and where. The set is
-# checked in afterwards, by hand: `git add` the directory, and the icon file in it.
+# checked in afterwards, by hand: `git add` the `.als` file in the project folder. What Live
+# writes around the set is not checked in.
 #
 # The tool needs the version of Live to be installed, and it needs the GUI harness, which is a
 # development dependency of this project.
@@ -93,6 +94,15 @@ log = preferences && File.join(preferences, 'Log.txt')
 # as a project folder: a directory that holds the set and what Live writes around it, and
 # that Live makes itself.
 FileUtils.mkdir_p reference_directory(version)
+
+# Live does not write into a project folder that is already there: it makes a folder with a
+# number on the end of the name instead. The set is written under the name that was asked for,
+# so a folder that is already there is taken away first.
+project = File.join reference_directory(version), "#{name} Project"
+if File.exist? project
+  puts "Taking away the project folder that was already there: #{project}"
+  FileUtils.rm_rf project
+end
 
 puts "Opening #{source} in Live #{version}"
 result = GuiHarness::LiveLauncher.launch installation.executable,

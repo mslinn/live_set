@@ -182,6 +182,8 @@ The work is to open the Live 11 demo set in Live 12, save it, and check the resu
 The reference sets for Live 11 and Live 12 are both checked in:
 `sets/live_11/Fascination.als` and the Live 12 version of it,
 `sets/live_12/Fascination_12_converted_by_live Project/Fascination_12_converted_by_live.als`.
+The Live 12 version was made by `bin/make_reference_set`, which opens the Live 11 set in
+Live 12, waits for Live to say that it has loaded it, and saves it under a name of its own.
 The conversion of the second down to the Live 11 format is proved in
 `spec/live_set/tx/live_12_fascination_down_spec.rb`. It
 is a set by a user of Live rather than a demo set, so the demo set is still wanted: the demo set

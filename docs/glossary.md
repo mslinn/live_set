@@ -117,6 +117,19 @@ The word is not used in these documents. Where two versions of Live are concerne
 the words are "bridge" and "version_diff"; where the same set in two versions is
 concerned, the words are "reference sets".
 
+## Project folder
+
+What Live writes a set as: a directory that holds the set and what Live writes
+around it. The set is the `.als` file in it, and the folder also holds
+`Desktop.ini` and `Ableton Project Info/AProject.ico`. A file manager shows the
+folder as a file.
+
+Live appends ` Project` to the name of the set to make the folder, and it makes
+the folder itself. Live does not write into a folder that is already there: it
+makes a folder with a number on the end of the name instead.
+
+Only the `.als` file of a project folder is checked in.
+
 ## Reference sets
 
 Sets that are checked in, so that they are the same for everyone who works on this
