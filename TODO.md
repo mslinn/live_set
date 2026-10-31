@@ -206,6 +206,31 @@ asks, switching to another version asks again for that version, and running a ve
 not ask, provided the user accepted the first time. `docs/live_control_plan.md` describes the
 behavior and what the harness does with it.
 
+The prompt no longer stops the work: the harness writes a per-user registration of the
+`ableton:` protocol before it starts Live, and takes it away when the run is over, so that the
+version of Live that is about to run is the one the registration names and no prompt comes. That
+is in the `gui_harness` project, in `docs/elevation.md`.
+
+#### N55. The A/B program of nearly-empty sets
+
+The program is in `docs/ab_test_plan.md`: nearly-empty Live 11 sets, one thing in each, written
+by Live 11 and by Live 12 and compared, with the bridge and the version_diff document brought
+up to date with what the comparison shows.
+
+The first case is made: `sets/live_11/one_midi_track_only_11 Project/one_midi_track_only_11.als`,
+a Live 11.3.43 set with one MIDI track, the two return tracks, and no audio track. Its Live 12
+counterpart has not been made yet.
+
+Three questions are open, and they are the questions the first cases have to answer:
+
+- What happens when every track is removed? The interface will not delete the last track that is
+  left, so a set with no tracks has to be written by hand to find out.
+- Will Live 11 and Live 12 load a programmatically created empty Live set? Live is strict about
+  the sets it opens, and a set that Live rejects is a file and not a case.
+- Can the MIDI track be deleted when it is the only track left? That settles whether Live
+  protects the arrangement from being emptied, or protects an audio track from being the last
+  one.
+
 #### L1. Live ships its own schemas; use them
 
 Every Live installation carries a directory of schemas of the format, one file per format version, named after the `MinorVersion` of a set. They are Live's own description of the format, and they are more complete than the XSDs this repository infers from the demo sets: 114 of the element names in `schemas/vocab_live11.txt` are in Live's schema for 11.0 and cannot be in the inferred one, because no Live 11 demo set contains them.

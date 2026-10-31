@@ -25,6 +25,9 @@ class LiveSet
            set is left alone.
         -h Display this help message.
 
+      The report of a set is markdown. It is written to stdout, and the log is written to
+      stderr, where it is never markdown.
+
       Example:
         live_set -11 -f $path/to/my_v12_set.als
     END_HELP

@@ -97,9 +97,4 @@ class LiveAudioClip
   def collected?
     @relative_path&.start_with?('Samples/Imported/') || false
   end
-
-  def show_clip
-    modified = @last_modified&.strftime('%Y-%m-%d %H:%M:%S') || ''
-    ["    #{@relative_path}", human_file_size(@file_size).rjust(8, ' '), modified]
-  end
 end

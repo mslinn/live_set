@@ -108,32 +108,6 @@ class LiveTrack
     distinct_clips.all?(&:collected?)
   end
 
-  def show_track(all_frozen)
-    name = self.name
-    clips = distinct_clips
-    frozen = frozen? ? ' frozen'.green : ' **not frozen**'.yellow unless all_frozen || clips.empty?
-    size = ", totaling #{human_file_size track_size}" unless clips.empty?
-    count = " (#{clips.length} clips, #{distinct_file_count} files#{size})"
-
-    track_line = "Track '#{name}'#{frozen}#{count}"
-
-    return track_line if clips.empty?
-
-    "#{track_line}\n#{show_clips}"
-  end
-
-  # The clips in the track, grouped by where they come from.
-  #
-  # @return [String] a multiline report of the track's clips
-  def show_clips
-    @audio_clips.filter_map do |source, clips|
-      next if clips.empty?
-
-      heading = "  #{source}: #{clips.length} clips, #{clips.uniq(&:absolute_path).length} files"
-      [heading, clips.map(&:show_clip).columnize('  ')]
-    end.join("\n")
-  end
-
   # The number of distinct files the track's clips refer to.
   #
   # @return [Integer] the number of distinct files

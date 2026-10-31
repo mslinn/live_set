@@ -32,9 +32,15 @@ class LiveSet
 
   # Ask user if they want to disable an extra 'Ableton Project Info' directory in a parent.
   # These directories can mess up Ableton Live.
+  #
+  # The question is asked on stderr, so that the report a program writes to stdout is only what
+  # the program was asked to produce. It is asked only when there is a terminal to ask at: a
+  # program that reads a set without one is left to warn and to go on.
   def add_dash_suffix(cur_dir, path)
     Log.warn "Warning: 'Ableton Project Info' exists in parent directory '#{cur_dir.to_path}'"
-    return unless HighLine.agree("\nDo you want the directory to be disabled by suffixing a dash to its name? ")
+    return unless $stdin.tty?
+
+    return unless HighLine.new($stdin, $stderr).agree("\nDo you want the directory to be disabled by suffixing a dash to its name? ")
 
     Log.debug "Renaming #{path} to #{path}-"
     File.rename path, "#{path}-"

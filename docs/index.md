@@ -17,6 +17,7 @@ Read this first. It is the map; the documents it points at are the detail.
 | [`cpfir.md`](cpfir.md) | The architectural guide to composing bidirectional transformations in Ruby: pure function composition, the version-keyed registry, the composition of the bridges between two versions, the classes of a conversion, and how two sets are compared. |
 | [`conversion.md`](conversion.md) | What the conversion has to become: the kinds of difference between two Live versions, the pieces of the component, the traps of XSLT 1.0, and the problem of value domains. It is a design document, written before the transform was written in Ruby. |
 | [`live_control_plan.md`](live_control_plan.md) | The plan for proving a conversion by round-tripping it through Ableton Live under program control, using the `gui_harness` gem. |
+| [`ab_test_plan.md`](ab_test_plan.md) | **The PROGRAM.** Nearly-empty Live 11 sets, one thing in each, written by Live 11 and by Live 12 and compared: how a case is made, where the sets live, what the factory-default set holds, and the questions that are still open. |
 | [`release_notes/index.md`](release_notes/index.md) | The release notes of Live 8 through Live 12, downloaded from Ableton's web site and kept in `release_notes/`, one HTML file per version. They are the evidence for what each version changed, and where they came from and how they were obtained is written down there. |
 
 **The release notes are not installed with Live.** No version of Live puts a

@@ -333,6 +333,15 @@ a run of a version that has not is held up until the user answers the prompt.
 The harness does not start Live at all while a prompt is waiting, and reports
 the run as blocked by the installer rather than as a set that was loaded.
 
+The prompt no longer stops the work. Live rewrites the machine-wide
+registration of the `ableton:` protocol when it starts and finds that another
+version ran last, and that rewrite is what is elevated. The harness writes a
+per-user registration of that protocol before it starts Live, and the shell
+resolves it in place of the machine-wide one, so Live finds its own version
+there and does not ask to be promoted. The registration of the run is taken
+away when the run is over, and the registration of the machine applies again.
+That is in the `gui_harness` project, in `docs/elevation.md`.
+
 Only Live 11 and Live 12 can be authorized on this machine. Live 8, Live 9 and
 Live 10 start, but they cannot save sets: the registration cannot be completed
 for them, so a set they are given is never written back. A support request has

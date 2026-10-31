@@ -29,7 +29,10 @@
       "Bash(sed -n '100,120p' \"/mnt/c/Users/Mike Slinn/AppData/Roaming/Ableton/Live 11.3.43/Preferences/Log.txt\")",
       "Bash(sed -n '1,700p' \"/mnt/c/Users/Mike Slinn/AppData/Roaming/Ableton/Live 11.3.43/Preferences/Log.txt\")",
       "Bash(claude --version)",
-      "Bash(timeout 60 ddgr --json \"MiniMax-M2.5 context length tokens\")"
+      "Bash(timeout 60 ddgr --json \"MiniMax-M2.5 context length tokens\")",
+      "WebFetch(domain:help.ableton.com)",
+      "WebFetch(domain:forum.ableton.com)",
+      "WebFetch(domain:www.reddit.com)"
     ]
   }
 }
