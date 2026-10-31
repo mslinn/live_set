@@ -10,6 +10,11 @@ from one computer to the next.
 | `live_12/Fascination_12_converted_by_live Project/Fascination_12_converted_by_live.als` | 12.4.7 | The same set as Live 12 wrote it. Both reference sets are checked in, so the conversion down to Live 11 can be proved against the set Live 11 itself wrote, and the round trip can run without Live 12. |
 | `live_11/one_midi_track_only_11 Project/one_midi_track_only_11.als` | 11.3.43 | The first case of the A/B program: a Live 11 set with one MIDI track, the two return tracks, and no audio track. The program is in [`../docs/ab_test_plan.md`](../docs/ab_test_plan.md). |
 
+## The analyses of the sets
+
+What each set holds is written down in [`../analysis/`](../analysis/README.md), one report per
+set, made by `bin/make_analysis`.
+
 ## Provenance
 
 `live_11/Fascination.als` comes from

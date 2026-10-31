@@ -116,3 +116,4 @@ The transformations of a version_diff are written by hand, and the process for f
 | [`../README.md`](../README.md) | What the program does, how to install and use it, and the sample report. |
 | [`../TODO.md`](../TODO.md) | The outstanding work of the gem, with the stable identifiers (`T1`, `N42`, `GH1`, `L1`, …) that the code and the other documents cite. The plan the conversion is measured against is in [`fix_plan2.md`](fix_plan2.md). |
 | [`../sets/README.md`](../sets/README.md) | The reference sets checked into this repository, and why each one is here. |
+| [`../analysis/README.md`](../analysis/README.md) | **The ANALYSES.** What each set holds, written down: the tracks of the set, the state of each one, the effects on it, and the clips of it. Made by `bin/make_analysis`. |

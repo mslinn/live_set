@@ -35,6 +35,10 @@ a set that holds the demo set.
    [live_11_12_diff.md](live_11_12_diff.md). Every difference that the bridge does not already
    account for is new work: it goes into the bridge in `lib/live_set/tx/`, and into that
    document.
+4. **Write down what the set holds.** The analysis of the set is the report `live_set` writes
+   for it: the tracks, the state of each one, the effects on it, and the clips of it. The
+   analyses are in [`../analysis/`](../analysis/README.md), and they are made by
+   `bin/make_analysis`.
 
 A case is done when the bridge reproduces what Live 12 did, and the version_diff document says
 what the difference is.
@@ -83,6 +87,45 @@ allows:
 So the smallest set that can be made through the interface is a set with one track. A set with
 no tracks at all cannot be made that way, and the cases of the program are therefore not sets
 with no tracks — unless the questions below are settled otherwise.
+
+## The factory default, and the set that was saved under its name
+
+Ableton's article on the default and template sets
+(https://help.ableton.com/hc/en-us/articles/209067189-Default-Set-and-Template-Sets) says of the
+default set:
+
+> "The Default Set is the project that automatically opens when you launch Ableton Live."
+> "The factory Default Set contains two audio tracks, two MIDI tracks, and two return tracks."
+
+and gives the places the sets of the user live: the template sets in
+`C:\Users\[Username]\Documents\Ableton\User Library\Templates`, and, for Live 10 and earlier,
+the default set in `…\AppData\Roaming\Ableton\Live x.x.x\Preferences\Template.als`. The Shift
+key is not in the article: holding it down while choosing File > New Live Set is not written
+down anywhere by Ableton.
+
+Live keeps its own copy of the factory default set, and it is on disk:
+
+| version | where the factory default set is | what it holds |
+| --- | --- | --- |
+| Live 11 | `%APPDATA%\Ableton\Live 11.3.43\Preferences\BaseFiles\DefaultLiveSet.als` | `1-MIDI`, `2-MIDI`, `3-Audio`, `4-Audio`, `A-Reverb`, `B-Delay`, `Master` |
+| Live 12 | `C:\ProgramData\Ableton\Live 12 Suite\Resources\Builtin\Templates\DefaultLiveSet.als` | the same tracks, and `Main` in place of `Master` |
+
+Both were written by Live 11.1d1 and Live 12.1d1 respectively, and both hold two audio tracks,
+two MIDI tracks and two return tracks, as the article says. The copy of Live 11's is not in the
+folder where it belongs at the moment: the crash machinery moved it into the crash archive, and
+it is moved again at every crash.
+
+**The set saved as `factory_default_11.als` is not the factory default.** It holds one audio
+track (`1-Audio`), one MIDI track (`2-MIDI`) and the return tracks `A-Return` and `B-Return`,
+and it is Live's *new empty set*: the set Live makes when it is asked for a new one. On this
+machine there are no user template sets and no user default set, so the Shift key has nothing to
+bypass and the shortcut makes no difference.
+
+The factory default set is the better case, and it is a case that has not been made: it has
+four tracks instead of two, and its return tracks are named `A-Reverb` and `B-Delay` where the
+empty set's are named `A-Return` and `B-Return`. The two sets of the factory default, one per
+version, differ in exactly one way that the analyses have found: Live 11 writes the master track
+as `<MasterTrack>` and Live 12 writes it as `<MainTrack>`.
 
 ## The questions that are open
 

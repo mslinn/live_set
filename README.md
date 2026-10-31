@@ -227,55 +227,124 @@ Example:
 
 ### Sample Report
 
-Report the version of the [Ableton Live 12 Demo Project](https://help.ableton.com/hc/en-us/articles/209774005-Location-of-the-default-Demo-Set):
+The report of a set is markdown. It names the tracks of the set, the state of each one, the
+effects on it, and the clips of it. It is written to stdout, and the log of the program is
+written to stderr and is never markdown.
 
-```text
-$ live_set "$ableton_media/Projects/Ableton Live 12 Demo Project/Ableton Live 12 Demo.als"
-/mnt/e/media/Ableton/Projects/Ableton Live 12 Demo Project/Ableton Live 12 Demo.als
-  Created by Ableton Live 12.0.1
-  Major version 5
-  Minor version v12.0_12049
-  SchemaChangeCount 7
-  Revision dc76d800e94bdd5e2d8f0f72ef4d056a634a8cd7
-Warning: This set should not be transferred to Push 3 Standalone.
- - Some non-frozen tracks have non-Ableton plugins.
-Total set size: 312.5 MB
-4 tracks:
-  Track 'Vocal Main' **not frozen** (12 clips, totaling 154.0 MB)
-    Samples/Imported/Vocal Patience Main.wav   12.8 MB  2024-01-31 22:00:34
-    Samples/Imported/Vocal Patience Main.wav   12.8 MB  2024-01-31 22:00:34
-    Samples/Imported/Vocal Patience Main.wav   12.8 MB  2024-01-31 22:00:34
-    Samples/Imported/Vocal Patience Main.wav   12.8 MB  2024-01-31 22:00:34
-    Samples/Imported/Vocal Patience Main.wav   12.8 MB  2024-01-31 22:00:34
-    Samples/Imported/Vocal Patience Main.wav   12.8 MB  2024-01-31 22:00:34
-    Samples/Imported/Vocal Patience Main.wav   12.8 MB  2024-01-31 22:00:34
-    Samples/Imported/Vocal Patience Main.wav   12.8 MB  2024-01-31 22:00:34
-    Samples/Imported/Vocal Patience Main.wav   12.8 MB  2024-01-31 22:00:34
-    Samples/Imported/Vocal Patience Main.wav   12.8 MB  2024-01-31 22:00:34
-    Samples/Imported/Vocal Patience Main.wav   12.8 MB  2024-01-31 22:00:34
-    Samples/Imported/Vocal Patience Main.wav   12.8 MB  2024-01-31 22:00:34
+Report the version of the Live 12 Suite demo set:
 
-  Track 'Vocal Harmony' **not frozen** (12 clips, totaling 154.0 MB)
-    Samples/Imported/Vocal Patience Harmony.wav   12.8 MB  2024-01-31 22:00:04
-    Samples/Imported/Vocal Patience Harmony.wav   12.8 MB  2024-01-31 22:00:04
-    Samples/Imported/Vocal Patience Harmony.wav   12.8 MB  2024-01-31 22:00:04
-    Samples/Imported/Vocal Patience Harmony.wav   12.8 MB  2024-01-31 22:00:04
-    Samples/Imported/Vocal Patience Harmony.wav   12.8 MB  2024-01-31 22:00:04
-    Samples/Imported/Vocal Patience Harmony.wav   12.8 MB  2024-01-31 22:00:04
-    Samples/Imported/Vocal Patience Harmony.wav   12.8 MB  2024-01-31 22:00:04
-    Samples/Imported/Vocal Patience Harmony.wav   12.8 MB  2024-01-31 22:00:04
-    Samples/Imported/Vocal Patience Harmony.wav   12.8 MB  2024-01-31 22:00:04
-    Samples/Imported/Vocal Patience Harmony.wav   12.8 MB  2024-01-31 22:00:04
-    Samples/Imported/Vocal Patience Harmony.wav   12.8 MB  2024-01-31 22:00:04
-    Samples/Imported/Vocal Patience Harmony.wav   12.8 MB  2024-01-31 22:00:04
+```markdown
+# `Chuck Sutton - Patience (Live 12 Suite Demo).als`
 
-  Track 'Vocal Hum' **not frozen** (1 clips, totaling 2.9 MB)
-    Samples/Imported/Vocal Patience Hum.wav    2.9 MB  2024-01-31 22:03:22
+| | |
+| --- | --- |
+| Written by | Ableton Live 12.4d1 |
+| Format | 12.0_12402 |
+| SchemaChangeCount | 1 |
+| Revision | 42bc084cd8152e4fb737ef3fefd04b2bea5320e7 |
+| Machine | Bear |
+| Directory | `/mnt/c/ProgramData/Ableton/Live 12 Suite/Resources/Core Library/Lessons/Demo Songs` |
+| Set created | 2026-09-16 14:11:47 -0400 |
+| Set modified | 2026-07-02 20:37:30 -0400 |
+| Folder created | 2026-09-16 14:11:47 -0400 |
+| Folder modified | 2026-07-02 20:37:34 -0400 |
 
-  Track 'Vocal Adlib' **not frozen** (2 clips, totaling 1.7 MB)
-    Samples/Imported/Vocal Patience Adlib.wav  827.9 kB  2024-01-31 22:00:22
-    Samples/Imported/Vocal Patience Adlib.wav  827.9 kB  2024-01-31 22:00:22
+## Push 3 Standalone
+
+❌ Warning: This set should not be transferred to Push 3 Standalone.
+- Clip '/mnt/c/ProgramData/Ableton/Live 12 Suite/Resources/Core Library/Lessons/Demo Songs/Samples/Loops/Tonal/Vocal/Vocal Patience Main.wav' has not been collected.
+- Clip '/mnt/c/ProgramData/Ableton/Live 12 Suite/Resources/Core Library/Lessons/Demo Songs/Samples/Loops/Tonal/Vocal/Vocal Patience Harmony.wav' has not been collected.
+- Clip '/mnt/c/ProgramData/Ableton/Live 12 Suite/Resources/Core Library/Lessons/Demo Songs/Samples/Loops/Tonal/Vocal/Vocal Patience Harmony.wav' has not been collected.
+- Clip '/mnt/c/ProgramData/Ableton/Live 12 Suite/Resources/Core Library/Lessons/Demo Songs/Samples/Loops/Tonal/Vocal/Vocal Patience Hum.wav' has not been collected.
+- Clip '/mnt/c/ProgramData/Ableton/Live 12 Suite/Resources/Core Library/Lessons/Demo Songs/Samples/Loops/Tonal/Vocal/Vocal Patience Adlib.wav' has not been collected.
+- Track 'Vocal Main' is unfrozen; devices: Eq8, Vocoder, Reverb, GrainDelay, AutoPan
+- Track 'Vocal Harmony' is unfrozen; devices: Eq8, Vocoder, Reverb, GrainDelay, AutoPan
+- Track 'Vocal Hum' is unfrozen; devices: Reverb
+- Track 'Vocal Adlib' is unfrozen; devices: StereoGain, Echo, AutoFilter
+
+## Tracks
+
+<table>
+<thead><tr><th>Track</th><th>Kind</th><th>Frozen</th><th>Off</th><th>Solo</th><th>Armed</th><th>Color</th><th>Clips</th></tr></thead>
+<tbody>
+<tr><td><code>Coffee Leaf</code></td><td>🎹 MIDI</td><td></td><td></td><td></td><td>✓</td><td style="background-color:#D3E499;color:#000000">32</td><td>15</td></tr>
+<tr><td><code>Strum</code></td><td>🎹 MIDI</td><td></td><td></td><td></td><td></td><td style="background-color:#BAD175;color:#000000">33</td><td>20</td></tr>
+<tr><td><code>Drums</code></td><td>🎹 MIDI</td><td></td><td></td><td></td><td></td><td style="background-color:#9AC58D;color:#000000">34</td><td>17</td></tr>
+<tr><td><code>The Beat Of History</code></td><td>🎹 MIDI</td><td></td><td></td><td></td><td></td><td style="background-color:#D4FCE0;color:#000000">35</td><td>20</td></tr>
+<tr><td><code>Mello</code></td><td>🎹 MIDI</td><td></td><td></td><td></td><td></td><td style="background-color:#CCF0F8;color:#000000">36</td><td>6</td></tr>
+<tr><td><code>Rose Bass</code></td><td>🎹 MIDI</td><td></td><td></td><td></td><td></td><td style="background-color:#84A5C3;color:#000000">50</td><td>13</td></tr>
+<tr><td><code>Sub Sub Bass</code></td><td>🎹 MIDI</td><td></td><td></td><td></td><td></td><td style="background-color:#A494B5;color:#000000">52</td><td>7</td></tr>
+<tr><td><code>Guit Layter</code></td><td>🎹 MIDI</td><td></td><td></td><td></td><td></td><td style="background-color:#B776C6;color:#000000">25</td><td>4</td></tr>
+<tr><td><code>Transform Seed</code></td><td>🎹 MIDI</td><td></td><td></td><td></td><td></td><td style="background-color:#C6938A;color:#000000">42</td><td>20</td></tr>
+<tr><td><code>Vacuum</code></td><td>🎹 MIDI</td><td></td><td></td><td></td><td></td><td style="background-color:#CD9827;color:#000000">2</td><td>24</td></tr>
+<tr><td><code>Vocal Main</code></td><td>🎵 Audio</td><td></td><td></td><td></td><td></td><td style="background-color:#F6F57C;color:#000000">3</td><td>8</td></tr>
+<tr><td><code>Vocal Harmony</code></td><td>🎵 Audio</td><td></td><td></td><td></td><td></td><td style="background-color:#F6F57C;color:#000000">3</td><td>8</td></tr>
+<tr><td><code>Vocal Hum</code></td><td>🎵 Audio</td><td></td><td></td><td></td><td></td><td style="background-color:#F6F57C;color:#000000">3</td><td>2</td></tr>
+<tr><td><code>Vocal Adlib</code></td><td>🎵 Audio</td><td></td><td></td><td></td><td></td><td style="background-color:#F6F57C;color:#000000">3</td><td>4</td></tr>
+<tr><td><code>Rainstorm</code></td><td>🎹 MIDI</td><td></td><td></td><td></td><td></td><td style="background-color:#D3E499;color:#000000">32</td><td>14</td></tr>
+<tr><td><code>A-Reverb</code></td><td>↩️ Return</td><td></td><td></td><td></td><td></td><td style="background-color:#A9A8A8;color:#000000">41</td><td>0</td></tr>
+<tr><td><code>B-Delay</code></td><td>↩️ Return</td><td></td><td></td><td></td><td></td><td style="background-color:#7B7A7A;color:#FFFFFF">55</td><td>0</td></tr>
+<tr><td><code>Main</code></td><td>🎵 Main</td><td></td><td></td><td></td><td></td><td style="background-color:#FFFEFE;color:#000000">69</td><td>0</td></tr>
+</tbody>
+</table>
+
+## Clips
+
+    ... the clips of every track, under the track they are on ...
+
+## Track / Clip Cross Reference
+
+<table>
+<thead><tr><th>Clip</th><th>Color</th><th>Tracks</th></tr></thead>
+<tbody>
+<tr><td><strong><code>Drift</code></strong></td><td style="background-color:#D3E499;color:#000000">32</td><td><strong><code>Coffee Leaf</code></strong>, <strong><code>Mello</code></strong></td></tr>
+<tr><td><strong><code>Drift 2</code></strong></td><td style="background-color:#D3E499;color:#000000">32</td><td><strong><code>Coffee Leaf</code></strong>, <strong><code>Mello</code></strong></td></tr>
+<tr><td><strong><code>Drift 3</code></strong></td><td style="background-color:#D3E499;color:#000000">32</td><td><strong><code>Coffee Leaf</code></strong>, <strong><code>Mello</code></strong></td></tr>
+<tr><td><code>Drift 4</code></td><td style="background-color:#D3E499;color:#000000">32</td><td><code>Coffee Leaf</code></td></tr>
+<tr><td><code>Drift 5</code></td><td style="background-color:#D3E499;color:#000000">32</td><td><code>Coffee Leaf</code></td></tr>
+<tr><td><code>Drift 6</code></td><td style="background-color:#D3E499;color:#000000">32</td><td><code>Coffee Leaf</code></td></tr>
+<tr><td><code>Coffee Lead 6</code></td><td style="background-color:#D3E499;color:#000000">32</td><td><code>Coffee Leaf</code></td></tr>
+<tr><td><code>Coffee Lead</code></td><td style="background-color:#D3E499;color:#000000">32</td><td><code>Coffee Leaf</code></td></tr>
+<tr><td><code>Strum-o-Matic</code></td><td style="background-color:#BAD175;color:#000000">33</td><td><code>Strum</code></td></tr>
+<tr><td><code>Drum Rack</code></td><td style="background-color:#9AC58D;color:#000000">34</td><td><code>Drums</code></td></tr>
+<tr><td><code>Drums</code></td><td style="background-color:#9AC58D;color:#000000">34</td><td><code>Drums</code></td></tr>
+<tr><td><code>CS The Beat Of History</code></td><td style="background-color:#D4FCE0;color:#000000">35</td><td><code>The Beat Of History</code></td></tr>
+<tr><td><code>The Beat Of History</code></td><td style="background-color:#D4FCE0;color:#000000">35</td><td><code>The Beat Of History</code></td></tr>
+<tr><td><code>Mello</code></td><td style="background-color:#CCF0F8;color:#000000">36</td><td><code>Mello</code></td></tr>
+<tr><td><code>Meld</code></td><td style="background-color:#84A5C3;color:#000000">50</td><td><code>Rose Bass</code></td></tr>
+<tr><td><code>Meld 2</code></td><td style="background-color:#84A5C3;color:#000000">50</td><td><code>Rose Bass</code></td></tr>
+<tr><td><code>Rose Bass</code></td><td style="background-color:#84A5C3;color:#000000">50</td><td><code>Rose Bass</code></td></tr>
+<tr><td><code>Hip-Hop Sub Bass</code></td><td style="background-color:#A494B5;color:#000000">52</td><td><code>Sub Sub Bass</code></td></tr>
+<tr><td><code>Sub Sub Bass</code></td><td style="background-color:#A494B5;color:#000000">52</td><td><code>Sub Sub Bass</code></td></tr>
+<tr><td><code>Guit Layter</code></td><td style="background-color:#B776C6;color:#000000">25</td><td><code>Guit Layter</code></td></tr>
+<tr><td><code>MIDI</code></td><td style="background-color:#C6938A;color:#000000">42</td><td><code>Transform Seed</code></td></tr>
+<tr><td><code>MIDI 2</code></td><td style="background-color:#C6938A;color:#000000">42</td><td><code>Transform Seed</code></td></tr>
+<tr><td><code>Transform Seed</code></td><td style="background-color:#C6938A;color:#000000">42</td><td><code>Transform Seed</code></td></tr>
+<tr><td><code>Indian Flute C4</code></td><td style="background-color:#CD9827;color:#000000">2</td><td><code>Vacuum</code></td></tr>
+<tr><td><code>Indian Flute C4 2</code></td><td style="background-color:#CD9827;color:#000000">2</td><td><code>Vacuum</code></td></tr>
+<tr><td><code>Indian Flute C4 3</code></td><td style="background-color:#CD9827;color:#000000">2</td><td><code>Vacuum</code></td></tr>
+<tr><td><code>Indian Flute C4 4</code></td><td style="background-color:#CD9827;color:#000000">2</td><td><code>Vacuum</code></td></tr>
+<tr><td><code>Indian Flute C4 5</code></td><td style="background-color:#CD9827;color:#000000">2</td><td><code>Vacuum</code></td></tr>
+<tr><td><code>Indian Flute C4 6</code></td><td style="background-color:#CD9827;color:#000000">2</td><td><code>Vacuum</code></td></tr>
+<tr><td><code>Indian Flute C4 7</code></td><td style="background-color:#CD9827;color:#000000">2</td><td><code>Vacuum</code></td></tr>
+<tr><td><code>Indian Flute C4 8</code></td><td style="background-color:#CD9827;color:#000000">2</td><td><code>Vacuum</code></td></tr>
+<tr><td><code>Indian Flute C4 9</code></td><td style="background-color:#CD9827;color:#000000">2</td><td><code>Vacuum</code></td></tr>
+<tr><td><code>Vacuum Flute</code></td><td style="background-color:#CD9827;color:#000000">2</td><td><code>Vacuum</code></td></tr>
+<tr><td><code>Vocal Main — Samples/Loops/Tonal/Vocal/Vocal Patience Main.wav</code></td><td style="background-color:#F6F57C;color:#000000">3</td><td><code>Vocal Main</code></td></tr>
+<tr><td><code>Vocals Patience Main — Samples/Loops/Tonal/Vocal/Vocal Patience Main.wav</code></td><td style="background-color:#F6F57C;color:#000000">3</td><td><code>Vocal Main</code></td></tr>
+<tr><td><strong><code>FINAL patience Harmony Vox — Samples/Loops/Tonal/Vocal/Vocal Patience Harmony.wav</code></strong></td><td style="background-color:#F6F57C;color:#000000">3</td><td><strong><code>Vocal Main</code></strong>, <strong><code>Vocal Harmony</code></strong></td></tr>
+<tr><td><code>Vocal Harmony — Samples/Loops/Tonal/Vocal/Vocal Patience Harmony.wav</code></td><td style="background-color:#F6F57C;color:#000000">3</td><td><code>Vocal Harmony</code></td></tr>
+<tr><td><code>Vocals Patience Harmony — Samples/Loops/Tonal/Vocal/Vocal Patience Harmony.wav</code></td><td style="background-color:#F6F57C;color:#000000">3</td><td><code>Vocal Harmony</code></td></tr>
+<tr><td><code>Vocal Hum — Samples/Loops/Tonal/Vocal/Vocal Patience Hum.wav</code></td><td style="background-color:#F6F57C;color:#000000">3</td><td><code>Vocal Hum</code></td></tr>
+<tr><td><code>Vocals Patience Hum — Samples/Loops/Tonal/Vocal/Vocal Patience Hum.wav</code></td><td style="background-color:#F6F57C;color:#000000">3</td><td><code>Vocal Hum</code></td></tr>
+<tr><td><code>Vocals Patience Adlib — Samples/Loops/Tonal/Vocal/Vocal Patience Adlib.wav</code></td><td style="background-color:#F6F57C;color:#000000">3</td><td><code>Vocal Adlib</code></td></tr>
+<tr><td><code>Rainstorm Automation</code></td><td style="background-color:#D3E499;color:#000000">32</td><td><code>Rainstorm</code></td></tr>
+<tr><td><code>Chuck Sutton - Patience (Live 12 Demo)</code></td><td style="background-color:#D3E499;color:#000000">32</td><td><code>Rainstorm</code></td></tr>
+</tbody>
+</table>
 ```
+
+The analyses of the sets of this repository are in [`analysis/`](analysis/README.md).
 
 A [bug](https://github.com/mslinn/live_set/issues/2) has been logged for the
 above output.
