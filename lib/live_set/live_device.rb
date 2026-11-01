@@ -64,6 +64,15 @@ class LiveDevice
     @manufacturer.empty? ? @name : "#{@name} (#{@manufacturer})"
   end
 
+  # Whether the device is a Max for Live device.
+  #
+  # @return [Boolean] true when the device is a Max for Live device
+  def max_for_live?
+    return true if MAX_FOR_LIVE_ELEMENTS.include? @node.name
+
+    "#{@manufacturer} #{@name}".match?(/max\s*for\s*live|\bM4L\b/i)
+  end
+
   private
 
   # The device's name.
@@ -101,12 +110,5 @@ class LiveDevice
       @node.at('Name/UserName'),
       @node.at('Name')
     )
-  end
-
-  # @return true if the device is a Max for Live device
-  def max_for_live?
-    return true if MAX_FOR_LIVE_ELEMENTS.include? @node.name
-
-    "#{@manufacturer} #{@name}".match?(/max\s*for\s*live|\bM4L\b/i)
   end
 end

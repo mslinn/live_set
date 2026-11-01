@@ -23,69 +23,125 @@ RSpec.describe LiveSet, '#show' do
   end
 
   it 'gives the version of Live that wrote the set' do
-    expect(report(LiveSets.fascination)).to include('| Written by | Ableton Live 11.3.13 |')
+    expect(report(LiveSets.fascination)).to include('|Written by|Ableton Live 11.3.13|')
   end
 
   it 'gives the machine the set is on, and where it is' do
     markdown = report(LiveSets.fascination)
 
-    expect(markdown).to match(/^\| Machine \| \w+ \|$/)
-    expect(markdown).to match(%r{^\| Directory \| `.*sets/live_11` \|$})
+    expect(markdown).to match(/^\|Machine\|\w+\|$/)
+    expect(markdown).to match(%r{^\|Directory\|`.*sets/live_11`\|$})
   end
 
   it 'gives the times of the set and of the folder it is in' do
     markdown = report(LiveSets.fascination)
 
-    expect(markdown).to match(/^\| Set created \| \d{4}-\d{2}-\d{2} /)
-    expect(markdown).to match(/^\| Set modified \| \d{4}-\d{2}-\d{2} /)
-    expect(markdown).to match(/^\| Folder created \| \d{4}-\d{2}-\d{2} /)
-    expect(markdown).to match(/^\| Folder modified \| \d{4}-\d{2}-\d{2} /)
+    expect(markdown).to match(/^\|Set created\|\d{4}-\d{2}-\d{2} /)
+    expect(markdown).to match(/^\|Set last modified\|\d{4}-\d{2}-\d{2} /)
+    expect(markdown).to match(/^\|Project created\|\d{4}-\d{2}-\d{2} /)
+    expect(markdown).to match(/^\|Project last modified\|`.*`<br>\d{4}-\d{2}-\d{2} /)
   end
 
-  it 'names every track of the set' do
+  it 'numbers the tracks of the set, and names each of them' do
     markdown = report(LiveSets.fascination)
 
-    expect(markdown).to include('<code>1-Pink Noise - EDMtips.com</code>')
-    expect(markdown).to include('<code>2 Drums</code>')
-    expect(markdown).to include('<code>Master</code>')
+    expect(markdown).to match(%r{^- Track 1  .*<code>Pink Noise - EDMtips\.com</code>})
+    expect(markdown).to match(%r{- Group track 1  .*<code># Drums</code>})
+    expect(markdown).to match(%r{- Group track 2  .*<code># Main</code>})
   end
 
-  it 'gives the kind of each track, with an icon' do
-    expect(report(LiveSets.fascination)).to include('<td>🎹 MIDI</td>')
-  end
-
-  it 'lists the members of a group under their group' do
+  it 'numbers the devices of a track, and of a group' do
     markdown = report(LiveSets.fascination)
 
-    expect(markdown).to include('<code>&nbsp;3-Kontakt 7</code>')
-    expect(markdown).to include('<code>&nbsp;4-Tambo and Timbales Loop 90bpm</code>')
+    expect(markdown).to match(/^ {2}- Group Track Device 1a  .*Max for Live  ⚠ not usable on Push 3$/)
+    expect(markdown).to match(%r{^ {2}- Group Track Device 1b  <code>DrumBuss</code>  native device$})
   end
 
-  it 'gives the state of each track' do
-    expect(report(LiveSets.fascination)).to include(
-      '<th>Frozen</th><th>Off</th><th>Solo</th><th>Armed</th>'
-    )
+  it 'says nothing about devices a track does not have' do
+    expect(report(LiveSets.fascination)).not_to include('--none--')
   end
 
-  it 'fills the cell of the color with the color' do
+  it 'numbers the tracks in a group, and their clips' do
+    markdown = report(LiveSets.fascination)
+
+    expect(markdown).to match(%r{^ {2}- Track 1.1  .*<code>Kontakt 7</code>})
+    expect(markdown).to match(%r{^ {2}- Track 1.2  .*<code>Tambo and Timbales Loop 90bpm</code>})
+    expect(markdown).to match(%r{^ {4}- Clip 1.1.1  .*<code>Kontakt 7 1</code>})
+  end
+
+  it 'gives the color of each track, on the name of the track' do
     expect(report(LiveSets.fascination)).to match(
-      %r{<td style="background-color:#[0-9A-F]{6};color:#[0-9A-F]{6}">\d+</td>}
+      /background-color:#[0-9A-F]{6};color:#[0-9A-F]{6}" title="color \d+"><code>/
     )
   end
 
-  it 'gives the clips of each track' do
-    expect(report(LiveSets.fascination)).to include('<td>11</td>')
+  it 'counts the clips that are on a track more than once' do
+    expect(report(LiveSets.fascination)).to match(/^ {2}- Clip 1\.1 .*× 11/)
   end
 
-  it 'puts the clips of a track under the track' do
+  it 'gives the file of a clip' do
+    expect(report(LiveSets.fascination)).to include('`Samples/Pink Noise - EDMtips.com.wav`')
+  end
+
+  it 'says that a sample is not in the project' do
+    expect(report(LiveSets.fascination)).to include('⚠ not in project')
+  end
+
+  it 'summarizes the samples that are not in the project, by the pack they are in' do
     markdown = report(LiveSets.fascination)
 
-    expect(markdown).to match(/^\s+- 🎹 `3-Kontakt 7` — MIDI$/)
-    expect(markdown).to match(/^\s+- 🎹 `3-Kontakt 7 1`/)
+    expect(markdown).to include('## Missing Samples')
+    expect(markdown).to include('|Drive and Glow|`Tambourine 16th 84 bpm.aif`|')
+    expect(markdown).to include('|User Library|`Pink Noise - EDMtips.com.wav`|')
+  end
+
+  it 'links the clips that are not collected to the missing samples' do
+    expect(report(LiveSets.fascination)).to include('[2 clips have not been collected.](#missing-samples)')
+  end
+
+  it 'crosses the devices with the tracks they are on' do
+    markdown = report(LiveSets.fascination)
+
+    expect(markdown).to include('## Device Cross-Reference')
+    expect(markdown).to include('|Device|Kind|Used in|')
+    expect(markdown).to match(/\|.*Kontakt 7.*\|plug-in\|`Kontakt 7`\|/)
+  end
+
+  it 'marks the devices that Push 3 cannot use with a dark background' do
+    expect(report(LiveSets.fascination)).to include(
+      'background-color:#212121;color:#FFFFFF"><code>Filter</code>'
+    )
+  end
+
+  it 'names the time zone the times are written in' do
+    expect(report(LiveSets.fascination)).to match(/^\|Time zone\|.+\|$/)
+  end
+
+  it 'writes the times of the set without a time zone of their own' do
+    expect(report(LiveSets.fascination)).to match(/^\|Set created\|\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\|$/)
+  end
+
+  it 'gives the warp mode of a sample' do
+    expect(report(LiveSets.fascination)).to include('warp: Beads (0)')
+  end
+
+  it 'marks the tracks that Push 3 cannot use with a dark background' do
+    markdown = report(LiveSets.fascination)
+
+    expect(markdown).to include('background-color:#212121;color:#FFFFFF"><code># Drums</code>')
+    expect(markdown).to include('background-color:#212121;color:#FFFFFF"><code>Kontakt 7</code>')
+  end
+
+  it 'writes no HTML table in the report' do
+    expect(report(LiveSets.fascination)).not_to include('<table>')
+  end
+
+  it 'explains the marks on a clip' do
+    expect(report(LiveSets.fascination)).to include('`linked` means the clip shares its sample')
   end
 
   it 'gives the effects on a track' do
-    expect(report(LiveSets.fascination)).to include('- Effects: Kontakt 7 (plug-in)')
+    expect(report(LiveSets.fascination)).to include('Kontakt 7</code></span>  plug-in  ⚠ not usable on Push 3')
   end
 
   it 'crosses the clips with the tracks that use them' do

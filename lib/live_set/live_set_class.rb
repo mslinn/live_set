@@ -22,6 +22,8 @@ class LiveSet
   def self.run(args)
     options, remaining = parse_options(args)
 
+    abort help("Unknown time zone: #{options[:time_zone]}") if options[:time_zone] && !known_time_zone?(options[:time_zone])
+
     abort help('An Ableton Live set name must be provided.') if remaining.empty?
 
     set_name = remaining.join(' ').expand_env
@@ -98,6 +100,7 @@ class LiveSet
 
     @tracks = LiveTracks.new @set_directory, audio_tracks, group_tracks
     @scenes = @live_set.Scenes.map { |scene| LiveScene.new scene }
+    @time_zone = options[:time_zone]
   end
 
   # The report of the set.
@@ -108,7 +111,7 @@ class LiveSet
   # @return [String] the report
   def show
     check_ableton_project_info
-    LiveSetReport.new(@set_name, @xml_doc, @tracks).to_markdown
+    LiveSetReport.new(@set_name, @xml_doc, @tracks, @time_zone).to_markdown
   end
 
   # Writes out a Live 11 session

@@ -1,3 +1,4 @@
+require 'markdown-tables'
 require 'socket'
 require 'time'
 require_relative '../common/log'
@@ -14,8 +15,11 @@ require_relative 'live_palette'
 # The report of a set is written for a person to read, and it is checked in, so that what a
 # set holds is written down where it can be read again.
 #
-# The tables are HTML, and not markdown, because the cell of the color of a track is filled
-# with the color, and a markdown table has no way of saying that.
+# The colour of a track, a group and a clip is the background of its name, and the name of the
+# colour Live writes for it is in the tooltip of the name. The text on the colour is the
+# complementary colour, made as dark or as light as it has to be to be read on it. A track, a
+# group and a device that Push 3 Standalone cannot use is written on the dark background of
+# those things instead.
 class LiveSetReport
   include Xml
 
@@ -28,13 +32,27 @@ class LiveSetReport
   # The ways a clip can be launched.
   LAUNCH_MODES = { 0 => 'trigger', 1 => 'toggle', 2 => 'gate' }.freeze
 
+  # The warp modes of a sample, in the order of Live's menu.
+  WARP_MODES = { 0 => 'Beads', 1 => 'Texture', 2 => 'Complex', 3 => 'Complex Pro', 4 => 'Melody' }.freeze
+
+  # The folders the content of a pack is in.
+  CONTENT_FOLDERS = %w[Samples Sounds IRs Devices Racks Presets].freeze
+
+  # What the marks on a clip mean.
+  LEGEND = 'The marks on a clip: `linked` means the clip shares its sample with the other ' \
+           'clips of a linked group, so that editing one of them edits them all; `warped` means ' \
+           'the sample is time-stretched; `⚠ not in project` means the sample is not in the ' \
+           'folder of the project, and the set is not self-contained.'.freeze
+
   # @param set_name [String] the path of the set
   # @param xml_doc [Nokogiri::XML::Document] the set
   # @param tracks [LiveTracks] the tracks that hold clips
-  def initialize(set_name, xml_doc, tracks)
+  # @param time_zone [String, nil] the time zone the times are written in
+  def initialize(set_name, xml_doc, tracks, time_zone = nil)
     @set_name = set_name
     @xml_doc = xml_doc
     @tracks = tracks
+    @time_zone = time_zone
     @ableton = xml_doc.at('Ableton')
   end
 
@@ -51,7 +69,9 @@ class LiveSetReport
 
       #{tracks_markdown}
 
-      #{clips_markdown}
+      #{missing_samples_markdown}
+
+      #{devices_markdown}
 
       #{cross_reference_markdown}
     END_REPORT
@@ -64,18 +84,92 @@ class LiveSetReport
   #
   # @return [String] the table
   def metadata_markdown
-    lines = ['| | |', '| --- | --- |']
-    lines << "| Written by | #{@ableton['Creator']} |"
-    lines << "| Format | #{@ableton['MinorVersion']} |"
-    lines << "| SchemaChangeCount | #{@ableton['SchemaChangeCount']} |"
-    lines << "| Revision | #{@ableton['Revision']} |"
-    lines << "| Machine | #{machine_name} |"
-    lines << "| Directory | `#{directory}` |"
-    lines << "| Set created | #{created_at @set_name} |"
-    lines << "| Set modified | #{modified_at @set_name} |"
-    lines << "| Folder created | #{created_at directory} |"
-    lines << "| Folder modified | #{modified_at directory} |"
-    lines.join("\n")
+    rows = [
+      ['Written by', @ableton['Creator']],
+      ['Format', @ableton['MinorVersion']],
+      ['SchemaChangeCount', @ableton['SchemaChangeCount']],
+      ['Revision', @ableton['Revision']],
+      ['Machine', machine_name],
+      ['Directory', "`#{directory}`"],
+      ['Time zone', time_zone_name],
+      ['Set created', created_at(@set_name)],
+      ['Set last modified', modified_at(@set_name)],
+      ['Project created', created_at(directory)],
+      ['Project last modified', project_last_modified]
+    ]
+    MarkdownTables.make_table ['', ''], rows, align: %w[l r], is_rows: true
+  end
+
+  # The name of the time zone the times of the report are written in.
+  #
+  # The times are written in the time zone of the computer unless another one is asked for.
+  #
+  # @return [String] the name of the zone
+  def time_zone_name
+    return @time_zone if @time_zone
+
+    local_zone_name || Time.now.zone
+  end
+
+  # The name of the time zone of the computer.
+  #
+  # @return [String, nil] the name of the zone, or nil when it cannot be found
+  def local_zone_name
+    target = begin
+      File.readlink '/etc/localtime'
+    rescue SystemCallError
+      nil
+    end
+    return nil unless target
+
+    target.split('zoneinfo/').last
+  end
+
+  # A time, as the report writes it.
+  #
+  # The times are written in the time zone of the report, and without a time zone of their
+  # own, because the zone is named at the top of the report.
+  #
+  # @param time [Time] the time
+  # @return [String] the time
+  def format_time(time)
+    return time.strftime('%Y-%m-%d %H:%M:%S') unless @time_zone
+
+    previous = ENV.fetch('TZ', nil)
+    ENV['TZ'] = @time_zone
+    time.getlocal.strftime('%Y-%m-%d %H:%M:%S')
+  ensure
+    ENV['TZ'] = previous
+  end
+
+  # The time the project was last changed.
+  #
+  # The time of a folder is the time an entry was added to it or taken from it, and not the
+  # time the work in it last changed. The project was last changed when the file in it that
+  # was changed last was changed, and the file is named, so that the time can be explained.
+  #
+  # @return [String] the file, and the time it was changed
+  def project_last_modified
+    path, time = newest_file_of directory
+    return modified_at(directory) unless path
+
+    relative = path.delete_prefix("#{directory}/")
+    "`#{relative}`<br>#{format_time time}"
+  end
+
+  # The file of a folder that was changed last.
+  #
+  # @param root [String] the folder
+  # @return [Array] the path of the file and the time it was changed
+  def newest_file_of(root)
+    newest = nil
+    Dir.glob(File.join(root, '**', '*'), File::FNM_DOTMATCH).each do |path|
+      next unless File.file?(path)
+
+      time = File.mtime path
+      newest = [path, time] if newest.nil? || time > newest[1]
+    end
+    newest
   end
 
   # The machine the set is on.
@@ -101,7 +195,7 @@ class LiveSetReport
   # @param path [String] the path of the file
   # @return [String] the time
   def created_at(path)
-    (creation_time(path) || File.mtime(path)).strftime('%Y-%m-%d %H:%M:%S %z')
+    format_time creation_time(path) || File.mtime(path)
   end
 
   # The time a file was created, as Windows says it.
@@ -134,101 +228,142 @@ class LiveSetReport
   # @param path [String] the path of the file
   # @return [String] the time
   def modified_at(path)
-    File.mtime(path).strftime('%Y-%m-%d %H:%M:%S %z')
+    format_time File.mtime(path)
   end
 
-  # The tracks of the set, as a table.
+  # The tracks of the set, as an outline.
   #
-  # @return [String] the table
+  # Everything in the set is numbered by the path of the tree it is in: the tracks at the top
+  # of the set are numbered from one, and the groups at the top of the set are numbered from one
+  # as well; a track in a group is numbered after the group and after itself, as 1.1; the
+  # devices of a track are numbered after the track and after the device, as 1.1a; and the
+  # clips of a track are numbered after the track and after the clip, as 1.1.1.
+  #
+  # @return [String] the outline
   def tracks_markdown
     tracks = track_tree
-    lines = ['## Tracks', '']
+    lines = ['## Groups/Tracks/Clips/Devices', '']
 
     if tracks.empty?
       lines << 'The set has no tracks.'
       return lines.join("\n")
     end
 
-    lines << '<table>'
-    lines << '<thead><tr><th>Track</th><th>Kind</th><th>Frozen</th><th>Off</th><th>Solo</th>' \
-             '<th>Armed</th><th>Color</th><th>Clips</th></tr></thead>'
-    lines << '<tbody>'
-    tracks.each { |track| lines += track_rows track, 0 }
-    lines << '</tbody>'
-    lines << '</table>'
+    lines << LEGEND
+    lines << ''
+    lines += top_level_lines(tracks)
     lines.join("\n")
   end
 
-  # The rows of a track and of the tracks in its group.
+  # The lines of the tracks and the groups at the top of the set.
   #
-  # @param track [Array] the kind, the name, the element and the members of the track
-  # @param depth [Integer] how deep the track is
-  # @return [Array<String>] the rows
-  def track_rows(track, depth)
-    kind, name, element, members = track
-    cells = [
-      "<td><code>#{'&nbsp;' * depth}#{escape name}</code></td>",
-      "<td>#{LivePalette.icon_of kind} #{kind}</td>",
-      "<td>#{mark frozen?(element)}</td>",
-      "<td>#{mark off?(element)}</td>",
-      "<td>#{mark soloed?(element)}</td>",
-      "<td>#{mark armed?(element)}</td>",
-      color_cell(element),
-      "<td>#{clips_of(element).length}</td>"
-    ]
-    rows = ["<tr>#{cells.join}</tr>"]
-    members.each { |member| rows += track_rows member, depth + 1 }
-    rows
-  end
-
-  # The cell of the color of a track, filled with the color.
+  # The groups at the top of the set are numbered from one, and the tracks at the top of the
+  # set are numbered from one as well: a group and a track are numbered in their own company.
   #
-  # @param element [Nokogiri::XML::Element] the track
-  # @return [String] the cell
-  def color_cell(element)
-    value = color_of element
-    style = LivePalette.style_of value
-    style ? %(<td style="#{style}">#{value}</td>) : "<td>#{value}</td>"
-  end
-
-  # The clips of the set, under the track they are on.
-  #
-  # @return [String] the clips
-  def clips_markdown
-    tracks = track_tree
-    lines = ['## Clips', '']
-
-    if tracks.empty?
-      lines << 'The set has no clips.'
-      return lines.join("\n")
+  # @param tracks [Array<Array>] the tracks of the set
+  # @return [Array<String>] the lines
+  def top_level_lines(tracks)
+    groups = 0
+    others = 0
+    tracks.flat_map do |track|
+      if track[0] == 'Group'
+        groups += 1
+        track_lines track, groups, 0
+      else
+        others += 1
+        track_lines track, others, 0
+      end
     end
-
-    tracks.each { |track| lines += clip_lines track, 0 }
-    lines.join("\n")
   end
 
-  # The lines of a track, of the tracks in its group, and of their clips.
+  # The lines of a track, of the devices and the clips of it, and of the tracks in its group.
   #
   # @param track [Array] the kind, the name, the element and the members of the track
+  # @param number [String] the number of the track
   # @param depth [Integer] how deep the track is
   # @return [Array<String>] the lines
-  def clip_lines(track, depth)
+  def track_lines(track, number, depth, boxed: false)
     kind, name, element, members = track
     indent = '  ' * depth
-    lines = ["#{indent}- #{LivePalette.icon_of kind} `#{escape name}` — #{kind}"]
+    group = kind == 'Group'
 
-    devices = own_devices element
-    lines << "#{indent}  - Effects: #{devices.map { |device| device_label device }.join(', ')}" unless devices.empty?
+    problem = problem_for? element
 
-    clips = clips_of element
-    lines << "#{indent}  - Clips: #{clips.length}"
-    grouped_clips(clips).each { |clip, count| lines += clip_line(clip, count, depth + 2) }
+    label = group ? "Group track #{number}" : "Track #{number}"
+    line = "#{indent}- #{label}  #{LivePalette.name_span escape(name), color_of(element), dark: problem}"
+    line += "  #{LivePalette.icon_of kind} #{kind}"
+    states = states_of element
+    line += "  #{states.join(', ')}" unless states.empty?
+    lines = [line]
 
-    unless members.empty?
-      lines << "#{indent}  - Members:"
-      members.each { |member| lines += clip_lines member, depth + 2 }
+    lines += device_lines kind, number, element, indent
+
+    grouped_clips(clips_of(element)).each do |clip, count, index|
+      lines += clip_lines clip, "#{number}.#{index}", depth + 1, count
     end
+
+    members.each_with_index do |member, index|
+      lines += track_lines member, "#{number}.#{index + 1}", depth + 1, boxed: boxed || problem
+    end
+
     lines
+  end
+
+  # Whether a track is a problem for a transfer to Push 3 Standalone.
+  #
+  # A track that is not frozen and that has a device Push 3 cannot run cannot be transferred: the
+  # device has to be rendered away by freezing the track.
+  #
+  # @param track [Nokogiri::XML::Element] the track
+  # @return [Boolean] true when the track is a problem
+  def problem_for?(track)
+    return false if frozen?(track)
+
+    own_devices(track).any? { |device| LiveDevice.new(device).blocking? }
+  end
+
+  # The lines of the devices of a track.
+  #
+  # @param kind [String] the kind of the track
+  # @param number [String] the number of the track
+  # @param element [Nokogiri::XML::Element] the track
+  # @param indent [String] the indentation of the track
+  # @return [Array<String>] the lines
+  def device_lines(kind, number, element, indent)
+    own_devices(element).each_with_index.map do |node, index|
+      device = LiveDevice.new node
+      unusable = device.blocking? && !frozen?(element)
+      parts = [LivePalette.name_span(device.label, nil, dark: unusable), device_kind(device)]
+      parts << '⚠ not usable on Push 3' if unusable
+      "#{indent}  - #{device_slot_label kind} #{number}#{letter_of index}  #{parts.join '  '}"
+    end
+  end
+
+  # What kind of device a device is.
+  #
+  # @param device [LiveDevice] the device
+  # @return [String] the kind
+  def device_kind(device)
+    return 'plug-in' if device.plug_in?
+    return 'Max for Live' if device.max_for_live?
+
+    'native device'
+  end
+
+  # The name of the devices of a kind of track.
+  #
+  # @param kind [String] the kind of track
+  # @return [String] the name
+  def device_slot_label(kind)
+    kind == 'Group' ? 'Group Track Device' : 'Track Device'
+  end
+
+  # The letter of a device.
+  #
+  # @param index [Integer] the number of the device, counting from zero
+  # @return [String] the letter
+  def letter_of(index)
+    ('a'.ord + index).chr
   end
 
   # The clips of a track that are the same, and how many of each there are.
@@ -237,42 +372,178 @@ class LiveSetReport
   # clips of a track are often many copies of one clip.
   #
   # @param clips [Array<Nokogiri::XML::Element>] the clips
-  # @return [Array<Array>] each clip and the number of copies of it
+  # @return [Array<Array>] each clip, the number of copies of it, and the number of the first
+  #   of them
   def grouped_clips(clips)
     groups = {}
-    clips.each do |clip|
+    clips.each_with_index do |clip, index|
       key = [name_of_clip(clip), file_of(clip), color_of(clip), clip_marks(clip).join(', ')]
-      groups[key] = [clip, 0]
+      groups[key] ||= [clip, 0, index + 1]
       groups[key][1] += 1
     end
     groups.values
   end
 
-  # The line of a clip.
+  # The lines of a clip, and of the devices of it.
+  #
+  # A clip of a set of Live 11 or Live 12 has no devices of its own: the devices that shape
+  # the sound of a clip are the devices of the track it is on, and the devices of a sample are
+  # in the file of the sample, not in the set.
   #
   # @param clip [Nokogiri::XML::Element] the clip
-  # @param count [Integer] how many copies of the clip there are
+  # @param number [String] the number of the clip
   # @param depth [Integer] how deep the clip is
+  # @param count [Integer] how many copies of the clip the track holds
   # @return [Array<String>] the lines
-  def clip_line(clip, count, depth)
+  def clip_lines(clip, number, depth, count = 1)
     indent = '  ' * depth
     marks = clip_marks clip
-    copies = count > 1 ? " × #{count}" : ''
-    lines = ["#{indent}- #{clip_icon clip} `#{escape name_of_clip(clip)}`#{copies} — " \
-             "#{LivePalette.swatch color_of(clip)}#{" — #{marks.join(', ')}" unless marks.empty?}"]
-
+    line = "#{indent}- Clip #{number}  #{LivePalette.name_span escape(name_of_clip(clip)), color_of(clip)}"
+    line += "  #{marks.join(', ')}" unless marks.empty?
+    line += "  × #{count}" if count > 1
     file = file_of clip
-    lines << "#{indent}  - File: `#{file}`" if file
+    line += "  `#{file}`" if file
+    [line]
+  end
 
-    effects = own_devices clip
-    lines << "#{indent}  - Effects: #{effects.map { |device| device_label device }.join(', ')}" unless effects.empty?
+  # The state of a track.
+  #
+  # @param track [Nokogiri::XML::Element] the track
+  # @return [Array<String>] the marks
+  def states_of(track)
+    states = []
+    states << '✓ frozen' if frozen?(track)
+    states << '✓ solo' if soloed?(track)
+    states << '🔴 ✓ armed' if armed?(track)
+    states << 'off' if off?(track)
+    states
+  end
 
-    lines
+  # The samples of the set that are not in the project, grouped by the pack they are in.
+  #
+  # Live writes the absolute path of a sample in the set, and the path of the pack it is in is
+  # in it: a sample of a factory pack is under a folder of the pack, and the folder above the
+  # content of the pack is the pack.
+  #
+  # @return [String] the summary
+  def missing_samples_markdown
+    packs = Hash.new { |hash, key| hash[key] = [] }
+    each_clip do |clip|
+      next if collected? clip
+
+      path = absolute_path_of clip
+      next unless path
+
+      name = File.basename path
+      samples = packs[pack_of path]
+      samples << name unless samples.include? name
+    end
+
+    lines = ['## Missing Samples', '']
+    if packs.empty?
+      lines << 'Every sample of the set is in the project.'
+      return lines.join("\n")
+    end
+
+    rows = packs.sort.map do |pack, samples|
+      [pack, samples.map { |name| "`#{name}`" }.join(', ')]
+    end
+    lines << MarkdownTables.make_table(%w[Pack Samples], rows, align: %w[l l], is_rows: true)
+    lines.join("\n")
+  end
+
+  # The devices of the set, and the tracks they are on.
+  #
+  # A device of a group is on the group and on the tracks in the group, because the chain of
+  # the group processes the audio of the tracks in it.
+  #
+  # @return [String] the cross-reference
+  def devices_markdown
+    uses = device_uses
+    lines = ['## Device Cross-Reference', '']
+    if uses.empty?
+      lines << 'The set has no devices.'
+      return lines.join("\n")
+    end
+
+    rows = uses.sort_by { |(label, _kind, _unusable), _| label }.map do |(label, kind, unusable), tracks|
+      name = LivePalette.name_span escape(label), nil, dark: unusable
+      [name, kind, tracks.map { |track| "`#{escape track}`" }.join(', ')]
+    end
+    lines << MarkdownTables.make_table(['Device', 'Kind', 'Used in'], rows, align: %w[l l l], is_rows: true)
+    lines.join("\n")
+  end
+
+  # The devices of the set, and the tracks they are on.
+  #
+  # @return [Hash] each device, with the tracks it is on
+  def device_uses
+    uses = Hash.new { |hash, key| hash[key] = [] }
+    each_track do |track, members|
+      own_devices(track[2]).each do |node|
+        device = LiveDevice.new node
+        unusable = device.blocking? && !frozen?(track[2])
+        key = [device.label, device_kind(device), unusable]
+        uses[key] << track[1]
+        members.each { |member| uses[key] << member[1] }
+      end
+    end
+    uses
+  end
+
+  # Every track of the set, with the tracks of its group.
+  #
+  # @yieldparam track [Array] the track
+  # @yieldparam members [Array<Array>] the tracks in the group of the track
+  # @return [void]
+  def each_track
+    track_tree.each do |track|
+      yield track, track[3]
+      track[3].each { |member| yield member, [] }
+    end
+  end
+
+  # Every clip of the set.
+  #
+  # @yieldparam clip [Nokogiri::XML::Element] a clip of the set
+  # @return [void]
+  def each_clip(&)
+    track_tree.each do |track|
+      clips_of(track[2]).each(&)
+      track[3].each do |member|
+        clips_of(member[2]).each(&)
+      end
+    end
+  end
+
+  # The path of the file a clip refers to, as Live wrote it.
+  #
+  # @param clip [Nokogiri::XML::Element] the clip
+  # @return [String, nil] the path
+  def absolute_path_of(clip)
+    clip.at('SampleRef/FileRef/Path')&.[]('Value')
+  end
+
+  # The pack a file is in.
+  #
+  # The content of a pack is under a folder of its own — Samples, Sounds, IRs, Devices — and
+  # the pack is the folder above it. A file that is not under such a folder is not in a pack.
+  #
+  # @param path [String] the path of the file
+  # @return [String] the name of the pack
+  def pack_of(path)
+    parts = path.split('/')
+    index = parts.index { |part| CONTENT_FOLDERS.include? part }
+    return File.basename(path) unless index&.positive?
+
+    parts[index - 1]
   end
 
   # The clips of the set, and the tracks that use them.
   #
-  # A clip that is on more than one track is a clip the set shares, and it is marked as one.
+  # The clips are the clips of the outline above: a clip is the same clip when it has the
+  # same name, the same file, the same color and the same state. A clip that is on more than
+  # one track is a clip the set shares, and it is marked as one.
   #
   # @return [String] the cross-reference
   def cross_reference_markdown
@@ -285,19 +556,15 @@ class LiveSetReport
       return lines.join("\n")
     end
 
-    lines << '<table>'
-    lines << '<thead><tr><th>Clip</th><th>Color</th><th>Tracks</th></tr></thead>'
-    lines << '<tbody>'
-    uses.each do |key, entry|
+    rows = uses.map do |_key, entry|
       clip, tracks = entry
       shared = tracks.length > 1
-      name = shared ? "<strong><code>#{escape key}</code></strong>" : "<code>#{escape key}</code>"
-      tracks = tracks.map { |track| shared ? "<strong><code>#{escape track}</code></strong>" : "<code>#{escape track}</code>" }
-                     .join(', ')
-      lines << "<tr><td>#{name}</td>#{color_cell clip}<td>#{tracks}</td></tr>"
+      name = LivePalette.name_span escape(name_of_clip(clip)), color_of(clip)
+      name = "**#{name}**" if shared
+      tracks = tracks.map { |track| shared ? "**`#{escape track}`**" : "`#{escape track}`" }.join(', ')
+      [name, tracks]
     end
-    lines << '</tbody>'
-    lines << '</table>'
+    lines << MarkdownTables.make_table(%w[Clip Tracks], rows, align: %w[l l], is_rows: true)
     lines.join("\n")
   end
 
@@ -308,7 +575,7 @@ class LiveSetReport
   # @return [void]
   def collect_uses(track, uses)
     _kind, name, element, members = track
-    clips_of(element).each do |clip|
+    grouped_clips(clips_of(element)).each do |clip, _count, _index|
       key = clip_key clip
       uses[key] ||= [clip, []]
       uses[key][1] << name unless uses[key][1].include? name
@@ -316,13 +583,15 @@ class LiveSetReport
     members.each { |member| collect_uses member, uses }
   end
 
-  # The key a clip is known by: its name, and the file it refers to.
+  # The key a clip is known by: its name, the file it refers to, its color and its state.
+  #
+  # It is the same key the clips of a track are grouped by, so that the clips of the outline
+  # and the clips of the cross-reference are the same clips.
   #
   # @param clip [Nokogiri::XML::Element] the clip
   # @return [String] the key
   def clip_key(clip)
-    file = file_of clip
-    file ? "#{name_of_clip clip} — #{file}" : name_of_clip(clip)
+    [name_of_clip(clip), file_of(clip), color_of(clip), clip_marks(clip).join(', ')].join(' | ')
   end
 
   # The tracks of the set, as a tree: a group holds the tracks that are in it.
@@ -362,18 +631,39 @@ class LiveSetReport
 
   # The name of a track, as Live wrote it.
   #
+  # Live numbers the tracks it makes itself: the first audio track of a set is named
+  # `1-Audio`, the second MIDI track `2-MIDI`. The number is the number of the track and not
+  # part of its name, and it is left out of the name here. A track that the user has named
+  # keeps the name the user gave it, number and all.
+  #
   # @param track [Nokogiri::XML::Element] the track
   # @return [String] the name
   def name_of_track(track)
-    track.at('Name/EffectiveName')&.[]('Value') || track.at('Name/UserName')&.[]('Value') || '(unnamed)'
+    user_name = track.at('Name/UserName')&.[]('Value')
+    effective_name = track.at('Name/EffectiveName')&.[]('Value')
+    name = user_name.nil? || user_name.empty? ? effective_name : user_name
+    return '(unnamed)' if name.nil? || name.empty?
+
+    user_name.nil? || user_name.empty? ? name.sub(/\A\d+-/, '') : name
   end
 
   # The name of a clip, as Live wrote it.
   #
   # @param clip [Nokogiri::XML::Element] the clip
   # @return [String] the name
+  # The name of a clip, as Live wrote it.
+  #
+  # Live names a clip after the track it is on, with the number of the track in front of the
+  # name of the track and a number of its own behind it: the first clip of the third track is
+  # `3-Kontakt 7 1`. The number of the track is not part of the name of the clip.
+  #
+  # @param clip [Nokogiri::XML::Element] the clip
+  # @return [String] the name
   def name_of_clip(clip)
-    clip.at('Name')&.[]('Value') || '(unnamed)'
+    name = clip.at('Name')&.[]('Value')
+    return '(unnamed)' if name.nil? || name.empty?
+
+    name.sub(/\A\d+-/, '')
   end
 
   # The file a clip refers to.
@@ -399,12 +689,35 @@ class LiveSetReport
   # @return [Array<String>] the marks
   def clip_marks(clip)
     marks = []
+    marks << '⚠ not in project' unless collected? clip
     marks << '🔴 disabled' if clip.at('Disabled')&.[]('Value') == 'true'
     mode = clip.at('LaunchMode')&.[]('Value')
     marks << "launch: #{LAUNCH_MODES.fetch mode.to_i, mode}" if mode
     marks << 'linked' if clip.at('IsLinked')&.[]('Value') == 'true'
     marks << 'warped' if clip.at('IsWarped')&.[]('Value') == 'true'
+    marks << "warp: #{warp_of clip}" if clip.at('WarpMode')
     marks
+  end
+
+  # Whether the sample of a clip is in the folder of the project.
+  #
+  # A sample that is not in the folder of the project is not part of the set, and the set is
+  # not self-contained: the samples have to be collected before the set can be transferred.
+  #
+  # @param clip [Nokogiri::XML::Element] the clip
+  # @return [Boolean] true when the sample is in the project
+  def collected?(clip)
+    path = file_of clip
+    !path.nil? && path.start_with?('Samples/Imported/')
+  end
+
+  # The warp mode of a sample.
+  #
+  # @param clip [Nokogiri::XML::Element] the clip
+  # @return [String] the name of the mode and the number Live writes for it
+  def warp_of(clip)
+    value = clip.at('WarpMode')&.[]('Value').to_i
+    "#{WARP_MODES.fetch value, 'unknown'} (#{value})"
   end
 
   # The clips of a track.

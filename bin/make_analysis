@@ -2,31 +2,58 @@
 
 # Writes the analysis of every set in the sets directory to the analysis directory.
 #
-# The analysis of a set is what `live_set -s -m` writes: the report of the set, in markdown.
+# The analysis of a set is the report `live_set -s` writes: the report of the set, in markdown.
 # One file is written for each set, named after the set, in a directory named after the
 # version of Live the set is in.
 #
 # Usage: bin/make_analysis [SETS_DIRECTORY] [ANALYSIS_DIRECTORY]
+#        bin/make_analysis SET.als [ANALYSIS_DIRECTORY]
 #
 # The sets directory defaults to `sets`, and the analysis directory to `analysis`. The sets
 # directory is read for its version directories: each directory in it is a version of Live, and
 # each set under it is analysed into the directory of the same name under the analysis
 # directory.
+#
+# A single set can be analysed instead of a directory of them: the analysis is written into the
+# directory of the version of Live that wrote the set. The demo sets of Live are installed with
+# Live and are not checked in, but their analyses are.
 
 require 'fileutils'
 
 $LOAD_PATH.unshift File.expand_path('../lib', __dir__)
 require 'live_set'
 
-sets_directory = ARGV[0] || 'sets'
+source = ARGV[0] || 'sets'
 analysis_directory = ARGV[1] || 'analysis'
 
-abort "Not a directory: #{sets_directory}" unless File.directory? sets_directory
+# The version of Live that wrote a set, from the Creator attribute of the set.
+#
+# @param set [String] the path of the set
+# @return [String] the major version
+def version_of(set)
+  LiveSet.new(set, loglevel: 'ERROR').show[/\|Written by\|Ableton Live (\d+)/, 1]
+end
 
-versions = Dir.children(sets_directory).select { |entry| File.directory?(File.join(sets_directory, entry)) }.sort
+if File.file? source
+  version = version_of source
+  abort "Could not tell the version of Live that wrote #{source}" unless version
+
+  target_directory = File.join analysis_directory, "live_#{version}"
+  FileUtils.mkdir_p target_directory
+
+  target = File.join target_directory, "#{File.basename source, '.als'}.md"
+  report = LiveSet.new(source, loglevel: 'ERROR').show
+  File.write target, report
+  puts "Wrote #{target} (#{report.lines.count} lines)"
+  exit
+end
+
+abort "Not a directory: #{source}" unless File.directory? source
+
+versions = Dir.children(source).select { |entry| File.directory?(File.join(source, entry)) }.sort
 
 versions.each do |version|
-  sets = Dir.glob(File.join(sets_directory, version, '**', '*.als'))
+  sets = Dir.glob(File.join(source, version, '**', '*.als'))
   next if sets.empty?
 
   target_directory = File.join(analysis_directory, version)

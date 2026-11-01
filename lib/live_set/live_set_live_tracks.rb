@@ -7,15 +7,30 @@ class LiveTracks
 
   # The verdict for a transfer to Push 3 Standalone, in markdown.
   #
+  # Two kinds of message are reported. An error stops a set from being transferred: a clip that
+  # is not collected, and a third-party device on an unfrozen track or in a group's chain. Advice
+  # is not an error and does not change the verdict: an unfrozen track that uses only native
+  # devices.
+  #
+  # The clips that are not collected are counted and not named: a demo set holds dozens of them,
+  # and the list of them says nothing that the count does not.
+  #
   # @return [String] the report
   def verdict_markdown
+    errors = p3s_errors
+    uncollected, others = errors.partition { |error| error.include? 'has not been collected' }
+
     lines = ['## Push 3 Standalone', '']
-    lines << if p3s_errors.empty?
+    lines << if errors.empty?
                '✅ Ready for transfer to Push 3 Standalone'
              else
                '❌ Warning: This set should not be transferred to Push 3 Standalone.'
              end
-    p3s_errors.each { |error| lines << "- #{error.sub(/\A\s*-\s*/, '')}" }
+    unless uncollected.empty?
+      lines << "- [#{uncollected.length} #{uncollected.length == 1 ? 'clip has' : 'clips have'} " \
+               'not been collected.](#missing-samples)'
+    end
+    others.each { |error| lines << "- #{error.sub(/\A\s*-\s*/, '')}" }
     p3s_advice.each { |advice| lines << "- #{advice.sub(/\A\s*-\s*/, '')}" }
     lines.join("\n")
   end
