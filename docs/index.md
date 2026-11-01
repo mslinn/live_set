@@ -55,6 +55,7 @@ document. The numbers are gone, and the headings are cited instead.
 | Where a track's audio is | `als_notes.md` |
 | The sample references of a clip | `als_notes.md` |
 | Whether a sample has been collected | `als_notes.md` |
+| The warp mode of a sample | `als_notes.md` |
 | The devices of a chain, and the plug-ins among them | `als_notes.md` |
 | The device chain, and the chains nested inside it | `als_notes.md` |
 | The group tracks | `als_notes.md` |

@@ -51,16 +51,24 @@ The demo sets of Live are installed with Live and are not checked in, but their 
   one, and the tracks at the top of the set are numbered from one as well; a track in a group is
   numbered after the group and after itself, as 1.1; the devices of a track are numbered after
   the track and after the device, as 1.1a; and the clips of a track are numbered after the
-  track and after the clip, as 1.1.1.
+  track and after the reference, as 1.1.1.
 
   ```text
-  - Group track 1  `# Drums`  👥 Group
+  - Group track 1  👥 Group  `# Drums`
     - Group Track Device 1a  Filter  Max for Live  ⚠ not usable on Push 3
     - Group Track Device 1b  DrumBuss  native device
-    - Track 1.1  `Kontakt 7`  🎹 MIDI
+    - Track 1.1  🎹 MIDI  `Kontakt 7`
       - Track Device 1.1a  Kontakt 7  plug-in  ⚠ not usable on Push 3
-      - Clip 1.1.1  `Kontakt 7 1`  ⚠ not in project, launch: trigger, linked, warped  × 8
+      * Clip 1.1.1 (×2)  `Kontakt 7 1`  ⚠ not in project
+        `Samples/Loops/Tonal/Vocal/Vocal Patience Main.wav`
+        * References (×2): warps: launch: trigger, warp: Complex
   ```
+
+  A **clip** is the thing a reference refers to: the file it plays, or, for a MIDI clip, its own
+  content. The settings of a reference — how it is launched, how its sample is warped — belong to
+  the reference and not to the clip, and are given on the references. The references that have
+  the same settings are one line, with the number of them, and the lines are ordered by the
+  number of the references, so that the ones with the most references come first.
 
   The colour of a track, a group and a clip is the background of its name, and the number Live
   writes for the colour is in the tooltip of the name. The text on the colour is the
@@ -70,27 +78,29 @@ The demo sets of Live are installed with Live and are not checked in, but their 
 
   A track, a group and a device that Push 3 Standalone cannot use — one that is not frozen and
   that has a device Push 3 cannot run — is written on the dark background `#212121` instead of
-  the colour of the thing.
+  the colour of the thing. A sample that is not in the folder of the project is marked on a dark
+  red.
 
   A clip of a set of Live 11 or Live 12 has no devices of its own: the devices that shape the
   sound of a clip are the devices of the track it is on, and the devices of a sample are in the
   file of the sample and not in the set.
 
-  The marks on a clip: `⚠ not in project` when the sample is not in the folder of the project,
-  `launch:` how the clip is launched, `linked` when the clip shares its sample with the other
-  clips of a linked group, `warped` when the sample is time-stretched, and `warp:` the warp mode
-  of the sample and the number Live writes for it. A clip that is on a track more than once is
-  listed once, with the number of copies.
+  A track that is linked to others — Link Tracks, in the context menu of the head of a track in
+  the arrangement view, locks the editing of several tracks together — is marked with the group
+  it is linked to. No set in the corpus has one; see **TODO N56**.
 - **The missing samples** (`## Missing Samples`): the samples of the set that are not in the
   project, grouped by the pack they are in. Live writes the absolute path of a sample in the
   set, and the path of the pack it is in is in it.
 - **The devices** (`## Device Cross-Reference`): every device of the set, and the tracks it is
   on. A device of a group is on the group and on the tracks in the group, because the chain of
   the group processes the audio of the tracks in it.
-- **The clips** (`## Track / Clip Cross Reference`): every clip of the set, and the tracks that
-  use it. The clips are the clips of the outline above: a clip is the same clip when it has the
-  same name, the same file, the same colour and the same state. A clip that is on more than one
-  track is marked, because the set shares it.
+- **The cross-reference** (`## Track / Clip Cross Reference`): the tracks of the set and the
+  clips each of them holds, and the clips of the set and the tracks that hold them.
+
+  A track of Live is one track: the session view and the arrangement show the same tracks. What
+  differs is the clips — the session view holds a clip in every slot, and the arrangement holds a
+  clip on the timeline — so the places a clip is in are given with it: `session view ×5`,
+  `arrangement ×2`, `take lane ×1`.
 
 The colour of a track or a clip is the number Live writes for it, and the number is an index into
 the palette of Live's colour menu. The palette is in `lib/live_set/live_palette.rb`, and it is

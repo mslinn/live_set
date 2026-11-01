@@ -64,9 +64,9 @@ RSpec.describe LiveSet, '#show' do
   it 'numbers the tracks in a group, and their clips' do
     markdown = report(LiveSets.fascination)
 
-    expect(markdown).to match(%r{^ {2}- Track 1.1  .*<code>Kontakt 7</code>})
-    expect(markdown).to match(%r{^ {2}- Track 1.2  .*<code>Tambo and Timbales Loop 90bpm</code>})
-    expect(markdown).to match(%r{^ {4}- Clip 1.1.1  .*<code>Kontakt 7 1</code>})
+    expect(markdown).to match(%r{^ {2}- Track 1\.1  🎹 MIDI  .*<code>Kontakt 7</code>})
+    expect(markdown).to match(%r{^ {2}- Track 1\.2  🎵 Audio  .*<code>Tambo and Timbales Loop 90bpm</code>})
+    expect(markdown).to match(%r{^\s*\* Clip 1\.1\.\d+ \(×\d+\)  .*<code>Kontakt 7 1</code>})
   end
 
   it 'gives the color of each track, on the name of the track' do
@@ -75,8 +75,12 @@ RSpec.describe LiveSet, '#show' do
     )
   end
 
-  it 'counts the clips that are on a track more than once' do
-    expect(report(LiveSets.fascination)).to match(/^ {2}- Clip 1\.1 .*× 11/)
+  it 'counts the references to a clip' do
+    expect(report(LiveSets.fascination)).to match(/^\s*\* Clip \d+\.\d+ \(×\d+\)/)
+  end
+
+  it 'gives the settings of a reference on the reference' do
+    expect(report(LiveSets.fascination)).to match(/^\s*\* References \(×\d+\): warps: /)
   end
 
   it 'gives the file of a clip' do
@@ -122,7 +126,7 @@ RSpec.describe LiveSet, '#show' do
   end
 
   it 'gives the warp mode of a sample' do
-    expect(report(LiveSets.fascination)).to include('warp: Beads (0)')
+    expect(report(LiveSets.fascination)).to include('warp: Beats')
   end
 
   it 'marks the tracks that Push 3 cannot use with a dark background' do
@@ -137,7 +141,7 @@ RSpec.describe LiveSet, '#show' do
   end
 
   it 'explains the marks on a clip' do
-    expect(report(LiveSets.fascination)).to include('`linked` means the clip shares its sample')
+    expect(report(LiveSets.fascination)).to include('`⚠ not in project` means the sample is not in the folder')
   end
 
   it 'gives the effects on a track' do

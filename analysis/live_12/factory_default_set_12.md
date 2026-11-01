@@ -20,13 +20,13 @@
 
 ## Groups/Tracks/Clips/Devices
 
-The marks on a clip: `linked` means the clip shares its sample with the other clips of a linked group, so that editing one of them edits them all; `warped` means the sample is time-stretched; `⚠ not in project` means the sample is not in the folder of the project, and the set is not self-contained.
+A clip is the thing a reference refers to: the file it plays, or, for a MIDI clip, its own content. The settings of a reference — how it is launched, how its sample is warped — belong to the reference and not to the clip, and are given on the references. The mark `⚠ not in project` means the sample is not in the folder of the project, and the set is not self-contained.
 
-- Track 1  <span style="background-color:#93A6FF;color:#2C2500" title="color 10"><code>Audio</code></span>  🎵 Audio
-- Track 2  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>MIDI</code></span>  🎹 MIDI
-- Track 3  <span style="background-color:#007DC0;color:#000000" title="color 23"><code>A-Return</code></span>  ↩️ Return
-- Track 4  <span style="background-color:#01BEAF;color:#580007" title="color 20"><code>B-Return</code></span>  ↩️ Return
-- Track 5  <span style="background-color:#10A4EE;color:#2E1103" title="color 22"><code>Main</code></span>  🎵 Main
+- Track 1  🎵 Audio  <span style="background-color:#93A6FF;color:#2C2500" title="color 10"><code>Audio</code></span>
+- Track 2  🎹 MIDI  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>MIDI</code></span>
+- Track 3  ↩️ Return  <span style="background-color:#007DC0;color:#000000" title="color 23"><code>A-Return</code></span>
+- Track 4  ↩️ Return  <span style="background-color:#01BEAF;color:#580007" title="color 20"><code>B-Return</code></span>
+- Track 5  🎵 Main  <span style="background-color:#10A4EE;color:#2E1103" title="color 22"><code>Main</code></span>
 
 ## Missing Samples
 
@@ -37,5 +37,11 @@ Every sample of the set is in the project.
 The set has no devices.
 
 ## Track / Clip Cross Reference
+
+### Tracks and their clips
+
+The set has no clips.
+
+### Clips and their tracks
 
 The set has no clips.

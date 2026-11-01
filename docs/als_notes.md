@@ -187,6 +187,37 @@ The size in the XML is the size of the source file as Live saw it, and it is
 sometimes zero even though the file exists and is not empty. The size on disk
 is used in that case.
 
+## The warp mode of a sample
+
+A clip that plays a file has a `WarpMode` element, and the number in it says
+which algorithm Live applies to the clip. The numbers are the numbers of the
+modes in the manual of Live, section 9.3, "Warp Modes":
+
+| `WarpMode` | Warp mode | What it is for |
+| --- | --- | --- |
+| 0 | Beats | Slicing rhythmic material at its transients, such as drums and loops |
+| 1 | Tones | Granular processing for clear, sustained monophonic pitch, such as vocals and basslines |
+| 2 | Texture | Granular processing for polyphonic, ambient or noisy textures, such as pads and soundscapes |
+| 3 | Re-Pitch | Speed changes alter both the pitch and the tempo at once, as a turntable or a tape stretch does |
+| 4 | Complex | A composite algorithm, for whole mixed tracks, dense layers or polyphonic samples |
+| 5 | Complex Pro | The advanced composite algorithm, with the formant and envelope controls |
+
+The manual is at
+https://www.ableton.com/en/live-manual/12/audio-clips-tempo-and-warping/#warp-modes
+
+The mode is written on every clip that plays a file, and it is the mode the
+clip was saved with, whether the clip was warped or not: a clip that is not
+warped is in Beats mode.
+
+The granularity of a clip is written next to the mode, and it is what the
+mode uses: `GranularityTones` is the grain of the Tones mode, and
+`GranularityTexture` and `FluctuationTexture` are the grain and the
+fluctuation of the Texture mode. A clip in any other mode carries the
+default values of all three.
+
+See `lib/live_set/live_set_report.rb`, which reports the mode of a clip by
+its name and its number.
+
 See `lib/live_set/live_set_audio_clip.rb`.
 
 
@@ -249,6 +280,26 @@ contributes no clips to any total.
 
 A member track's `TrackGroupId` holds the `Id` of the group it belongs to, and
 `-1` means the track is at the top level.
+
+### Linked tracks
+
+A track's `LinkedTrackGroupId` holds the `Id` of the group of tracks it is
+linked to, and `-1` means it is linked to none. Linking is done with the Link
+Tracks command, in the context menu of the head of a track in the arrangement
+view: the editing of the tracks of a group is locked together, so that moving
+and resizing the clips, selecting, editing the time, splitting and
+consolidating, the fades, arming and the take lanes of one of them happen to all
+of them at once.
+
+The groups are not the groups of the session view, which are the `TrackGroupId`
+above: a group of linked tracks is a set of tracks whose editing is locked
+together, wherever they are.
+
+See "Linked-Track Editing" in the manual of Live 12, section 6.14:
+https://www.ableton.com/en/live-manual/12/arrangement-view/#linked-track-editing
+
+Every track of every set of the corpus has `-1`, so nothing in the corpus
+exercises a linked group.
 
 ### The device chain of a group
 

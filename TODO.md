@@ -231,6 +231,46 @@ Three questions are open, and they are the questions the first cases have to ans
   protects the arrangement from being emptied, or protects an audio track from being the last
   one.
 
+#### N56. `LinkedTrackGroupId` is not exercised by any set in the corpus
+
+A track's `LinkedTrackGroupId` holds the id of the group of tracks it is linked to, and `-1`
+means it is linked to no other. Linking is done with the Link Tracks command, in the context menu
+of the head of a track in the arrangement view: the editing of the tracks of a group is locked
+together, so that moving and resizing the clips, selecting, editing the time, splitting and
+consolidating, the fades, arming and the take lanes of one of them happen to all of them at
+once. See "Linked-Track Editing" in the manual of Live 12, section 6.14:
+https://www.ableton.com/en/live-manual/12/arrangement-view/#linked-track-editing
+
+The element is of Live 11 and later: it is in the schemas of Live 11 and Live 12, and in none of
+the schemas of Live 8, 9 and 10. The groups themselves are held by the set, in
+`LiveSet/LinkedTrackGroups`, a list whose items are `LinkedTrackGroup` elements, each with a
+`Uuid`. See `C:\ProgramData\Ableton\Live 12 Suite\Resources\Schema\12.0_12402.txt`, lines 511,
+521, 3790-3792 and 3867.
+
+**Nothing in the corpus exercises it.** Every track of every set that could be reached has `-1`:
+1,554 sets under the Ableton installations, `/mnt/m`, `/mnt/e` and `/mnt/f`, 220 under the user
+profile, and about fifteen fixtures in the public repositories. The 871 of them that have a
+`<LinkedTrackGroups />` element have an empty one. So the report cannot show a linked group, and
+what it prints for the element is the id, with a comment that says what is known and what is
+not.
+
+What is not known, and what is left:
+
+- What the integer of a track is in relation to the list of groups in the set. The items of the
+  list are keyed by a `Uuid` and the reference is an integer, so the integer is probably an index
+  into the list, but no sample confirms it.
+- What a non-empty `<LinkedTrackGroups>` block looks like in a file that Live wrote.
+- Whether the integer of a cluster is stable from one save of the set to the next, or is
+  renumbered each time. That decides whether the report should print the integer at all, or only
+  say that the track is linked with others.
+- Whether two tracks of the same cluster always carry the same integer. The description of the
+  feature says that they do; no set shows it.
+
+The one way to close the gap is for Live to write such a set: open a set in Live 11 or Live 12,
+select two or more tracks in the arrangement view, use Link Tracks on them, save, and look at
+what is written. The set to use is a scratch copy of a small one — the factory default set of
+Live 11 or Live 12 is enough, since two of its tracks can be linked.
+
 #### L1. Live ships its own schemas; use them
 
 Every Live installation carries a directory of schemas of the format, one file per format version, named after the `MinorVersion` of a set. They are Live's own description of the format, and they are more complete than the XSDs this repository infers from the demo sets: 114 of the element names in `schemas/vocab_live11.txt` are in Live's schema for 11.0 and cannot be in the inferred one, because no Live 11 demo set contains them.

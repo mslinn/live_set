@@ -32,17 +32,46 @@ class LiveSetReport
   # The ways a clip can be launched.
   LAUNCH_MODES = { 0 => 'trigger', 1 => 'toggle', 2 => 'gate' }.freeze
 
-  # The warp modes of a sample, in the order of Live's menu.
-  WARP_MODES = { 0 => 'Beads', 1 => 'Texture', 2 => 'Complex', 3 => 'Complex Pro', 4 => 'Melody' }.freeze
+  # The warp modes of a sample, in the order of the manual.
+  #
+  # The number Live writes for the mode is the number of the mode in the manual:
+  # Beats, Tones, Texture, Re-Pitch, Complex, and, in Live 12, Complex Pro.
+  #
+  # See "Warp Modes" in the manual of Live 12, section 9.3:
+  # https://www.ableton.com/en/live-manual/12/audio-clips-tempo-and-warping/#warp-modes
+  WARP_MODES = {
+    0 => 'Beats', 1 => 'Tones', 2 => 'Texture', 3 => 'Re-Pitch', 4 => 'Complex', 5 => 'Complex Pro'
+  }.freeze
 
   # The folders the content of a pack is in.
   CONTENT_FOLDERS = %w[Samples Sounds IRs Devices Racks Presets].freeze
 
+  # The places a clip can be in a track, and the paths of the clips in them.
+  #
+  # A track holds the clips of its session view slots, the clips of the arrangement, and the
+  # clips of its take lanes. Each of them is a reference to a clip.
+  #
+  # @return [Array<Array>] the place, and the paths of the clips in it
+  def clip_places
+    [
+      ['session view',
+       ['./DeviceChain/MainSequencer/ClipSlotList/ClipSlot/ClipSlot/Value/AudioClip',
+        './DeviceChain/MainSequencer/ClipSlotList/ClipSlot/ClipSlot/Value/MidiClip']],
+      ['arrangement',
+       ['./DeviceChain/MainSequencer/Sample/ArrangerAutomation/Events/AudioClip',
+        './DeviceChain/MainSequencer/ClipTimeable/ArrangerAutomation/Events/MidiClip']],
+      ['take lane',
+       ['./TakeLanes/TakeLanes/TakeLane/ClipAutomation/Events/AudioClip',
+        './TakeLanes/TakeLanes/TakeLane/ClipAutomation/Events/MidiClip']]
+    ]
+  end
+
   # What the marks on a clip mean.
-  LEGEND = 'The marks on a clip: `linked` means the clip shares its sample with the other ' \
-           'clips of a linked group, so that editing one of them edits them all; `warped` means ' \
-           'the sample is time-stretched; `⚠ not in project` means the sample is not in the ' \
-           'folder of the project, and the set is not self-contained.'.freeze
+  LEGEND = 'A clip is the thing a reference refers to: the file it plays, or, for a MIDI clip, ' \
+           'its own content. The settings of a reference — how it is launched, how its sample ' \
+           'is warped — belong to the reference and not to the clip, and are given on the ' \
+           'references. The mark `⚠ not in project` means the sample is not in the folder of ' \
+           'the project, and the set is not self-contained.'.freeze
 
   # @param set_name [String] the path of the set
   # @param xml_doc [Nokogiri::XML::Document] the set
@@ -276,6 +305,31 @@ class LiveSetReport
     end
   end
 
+  # Every track of the set, with the number it has in the outline.
+  #
+  # The groups at the top of the set are numbered from one, and the tracks at the top of the set
+  # are numbered from one as well: a group and a track are numbered in their own company. The
+  # tracks of a group are numbered after the group, as 1.1.
+  #
+  # @yieldparam number [String] the number of the track
+  # @yieldparam track [Array] the kind, the name, the element and the members of the track
+  # @return [void]
+  def each_numbered_track
+    groups = 0
+    others = 0
+    track_tree.each do |track|
+      number = if track[0] == 'Group'
+                 groups += 1
+                 groups.to_s
+               else
+                 others += 1
+                 others.to_s
+               end
+      yield number, track
+      track[3].each_with_index { |member, index| yield "#{number}.#{index + 1}", member }
+    end
+  end
+
   # The lines of a track, of the devices and the clips of it, and of the tracks in its group.
   #
   # @param track [Array] the kind, the name, the element and the members of the track
@@ -290,17 +344,15 @@ class LiveSetReport
     problem = problem_for? element
 
     label = group ? "Group track #{number}" : "Track #{number}"
-    line = "#{indent}- #{label}  #{LivePalette.name_span escape(name), color_of(element), dark: problem}"
-    line += "  #{LivePalette.icon_of kind} #{kind}"
+    line = "#{indent}- #{label}  #{LivePalette.icon_of kind} #{kind}  " \
+           "#{LivePalette.name_span escape(name), color_of(element), dark: problem}"
     states = states_of element
     line += "  #{states.join(', ')}" unless states.empty?
     lines = [line]
 
     lines += device_lines kind, number, element, indent
 
-    grouped_clips(clips_of(element)).each do |clip, count, index|
-      lines += clip_lines clip, "#{number}.#{index}", depth + 1, count
-    end
+    lines += clip_lines element, number, depth + 1
 
     members.each_with_index do |member, index|
       lines += track_lines member, "#{number}.#{index + 1}", depth + 1, boxed: boxed || problem
@@ -384,26 +436,114 @@ class LiveSetReport
     groups.values
   end
 
-  # The lines of a clip, and of the devices of it.
+  # The clips of a track, and the references to them.
   #
-  # A clip of a set of Live 11 or Live 12 has no devices of its own: the devices that shape
-  # the sound of a clip are the devices of the track it is on, and the devices of a sample are
-  # in the file of the sample, not in the set.
+  # A clip is the thing a reference refers to: the file it plays, or, for a MIDI clip, its own
+  # content. The settings of a reference — how it is launched, how its sample is warped —
+  # belong to the reference and not to the clip, so they are reported on the reference.
+  #
+  # @param track [Nokogiri::XML::Element] the track
+  # @return [Array<Hash>] each clip, its file, and its references
+  def clips_of_track(track)
+    groups = {}
+    references_of(track).each do |reference|
+      key = identity_of reference[:clip]
+      groups[key] ||= { clip: reference[:clip], file: file_of(reference[:clip]), references: [] }
+      groups[key][:references] << reference
+    end
+    groups.values
+  end
+
+  # The references to the clips of a track.
+  #
+  # @param track [Nokogiri::XML::Element] the track
+  # @return [Array<Hash>] each reference, its clip, the place it is in, and its number
+  def references_of(track)
+    references = []
+    clip_places.each do |place, paths|
+      track.xpath(paths.join(' | ')).each do |clip|
+        references << { clip: clip, place: place, index: references.length + 1 }
+      end
+    end
+    references
+  end
+
+  # The identity of a clip: the file it plays, or, for a MIDI clip, its name and its content.
   #
   # @param clip [Nokogiri::XML::Element] the clip
-  # @param number [String] the number of the clip
-  # @param depth [Integer] how deep the clip is
-  # @param count [Integer] how many copies of the clip the track holds
-  # @return [Array<String>] the lines
-  def clip_lines(clip, number, depth, count = 1)
-    indent = '  ' * depth
-    marks = clip_marks clip
-    line = "#{indent}- Clip #{number}  #{LivePalette.name_span escape(name_of_clip(clip)), color_of(clip)}"
-    line += "  #{marks.join(', ')}" unless marks.empty?
-    line += "  × #{count}" if count > 1
+  # @return [String] the identity
+  def identity_of(clip)
     file = file_of clip
-    line += "  `#{file}`" if file
-    [line]
+    return file if file
+
+    "midi:#{name_of_clip clip}:#{clip.at('Notes')&.to_xml&.hash}"
+  end
+
+  # The clips of a track, as the outline shows them.
+  #
+  # @param track [Nokogiri::XML::Element] the track
+  # @param number [String] the number of the track
+  # @param depth [Integer] how deep the track is
+  # @return [Array<String>] the lines
+  def clip_lines(track, number, depth)
+    indent = '  ' * depth
+    lines = []
+
+    clips_of_track(track).each do |clip|
+      references = clip[:references]
+      first = references.first
+      marks = clip_marks clip[:clip]
+
+      line = "#{indent}  * Clip #{number}.#{first[:index]} (#{count_of references.length})  " \
+             "#{LivePalette.name_span escape(name_of_clip(clip[:clip])), color_of(clip[:clip])}"
+      line += "  #{marks.join(', ')}" unless marks.empty?
+      lines << line
+
+      lines << "#{indent}    `#{clip[:file]}`" if clip[:file]
+
+      reference_lines(clip[:references]).each { |reference| lines << "#{indent}    #{reference}" }
+    end
+    lines
+  end
+
+  # The references to a clip, one line for each set of settings.
+  #
+  # The references that have the same settings are one line, with the number of them, and the
+  # lines are ordered by the number of the references, so that the ones with the most
+  # references come first.
+  #
+  # @param references [Array<Hash>] the references
+  # @return [Array<String>] the lines
+  def reference_lines(references)
+    groups = Hash.new { |hash, key| hash[key] = [] }
+    references.each do |reference|
+      groups[settings_of(reference[:clip])] << reference
+    end
+
+    groups.map { |settings, group| [group.length, settings] }
+          .sort_by { |count, settings| [-count, settings] }
+          .map { |count, settings| "* References (#{count_of count}): warps: #{settings}" }
+  end
+
+  # The settings of a reference: how it is launched, and how its sample is warped.
+  #
+  # @param clip [Nokogiri::XML::Element] the clip
+  # @return [String] the settings
+  def settings_of(clip)
+    settings = []
+    settings << 'disabled' if clip.at('Disabled')&.[]('Value') == 'true'
+    mode = clip.at('LaunchMode')&.[]('Value')
+    settings << "launch: #{LAUNCH_MODES.fetch mode.to_i, mode}" if mode
+    settings << "warp: #{warp_of clip}" if clip.at('WarpMode')
+    settings.join(', ')
+  end
+
+  # A count of things, as the report writes it.
+  #
+  # @param count [Integer] the count
+  # @return [String] the count
+  def count_of(count)
+    "×#{count}"
   end
 
   # The state of a track.
@@ -414,9 +554,36 @@ class LiveSetReport
     states = []
     states << '✓ frozen' if frozen?(track)
     states << '✓ solo' if soloed?(track)
-    states << '🔴 ✓ armed' if armed?(track)
+    states << '🔴 armed' if armed?(track)
     states << 'off' if off?(track)
+    group = linked_group_of track
+    states << "linked group #{group}" if group
     states
+  end
+
+  # The linked group of a track, when it is in one.
+  #
+  # Link Tracks, in the context menu of the head of a track in the arrangement view, locks the
+  # editing of several tracks together: the operations of the manual — moving and resizing the
+  # clips, selecting, editing the time, splitting and consolidating, the fades, arming, the take
+  # lanes — are applied to all of the tracks of the group at once. Live gives each group of
+  # linked tracks an id, and the tracks of a group share it. A track that is linked to no other
+  # has -1.
+  #
+  # The element is of Live 11 and later: it is in the schemas of Live 11 and Live 12 and in
+  # none of the schemas of Live 8, 9 and 10. The groups themselves are held by the set, in
+  # `LiveSet/LinkedTrackGroups`, a list whose items are `LinkedTrackGroup` elements, each with
+  # a `Uuid`. What the integer of a track is in relation to that list is not known: no set
+  # exercises it.
+  #
+  # See "Linked-Track Editing" in the manual of Live 12, section 6.14:
+  # https://www.ableton.com/en/live-manual/12/arrangement-view/#linked-track-editing
+  #
+  # @param track [Nokogiri::XML::Element] the track
+  # @return [String, nil] the group, or nil when the track is linked to no other
+  def linked_group_of(track)
+    value = track.at('LinkedTrackGroupId')&.[]('Value')
+    value == '-1' ? nil : value
   end
 
   # The samples of the set that are not in the project, grouped by the pack they are in.
@@ -547,40 +714,70 @@ class LiveSetReport
   #
   # @return [String] the cross-reference
   def cross_reference_markdown
-    uses = {}
-    track_tree.each { |track| collect_uses track, uses }
-
     lines = ['## Track / Clip Cross Reference', '']
-    if uses.empty?
-      lines << 'The set has no clips.'
-      return lines.join("\n")
-    end
-
-    rows = uses.map do |_key, entry|
-      clip, tracks = entry
-      shared = tracks.length > 1
-      name = LivePalette.name_span escape(name_of_clip(clip)), color_of(clip)
-      name = "**#{name}**" if shared
-      tracks = tracks.map { |track| shared ? "**`#{escape track}`**" : "`#{escape track}`" }.join(', ')
-      [name, tracks]
-    end
-    lines << MarkdownTables.make_table(%w[Clip Tracks], rows, align: %w[l l], is_rows: true)
+    lines << '### Tracks and their clips'
+    lines << ''
+    lines << tracks_and_clips_table
+    lines << ''
+    lines << '### Clips and their tracks'
+    lines << ''
+    lines << clips_and_tracks_table
     lines.join("\n")
   end
 
-  # The tracks that use a clip, and the tracks of the groups they are in.
+  # The tracks of the set, and the clips each of them holds.
   #
-  # @param track [Array] the kind, the name, the element and the members of the track
-  # @param uses [Hash] the clips and the tracks that use them
-  # @return [void]
-  def collect_uses(track, uses)
-    _kind, name, element, members = track
-    grouped_clips(clips_of(element)).each do |clip, _count, _index|
-      key = clip_key clip
-      uses[key] ||= [clip, []]
-      uses[key][1] << name unless uses[key][1].include? name
+  # @return [String] the table
+  def tracks_and_clips_table
+    rows = []
+    each_numbered_track do |number, track|
+      clips = clips_of_track track[2]
+      next if clips.empty?
+
+      places = Hash.new { |hash, key| hash[key] = Hash.new(0) }
+      clips.each do |clip|
+        clip[:references].each { |reference| places[clip_label(clip)][reference[:place]] += 1 }
+      end
+
+      listed = places.map do |label, counts|
+        "`#{escape label}` " + counts.map { |place, count| "#{place} \u00d7#{count}" }.join(', ')
+      end
+      rows << ["#{number} `#{escape track[1]}`", listed.join('; ')]
     end
-    members.each { |member| collect_uses member, uses }
+    return 'The set has no clips.' if rows.empty?
+
+    MarkdownTables.make_table(%w[Track Clips], rows, align: %w[l l], is_rows: true)
+  end
+
+  # The clips of the set, and the tracks that hold them.
+  #
+  # @return [String] the table
+  def clips_and_tracks_table
+    uses = Hash.new { |hash, key| hash[key] = [] }
+    each_numbered_track do |number, track|
+      clips_of_track(track[2]).each do |clip|
+        tracks = uses[clip_label(clip)]
+        entry = "#{number} `#{escape track[1]}`"
+        tracks << entry unless tracks.include? entry
+      end
+    end
+
+    rows = uses.sort.map { |clip, tracks| ["`#{escape clip}`", tracks.join(', ')] }
+    return 'The set has no clips.' if rows.empty?
+
+    MarkdownTables.make_table(%w[Clip Tracks], rows, align: %w[l l], is_rows: true)
+  end
+
+  # The name of a clip, as the cross-reference names it: the file it plays, without its
+  # extension, or, for a MIDI clip, the name of the clip.
+  #
+  # @param clip [Hash] the clip
+  # @return [String] the name
+  def clip_label(clip)
+    file = clip[:file]
+    return File.basename(file, File.extname(file)) if file
+
+    name_of_clip clip[:clip]
   end
 
   # The key a clip is known by: its name, the file it refers to, its color and its state.
@@ -687,17 +884,18 @@ class LiveSetReport
   #
   # @param clip [Nokogiri::XML::Element] the clip
   # @return [Array<String>] the marks
+  # The marks of a clip: the facts about the clip itself, and not about a reference to it.
+  #
+  # @param clip [Nokogiri::XML::Element] the clip
+  # @return [Array<String>] the marks
   def clip_marks(clip)
     marks = []
-    marks << '⚠ not in project' unless collected? clip
-    marks << '🔴 disabled' if clip.at('Disabled')&.[]('Value') == 'true'
-    mode = clip.at('LaunchMode')&.[]('Value')
-    marks << "launch: #{LAUNCH_MODES.fetch mode.to_i, mode}" if mode
-    marks << 'linked' if clip.at('IsLinked')&.[]('Value') == 'true'
-    marks << 'warped' if clip.at('IsWarped')&.[]('Value') == 'true'
-    marks << "warp: #{warp_of clip}" if clip.at('WarpMode')
+    marks << NOT_COLLECTED unless collected? clip
     marks
   end
+
+  # The mark of a clip whose sample is not in the project.
+  NOT_COLLECTED = '<span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>'.freeze
 
   # Whether the sample of a clip is in the folder of the project.
   #
@@ -714,10 +912,10 @@ class LiveSetReport
   # The warp mode of a sample.
   #
   # @param clip [Nokogiri::XML::Element] the clip
-  # @return [String] the name of the mode and the number Live writes for it
+  # @return [String] the name of the mode
   def warp_of(clip)
     value = clip.at('WarpMode')&.[]('Value').to_i
-    "#{WARP_MODES.fetch value, 'unknown'} (#{value})"
+    WARP_MODES.fetch value, 'unknown'
   end
 
   # The clips of a track.

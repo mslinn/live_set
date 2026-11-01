@@ -28,145 +28,350 @@
 
 ## Groups/Tracks/Clips/Devices
 
-The marks on a clip: `linked` means the clip shares its sample with the other clips of a linked group, so that editing one of them edits them all; `warped` means the sample is time-stretched; `⚠ not in project` means the sample is not in the folder of the project, and the set is not self-contained.
+A clip is the thing a reference refers to: the file it plays, or, for a MIDI clip, its own content. The settings of a reference — how it is launched, how its sample is warped — belong to the reference and not to the clip, and are given on the references. The mark `⚠ not in project` means the sample is not in the folder of the project, and the set is not self-contained.
 
-- Track 1  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>Bass Reese</code></span>  🎹 MIDI
-  - Clip 1.1  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>(unnamed)</code></span>  ⚠ not in project, launch: trigger, linked, warped  × 4
-- Track 2  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>Bass Plonk</code></span>  🎹 MIDI
-  - Clip 2.1  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>(unnamed)</code></span>  ⚠ not in project, launch: trigger, linked, warped  × 13
-- Track 3  <span style="background-color:#FFA428;color:#003C8D" title="color 1"><code>Vocals</code></span>  🎵 Audio
+- Track 1  🎹 MIDI  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>Bass Reese</code></span>
+    * Clip 1.1 (×1)  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 1.2 (×1)  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 1.3 (×1)  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 1.4 (×1)  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+- Track 2  🎹 MIDI  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>Bass Plonk</code></span>
+    * Clip 2.1 (×1)  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 2.2 (×1)  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 2.3 (×1)  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 2.4 (×1)  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 2.5 (×1)  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 2.6 (×3)  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×3): warps: launch: trigger
+    * Clip 2.7 (×3)  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×3): warps: launch: trigger
+    * Clip 2.10 (×1)  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 2.12 (×1)  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+- Track 3  🎵 Audio  <span style="background-color:#FFA428;color:#003C8D" title="color 1"><code>Vocals</code></span>
   - Track Device 3a  <code>AutoFilter</code>  native device
   - Track Device 3b  <code>Saturator</code>  native device
   - Track Device 3c  <code>Delay</code>  native device
   - Track Device 3d  <code>Reverb</code>  native device
   - Track Device 3e  <code>Compressor2</code>  native device
   - Track Device 3f  <code>Compressor2</code>  native device
-  - Clip 3.1  <span style="background-color:#FFA428;color:#003C8D" title="color 1"><code>Lead Take 1 [2021-01-24 151339]</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  × 21  `Samples/Loops/Tonal/Vocal/Vocal Demo Lead Takes.aif`
-  - Clip 3.4  <span style="background-color:#FFA428;color:#003C8D" title="color 1"><code>(unnamed)</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  × 3  `Samples/Loops/Tonal/Vocal/Vocal Demo Lead Takes.aif`
-  - Clip 3.7  <span style="background-color:#FFA428;color:#003C8D" title="color 1"><code>(unnamed)</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  × 2  `Samples/Loops/Tonal/Vocal/Vocal Demo Make You Mine.aif`
-  - Clip 3.14  <span style="background-color:#FFA428;color:#003C8D" title="color 1"><code>Lead Take 1</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  × 2  `Samples/Loops/Tonal/Vocal/Vocal Demo Lead Takes.aif`
-  - Clip 3.27  <span style="background-color:#FFA428;color:#003C8D" title="color 1"><code>Lead Take 1</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Melody (4)  `Samples/Loops/Tonal/Vocal/Vocal Demo Lead Takes.aif`
-  - Clip 3.30  <span style="background-color:#FFA428;color:#003C8D" title="color 1"><code>Vocals Make You Mine</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  × 2  `Samples/Loops/Tonal/Vocal/Vocal Demo Make You Mine.aif`
-- Track 4  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>String Synth</code></span>  🎹 MIDI
+    * Clip 3.1 (×27)  <span style="background-color:#FFA428;color:#003C8D" title="color 1"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/Loops/Tonal/Vocal/Vocal Demo Lead Takes.aif`
+      * References (×26): warps: launch: trigger, warp: Beats
+      * References (×1): warps: launch: trigger, warp: Complex
+    * Clip 3.4 (×4)  <span style="background-color:#FFA428;color:#003C8D" title="color 1"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/Loops/Tonal/Vocal/Vocal Demo Make You Mine.aif`
+      * References (×4): warps: launch: trigger, warp: Beats
+- Track 4  🎹 MIDI  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>String Synth</code></span>
   - Track Device 4a  <code>AutoFilter</code>  native device
   - Track Device 4b  <code>Reverb</code>  native device
   - Track Device 4c  <code>Compressor2</code>  native device
-  - Clip 4.1  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  ⚠ not in project, launch: trigger, linked, warped  × 9
-- Track 5  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>Plastic Toy</code></span>  🎹 MIDI
+    * Clip 4.1 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 4.2 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 4.3 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 4.4 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 4.5 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 4.6 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 4.7 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 4.8 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 4.9 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+- Track 5  🎹 MIDI  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>Plastic Toy</code></span>
   - Track Device 5a  <code>MidiArpeggiator</code>  native device
   - Track Device 5b  <code>Reverb</code>  native device
   - Track Device 5c  <code>Delay</code>  native device
   - Track Device 5d  <code>AutoFilter</code>  native device
   - Track Device 5e  <code>Compressor2</code>  native device
   - Track Device 5f  <code>Compressor2</code>  native device
-  - Clip 5.1  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  ⚠ not in project, launch: trigger, linked, warped  × 11
-- Track 6  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>Synth Keys</code></span>  🎹 MIDI
+    * Clip 5.1 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 5.2 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 5.3 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 5.4 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 5.5 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 5.6 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 5.7 (×2)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×2): warps: launch: trigger
+    * Clip 5.9 (×2)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×2): warps: launch: trigger
+    * Clip 5.11 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+- Track 6  🎹 MIDI  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>Synth Keys</code></span>
   - Track Device 6a  <code>Delay</code>  native device
   - Track Device 6b  <code>Reverb</code>  native device
   - Track Device 6c  <code>Reverb</code>  native device
   - Track Device 6d  <code>Delay</code>  native device
   - Track Device 6e  <code>Compressor2</code>  native device
-  - Clip 6.1  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  ⚠ not in project, launch: trigger, linked, warped  × 7
-- Track 7  <span style="background-color:#5480E4;color:#050300" title="color 9"><code>Drum Rack</code></span>  🎹 MIDI
-  - Clip 7.1  <span style="background-color:#5480E4;color:#050300" title="color 9"><code>(unnamed)</code></span>  ⚠ not in project, launch: trigger, linked, warped  × 6
-- Track 8  <span style="background-color:#FEF134;color:#3441FD" title="color 17"><code>SFX Rack</code></span>  🎹 MIDI
-  - Clip 8.1  <span style="background-color:#FEF134;color:#3441FD" title="color 17"><code>(unnamed)</code></span>  ⚠ not in project, launch: trigger, linked, warped  × 17
-- Track 9  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Impact Chops 1</code></span>  🎵 Audio
+    * Clip 6.1 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 6.2 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 6.3 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 6.4 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 6.5 (×2)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×2): warps: launch: trigger
+    * Clip 6.7 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+- Track 7  🎹 MIDI  <span style="background-color:#5480E4;color:#050300" title="color 9"><code>Drum Rack</code></span>
+    * Clip 7.1 (×1)  <span style="background-color:#5480E4;color:#050300" title="color 9"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 7.2 (×1)  <span style="background-color:#5480E4;color:#050300" title="color 9"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 7.3 (×1)  <span style="background-color:#5480E4;color:#050300" title="color 9"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 7.4 (×1)  <span style="background-color:#5480E4;color:#050300" title="color 9"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 7.5 (×1)  <span style="background-color:#5480E4;color:#050300" title="color 9"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 7.6 (×1)  <span style="background-color:#5480E4;color:#050300" title="color 9"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+- Track 8  🎹 MIDI  <span style="background-color:#FEF134;color:#3441FD" title="color 17"><code>SFX Rack</code></span>
+    * Clip 8.1 (×1)  <span style="background-color:#FEF134;color:#3441FD" title="color 17"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 8.2 (×1)  <span style="background-color:#FEF134;color:#3441FD" title="color 17"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 8.3 (×1)  <span style="background-color:#FEF134;color:#3441FD" title="color 17"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 8.4 (×1)  <span style="background-color:#FEF134;color:#3441FD" title="color 17"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 8.5 (×1)  <span style="background-color:#FEF134;color:#3441FD" title="color 17"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 8.6 (×1)  <span style="background-color:#FEF134;color:#3441FD" title="color 17"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 8.7 (×1)  <span style="background-color:#FEF134;color:#3441FD" title="color 17"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 8.8 (×1)  <span style="background-color:#FEF134;color:#3441FD" title="color 17"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 8.9 (×2)  <span style="background-color:#FEF134;color:#3441FD" title="color 17"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×2): warps: launch: trigger
+    * Clip 8.11 (×6)  <span style="background-color:#FEF134;color:#3441FD" title="color 17"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×6): warps: launch: trigger
+    * Clip 8.17 (×1)  <span style="background-color:#FEF134;color:#3441FD" title="color 17"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+- Track 9  🎵 Audio  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Impact Chops 1</code></span>
   - Track Device 9a  <code>GrainDelay</code>  native device
   - Track Device 9b  <code>Compressor2</code>  native device
   - Track Device 9c  <code>Compressor2</code>  native device
-  - Clip 9.1  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>(unnamed)</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  × 2  `Samples/One Shots/FX/Impact Mov Digi.wav`
-  - Clip 9.3  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Impact Layered</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  × 5  `Samples/One Shots/FX/Impact Layered Reversed.wav`
-  - Clip 9.4  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Impact Layered</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  × 2  `Samples/One Shots/FX/Impact Layered.wav`
-  - Clip 9.6  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Impact Mov Digi</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  × 5  `Samples/One Shots/FX/Impact Mov Digi.wav`
-- Track 10  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Impact Chops 2</code></span>  🎵 Audio
+    * Clip 9.1 (×7)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/FX/Impact Mov Digi.wav`
+      * References (×7): warps: launch: trigger, warp: Beats
+    * Clip 9.3 (×5)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Impact Layered</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/FX/Impact Layered Reversed.wav`
+      * References (×5): warps: launch: trigger, warp: Beats
+    * Clip 9.4 (×2)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Impact Layered</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/FX/Impact Layered.wav`
+      * References (×2): warps: launch: trigger, warp: Beats
+- Track 10  🎵 Audio  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Impact Chops 2</code></span>
   - Track Device 10a  <code>Compressor2</code>  native device
   - Track Device 10b  <code>Compressor2</code>  native device
-  - Clip 10.1  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>(unnamed)</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  × 3  `Samples/One Shots/FX/Whoosh Down Dark.wav`
-  - Clip 10.4  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Shaker A1</code></span>  ⚠ not in project, launch: trigger, linked, warp: Beads (0)  × 3  `Samples/One Shots/Drums/Shaker/Shaker A1.aif`
-  - Clip 10.5  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Shaker 007</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  × 3  `Samples/One Shots/Drums/Shaker/Shaker 007.aif`
-  - Clip 10.6  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Tom 80s Space Craft 3</code></span>  ⚠ not in project, launch: trigger, linked, warp: Beads (0)  × 3  `Samples/One Shots/Drums/Tom/Tom 80s Space Craft 3.wav`
-  - Clip 10.7  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Tom 505 Hi</code></span>  ⚠ not in project, launch: trigger, linked, warp: Beads (0)  × 3  `Samples/One Shots/Drums/Tom/Tom 505 Hi.aif`
-  - Clip 10.8  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Tom 505 Low</code></span>  ⚠ not in project, launch: trigger, linked, warp: Beads (0)  × 3  `Samples/One Shots/Drums/Tom/Tom 505 Low.aif`
-  - Clip 10.9  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Tom 909 Hi</code></span>  ⚠ not in project, launch: trigger, linked, warp: Beads (0)  × 3  `Samples/One Shots/Drums/Tom/Tom 909 Hi.aif`
-  - Clip 10.10  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Tom B SP 3</code></span>  ⚠ not in project, launch: trigger, linked, warp: Beads (0)  × 4  `Samples/One Shots/Drums/Tom/Tom B SP 3.wav`
-  - Clip 10.11  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Tom B SP 5</code></span>  ⚠ not in project, launch: trigger, linked, warp: Beads (0)  × 4  `Samples/One Shots/Drums/Tom/Tom B SP 5.wav`
-  - Clip 10.12  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Whoosh Down Dark</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  × 10  `Samples/One Shots/FX/Whoosh Down Dark.wav`
-  - Clip 10.13  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Audio</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  × 4  `Samples/One Shots/Vocal/Vocal Demo Laughter.aif`
-  - Clip 10.14  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>FX Crunch Short</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  `Samples/One Shots/Drums/FX Hit/FX Crunch Short.aif`
-  - Clip 10.17  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>FX Tick Shatter</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  `Samples/One Shots/Drums/FX Hit/FX Tick Shatter.aif`
-  - Clip 10.19  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>FX Turn On TV</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  `Samples/One Shots/Drums/FX Hit/FX Turn On TV.wav`
-  - Clip 10.21  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>FX Scratch Slackjaw</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  `Samples/One Shots/Drums/FX Hit/FX Scratch Slackjaw.wav`
-- Track 11  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Perc Chops</code></span>  🎵 Audio
+    * Clip 10.1 (×13)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/FX/Whoosh Down Dark.wav`
+      * References (×13): warps: launch: trigger, warp: Beats
+    * Clip 10.4 (×3)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Shaker A1</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/Drums/Shaker/Shaker A1.aif`
+      * References (×3): warps: launch: trigger, warp: Beats
+    * Clip 10.5 (×3)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Shaker 007</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/Drums/Shaker/Shaker 007.aif`
+      * References (×3): warps: launch: trigger, warp: Beats
+    * Clip 10.6 (×3)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Tom 80s Space Craft 3</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/Drums/Tom/Tom 80s Space Craft 3.wav`
+      * References (×3): warps: launch: trigger, warp: Beats
+    * Clip 10.7 (×3)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Tom 505 Hi</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/Drums/Tom/Tom 505 Hi.aif`
+      * References (×3): warps: launch: trigger, warp: Beats
+    * Clip 10.8 (×3)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Tom 505 Low</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/Drums/Tom/Tom 505 Low.aif`
+      * References (×3): warps: launch: trigger, warp: Beats
+    * Clip 10.9 (×3)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Tom 909 Hi</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/Drums/Tom/Tom 909 Hi.aif`
+      * References (×3): warps: launch: trigger, warp: Beats
+    * Clip 10.10 (×4)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Tom B SP 3</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/Drums/Tom/Tom B SP 3.wav`
+      * References (×4): warps: launch: trigger, warp: Beats
+    * Clip 10.11 (×4)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Tom B SP 5</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/Drums/Tom/Tom B SP 5.wav`
+      * References (×4): warps: launch: trigger, warp: Beats
+    * Clip 10.13 (×4)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Audio</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/Vocal/Vocal Demo Laughter.aif`
+      * References (×4): warps: launch: trigger, warp: Beats
+    * Clip 10.14 (×1)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>FX Crunch Short</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/Drums/FX Hit/FX Crunch Short.aif`
+      * References (×1): warps: launch: trigger, warp: Beats
+    * Clip 10.17 (×1)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>FX Tick Shatter</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/Drums/FX Hit/FX Tick Shatter.aif`
+      * References (×1): warps: launch: trigger, warp: Beats
+    * Clip 10.19 (×1)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>FX Turn On TV</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/Drums/FX Hit/FX Turn On TV.wav`
+      * References (×1): warps: launch: trigger, warp: Beats
+    * Clip 10.21 (×1)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>FX Scratch Slackjaw</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/Drums/FX Hit/FX Scratch Slackjaw.wav`
+      * References (×1): warps: launch: trigger, warp: Beats
+- Track 11  🎵 Audio  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Perc Chops</code></span>
   - Track Device 11a  <code>Delay</code>  native device
   - Track Device 11b  <code>Compressor2</code>  native device
   - Track Device 11c  <code>Reverb</code>  native device
-  - Clip 11.1  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>E-Perc 9</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  `Samples/One Shots/Drums/Electronic Percussion/E-Perc 9.aif`
-  - Clip 11.2  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>E-Perc Buttoned</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  `Samples/One Shots/Drums/Electronic Percussion/E-Perc Buttoned.wav`
-  - Clip 11.3  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>E-Perc BittyBot</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  `Samples/One Shots/Drums/Electronic Percussion/E-Perc BittyBot.wav`
-  - Clip 11.4  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>E-Perc Digital Plonk</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  `Samples/One Shots/Drums/Electronic Percussion/E-Perc Digital Plonk.aif`
-  - Clip 11.5  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>E-Perc R100</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  `Samples/One Shots/Drums/Electronic Percussion/E-Perc R100.wav`
-  - Clip 11.6  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>E-Perc Ring Shift Moon Golf 2</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  `Samples/One Shots/Drums/Electronic Percussion/E-Perc Ring Shift Moon Golf 2.wav`
-  - Clip 11.7  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Bell Mid Metallic Electrified</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  `Samples/One Shots/Drums/Bell/Bell Mid Metallic Electrified.wav`
-  - Clip 11.8  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Bell Tin</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  `Samples/One Shots/Drums/Bell/Bell Tin.wav`
-  - Clip 11.9  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Tube Hit</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  `Samples/One Shots/Drums/Misc Percussion/Tube Hit.wav`
-  - Clip 11.10  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Perc Hit Hard</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  `Samples/One Shots/Drums/Misc Percussion/Perc Hit Hard.aif`
-  - Clip 11.11  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Guiro C78 Short b</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  `Samples/One Shots/Drums/Wood/Guiro C78 Short b.aif`
-  - Clip 11.12  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Bongos-121bpm</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Melody (4)  `Samples/Loops/Drums/Percussion/Bongos 121 bpm.wav`
-  - Clip 11.13  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Congas-128bpm</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Melody (4)  `Samples/Loops/Drums/Percussion/Congas 128 bpm.aif`
-  - Clip 11.14  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Semba Percussion 100 bpm</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  `Samples/Loops/Drums/Percussion/Semba Percussion 100 bpm.wav`
-  - Clip 11.15  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Break 3 Round 95 bpm</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  × 2  `Samples/Loops/Drums/Full/Break 3 Round 95 bpm.aif`
-  - Clip 11.17  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>AHMIR'S VOODOO BREAK 118.85 BPM</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  `Samples/Loops/Drums/Full/Break Ahmir's Voodoo 119 bpm.wav`
-  - Clip 11.18  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>E-Perc 9</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Complex (2)  `Samples/One Shots/Drums/Electronic Percussion/E-Perc 9.aif`
-  - Clip 11.19  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>E-Perc Buttoned</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Complex (2)  `Samples/One Shots/Drums/Electronic Percussion/E-Perc Buttoned.wav`
-  - Clip 11.20  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>E-Perc BittyBot</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Complex (2)  `Samples/One Shots/Drums/Electronic Percussion/E-Perc BittyBot.wav`
-  - Clip 11.21  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>E-Perc Digital Plonk</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Complex (2)  `Samples/One Shots/Drums/Electronic Percussion/E-Perc Digital Plonk.aif`
-  - Clip 11.22  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>E-Perc R100</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Complex (2)  `Samples/One Shots/Drums/Electronic Percussion/E-Perc R100.wav`
-  - Clip 11.23  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>E-Perc Ring Shift Moon Golf 2</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Complex (2)  `Samples/One Shots/Drums/Electronic Percussion/E-Perc Ring Shift Moon Golf 2.wav`
-  - Clip 11.24  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Bell Mid Metallic Electrified</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Complex (2)  `Samples/One Shots/Drums/Bell/Bell Mid Metallic Electrified.wav`
-  - Clip 11.25  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Bell Tin</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Complex (2)  `Samples/One Shots/Drums/Bell/Bell Tin.wav`
-  - Clip 11.26  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Perc Hit Hard</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Complex (2)  `Samples/One Shots/Drums/Misc Percussion/Perc Hit Hard.aif`
-  - Clip 11.27  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Tube Hit</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Complex (2)  `Samples/One Shots/Drums/Misc Percussion/Tube Hit.wav`
-  - Clip 11.28  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Guiro C78 Short b</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Complex (2)  `Samples/One Shots/Drums/Wood/Guiro C78 Short b.aif`
-  - Clip 11.29  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Bongos-121bpm</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Complex (2)  `Samples/Loops/Drums/Percussion/Bongos 121 bpm.wav`
-  - Clip 11.30  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Congas-128bpm</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Complex (2)  `Samples/Loops/Drums/Percussion/Congas 128 bpm.aif`
-  - Clip 11.31  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Semba Percussion 100 bpm</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Complex (2)  `Samples/Loops/Drums/Percussion/Semba Percussion 100 bpm.wav`
-  - Clip 11.32  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Break 3 Round 95 bpm</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Complex (2)  `Samples/Loops/Drums/Full/Break 3 Round 95 bpm.aif`
-- Track 12  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Clap Loop</code></span>  🎵 Audio
-  - Clip 12.1  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>(unnamed)</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Complex Pro (3)  × 3  `Samples/Loops/Drums/Percussion/Clapping Flamenco 120 bpm.aif`
-  - Clip 12.4  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Clapping Flamenco-120bpm</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Complex Pro (3)  × 11  `Samples/Loops/Drums/Percussion/Clapping Flamenco 120 bpm.aif`
-  - Clip 12.9  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>FX Buzz Stutter Runaway</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  `Samples/One Shots/Drums/FX Hit/FX Buzz Stutter Runaway.aif`
-  - Clip 12.10  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Dewey Phantom Chop 87 bpm</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  `Samples/Loops/Drums/Full/Dewey Phantom Chop 87 bpm.wav`
-- Track 13  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Hihat Loop</code></span>  🎵 Audio
+    * Clip 11.1 (×2)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>E-Perc 9</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/Drums/Electronic Percussion/E-Perc 9.aif`
+      * References (×1): warps: launch: trigger, warp: Beats
+      * References (×1): warps: launch: trigger, warp: Texture
+    * Clip 11.2 (×2)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>E-Perc Buttoned</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/Drums/Electronic Percussion/E-Perc Buttoned.wav`
+      * References (×1): warps: launch: trigger, warp: Beats
+      * References (×1): warps: launch: trigger, warp: Texture
+    * Clip 11.3 (×2)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>E-Perc BittyBot</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/Drums/Electronic Percussion/E-Perc BittyBot.wav`
+      * References (×1): warps: launch: trigger, warp: Beats
+      * References (×1): warps: launch: trigger, warp: Texture
+    * Clip 11.4 (×2)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>E-Perc Digital Plonk</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/Drums/Electronic Percussion/E-Perc Digital Plonk.aif`
+      * References (×1): warps: launch: trigger, warp: Beats
+      * References (×1): warps: launch: trigger, warp: Texture
+    * Clip 11.5 (×2)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>E-Perc R100</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/Drums/Electronic Percussion/E-Perc R100.wav`
+      * References (×1): warps: launch: trigger, warp: Beats
+      * References (×1): warps: launch: trigger, warp: Texture
+    * Clip 11.6 (×2)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>E-Perc Ring Shift Moon Golf 2</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/Drums/Electronic Percussion/E-Perc Ring Shift Moon Golf 2.wav`
+      * References (×1): warps: launch: trigger, warp: Beats
+      * References (×1): warps: launch: trigger, warp: Texture
+    * Clip 11.7 (×2)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Bell Mid Metallic Electrified</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/Drums/Bell/Bell Mid Metallic Electrified.wav`
+      * References (×1): warps: launch: trigger, warp: Beats
+      * References (×1): warps: launch: trigger, warp: Texture
+    * Clip 11.8 (×2)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Bell Tin</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/Drums/Bell/Bell Tin.wav`
+      * References (×1): warps: launch: trigger, warp: Beats
+      * References (×1): warps: launch: trigger, warp: Texture
+    * Clip 11.9 (×2)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Tube Hit</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/Drums/Misc Percussion/Tube Hit.wav`
+      * References (×1): warps: launch: trigger, warp: Beats
+      * References (×1): warps: launch: trigger, warp: Texture
+    * Clip 11.10 (×2)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Perc Hit Hard</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/Drums/Misc Percussion/Perc Hit Hard.aif`
+      * References (×1): warps: launch: trigger, warp: Beats
+      * References (×1): warps: launch: trigger, warp: Texture
+    * Clip 11.11 (×2)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Guiro C78 Short b</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/Drums/Wood/Guiro C78 Short b.aif`
+      * References (×1): warps: launch: trigger, warp: Beats
+      * References (×1): warps: launch: trigger, warp: Texture
+    * Clip 11.12 (×2)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Bongos-121bpm</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/Loops/Drums/Percussion/Bongos 121 bpm.wav`
+      * References (×1): warps: launch: trigger, warp: Complex
+      * References (×1): warps: launch: trigger, warp: Texture
+    * Clip 11.13 (×2)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Congas-128bpm</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/Loops/Drums/Percussion/Congas 128 bpm.aif`
+      * References (×1): warps: launch: trigger, warp: Complex
+      * References (×1): warps: launch: trigger, warp: Texture
+    * Clip 11.14 (×2)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Semba Percussion 100 bpm</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/Loops/Drums/Percussion/Semba Percussion 100 bpm.wav`
+      * References (×1): warps: launch: trigger, warp: Beats
+      * References (×1): warps: launch: trigger, warp: Texture
+    * Clip 11.15 (×3)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Break 3 Round 95 bpm</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/Loops/Drums/Full/Break 3 Round 95 bpm.aif`
+      * References (×2): warps: launch: trigger, warp: Beats
+      * References (×1): warps: launch: trigger, warp: Texture
+    * Clip 11.17 (×1)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>AHMIR'S VOODOO BREAK 118.85 BPM</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/Loops/Drums/Full/Break Ahmir's Voodoo 119 bpm.wav`
+      * References (×1): warps: launch: trigger, warp: Beats
+- Track 12  🎵 Audio  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Clap Loop</code></span>
+    * Clip 12.1 (×14)  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/Loops/Drums/Percussion/Clapping Flamenco 120 bpm.aif`
+      * References (×14): warps: launch: trigger, warp: Re-Pitch
+    * Clip 12.9 (×1)  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>FX Buzz Stutter Runaway</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/Drums/FX Hit/FX Buzz Stutter Runaway.aif`
+      * References (×1): warps: launch: trigger, warp: Beats
+    * Clip 12.10 (×1)  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Dewey Phantom Chop 87 bpm</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/Loops/Drums/Full/Dewey Phantom Chop 87 bpm.wav`
+      * References (×1): warps: launch: trigger, warp: Beats
+- Track 13  🎵 Audio  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Hihat Loop</code></span>
   - Track Device 13a  <code>Redux2</code>  native device
   - Track Device 13b  <code>Compressor2</code>  native device
-  - Clip 13.1  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>(unnamed)</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  `Samples/Loops/Drums/Top/Hihat Dirty Doug 100 bpm.wav`
-  - Clip 13.2  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Hihat Dirty Doug 100 bpm</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  × 8  `Samples/Loops/Drums/Top/Hihat Dirty Doug 100 bpm.wav`
-- Track 14  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Break Loop</code></span>  🎵 Audio
+    * Clip 13.1 (×9)  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/Loops/Drums/Top/Hihat Dirty Doug 100 bpm.wav`
+      * References (×9): warps: launch: trigger, warp: Beats
+- Track 14  🎵 Audio  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Break Loop</code></span>
   - Track Device 14a  <code>Delay</code>  native device
   - Track Device 14b  <code>Compressor2</code>  native device
   - Track Device 14c  <code>Compressor2</code>  native device
-  - Clip 14.1  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>(unnamed)</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  `Samples/Loops/Drums/Full/Break Scatty 174 bpm.wav`
-  - Clip 14.2  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Break Scatty 174 bpm</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  × 2  `Samples/Loops/Drums/Full/Break Scatty 174 bpm.wav`
-  - Clip 14.3  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Drum and Bass Rolling 170 bpm</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Beads (0)  × 33  `Samples/Loops/Drums/Full/Drum and Bass Rolling 170 bpm.wav`
-  - Clip 14.11  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Tom R100 Clean 1</code></span>  ⚠ not in project, launch: trigger, linked, warp: Beads (0)  `Samples/One Shots/Drums/Tom/Tom R100 Clean 1.wav`
-  - Clip 14.12  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Tom R100 Electronic 1</code></span>  ⚠ not in project, launch: trigger, linked, warp: Beads (0)  `Samples/One Shots/Drums/Tom/Tom R100 Electronic 1.wav`
-  - Clip 14.13  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Tom R100 Clean 2</code></span>  ⚠ not in project, launch: trigger, linked, warp: Beads (0)  `Samples/One Shots/Drums/Tom/Tom R100 Clean 2.wav`
-  - Clip 14.14  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Tom R100 Electronic 2</code></span>  ⚠ not in project, launch: trigger, linked, warp: Beads (0)  `Samples/One Shots/Drums/Tom/Tom R100 Electronic 2.wav`
-  - Clip 14.15  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Drum and Bass Straight-172bpm</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Texture (1)  × 2  `Samples/Loops/Drums/Full/Drum and Bass Straight 172 bpm.wav`
-  - Clip 14.16  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Two Step Garage-135bpm</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Complex Pro (3)  × 2  `Samples/Loops/Drums/Full/Two Step Garage 135 bpm.aif`
-  - Clip 14.17  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Breakbeat 134 bpm</code></span>  ⚠ not in project, launch: trigger, linked, warped, warp: Complex Pro (3)  × 2  `Samples/Loops/Drums/Full/Breakbeat 134 bpm.aif`
-  - Clip 14.38  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Stick Bluesbreak</code></span>  ⚠ not in project, launch: trigger, linked, warp: Beads (0)  × 5  `Samples/One Shots/Drums/Misc Percussion/Stick Bluesbreak.wav`
-  - Clip 14.39  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>FX Alien Perc</code></span>  ⚠ not in project, launch: trigger, linked, warp: Beads (0)  × 2  `Samples/One Shots/Drums/FX Hit/FX Alien Perc.aif`
-- Track 15  <span style="background-color:#F6F57C;color:#4C4DF2" title="color 3"><code>String Sample</code></span>  🎹 MIDI
+    * Clip 14.1 (×3)  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/Loops/Drums/Full/Break Scatty 174 bpm.wav`
+      * References (×3): warps: launch: trigger, warp: Beats
+    * Clip 14.3 (×33)  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Drum and Bass Rolling 170 bpm</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/Loops/Drums/Full/Drum and Bass Rolling 170 bpm.wav`
+      * References (×33): warps: launch: trigger, warp: Beats
+    * Clip 14.11 (×1)  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Tom R100 Clean 1</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/Drums/Tom/Tom R100 Clean 1.wav`
+      * References (×1): warps: launch: trigger, warp: Beats
+    * Clip 14.12 (×1)  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Tom R100 Electronic 1</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/Drums/Tom/Tom R100 Electronic 1.wav`
+      * References (×1): warps: launch: trigger, warp: Beats
+    * Clip 14.13 (×1)  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Tom R100 Clean 2</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/Drums/Tom/Tom R100 Clean 2.wav`
+      * References (×1): warps: launch: trigger, warp: Beats
+    * Clip 14.14 (×1)  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Tom R100 Electronic 2</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/Drums/Tom/Tom R100 Electronic 2.wav`
+      * References (×1): warps: launch: trigger, warp: Beats
+    * Clip 14.15 (×2)  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Drum and Bass Straight-172bpm</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/Loops/Drums/Full/Drum and Bass Straight 172 bpm.wav`
+      * References (×2): warps: launch: trigger, warp: Tones
+    * Clip 14.16 (×2)  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Two Step Garage-135bpm</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/Loops/Drums/Full/Two Step Garage 135 bpm.aif`
+      * References (×2): warps: launch: trigger, warp: Re-Pitch
+    * Clip 14.17 (×2)  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Breakbeat 134 bpm</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/Loops/Drums/Full/Breakbeat 134 bpm.aif`
+      * References (×2): warps: launch: trigger, warp: Re-Pitch
+    * Clip 14.38 (×5)  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Stick Bluesbreak</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/Drums/Misc Percussion/Stick Bluesbreak.wav`
+      * References (×5): warps: launch: trigger, warp: Beats
+    * Clip 14.39 (×2)  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>FX Alien Perc</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/Drums/FX Hit/FX Alien Perc.aif`
+      * References (×2): warps: launch: trigger, warp: Beats
+- Track 15  🎹 MIDI  <span style="background-color:#F6F57C;color:#4C4DF2" title="color 3"><code>String Sample</code></span>
   - Track Device 15a  <code>Synth Note Tin Flute F</code>  native device
-  - Clip 15.1  <span style="background-color:#F6F57C;color:#4C4DF2" title="color 3"><code>(unnamed)</code></span>  ⚠ not in project, launch: trigger, linked, warped  × 4
-- Track 16  <span style="background-color:#F6F57C;color:#4C4DF2" title="color 3"><code>Synth Sample</code></span>  🎹 MIDI
+    * Clip 15.1 (×1)  <span style="background-color:#F6F57C;color:#4C4DF2" title="color 3"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 15.2 (×1)  <span style="background-color:#F6F57C;color:#4C4DF2" title="color 3"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 15.3 (×1)  <span style="background-color:#F6F57C;color:#4C4DF2" title="color 3"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 15.4 (×1)  <span style="background-color:#F6F57C;color:#4C4DF2" title="color 3"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+- Track 16  🎹 MIDI  <span style="background-color:#F6F57C;color:#4C4DF2" title="color 3"><code>Synth Sample</code></span>
   - Track Device 16a  <code>Synth Note Pok F</code>  native device
   - Track Device 16b  <code>Delay</code>  native device
   - Track Device 16c  <code>Compressor2</code>  native device
-  - Clip 16.1  <span style="background-color:#F6F57C;color:#4C4DF2" title="color 3"><code>(unnamed)</code></span>  ⚠ not in project, launch: trigger, linked, warped  × 3
-- Track 17  <span style="background-color:#886CE4;color:#141904" title="color 24"><code>Master</code></span>  🎚️ Master
+    * Clip 16.1 (×1)  <span style="background-color:#F6F57C;color:#4C4DF2" title="color 3"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 16.2 (×1)  <span style="background-color:#F6F57C;color:#4C4DF2" title="color 3"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+    * Clip 16.3 (×1)  <span style="background-color:#F6F57C;color:#4C4DF2" title="color 3"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+- Track 17  🎚️ Master  <span style="background-color:#886CE4;color:#141904" title="color 24"><code>Master</code></span>
 
 ## Missing Samples
 
@@ -191,84 +396,79 @@ The marks on a clip: `linked` means the clip shares its sample with the other cl
 
 ## Track / Clip Cross Reference
 
+### Tracks and their clips
+
+|Track|Clips|
+|:-|:-|
+|1 `Bass Reese`|`(unnamed)` session view ×2, arrangement ×2|
+|2 `Bass Plonk`|`(unnamed)` session view ×4, arrangement ×9|
+|3 `Vocals`|`Vocal Demo Lead Takes` session view ×3, arrangement ×21, take lane ×3; `Vocal Demo Make You Mine` session view ×2, arrangement ×2|
+|4 `String Synth`|`(unnamed)` session view ×4, arrangement ×5|
+|5 `Plastic Toy`|`(unnamed)` session view ×5, arrangement ×6|
+|6 `Synth Keys`|`(unnamed)` session view ×3, arrangement ×4|
+|7 `Drum Rack`|`(unnamed)` session view ×4, arrangement ×2|
+|8 `SFX Rack`|`(unnamed)` session view ×7, arrangement ×10|
+|9 `Impact Chops 1`|`Impact Mov Digi` session view ×2, arrangement ×5; `Impact Layered Reversed` arrangement ×5; `Impact Layered` arrangement ×2|
+|10 `Impact Chops 2`|`Whoosh Down Dark` session view ×3, arrangement ×10; `Shaker A1` arrangement ×3; `Shaker 007` arrangement ×3; `Tom 80s Space Craft 3` arrangement ×3; `Tom 505 Hi` arrangement ×3; `Tom 505 Low` arrangement ×3; `Tom 909 Hi` arrangement ×3; `Tom B SP 3` arrangement ×4; `Tom B SP 5` arrangement ×4; `Vocal Demo Laughter` arrangement ×4; `FX Crunch Short` arrangement ×1; `FX Tick Shatter` arrangement ×1; `FX Turn On TV` arrangement ×1; `FX Scratch Slackjaw` arrangement ×1|
+|11 `Perc Chops`|`E-Perc 9` arrangement ×2; `E-Perc Buttoned` arrangement ×2; `E-Perc BittyBot` arrangement ×2; `E-Perc Digital Plonk` arrangement ×2; `E-Perc R100` arrangement ×2; `E-Perc Ring Shift Moon Golf 2` arrangement ×2; `Bell Mid Metallic Electrified` arrangement ×2; `Bell Tin` arrangement ×2; `Tube Hit` arrangement ×2; `Perc Hit Hard` arrangement ×2; `Guiro C78 Short b` arrangement ×2; `Bongos 121 bpm` arrangement ×2; `Congas 128 bpm` arrangement ×2; `Semba Percussion 100 bpm` arrangement ×2; `Break 3 Round 95 bpm` arrangement ×3; `Break Ahmir's Voodoo 119 bpm` arrangement ×1|
+|12 `Clap Loop`|`Clapping Flamenco 120 bpm` session view ×3, arrangement ×11; `FX Buzz Stutter Runaway` arrangement ×1; `Dewey Phantom Chop 87 bpm` arrangement ×1|
+|13 `Hihat Loop`|`Hihat Dirty Doug 100 bpm` session view ×1, arrangement ×8|
+|14 `Break Loop`|`Break Scatty 174 bpm` session view ×1, arrangement ×2; `Drum and Bass Rolling 170 bpm` arrangement ×33; `Tom R100 Clean 1` arrangement ×1; `Tom R100 Electronic 1` arrangement ×1; `Tom R100 Clean 2` arrangement ×1; `Tom R100 Electronic 2` arrangement ×1; `Drum and Bass Straight 172 bpm` arrangement ×2; `Two Step Garage 135 bpm` arrangement ×2; `Breakbeat 134 bpm` arrangement ×2; `Stick Bluesbreak` arrangement ×5; `FX Alien Perc` arrangement ×2|
+|15 `String Sample`|`(unnamed)` session view ×2, arrangement ×2|
+|16 `Synth Sample`|`(unnamed)` session view ×2, arrangement ×1|
+
+### Clips and their tracks
+
 |Clip|Tracks|
 |:-|:-|
-|**<span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>(unnamed)</code></span>**|**`Bass Reese`**, **`Bass Plonk`**|
-|<span style="background-color:#FFA428;color:#003C8D" title="color 1"><code>Lead Take 1 [2021-01-24 151339]</code></span>|`Vocals`|
-|<span style="background-color:#FFA428;color:#003C8D" title="color 1"><code>(unnamed)</code></span>|`Vocals`|
-|<span style="background-color:#FFA428;color:#003C8D" title="color 1"><code>(unnamed)</code></span>|`Vocals`|
-|<span style="background-color:#FFA428;color:#003C8D" title="color 1"><code>Lead Take 1</code></span>|`Vocals`|
-|<span style="background-color:#FFA428;color:#003C8D" title="color 1"><code>Lead Take 1</code></span>|`Vocals`|
-|<span style="background-color:#FFA428;color:#003C8D" title="color 1"><code>Vocals Make You Mine</code></span>|`Vocals`|
-|**<span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>**|**`String Synth`**, **`Plastic Toy`**, **`Synth Keys`**|
-|<span style="background-color:#5480E4;color:#050300" title="color 9"><code>(unnamed)</code></span>|`Drum Rack`|
-|<span style="background-color:#FEF134;color:#3441FD" title="color 17"><code>(unnamed)</code></span>|`SFX Rack`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>(unnamed)</code></span>|`Impact Chops 1`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Impact Layered</code></span>|`Impact Chops 1`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Impact Layered</code></span>|`Impact Chops 1`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Impact Mov Digi</code></span>|`Impact Chops 1`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>(unnamed)</code></span>|`Impact Chops 2`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Shaker A1</code></span>|`Impact Chops 2`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Shaker 007</code></span>|`Impact Chops 2`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Tom 80s Space Craft 3</code></span>|`Impact Chops 2`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Tom 505 Hi</code></span>|`Impact Chops 2`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Tom 505 Low</code></span>|`Impact Chops 2`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Tom 909 Hi</code></span>|`Impact Chops 2`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Tom B SP 3</code></span>|`Impact Chops 2`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Tom B SP 5</code></span>|`Impact Chops 2`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Whoosh Down Dark</code></span>|`Impact Chops 2`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Audio</code></span>|`Impact Chops 2`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>FX Crunch Short</code></span>|`Impact Chops 2`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>FX Tick Shatter</code></span>|`Impact Chops 2`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>FX Turn On TV</code></span>|`Impact Chops 2`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>FX Scratch Slackjaw</code></span>|`Impact Chops 2`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>E-Perc 9</code></span>|`Perc Chops`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>E-Perc Buttoned</code></span>|`Perc Chops`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>E-Perc BittyBot</code></span>|`Perc Chops`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>E-Perc Digital Plonk</code></span>|`Perc Chops`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>E-Perc R100</code></span>|`Perc Chops`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>E-Perc Ring Shift Moon Golf 2</code></span>|`Perc Chops`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Bell Mid Metallic Electrified</code></span>|`Perc Chops`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Bell Tin</code></span>|`Perc Chops`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Tube Hit</code></span>|`Perc Chops`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Perc Hit Hard</code></span>|`Perc Chops`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Guiro C78 Short b</code></span>|`Perc Chops`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Bongos-121bpm</code></span>|`Perc Chops`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Congas-128bpm</code></span>|`Perc Chops`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Semba Percussion 100 bpm</code></span>|`Perc Chops`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Break 3 Round 95 bpm</code></span>|`Perc Chops`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>AHMIR'S VOODOO BREAK 118.85 BPM</code></span>|`Perc Chops`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>E-Perc 9</code></span>|`Perc Chops`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>E-Perc Buttoned</code></span>|`Perc Chops`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>E-Perc BittyBot</code></span>|`Perc Chops`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>E-Perc Digital Plonk</code></span>|`Perc Chops`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>E-Perc R100</code></span>|`Perc Chops`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>E-Perc Ring Shift Moon Golf 2</code></span>|`Perc Chops`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Bell Mid Metallic Electrified</code></span>|`Perc Chops`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Bell Tin</code></span>|`Perc Chops`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Perc Hit Hard</code></span>|`Perc Chops`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Tube Hit</code></span>|`Perc Chops`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Guiro C78 Short b</code></span>|`Perc Chops`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Bongos-121bpm</code></span>|`Perc Chops`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Congas-128bpm</code></span>|`Perc Chops`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Semba Percussion 100 bpm</code></span>|`Perc Chops`|
-|<span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Break 3 Round 95 bpm</code></span>|`Perc Chops`|
-|<span style="background-color:#B776C6;color:#162B11" title="color 25"><code>(unnamed)</code></span>|`Clap Loop`|
-|<span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Clapping Flamenco-120bpm</code></span>|`Clap Loop`|
-|<span style="background-color:#B776C6;color:#162B11" title="color 25"><code>FX Buzz Stutter Runaway</code></span>|`Clap Loop`|
-|<span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Dewey Phantom Chop 87 bpm</code></span>|`Clap Loop`|
-|<span style="background-color:#B776C6;color:#162B11" title="color 25"><code>(unnamed)</code></span>|`Hihat Loop`|
-|<span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Hihat Dirty Doug 100 bpm</code></span>|`Hihat Loop`|
-|<span style="background-color:#B776C6;color:#162B11" title="color 25"><code>(unnamed)</code></span>|`Break Loop`|
-|<span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Break Scatty 174 bpm</code></span>|`Break Loop`|
-|<span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Drum and Bass Rolling 170 bpm</code></span>|`Break Loop`|
-|<span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Tom R100 Clean 1</code></span>|`Break Loop`|
-|<span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Tom R100 Electronic 1</code></span>|`Break Loop`|
-|<span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Tom R100 Clean 2</code></span>|`Break Loop`|
-|<span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Tom R100 Electronic 2</code></span>|`Break Loop`|
-|<span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Drum and Bass Straight-172bpm</code></span>|`Break Loop`|
-|<span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Two Step Garage-135bpm</code></span>|`Break Loop`|
-|<span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Breakbeat 134 bpm</code></span>|`Break Loop`|
-|<span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Stick Bluesbreak</code></span>|`Break Loop`|
-|<span style="background-color:#B776C6;color:#162B11" title="color 25"><code>FX Alien Perc</code></span>|`Break Loop`|
-|**<span style="background-color:#F6F57C;color:#4C4DF2" title="color 3"><code>(unnamed)</code></span>**|**`String Sample`**, **`Synth Sample`**|
+|`(unnamed)`|1 `Bass Reese`, 2 `Bass Plonk`, 4 `String Synth`, 5 `Plastic Toy`, 6 `Synth Keys`, 7 `Drum Rack`, 8 `SFX Rack`, 15 `String Sample`, 16 `Synth Sample`|
+|`Bell Mid Metallic Electrified`|11 `Perc Chops`|
+|`Bell Tin`|11 `Perc Chops`|
+|`Bongos 121 bpm`|11 `Perc Chops`|
+|`Break 3 Round 95 bpm`|11 `Perc Chops`|
+|`Break Ahmir's Voodoo 119 bpm`|11 `Perc Chops`|
+|`Break Scatty 174 bpm`|14 `Break Loop`|
+|`Breakbeat 134 bpm`|14 `Break Loop`|
+|`Clapping Flamenco 120 bpm`|12 `Clap Loop`|
+|`Congas 128 bpm`|11 `Perc Chops`|
+|`Dewey Phantom Chop 87 bpm`|12 `Clap Loop`|
+|`Drum and Bass Rolling 170 bpm`|14 `Break Loop`|
+|`Drum and Bass Straight 172 bpm`|14 `Break Loop`|
+|`E-Perc 9`|11 `Perc Chops`|
+|`E-Perc BittyBot`|11 `Perc Chops`|
+|`E-Perc Buttoned`|11 `Perc Chops`|
+|`E-Perc Digital Plonk`|11 `Perc Chops`|
+|`E-Perc R100`|11 `Perc Chops`|
+|`E-Perc Ring Shift Moon Golf 2`|11 `Perc Chops`|
+|`FX Alien Perc`|14 `Break Loop`|
+|`FX Buzz Stutter Runaway`|12 `Clap Loop`|
+|`FX Crunch Short`|10 `Impact Chops 2`|
+|`FX Scratch Slackjaw`|10 `Impact Chops 2`|
+|`FX Tick Shatter`|10 `Impact Chops 2`|
+|`FX Turn On TV`|10 `Impact Chops 2`|
+|`Guiro C78 Short b`|11 `Perc Chops`|
+|`Hihat Dirty Doug 100 bpm`|13 `Hihat Loop`|
+|`Impact Layered`|9 `Impact Chops 1`|
+|`Impact Layered Reversed`|9 `Impact Chops 1`|
+|`Impact Mov Digi`|9 `Impact Chops 1`|
+|`Perc Hit Hard`|11 `Perc Chops`|
+|`Semba Percussion 100 bpm`|11 `Perc Chops`|
+|`Shaker 007`|10 `Impact Chops 2`|
+|`Shaker A1`|10 `Impact Chops 2`|
+|`Stick Bluesbreak`|14 `Break Loop`|
+|`Tom 505 Hi`|10 `Impact Chops 2`|
+|`Tom 505 Low`|10 `Impact Chops 2`|
+|`Tom 80s Space Craft 3`|10 `Impact Chops 2`|
+|`Tom 909 Hi`|10 `Impact Chops 2`|
+|`Tom B SP 3`|10 `Impact Chops 2`|
+|`Tom B SP 5`|10 `Impact Chops 2`|
+|`Tom R100 Clean 1`|14 `Break Loop`|
+|`Tom R100 Clean 2`|14 `Break Loop`|
+|`Tom R100 Electronic 1`|14 `Break Loop`|
+|`Tom R100 Electronic 2`|14 `Break Loop`|
+|`Tube Hit`|11 `Perc Chops`|
+|`Two Step Garage 135 bpm`|14 `Break Loop`|
+|`Vocal Demo Laughter`|10 `Impact Chops 2`|
+|`Vocal Demo Lead Takes`|3 `Vocals`|
+|`Vocal Demo Make You Mine`|3 `Vocals`|
+|`Whoosh Down Dark`|10 `Impact Chops 2`|
