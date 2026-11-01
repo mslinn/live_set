@@ -28,36 +28,14 @@
 
 ## Groups/Tracks/Clips/Devices
 
-A clip is the thing a reference refers to: the file it plays, or, for a MIDI clip, its own content. The settings of a reference — how it is launched, how its sample is warped — belong to the reference and not to the clip, and are given on the references. The mark `⚠ not in project` means the sample is not in the folder of the project, and the set is not self-contained.
+A clip is its name and the file it plays. Live writes a copy of a clip for every place it is in — the session view, the arrangement, a take lane — and the copies are the references to the clip. The settings of a reference — how it is launched, how its sample is warped — belong to the reference and not to the clip, and are given on the references. The take lanes of a track are under the track. The mark `⚠ not in project` means the sample is not in the folder of the project, and the set is not self-contained.
 
 - Track 1  🎹 MIDI  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>Bass Reese</code></span>
-    * Clip 1.1 (×1)  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 1.2 (×1)  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 1.3 (×1)  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 1.4 (×1)  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
+    * Clip 1.1 (×4)  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×4): warps: launch: trigger
 - Track 2  🎹 MIDI  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>Bass Plonk</code></span>
-    * Clip 2.1 (×1)  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 2.2 (×1)  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 2.3 (×1)  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 2.4 (×1)  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 2.5 (×1)  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 2.6 (×3)  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×3): warps: launch: trigger
-    * Clip 2.7 (×3)  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×3): warps: launch: trigger
-    * Clip 2.10 (×1)  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 2.12 (×1)  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
+    * Clip 2.1 (×13)  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×13): warps: launch: trigger
 - Track 3  🎵 Audio  <span style="background-color:#FFA428;color:#003C8D" title="color 1"><code>Vocals</code></span>
   - Track Device 3a  <code>AutoFilter</code>  native device
   - Track Device 3b  <code>Saturator</code>  native device
@@ -65,35 +43,40 @@ A clip is the thing a reference refers to: the file it plays, or, for a MIDI cli
   - Track Device 3d  <code>Reverb</code>  native device
   - Track Device 3e  <code>Compressor2</code>  native device
   - Track Device 3f  <code>Compressor2</code>  native device
-    * Clip 3.1 (×27)  <span style="background-color:#FFA428;color:#003C8D" title="color 1"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+  - Take lane 3.1  Lead Take 1 [2021-01-24 151339]
+      * Clip 3.1.1 (×1)  <span style="background-color:#FFA428;color:#003C8D" title="color 1"><code>Lead Take 1 [2021-01-24 151339]</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+        `Samples/Loops/Tonal/Vocal/Vocal Demo Lead Takes.aif`
+        * References (×1): warps: launch: trigger, warp: Beats
+  - Take lane 3.2  Lead Take 1 [2021-01-24 151339]
+      * Clip 3.2.1 (×1)  <span style="background-color:#FFA428;color:#003C8D" title="color 1"><code>Lead Take 1 [2021-01-24 151339]</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+        `Samples/Loops/Tonal/Vocal/Vocal Demo Lead Takes.aif`
+        * References (×1): warps: launch: trigger, warp: Beats
+  - Take lane 3.3  Lead Take 1 [2021-01-24 151339]
+      * Clip 3.3.1 (×1)  <span style="background-color:#FFA428;color:#003C8D" title="color 1"><code>Lead Take 1 [2021-01-24 151339]</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+        `Samples/Loops/Tonal/Vocal/Vocal Demo Lead Takes.aif`
+        * References (×1): warps: launch: trigger, warp: Beats
+    * Clip 3.1 (×3)  <span style="background-color:#FFA428;color:#003C8D" title="color 1"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
       `Samples/Loops/Tonal/Vocal/Vocal Demo Lead Takes.aif`
-      * References (×26): warps: launch: trigger, warp: Beats
-      * References (×1): warps: launch: trigger, warp: Complex
-    * Clip 3.4 (×4)  <span style="background-color:#FFA428;color:#003C8D" title="color 1"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×3): warps: launch: trigger, warp: Beats
+    * Clip 3.4 (×2)  <span style="background-color:#FFA428;color:#003C8D" title="color 1"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
       `Samples/Loops/Tonal/Vocal/Vocal Demo Make You Mine.aif`
-      * References (×4): warps: launch: trigger, warp: Beats
+      * References (×2): warps: launch: trigger, warp: Beats
+    * Clip 3.6 (×18)  <span style="background-color:#FFA428;color:#003C8D" title="color 1"><code>Lead Take 1 [2021-01-24 151339]</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/Loops/Tonal/Vocal/Vocal Demo Lead Takes.aif`
+      * References (×18): warps: launch: trigger, warp: Beats
+    * Clip 3.11 (×3)  <span style="background-color:#FFA428;color:#003C8D" title="color 1"><code>Lead Take 1</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/Loops/Tonal/Vocal/Vocal Demo Lead Takes.aif`
+      * References (×2): warps: launch: trigger, warp: Beats
+      * References (×1): warps: launch: trigger, warp: Complex
+    * Clip 3.27 (×2)  <span style="background-color:#FFA428;color:#003C8D" title="color 1"><code>Vocals Make You Mine</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/Loops/Tonal/Vocal/Vocal Demo Make You Mine.aif`
+      * References (×2): warps: launch: trigger, warp: Beats
 - Track 4  🎹 MIDI  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>String Synth</code></span>
   - Track Device 4a  <code>AutoFilter</code>  native device
   - Track Device 4b  <code>Reverb</code>  native device
   - Track Device 4c  <code>Compressor2</code>  native device
-    * Clip 4.1 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 4.2 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 4.3 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 4.4 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 4.5 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 4.6 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 4.7 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 4.8 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 4.9 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
+    * Clip 4.1 (×9)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×9): warps: launch: trigger
 - Track 5  🎹 MIDI  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>Plastic Toy</code></span>
   - Track Device 5a  <code>MidiArpeggiator</code>  native device
   - Track Device 5b  <code>Reverb</code>  native device
@@ -101,97 +84,44 @@ A clip is the thing a reference refers to: the file it plays, or, for a MIDI cli
   - Track Device 5d  <code>AutoFilter</code>  native device
   - Track Device 5e  <code>Compressor2</code>  native device
   - Track Device 5f  <code>Compressor2</code>  native device
-    * Clip 5.1 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 5.2 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 5.3 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 5.4 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 5.5 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 5.6 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 5.7 (×2)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×2): warps: launch: trigger
-    * Clip 5.9 (×2)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×2): warps: launch: trigger
-    * Clip 5.11 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
+    * Clip 5.1 (×11)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×11): warps: launch: trigger
 - Track 6  🎹 MIDI  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>Synth Keys</code></span>
   - Track Device 6a  <code>Delay</code>  native device
   - Track Device 6b  <code>Reverb</code>  native device
   - Track Device 6c  <code>Reverb</code>  native device
   - Track Device 6d  <code>Delay</code>  native device
   - Track Device 6e  <code>Compressor2</code>  native device
-    * Clip 6.1 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 6.2 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 6.3 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 6.4 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 6.5 (×2)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×2): warps: launch: trigger
-    * Clip 6.7 (×1)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
+    * Clip 6.1 (×7)  <span style="background-color:#F66D02;color:#00182B" title="color 15"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×7): warps: launch: trigger
 - Track 7  🎹 MIDI  <span style="background-color:#5480E4;color:#050300" title="color 9"><code>Drum Rack</code></span>
-    * Clip 7.1 (×1)  <span style="background-color:#5480E4;color:#050300" title="color 9"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 7.2 (×1)  <span style="background-color:#5480E4;color:#050300" title="color 9"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 7.3 (×1)  <span style="background-color:#5480E4;color:#050300" title="color 9"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 7.4 (×1)  <span style="background-color:#5480E4;color:#050300" title="color 9"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 7.5 (×1)  <span style="background-color:#5480E4;color:#050300" title="color 9"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 7.6 (×1)  <span style="background-color:#5480E4;color:#050300" title="color 9"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-- Track 8  🎹 MIDI  <span style="background-color:#FEF134;color:#3441FD" title="color 17"><code>SFX Rack</code></span>
-    * Clip 8.1 (×1)  <span style="background-color:#FEF134;color:#3441FD" title="color 17"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 8.2 (×1)  <span style="background-color:#FEF134;color:#3441FD" title="color 17"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 8.3 (×1)  <span style="background-color:#FEF134;color:#3441FD" title="color 17"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 8.4 (×1)  <span style="background-color:#FEF134;color:#3441FD" title="color 17"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 8.5 (×1)  <span style="background-color:#FEF134;color:#3441FD" title="color 17"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 8.6 (×1)  <span style="background-color:#FEF134;color:#3441FD" title="color 17"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 8.7 (×1)  <span style="background-color:#FEF134;color:#3441FD" title="color 17"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 8.8 (×1)  <span style="background-color:#FEF134;color:#3441FD" title="color 17"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 8.9 (×2)  <span style="background-color:#FEF134;color:#3441FD" title="color 17"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×2): warps: launch: trigger
-    * Clip 8.11 (×6)  <span style="background-color:#FEF134;color:#3441FD" title="color 17"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+    * Clip 7.1 (×6)  <span style="background-color:#5480E4;color:#050300" title="color 9"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
       * References (×6): warps: launch: trigger
-    * Clip 8.17 (×1)  <span style="background-color:#FEF134;color:#3441FD" title="color 17"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
+- Track 8  🎹 MIDI  <span style="background-color:#FEF134;color:#3441FD" title="color 17"><code>SFX Rack</code></span>
+    * Clip 8.1 (×17)  <span style="background-color:#FEF134;color:#3441FD" title="color 17"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×17): warps: launch: trigger
 - Track 9  🎵 Audio  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Impact Chops 1</code></span>
   - Track Device 9a  <code>GrainDelay</code>  native device
   - Track Device 9b  <code>Compressor2</code>  native device
   - Track Device 9c  <code>Compressor2</code>  native device
-    * Clip 9.1 (×7)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+    * Clip 9.1 (×2)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
       `Samples/One Shots/FX/Impact Mov Digi.wav`
-      * References (×7): warps: launch: trigger, warp: Beats
+      * References (×2): warps: launch: trigger, warp: Beats
     * Clip 9.3 (×5)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Impact Layered</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
       `Samples/One Shots/FX/Impact Layered Reversed.wav`
       * References (×5): warps: launch: trigger, warp: Beats
     * Clip 9.4 (×2)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Impact Layered</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
       `Samples/One Shots/FX/Impact Layered.wav`
       * References (×2): warps: launch: trigger, warp: Beats
+    * Clip 9.6 (×5)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Impact Mov Digi</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/FX/Impact Mov Digi.wav`
+      * References (×5): warps: launch: trigger, warp: Beats
 - Track 10  🎵 Audio  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Impact Chops 2</code></span>
   - Track Device 10a  <code>Compressor2</code>  native device
   - Track Device 10b  <code>Compressor2</code>  native device
-    * Clip 10.1 (×13)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+    * Clip 10.1 (×3)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
       `Samples/One Shots/FX/Whoosh Down Dark.wav`
-      * References (×13): warps: launch: trigger, warp: Beats
+      * References (×3): warps: launch: trigger, warp: Beats
     * Clip 10.4 (×3)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Shaker A1</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
       `Samples/One Shots/Drums/Shaker/Shaker A1.aif`
       * References (×3): warps: launch: trigger, warp: Beats
@@ -216,6 +146,9 @@ A clip is the thing a reference refers to: the file it plays, or, for a MIDI cli
     * Clip 10.11 (×4)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Tom B SP 5</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
       `Samples/One Shots/Drums/Tom/Tom B SP 5.wav`
       * References (×4): warps: launch: trigger, warp: Beats
+    * Clip 10.12 (×10)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Whoosh Down Dark</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/One Shots/FX/Whoosh Down Dark.wav`
+      * References (×10): warps: launch: trigger, warp: Beats
     * Clip 10.13 (×4)  <span style="background-color:#87FF67;color:#A100CC" title="color 18"><code>Audio</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
       `Samples/One Shots/Vocal/Vocal Demo Laughter.aif`
       * References (×4): warps: launch: trigger, warp: Beats
@@ -299,9 +232,12 @@ A clip is the thing a reference refers to: the file it plays, or, for a MIDI cli
       `Samples/Loops/Drums/Full/Break Ahmir's Voodoo 119 bpm.wav`
       * References (×1): warps: launch: trigger, warp: Beats
 - Track 12  🎵 Audio  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Clap Loop</code></span>
-    * Clip 12.1 (×14)  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+    * Clip 12.1 (×3)  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
       `Samples/Loops/Drums/Percussion/Clapping Flamenco 120 bpm.aif`
-      * References (×14): warps: launch: trigger, warp: Re-Pitch
+      * References (×3): warps: launch: trigger, warp: Re-Pitch
+    * Clip 12.4 (×11)  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Clapping Flamenco-120bpm</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/Loops/Drums/Percussion/Clapping Flamenco 120 bpm.aif`
+      * References (×11): warps: launch: trigger, warp: Re-Pitch
     * Clip 12.9 (×1)  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>FX Buzz Stutter Runaway</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
       `Samples/One Shots/Drums/FX Hit/FX Buzz Stutter Runaway.aif`
       * References (×1): warps: launch: trigger, warp: Beats
@@ -311,16 +247,22 @@ A clip is the thing a reference refers to: the file it plays, or, for a MIDI cli
 - Track 13  🎵 Audio  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Hihat Loop</code></span>
   - Track Device 13a  <code>Redux2</code>  native device
   - Track Device 13b  <code>Compressor2</code>  native device
-    * Clip 13.1 (×9)  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+    * Clip 13.1 (×1)  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
       `Samples/Loops/Drums/Top/Hihat Dirty Doug 100 bpm.wav`
-      * References (×9): warps: launch: trigger, warp: Beats
+      * References (×1): warps: launch: trigger, warp: Beats
+    * Clip 13.2 (×8)  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Hihat Dirty Doug 100 bpm</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/Loops/Drums/Top/Hihat Dirty Doug 100 bpm.wav`
+      * References (×8): warps: launch: trigger, warp: Beats
 - Track 14  🎵 Audio  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Break Loop</code></span>
   - Track Device 14a  <code>Delay</code>  native device
   - Track Device 14b  <code>Compressor2</code>  native device
   - Track Device 14c  <code>Compressor2</code>  native device
-    * Clip 14.1 (×3)  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+    * Clip 14.1 (×1)  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
       `Samples/Loops/Drums/Full/Break Scatty 174 bpm.wav`
-      * References (×3): warps: launch: trigger, warp: Beats
+      * References (×1): warps: launch: trigger, warp: Beats
+    * Clip 14.2 (×2)  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Break Scatty 174 bpm</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      `Samples/Loops/Drums/Full/Break Scatty 174 bpm.wav`
+      * References (×2): warps: launch: trigger, warp: Beats
     * Clip 14.3 (×33)  <span style="background-color:#B776C6;color:#162B11" title="color 25"><code>Drum and Bass Rolling 170 bpm</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
       `Samples/Loops/Drums/Full/Drum and Bass Rolling 170 bpm.wav`
       * References (×33): warps: launch: trigger, warp: Beats
@@ -353,24 +295,14 @@ A clip is the thing a reference refers to: the file it plays, or, for a MIDI cli
       * References (×2): warps: launch: trigger, warp: Beats
 - Track 15  🎹 MIDI  <span style="background-color:#F6F57C;color:#4C4DF2" title="color 3"><code>String Sample</code></span>
   - Track Device 15a  <code>Synth Note Tin Flute F</code>  native device
-    * Clip 15.1 (×1)  <span style="background-color:#F6F57C;color:#4C4DF2" title="color 3"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 15.2 (×1)  <span style="background-color:#F6F57C;color:#4C4DF2" title="color 3"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 15.3 (×1)  <span style="background-color:#F6F57C;color:#4C4DF2" title="color 3"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 15.4 (×1)  <span style="background-color:#F6F57C;color:#4C4DF2" title="color 3"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
+    * Clip 15.1 (×4)  <span style="background-color:#F6F57C;color:#4C4DF2" title="color 3"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×4): warps: launch: trigger
 - Track 16  🎹 MIDI  <span style="background-color:#F6F57C;color:#4C4DF2" title="color 3"><code>Synth Sample</code></span>
   - Track Device 16a  <code>Synth Note Pok F</code>  native device
   - Track Device 16b  <code>Delay</code>  native device
   - Track Device 16c  <code>Compressor2</code>  native device
-    * Clip 16.1 (×1)  <span style="background-color:#F6F57C;color:#4C4DF2" title="color 3"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 16.2 (×1)  <span style="background-color:#F6F57C;color:#4C4DF2" title="color 3"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
-    * Clip 16.3 (×1)  <span style="background-color:#F6F57C;color:#4C4DF2" title="color 3"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
-      * References (×1): warps: launch: trigger
+    * Clip 16.1 (×3)  <span style="background-color:#F6F57C;color:#4C4DF2" title="color 3"><code>(unnamed)</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×3): warps: launch: trigger
 - Track 17  🎚️ Master  <span style="background-color:#886CE4;color:#141904" title="color 24"><code>Master</code></span>
 
 ## Missing Samples
@@ -402,7 +334,7 @@ A clip is the thing a reference refers to: the file it plays, or, for a MIDI cli
 |:-|:-|
 |1 `Bass Reese`|`(unnamed)` session view ×2, arrangement ×2|
 |2 `Bass Plonk`|`(unnamed)` session view ×4, arrangement ×9|
-|3 `Vocals`|`Vocal Demo Lead Takes` session view ×3, arrangement ×21, take lane ×3; `Vocal Demo Make You Mine` session view ×2, arrangement ×2|
+|3 `Vocals`|`Vocal Demo Lead Takes` session view ×3, arrangement ×21, take lane 3.1 ×1, take lane 3.2 ×1, take lane 3.3 ×1; `Vocal Demo Make You Mine` session view ×2, arrangement ×2|
 |4 `String Synth`|`(unnamed)` session view ×4, arrangement ×5|
 |5 `Plastic Toy`|`(unnamed)` session view ×5, arrangement ×6|
 |6 `Synth Keys`|`(unnamed)` session view ×3, arrangement ×4|
@@ -469,6 +401,6 @@ A clip is the thing a reference refers to: the file it plays, or, for a MIDI cli
 |`Tube Hit`|11 `Perc Chops`|
 |`Two Step Garage 135 bpm`|14 `Break Loop`|
 |`Vocal Demo Laughter`|10 `Impact Chops 2`|
-|`Vocal Demo Lead Takes`|3 `Vocals`|
+|`Vocal Demo Lead Takes`|3 `Vocals`, 3 `Vocals` (take lane 3.1), 3 `Vocals` (take lane 3.2), 3 `Vocals` (take lane 3.3)|
 |`Vocal Demo Make You Mine`|3 `Vocals`|
 |`Whoosh Down Dark`|10 `Impact Chops 2`|

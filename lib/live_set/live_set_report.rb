@@ -48,8 +48,8 @@ class LiveSetReport
 
   # The places a clip can be in a track, and the paths of the clips in them.
   #
-  # A track holds the clips of its session view slots, the clips of the arrangement, and the
-  # clips of its take lanes. Each of them is a reference to a clip.
+  # A track holds the clips of its session view slots and the clips of the arrangement. The
+  # clips of its take lanes are in the lanes, which are subordinate to the track.
   #
   # @return [Array<Array>] the place, and the paths of the clips in it
   def clip_places
@@ -59,19 +59,18 @@ class LiveSetReport
         './DeviceChain/MainSequencer/ClipSlotList/ClipSlot/ClipSlot/Value/MidiClip']],
       ['arrangement',
        ['./DeviceChain/MainSequencer/Sample/ArrangerAutomation/Events/AudioClip',
-        './DeviceChain/MainSequencer/ClipTimeable/ArrangerAutomation/Events/MidiClip']],
-      ['take lane',
-       ['./TakeLanes/TakeLanes/TakeLane/ClipAutomation/Events/AudioClip',
-        './TakeLanes/TakeLanes/TakeLane/ClipAutomation/Events/MidiClip']]
+        './DeviceChain/MainSequencer/ClipTimeable/ArrangerAutomation/Events/MidiClip']]
     ]
   end
 
-  # What the marks on a clip mean.
-  LEGEND = 'A clip is the thing a reference refers to: the file it plays, or, for a MIDI clip, ' \
-           'its own content. The settings of a reference — how it is launched, how its sample ' \
-           'is warped — belong to the reference and not to the clip, and are given on the ' \
-           'references. The mark `⚠ not in project` means the sample is not in the folder of ' \
-           'the project, and the set is not self-contained.'.freeze
+  # What the marks on a clip mean, and what a clip is.
+  LEGEND = 'A clip is its name and the file it plays. Live writes a copy of a clip for every ' \
+           'place it is in — the session view, the arrangement, a take lane — and the copies ' \
+           'are the references to the clip. The settings of a reference — how it is launched, ' \
+           'how its sample is warped — belong to the reference and not to the clip, and are ' \
+           'given on the references. The take lanes of a track are under the track. The mark ' \
+           '`⚠ not in project` means the sample is not in the folder of the project, and the ' \
+           'set is not self-contained.'.freeze
 
   # @param set_name [String] the path of the set
   # @param xml_doc [Nokogiri::XML::Document] the set
@@ -352,6 +351,8 @@ class LiveSetReport
 
     lines += device_lines kind, number, element, indent
 
+    lines += take_lane_lines element, number, depth + 1
+
     lines += clip_lines element, number, depth + 1
 
     members.each_with_index do |member, index|
@@ -445,13 +446,23 @@ class LiveSetReport
   # @param track [Nokogiri::XML::Element] the track
   # @return [Array<Hash>] each clip, its file, and its references
   def clips_of_track(track)
-    groups = {}
-    references_of(track).each do |reference|
-      key = identity_of reference[:clip]
-      groups[key] ||= { clip: reference[:clip], file: file_of(reference[:clip]), references: [] }
-      groups[key][:references] << reference
+    groups_of references_of(track)
+  end
+
+  # The take lanes of a track, and the clips of each of them.
+  #
+  # A take lane holds the takes of a recording. The track holds the clips that are heard, and
+  # the lanes hold the takes they were comped from, so the lanes are subordinate to the track.
+  #
+  # @param track [Nokogiri::XML::Element] the track
+  # @return [Array<Hash>] each lane, its name and its clips
+  def take_lanes_of(track)
+    lanes = []
+    track.xpath('.//TakeLane').each do |lane|
+      clips = lane.xpath('./ClipAutomation/Events/AudioClip | ./ClipAutomation/Events/MidiClip')
+      lanes << { id: lane['Id'], name: lane.at('Name')&.[]('Value'), clips: clips }
     end
-    groups.values
+    lanes
   end
 
   # The references to the clips of a track.
@@ -468,15 +479,50 @@ class LiveSetReport
     references
   end
 
-  # The identity of a clip: the file it plays, or, for a MIDI clip, its name and its content.
+  # The clips of a list of references, grouped by the clip each one refers to.
+  #
+  # @param references [Array<Hash>] the references
+  # @return [Array<Hash>] each clip, its file, and its references
+  def groups_of(references)
+    groups = {}
+    references.each do |reference|
+      key = identity_of reference[:clip]
+      groups[key] ||= { clip: reference[:clip], file: file_of(reference[:clip]), references: [] }
+      groups[key][:references] << reference
+    end
+    groups.values
+  end
+
+  # The identity of a clip: its name, and the file it plays.
+  #
+  # Live writes a copy of a clip for every place it is in — in the session view, in the
+  # arrangement — and the copies are the references to the clip.
   #
   # @param clip [Nokogiri::XML::Element] the clip
   # @return [String] the identity
   def identity_of(clip)
-    file = file_of clip
-    return file if file
+    "#{name_of_clip clip}:#{file_of clip}"
+  end
 
-    "midi:#{name_of_clip clip}:#{clip.at('Notes')&.to_xml&.hash}"
+  # The take lanes of a track, and the clips of each of them, as the outline shows them.
+  #
+  # @param track [Nokogiri::XML::Element] the track
+  # @param number [String] the number of the track
+  # @param depth [Integer] how deep the track is
+  # @return [Array<String>] the lines
+  def take_lane_lines(track, number, depth)
+    indent = '  ' * depth
+    lines = []
+
+    take_lanes_of(track).each_with_index do |lane, index|
+      lane_number = "#{number}.#{index + 1}"
+      lines << "#{indent}- Take lane #{lane_number}  #{lane[:name]}"
+      groups_of(lane[:clips].each_with_index.map { |clip, i| { clip: clip, place: 'take lane', index: i + 1 } })
+            .each do |clip|
+        lines += clip_group_lines [clip], lane_number, depth + 1
+      end
+    end
+    lines
   end
 
   # The clips of a track, as the outline shows them.
@@ -486,10 +532,20 @@ class LiveSetReport
   # @param depth [Integer] how deep the track is
   # @return [Array<String>] the lines
   def clip_lines(track, number, depth)
+    clip_group_lines clips_of_track(track), number, depth
+  end
+
+  # The lines of a set of clips: the clip, and the references to it.
+  #
+  # @param clips [Array<Hash>] each clip, its file, and its references
+  # @param number [String] the number of the track or of the take lane
+  # @param depth [Integer] how deep the clips are
+  # @return [Array<String>] the lines
+  def clip_group_lines(clips, number, depth)
     indent = '  ' * depth
     lines = []
 
-    clips_of_track(track).each do |clip|
+    clips.each do |clip|
       references = clip[:references]
       first = references.first
       marks = clip_marks clip[:clip]
@@ -727,17 +783,15 @@ class LiveSetReport
 
   # The tracks of the set, and the clips each of them holds.
   #
+  # The clips of the take lanes of a track are the clips of the track as well, and are marked
+  # with the lane they are in.
+  #
   # @return [String] the table
   def tracks_and_clips_table
     rows = []
     each_numbered_track do |number, track|
-      clips = clips_of_track track[2]
-      next if clips.empty?
-
-      places = Hash.new { |hash, key| hash[key] = Hash.new(0) }
-      clips.each do |clip|
-        clip[:references].each { |reference| places[clip_label(clip)][reference[:place]] += 1 }
-      end
+      places = clip_places_of_track track, number
+      next if places.empty?
 
       listed = places.map do |label, counts|
         "`#{escape label}` " + counts.map { |place, count| "#{place} \u00d7#{count}" }.join(', ')
@@ -749,23 +803,64 @@ class LiveSetReport
     MarkdownTables.make_table(%w[Track Clips], rows, align: %w[l l], is_rows: true)
   end
 
+  # The places the clips of a track are in, and how many of them there are in each.
+  #
+  # The clips of the take lanes of the track are the clips of the track as well, and are marked
+  # with the lane they are in.
+  #
+  # @param track [Array] the kind, the name, the element and the members of the track
+  # @param number [String] the number of the track
+  # @return [Hash] each clip, the places it is in, and the number of them in each
+  def clip_places_of_track(track, number)
+    places = Hash.new { |hash, key| hash[key] = Hash.new(0) }
+    clips_of_track(track[2]).each do |clip|
+      clip[:references].each { |reference| places[clip_label(clip)][reference[:place]] += 1 }
+    end
+
+    take_lanes_of(track[2]).each_with_index do |lane, index|
+      lane_number = "#{number}.#{index + 1}"
+      lane[:clips].each { |clip| places[label_of(clip)]["take lane #{lane_number}"] += 1 }
+    end
+    places
+  end
+
   # The clips of the set, and the tracks that hold them.
+  #
+  # A clip of a take lane is marked with the lane it is in.
   #
   # @return [String] the table
   def clips_and_tracks_table
-    uses = Hash.new { |hash, key| hash[key] = [] }
-    each_numbered_track do |number, track|
-      clips_of_track(track[2]).each do |clip|
-        tracks = uses[clip_label(clip)]
-        entry = "#{number} `#{escape track[1]}`"
-        tracks << entry unless tracks.include? entry
-      end
-    end
-
+    uses = tracks_of_clips
     rows = uses.sort.map { |clip, tracks| ["`#{escape clip}`", tracks.join(', ')] }
     return 'The set has no clips.' if rows.empty?
 
     MarkdownTables.make_table(%w[Clip Tracks], rows, align: %w[l l], is_rows: true)
+  end
+
+  # The tracks that hold each clip of the set.
+  #
+  # A clip of a take lane is marked with the lane it is in.
+  #
+  # @return [Hash] each clip, and the tracks that hold it
+  def tracks_of_clips
+    uses = Hash.new { |hash, key| hash[key] = [] }
+    each_numbered_track do |number, track|
+      clips_of_track(track[2]).each do |clip|
+        entry = "#{number} `#{escape track[1]}`"
+        tracks = uses[clip_label(clip)]
+        tracks << entry unless tracks.include? entry
+      end
+
+      take_lanes_of(track[2]).each_with_index do |lane, index|
+        lane_number = "#{number}.#{index + 1}"
+        lane[:clips].each do |clip|
+          entry = "#{number} `#{escape track[1]}` (take lane #{lane_number})"
+          tracks = uses[label_of(clip)]
+          tracks << entry unless tracks.include? entry
+        end
+      end
+    end
+    uses
   end
 
   # The name of a clip, as the cross-reference names it: the file it plays, without its
@@ -774,10 +869,18 @@ class LiveSetReport
   # @param clip [Hash] the clip
   # @return [String] the name
   def clip_label(clip)
-    file = clip[:file]
+    label_of clip[:clip]
+  end
+
+  # The name of a clip element, as the cross-reference names it.
+  #
+  # @param clip [Nokogiri::XML::Element] the clip
+  # @return [String] the name
+  def label_of(clip)
+    file = file_of clip
     return File.basename(file, File.extname(file)) if file
 
-    name_of_clip clip[:clip]
+    name_of_clip clip
   end
 
   # The key a clip is known by: its name, the file it refers to, its color and its state.

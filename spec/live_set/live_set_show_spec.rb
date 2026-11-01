@@ -69,6 +69,16 @@ RSpec.describe LiveSet, '#show' do
     expect(markdown).to match(%r{^\s*\* Clip 1\.1\.\d+ \(×\d+\)  .*<code>Kontakt 7 1</code>})
   end
 
+  it 'puts the take lanes of a track under the track' do
+    markdown = report(LiveSets.fascination)
+
+    expect(markdown).to match(/^ {2}- Take lane 1\.\d+  /)
+  end
+
+  it 'puts the clips of a take lane under the lane' do
+    expect(report(LiveSets.fascination)).to match(/^ {6}\* Clip 1\.\d+\.\d+ \(×\d+\)/)
+  end
+
   it 'gives the color of each track, on the name of the track' do
     expect(report(LiveSets.fascination)).to match(
       /background-color:#[0-9A-F]{6};color:#[0-9A-F]{6}" title="color \d+"><code>/

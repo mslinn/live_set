@@ -333,6 +333,76 @@ group track as unfrozen.
 See `lib/live_set/live_set_group.rb`.
 
 
+## The take lanes of a track
+
+A take lane holds the takes of a recording. The track holds the clips that are
+heard — the composite that the takes were comped into — and the lanes hold the
+takes themselves, so the lanes are subordinate to the track.
+
+The lanes of a track are in a `TakeLanes` element of the track, and the
+element is a container of `TakeLane` elements:
+
+```text
+<TakeLanes>
+  <TakeLanes>
+    <TakeLane Id="0">
+      <LomId Value="0"/>
+      <Height Value="51"/>
+      <IsContentSelectedInDocument Value="false"/>
+      <ClipAutomation>
+        <Events>
+          <MidiClip Id="0" Time="140.77"> ... </MidiClip>
+        </Events>
+      </ClipAutomation>
+      <Name Value="Drift"/>
+      <Annotation Value=""/>
+      <Audition Value="false"/>
+    </TakeLane>
+  </TakeLanes>
+  <AreTakeLanesFolded Value="true"/>
+</TakeLanes>
+```
+
+| Element | What it holds |
+| --- | --- |
+| `TakeLane` | A take. Its `Id` numbers it, `Name` names it, and `Audition` says whether it is the take being auditioned. |
+| `ClipAutomation` | The clips of the take. They play into the chain of the track. |
+| `AreTakeLanesFolded` | Whether the lanes are shown expanded in the arrangement. |
+
+A lane of Live 12 also has an `ArrangementClipsListWrapper` element, which is
+empty in the sets of the corpus.
+
+**The clip of a lane and the clip of the track are different clips.** When a
+section of a take is comped into the track, Live writes a new clip element into
+the track, with its own boundaries, and the clip in the lane stays as it was:
+
+```text
+<MidiClip Id="0" Time="140.77">
+  <CurrentStart Value="140.77"/>   <!-- where the section sits on the timeline -->
+  <CurrentEnd Value="162.42"/>
+  <Loop>
+    <LoopStart Value="0.77"/>      <!-- where the section starts in the source -->
+    <LoopEnd Value="22.42"/>
+    <StartRelative Value="0"/>
+    <LoopOn Value="false"/>
+  </Loop>
+  ...
+</MidiClip>
+```
+
+The `CurrentStart` and `CurrentEnd` say where the clip sits on the timeline, and
+the `LoopStart` and `LoopEnd` say which part of the source it plays. The source
+is the file on disk for an audio clip, and the note data in the clip itself for
+a MIDI clip.
+
+Live 11 and Live 12 hold the take lanes the same way. The difference between
+them is elsewhere: the clips of both carry `ScaleInformation`, which is what
+Live 12 uses for the scale of the clip. The Live 11 demo set has 74 of them.
+
+See `lib/live_set/live_set_report.rb`, which reports the lanes of a track under
+the track.
+
+
 ## The two sequencers of a track, and the frozen track that keeps both
 
 A track that is frozen keeps both sequencers:

@@ -20,7 +20,7 @@
 
 ## Groups/Tracks/Clips/Devices
 
-A clip is the thing a reference refers to: the file it plays, or, for a MIDI clip, its own content. The settings of a reference — how it is launched, how its sample is warped — belong to the reference and not to the clip, and are given on the references. The mark `⚠ not in project` means the sample is not in the folder of the project, and the set is not self-contained.
+A clip is its name and the file it plays. Live writes a copy of a clip for every place it is in — the session view, the arrangement, a take lane — and the copies are the references to the clip. The settings of a reference — how it is launched, how its sample is warped — belong to the reference and not to the clip, and are given on the references. The take lanes of a track are under the track. The mark `⚠ not in project` means the sample is not in the folder of the project, and the set is not self-contained.
 
 - Track 1  🎵 Audio  <span style="background-color:#01BEAF;color:#580007" title="color 20"><code>Audio</code></span>
 - Track 2  🎹 MIDI  <span style="background-color:#5DFFE9;color:#C3001A" title="color 7"><code>MIDI</code></span>
