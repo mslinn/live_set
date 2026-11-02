@@ -117,15 +117,71 @@ class LiveSetReport
       ['Format', @ableton['MinorVersion']],
       ['SchemaChangeCount', @ableton['SchemaChangeCount']],
       ['Revision', @ableton['Revision']],
-      ['Machine', machine_name],
+      ['On Computer', computer],
       ['Directory', "`#{directory}`"],
-      ['Time zone', time_zone_name],
+      ['Time zone', time_zone],
       ['Set created', created_at(@set_name)],
       ['Set last modified', modified_at(@set_name)],
       ['Project created', created_at(directory)],
-      ['Project last modified', project_last_modified]
-    ]
+      ['Project last modified', project_last_modified],
+      ['Report generated', report_generated]
+    ].sort_by { |row| row.first.downcase }
     MarkdownTables.make_table ['', ''], rows, align: %w[l r], is_rows: true
+  end
+
+  # The computer the report was made on: its name, and the hardware UUID of it.
+  #
+  # @return [String] the name of the computer
+  def computer
+    uuid = hardware_uuid
+    uuid.empty? ? machine_name : "#{machine_name} (#{uuid})"
+  end
+
+  # The hardware UUID of the computer.
+  #
+  # Windows knows the UUID of the machine; a Linux system reads it from the DMI, and WSL does
+  # not mount the DMI, so Windows is asked.
+  #
+  # @return [String] the UUID, or an empty string when it cannot be found
+  def hardware_uuid
+    @hardware_uuid ||= begin
+      output = `powershell.exe -NoProfile -Command "(Get-CimInstance -ClassName Win32_ComputerSystemProduct).UUID" 2>/dev/null`
+      output.strip
+    rescue StandardError
+      ''
+    end
+  end
+
+  # The time zone the times of the report are written in, and the offset that was in force on
+  # the day the set was last modified.
+  #
+  # @return [String] the zone, and the offset
+  def time_zone
+    name = time_zone_name
+    offset = utc_offset_at File.mtime(@set_name)
+    offset ? "#{name} (UTC#{offset})" : name
+  end
+
+  # The offset from UTC that was in force at a time, as it is written.
+  #
+  # @param time [Time] the time
+  # @return [String, nil] the offset, or nil when it cannot be worked out
+  def utc_offset_at(time)
+    local = @time_zone ? time.getlocal(@time_zone) : time
+    seconds = local.utc_offset
+    return nil if seconds.zero? && @time_zone.nil?
+
+    sign = seconds.negative? ? '-' : '+'
+    hours = seconds.abs / 3600
+    minutes = (seconds.abs % 3600) / 60
+    minutes.zero? ? "#{sign}#{hours}" : "#{sign}#{hours}:#{format('%02d', minutes)}"
+  end
+
+  # When the report was made, and what made it.
+  #
+  # @return [String] the time and the version
+  def report_generated
+    "Generated #{format_time Time.now} by live_set v#{LiveSetVersion::VERSION}"
   end
 
   # The name of the time zone the times of the report are written in.
@@ -349,11 +405,9 @@ class LiveSetReport
     line += "  #{states.join(', ')}" unless states.empty?
     lines = [line]
 
-    lines += device_lines kind, number, element, indent
-
-    lines += take_lane_lines element, number, depth + 1
-
-    lines += clip_lines element, number, depth + 1
+    lines += device_lines kind, number, element, "#{indent}  "
+    lines += clip_lines element, number, "#{indent}  "
+    lines += take_lane_lines element, number, "#{indent}  "
 
     members.each_with_index do |member, index|
       lines += track_lines member, "#{number}.#{index + 1}", depth + 1, boxed: boxed || problem
@@ -388,7 +442,7 @@ class LiveSetReport
       unusable = device.blocking? && !frozen?(element)
       parts = [LivePalette.name_span(device.label, nil, dark: unusable), device_kind(device)]
       parts << '⚠ not usable on Push 3' if unusable
-      "#{indent}  - #{device_slot_label kind} #{number}#{letter_of index}  #{parts.join '  '}"
+      "#{indent}- #{device_slot_label kind} #{number}#{letter_of index}  #{parts.join '  '}"
     end
   end
 
@@ -508,18 +562,17 @@ class LiveSetReport
   #
   # @param track [Nokogiri::XML::Element] the track
   # @param number [String] the number of the track
-  # @param depth [Integer] how deep the track is
+  # @param indent [String] the indentation of the lanes
   # @return [Array<String>] the lines
-  def take_lane_lines(track, number, depth)
-    indent = '  ' * depth
+  def take_lane_lines(track, number, indent)
     lines = []
 
     take_lanes_of(track).each_with_index do |lane, index|
       lane_number = "#{number}.#{index + 1}"
       lines << "#{indent}- Take lane #{lane_number}  #{lane[:name]}"
       groups_of(lane[:clips].each_with_index.map { |clip, i| { clip: clip, place: 'take lane', index: i + 1 } })
-            .each do |clip|
-        lines += clip_group_lines [clip], lane_number, depth + 1
+        .each do |clip|
+        lines += clip_group_lines [clip], lane_number, "#{indent}  "
       end
     end
     lines
@@ -529,20 +582,19 @@ class LiveSetReport
   #
   # @param track [Nokogiri::XML::Element] the track
   # @param number [String] the number of the track
-  # @param depth [Integer] how deep the track is
+  # @param indent [String] the indentation of the clips
   # @return [Array<String>] the lines
-  def clip_lines(track, number, depth)
-    clip_group_lines clips_of_track(track), number, depth
+  def clip_lines(track, number, indent)
+    clip_group_lines clips_of_track(track), number, indent
   end
 
   # The lines of a set of clips: the clip, and the references to it.
   #
   # @param clips [Array<Hash>] each clip, its file, and its references
   # @param number [String] the number of the track or of the take lane
-  # @param depth [Integer] how deep the clips are
+  # @param indent [String] the indentation of the clips
   # @return [Array<String>] the lines
-  def clip_group_lines(clips, number, depth)
-    indent = '  ' * depth
+  def clip_group_lines(clips, number, indent)
     lines = []
 
     clips.each do |clip|
@@ -550,14 +602,13 @@ class LiveSetReport
       first = references.first
       marks = clip_marks clip[:clip]
 
-      line = "#{indent}  * Clip #{number}.#{first[:index]} (#{count_of references.length})  " \
+      line = "#{indent}* Clip #{number}.#{first[:index]} (#{count_of references.length})  " \
              "#{LivePalette.name_span escape(name_of_clip(clip[:clip])), color_of(clip[:clip])}"
       line += "  #{marks.join(', ')}" unless marks.empty?
+      line += "<br>`#{clip[:file]}`" if clip[:file]
       lines << line
 
-      lines << "#{indent}    `#{clip[:file]}`" if clip[:file]
-
-      reference_lines(clip[:references]).each { |reference| lines << "#{indent}    #{reference}" }
+      reference_lines(clip[:references]).each { |reference| lines << "#{indent}  #{reference}" }
     end
     lines
   end

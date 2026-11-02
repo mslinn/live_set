@@ -174,6 +174,7 @@ Options are:
   -11 Convert a copy of the Live 12 set to Live 11 format.
   -f If -11 is specified, overwrite any existing Live 11 set. Without it, an existing
      set is left alone.
+  -v Show the version of this program.
   -z The time zone the times in the report are written in, e.g. America/Chicago. The
      times are written in the time zone of the computer when it is not given.
   -h Display this help message.
@@ -231,8 +232,9 @@ Example:
 
 The report of a set is markdown. It names the tracks of the set, the state of each one, the
 effects on it, and the clips of it, as an outline: everything in the set is numbered by the
-path of the tree it is in, and the colour of each thing is the background of its name. It
-is written to stdout, and the log of the program is written to stderr and is never markdown.
+path of the tree it is in, the colour of each thing is the background of its name, and the
+take lanes of a track are under the track. It is written to stdout, and the log of the
+program is written to stderr and is never markdown.
 
 Report the version of the Live 12 Standard demo set:
 
@@ -241,17 +243,18 @@ Report the version of the Live 12 Standard demo set:
 
 |||
 |:-|-:|
-|Written by|Ableton Live 12.4d1|
-|Format|12.0_12402|
-|SchemaChangeCount|1|
-|Revision|42bc084cd8152e4fb737ef3fefd04b2bea5320e7|
-|Machine|Bear|
 |Directory|`/mnt/c/ProgramData/Ableton/Live 12 Suite/Resources/Core Library/Lessons/Demo Songs`|
-|Time zone|America/Toronto|
-|Set created|2026-09-16 14:11:47|
-|Set last modified|2026-07-02 20:37:30|
+|Format|12.0_12402|
+|On Computer|Bear (FC6C93DD-4C5E-B619-A95F-047C164F69AA)|
 |Project created|2026-09-16 14:11:47|
 |Project last modified|`Chuck Sutton - Patience (Live 12 Suite Demo).als`<br>2026-07-02 20:37:30|
+|Report generated|Generated 2026-11-01 13:30:18 by live_set v0.2.5|
+|Revision|42bc084cd8152e4fb737ef3fefd04b2bea5320e7|
+|SchemaChangeCount|1|
+|Set created|2026-09-16 14:11:47|
+|Set last modified|2026-07-02 20:37:30|
+|Time zone|America/New_York (UTC-4)|
+|Written by|Ableton Live 12.4d1|
 
 ## Push 3 Standalone
 
@@ -262,34 +265,29 @@ Report the version of the Live 12 Standard demo set:
 - Track 'Vocal Hum' is unfrozen; devices: Reverb
 - Track 'Vocal Adlib' is unfrozen; devices: StereoGain, Echo, AutoFilter
 
-The marks on a clip: `linked` means the clip shares its sample with the other clips of a linked group, so that editing one of them edits them all; `warped` means the sample is time-stretched; `⚠ not in project` means the sample is not in the folder of the project, and the set is not self-contained.
+A clip is its name and the file it plays. Live writes a copy of a clip for every place it is in — the session view, the arrangement, a take lane — and the copies are the references to the clip. The settings of a reference — how it is launched, how its sample is warped — belong to the reference and not to the clip, and are given on the references. The take lanes of a track are under the track. The mark `⚠ not in project` means the sample is not in the folder of the project, and the set is not self-contained.
 
-- Track 1  <span style="background-color:#D3E499;color:#6648CE" title="color 32"><code>Coffee Leaf</code></span>  🎹 MIDI  🔴 ✓ armed
+- Track 1  🎹 MIDI  <span style="background-color:#D3E499;color:#6648CE" title="color 32"><code>Coffee Leaf</code></span>  🔴 armed
   - Track Device 1a  <code>Drift</code>  native device
   - Track Device 1b  <code>StereoGain</code>  native device
-  - Clip 1.1  <span style="background-color:#D3E499;color:#6648CE" title="color 32"><code>Drift</code></span>  ⚠ not in project, launch: trigger, linked, warped
-  - Clip 1.2  <span style="background-color:#D3E499;color:#6648CE" title="color 32"><code>Drift 2</code></span>  ⚠ not in project, launch: trigger, linked, warped
-  - Clip 1.3  <span style="background-color:#D3E499;color:#6648CE" title="color 32"><code>Drift 3</code></span>  ⚠ not in project, launch: trigger, linked, warped  × 2
-  - Clip 1.5  <span style="background-color:#D3E499;color:#6648CE" title="color 32"><code>Drift 4</code></span>  ⚠ not in project, launch: trigger, linked, warped
-  - Clip 1.6  <span style="background-color:#D3E499;color:#6648CE" title="color 32"><code>Drift 5</code></span>  ⚠ not in project, launch: trigger, linked, warped
-    ... the clips of every track ...
+  * Clip 1.1 (×6)  <span style="background-color:#D3E499;color:#6648CE" title="color 32"><code>Coffee Lead</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+    * References (×6): warps: launch: trigger
+  - Take lane 1.1  Drift
+    * Clip 1.1.1 (×1)  <span style="background-color:#D3E499;color:#6648CE" title="color 32"><code>Drift</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+      * References (×1): warps: launch: trigger
+  - Take lane 1.2  Drift 2
+    * Clip 1.2.1 (×1)  <span style="background-color:#D3E499;color:#6648CE" title="color 32"><code>Drift 2</code></span>  <span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>
+    ... the rest of the tracks ...
 ## Missing Samples
 
 |Pack|Samples|
 |:-|:-|
 |Core Library|`Vocal Patience Main.wav`, `Vocal Patience Harmony.wav`, `Vocal Patience Hum.wav`, `Vocal Patience Adlib.wav`|
 
-## Device Cross-Reference
-
-|Device|Kind|Used in|
-|:-|:-|:-|
-|<code>AutoFilter</code>|native device|`Strum`|
-|<code>Compressor2</code>|native device|`Guit Layter`|
-|<code>Delay</code>|native device|`B-Delay`|
-|<code>Drift</code>|native device|`Coffee Leaf`, `Mello`|
 ```
 
-The analyses of the sets of this repository are in [`analysis/`](analysis/README.md).
+The analyses of the sets are in the repository of the reference sets, in the reports directory of
+the version of each set.
 
 A [bug](https://github.com/mslinn/live_set/issues/2) has been logged for the
 above output.
@@ -359,7 +357,7 @@ Ableton documents the location in
 `locate -i "Demo Songs"` finds them.
 
 One Live 11 set is checked in, because no demo set of Live 11 has a return
-track: `sets/live_11/Fascination.als`. It comes from
+track: `sets/live_11/projects_and_als/Fascination.als`. It comes from
 [owenbush/ableton-inspector](https://github.com/owenbush/ableton-inspector),
 which is under the MIT license.
 

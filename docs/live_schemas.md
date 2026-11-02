@@ -107,7 +107,7 @@ Live's own schema for 11.0, and none of them is missing from it.
 So those 114 names are not stale or mistaken. They are real Live 11 elements
 that no Live 11 demo set happens to contain, and the inferred schema cannot
 know about them. `BandFreq1` is in none of the Live 11 demo sets, nor in
-`sets/live_11/Fascination.als`.
+`sets/live_11/projects_and_als/Fascination.als`.
 
 **The inference is the weaker source, and the difference is largest exactly
 where it matters** — in the elements that the sample sets do not exercise.

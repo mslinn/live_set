@@ -180,8 +180,8 @@ and it has clips in take lanes, which the Suite demo set does not have.
 The work is to open the Live 11 demo set in Live 12, save it, and check the result in.
 
 The reference sets for Live 11 and Live 12 are both checked in:
-`sets/live_11/Fascination.als` and the Live 12 version of it,
-`sets/live_12/Fascination_12_converted_by_live Project/Fascination_12_converted_by_live.als`.
+`sets/live_11/projects_and_als/Fascination.als` and the Live 12 version of it,
+`sets/live_12/projects_and_als/Fascination_12_converted_by_live Project/Fascination_12_converted_by_live.als`.
 The Live 12 version was made by `bin/make_reference_set`, which opens the Live 11 set in
 Live 12, waits for Live to say that it has loaded it, and saves it under a name of its own.
 The conversion of the second down to the Live 11 format is proved in
@@ -217,7 +217,7 @@ The program is in `docs/ab_test_plan.md`: nearly-empty Live 11 sets, one thing i
 by Live 11 and by Live 12 and compared, with the bridge and the version_diff document brought
 up to date with what the comparison shows.
 
-The first case is made: `sets/live_11/one_midi_track_only_11 Project/one_midi_track_only_11.als`,
+The first case is made: `sets/live_11/projects_and_als/one_midi_track_only_11 Project/one_midi_track_only_11.als`,
 a Live 11.3.43 set with one MIDI track, the two return tracks, and no audio track. Its Live 12
 counterpart has not been made yet.
 

@@ -146,8 +146,8 @@ Sets that are checked in, so that they are the same for everyone who works on th
 project. The demo sets Ableton ships are not reference sets: they are installed with
 Live, and they differ from one machine to the next.
 
-`sets/live_11/Fascination.als` and the Live 12 version of it,
-`sets/live_12/Fascination_12_converted_by_live Project/Fascination_12_converted_by_live.als`,
+`sets/live_11/projects_and_als/Fascination.als` and the Live 12 version of it,
+`sets/live_12/projects_and_als/Fascination_12_converted_by_live Project/Fascination_12_converted_by_live.als`,
 are the reference sets for Live 11 and Live 12. They are the same set in the two
 versions, so the conversion down to Live 11 can be proved against the set Live 11
 itself wrote.

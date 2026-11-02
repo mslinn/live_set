@@ -1,6 +1,7 @@
 require 'nokogiri'
 require 'zlib'
 require 'demo_sets'
+require 'reference_sets'
 
 # Real Live sets, and the elements in them.
 #
@@ -29,7 +30,7 @@ module LiveSets
     #
     # @return [String] the path of the set
     def fascination
-      File.expand_path '../../sets/live_11/Fascination.als', __dir__
+      File.join ReferenceSets.directory_of('11'), 'projects_and_als', 'Fascination.als'
     end
 
     # The Live 12 version of the checked-in set with return tracks and a third-party device.
@@ -38,8 +39,8 @@ module LiveSets
     #
     # @return [String] the path of the set
     def fascination12
-      path = 'sets/live_12/Fascination_12_converted_by_live Project/Fascination_12_converted_by_live.als'
-      File.expand_path "../../#{path}", __dir__
+      File.join ReferenceSets.directory_of('12'), 'projects_and_als',
+                'Fascination_12_converted_by_live Project', 'Fascination_12_converted_by_live.als'
     end
 
     # The document of a set.

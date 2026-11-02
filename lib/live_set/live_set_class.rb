@@ -22,6 +22,11 @@ class LiveSet
   def self.run(args)
     options, remaining = parse_options(args)
 
+    if options[:version]
+      puts LiveSetVersion::VERSION
+      return 0
+    end
+
     abort help("Unknown time zone: #{options[:time_zone]}") if options[:time_zone] && !known_time_zone?(options[:time_zone])
 
     abort help('An Ableton Live set name must be provided.') if remaining.empty?

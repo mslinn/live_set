@@ -7,8 +7,8 @@
 # The set is made by running Live: the source set is opened in the version of Live that is asked
 # for, and Live saves it under the name that is given. Live writes a set as a project folder: a
 # directory that holds the set and what Live writes around it, and that a file manager shows as a
-# file. The directory is `sets/live_<version>/<name> Project`, and the set in it is
-# `<name>.als`.
+# file. The directory is `sets/live_<version>/projects_and_als/<name> Project`, and the set in it
+# is `<name>.als`.
 #
 # The source is a reference set of the version before the one that is asked for. It defaults to
 # the only set in `sets/live_<version - 1>`.
@@ -26,13 +26,14 @@ $LOAD_PATH.unshift File.expand_path('../lib', __dir__)
 require 'fileutils'
 require 'gui_harness'
 require 'live_installations'
+require 'reference_sets'
 
 # The name of the directory of a reference set of a version.
 #
 # @param version [String] the version, e.g. "12"
 # @return [String] the name of the directory
 def reference_directory(version)
-  "sets/live_#{version}"
+  File.join ReferenceSets.directory_of(version), 'projects_and_als'
 end
 
 # The path of the set the tool writes.

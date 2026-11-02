@@ -1,69 +1,59 @@
 #!/usr/bin/env ruby
 
-# Writes the analysis of every set in the sets directory to the analysis directory.
+# Writes the analysis of every reference set to the report of it.
 #
-# The analysis of a set is the report `live_set -s` writes: the report of the set, in markdown.
-# One file is written for each set, named after the set, in a directory named after the
-# version of Live the set is in.
+# Usage: bin/make_analysis [SETS_DIRECTORY]
 #
-# Usage: bin/make_analysis [SETS_DIRECTORY] [ANALYSIS_DIRECTORY]
-#        bin/make_analysis SET.als [ANALYSIS_DIRECTORY]
+# The sets are in the repository of the reference sets, and the report of a set is written
+# beside it, in the reports directory of the version of the set:
 #
-# The sets directory defaults to `sets`, and the analysis directory to `analysis`. The sets
-# directory is read for its version directories: each directory in it is a version of Live, and
-# each set under it is analysed into the directory of the same name under the analysis
-# directory.
+#   sets/live_11/projects_and_als/Fascination.als
+#   sets/live_11/reports/Fascination.md
 #
-# A single set can be analysed instead of a directory of them: the analysis is written into the
-# directory of the version of Live that wrote the set. The demo sets of Live are installed with
-# Live and are not checked in, but their analyses are.
+# The sets directory defaults to the sets of the repository of the reference sets, which is
+# found through the environment variable `live_reference_sets`.
+#
+# A report that is newer than the set it is the report of is not written again.
+
+$LOAD_PATH.unshift File.expand_path('../dev', __dir__)
+$LOAD_PATH.unshift File.expand_path('../lib', __dir__)
 
 require 'fileutils'
-
-$LOAD_PATH.unshift File.expand_path('../lib', __dir__)
 require 'live_set'
+require 'reference_sets'
 
-source = ARGV[0] || 'sets'
-analysis_directory = ARGV[1] || 'analysis'
+sets_directory = ARGV[0] || File.join(ReferenceSets.directory, 'sets')
 
-# The version of Live that wrote a set, from the Creator attribute of the set.
+abort "Not a directory: #{sets_directory}" unless File.directory? sets_directory
+
+# Whether a report is newer than the set it is the report of.
 #
 # @param set [String] the path of the set
-# @return [String] the major version
-def version_of(set)
-  LiveSet.new(set, loglevel: 'ERROR').show[/\|Written by\|Ableton Live (\d+)/, 1]
+# @param report [String] the path of the report
+# @return [Boolean] true when the report does not have to be written
+def up_to_date?(set, report)
+  return false unless File.exist? report
+
+  File.mtime(report) >= File.mtime(set)
 end
 
-if File.file? source
-  version = version_of source
-  abort "Could not tell the version of Live that wrote #{source}" unless version
+Dir.children(sets_directory).sort.each do |entry|
+  next unless File.directory? File.join(sets_directory, entry)
 
-  target_directory = File.join analysis_directory, "live_#{version}"
-  FileUtils.mkdir_p target_directory
-
-  target = File.join target_directory, "#{File.basename source, '.als'}.md"
-  report = LiveSet.new(source, loglevel: 'ERROR').show
-  File.write target, report
-  puts "Wrote #{target} (#{report.lines.count} lines)"
-  exit
-end
-
-abort "Not a directory: #{source}" unless File.directory? source
-
-versions = Dir.children(source).select { |entry| File.directory?(File.join(source, entry)) }.sort
-
-versions.each do |version|
-  sets = Dir.glob(File.join(source, version, '**', '*.als'))
+  sets = Dir.glob File.join(sets_directory, entry, 'projects_and_als', '**', '*.als')
   next if sets.empty?
 
-  target_directory = File.join(analysis_directory, version)
-  FileUtils.mkdir_p target_directory
+  reports = File.join sets_directory, entry, 'reports'
+  FileUtils.mkdir_p reports
 
-  sets.each do |set|
-    target = File.join(target_directory, "#{File.basename set, '.als'}.md")
-    report = LiveSet.new(set, loglevel: 'ERROR').show
+  sets.sort.each do |set|
+    report = File.join reports, "#{File.basename set, '.als'}.md"
+    if up_to_date? set, report
+      puts "#{entry}/#{File.basename report}: up to date"
+      next
+    end
 
-    File.write target, report
-    puts "Wrote #{target} (#{report.lines.count} lines)"
+    File.write report, LiveSet.new(set, loglevel: 'ERROR').show
+    puts "#{entry}/#{File.basename report}: written"
   end
 end

@@ -23,6 +23,7 @@ class LiveSet
         -11 Convert the Live 12 set to Live 11 format.
         -f If -11 is specified, overwrite any existing Live 11 set. Without it, an existing
            set is left alone.
+        -v Show the version of this program.
         -z The time zone the times in the report are written in, e.g. America/Chicago. The
            times are written in the time zone of the computer when it is not given.
         -h Display this help message.
@@ -74,6 +75,7 @@ class LiveSet
       parser.on('-f', '--force', 'Overwrite the output set if it already exists')
       parser.on('-l', '--loglevel LOGLEVEL', String, "Logging level (#{LOG_LEVELS.join ', '})")
       parser.on('-s', '--show', 'Display information about the Ableton Live set')
+      parser.on('-v', '--version', 'Show the version of this program')
       parser.on('-z', '--time-zone ZONE', String, 'The time zone the times in the report are written in')
 
       parser.on_tail('-h', '--help', 'Show this message') do

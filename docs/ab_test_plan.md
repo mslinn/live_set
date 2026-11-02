@@ -24,7 +24,7 @@ a set that holds the demo set.
    `bin/make_reference_set`:
 
    ```shell
-   bundle exec ruby bin/make_reference_set 12 <name> sets/live_11/<set>
+   bundle exec ruby bin/make_reference_set 12 <name> sets/live_11/projects_and_als/<set>
    ```
 
    It opens the set in Live 12, waits for Live to say that it has loaded it, and saves it under
@@ -37,8 +37,8 @@ a set that holds the demo set.
    document.
 4. **Write down what the set holds.** The analysis of the set is the report `live_set` writes
    for it: the tracks, the state of each one, the effects on it, and the clips of it. The
-   analyses are in [`../analysis/`](../analysis/README.md), and they are made by
-   `bin/make_analysis`.
+   analyses are in the reports directory of the version of the set, in the repository of the
+   reference sets, and they are made by `bin/make_analysis`.
 
 A case is done when the bridge reproduces what Live 12 did, and the version_diff document says
 what the difference is.
@@ -49,8 +49,8 @@ A set of Live is a project folder: the set is the `.als` file in it, and only th
 checked in.
 
 ```text
-sets/live_11/<name>_11 Project/<name>_11.als
-sets/live_12/<name>_12_converted_by_live Project/<name>_12_converted_by_live.als
+sets/live_11/projects_and_als/<name>_11 Project/<name>_11.als
+sets/live_12/projects_and_als/<name>_12_converted_by_live Project/<name>_12_converted_by_live.als
 ```
 
 The name of a set says what it holds, so that the corpus can be read: `one_midi_track_only_11`
@@ -60,7 +60,7 @@ in every set, and are not part of what a case is about.
 The first case of the program is already made:
 
 ```text
-sets/live_11/one_midi_track_only_11 Project/one_midi_track_only_11.als
+sets/live_11/projects_and_als/one_midi_track_only_11 Project/one_midi_track_only_11.als
 ```
 
 It was written by Live 11.3.43 and holds one MIDI track in the arrangement, the two return

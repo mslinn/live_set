@@ -26,11 +26,11 @@ RSpec.describe LiveSet, '#show' do
     expect(report(LiveSets.fascination)).to include('|Written by|Ableton Live 11.3.13|')
   end
 
-  it 'gives the machine the set is on, and where it is' do
+  it 'gives the computer the set is on, and where it is' do
     markdown = report(LiveSets.fascination)
 
-    expect(markdown).to match(/^\|Machine\|\w+\|$/)
-    expect(markdown).to match(%r{^\|Directory\|`.*sets/live_11`\|$})
+    expect(markdown).to match(/^\|On Computer\|\w+ \([0-9A-F-]+\)\|$/)
+    expect(markdown).to match(/^\|Directory\|`.*projects_and_als`\|$/)
   end
 
   it 'gives the times of the set and of the folder it is in' do
@@ -76,7 +76,7 @@ RSpec.describe LiveSet, '#show' do
   end
 
   it 'puts the clips of a take lane under the lane' do
-    expect(report(LiveSets.fascination)).to match(/^ {6}\* Clip 1\.\d+\.\d+ \(×\d+\)/)
+    expect(report(LiveSets.fascination)).to match(/^ {4}\* Clip 1\.\d+\.\d+ \(×\d+\)/)
   end
 
   it 'gives the color of each track, on the name of the track' do
@@ -129,6 +129,12 @@ RSpec.describe LiveSet, '#show' do
 
   it 'names the time zone the times are written in' do
     expect(report(LiveSets.fascination)).to match(/^\|Time zone\|.+\|$/)
+  end
+
+  it 'says when the report was made, and by what version' do
+    expect(report(LiveSets.fascination)).to match(
+      /^\|Report generated\|Generated \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} by live_set v\d+\.\d+\.\d+\|$/
+    )
   end
 
   it 'writes the times of the set without a time zone of their own' do

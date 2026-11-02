@@ -26,6 +26,12 @@ RSpec.describe LiveSet, '.parse_options' do
     expect(options[:force]).to be true
   end
 
+  it 'parses the version option' do
+    options, = described_class.parse_options(['-v'])
+
+    expect(options[:version]).to be true
+  end
+
   it 'normalizes the log level to uppercase' do
     options, = described_class.parse_options(['-l', 'debug', '/music/set.als'])
 
