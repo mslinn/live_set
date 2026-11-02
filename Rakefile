@@ -33,6 +33,9 @@ task release_patch: %i[test patch publish]
 
 RSpec::Core::RakeTask.new(:spec) do |task|
   task.pattern = 'spec/**/*_spec.rb'
+  # The integration spec launches Ableton Live and drives it, which takes minutes and needs
+  # Live installed and authorized. It is run on its own, with `rspec spec/integration`.
+  task.exclude_pattern = 'spec/integration/**/*_spec.rb'
 end
 
 desc 'Run the test suite'

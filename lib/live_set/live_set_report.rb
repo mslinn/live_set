@@ -16,8 +16,8 @@ require_relative 'live_palette'
 # set holds is written down where it can be read again.
 #
 # The colour of a track, a group and a clip is the background of its name, and the name of the
-# colour Live writes for it is in the tooltip of the name. The text on the colour is the
-# complementary colour, made as dark or as light as it has to be to be read on it. A track, a
+# colour Live writes for it is in the tooltip of the name. The text on the colour is black or
+# white, and how bright the colour looks decides which of the two is written on it. A track, a
 # group and a device that Push 3 Standalone cannot use is written on the dark background of
 # those things instead.
 class LiveSetReport
@@ -64,13 +64,13 @@ class LiveSetReport
   end
 
   # What the marks on a clip mean, and what a clip is.
-  LEGEND = 'A clip is its name and the file it plays. Live writes a copy of a clip for every ' \
-           'place it is in — the session view, the arrangement, a take lane — and the copies ' \
-           'are the references to the clip. The settings of a reference — how it is launched, ' \
-           'how its sample is warped — belong to the reference and not to the clip, and are ' \
-           'given on the references. The take lanes of a track are under the track. The mark ' \
-           '`⚠ not in project` means the sample is not in the folder of the project, and the ' \
-           'set is not self-contained.'.freeze
+  LEGEND = 'A clip is its name and the file it plays. Every place a clip is in — a slot of ' \
+           'the session view, the arrangement, a take lane — holds a reference to it, and ' \
+           'the settings of a reference — how it is launched, how its sample is warped — ' \
+           'belong to the reference and not to the clip, and are given on the references. ' \
+           'The take lanes of a track are under the track. The mark `⚠ not in project` means ' \
+           'the sample is not in the folder of the project, and the set is not ' \
+           'self-contained.'.freeze
 
   # @param set_name [String] the path of the set
   # @param xml_doc [Nokogiri::XML::Document] the set
@@ -117,8 +117,8 @@ class LiveSetReport
       ['Format', @ableton['MinorVersion']],
       ['SchemaChangeCount', @ableton['SchemaChangeCount']],
       ['Revision', @ableton['Revision']],
-      ['On Computer', computer],
-      ['Directory', "`#{directory}`"],
+      ['On computer', computer],
+      ['Directory', path_cell(directory)],
       ['Time zone', time_zone],
       ['Set created', created_at(@set_name)],
       ['Set last modified', modified_at(@set_name)],
@@ -129,6 +129,17 @@ class LiveSetReport
     MarkdownTables.make_table ['', ''], rows, align: %w[l r], is_rows: true
   end
 
+  # A path, as a cell that can be broken where it has to be.
+  #
+  # The path is written in monospaced type, and a break is offered after each separator, so
+  # that a long path does not make the table wider than the window.
+  #
+  # @param path [String] the path
+  # @return [String] the cell
+  def path_cell(path)
+    "<code>#{path.gsub('/', '/<wbr/>')}</code>"
+  end
+
   # The computer the report was made on: its name, and the hardware UUID of it.
   #
   # @return [String] the name of the computer
@@ -137,19 +148,21 @@ class LiveSetReport
     uuid.empty? ? machine_name : "#{machine_name} (#{uuid})"
   end
 
-  # The hardware UUID of the computer.
+  # The UUID of the machine, as Windows knows it.
   #
-  # Windows knows the UUID of the machine; a Linux system reads it from the DMI, and WSL does
-  # not mount the DMI, so Windows is asked.
+  # The registry of Windows holds it, and `reg.exe` reads it in a moment. The answer is the
+  # same for every report of a process, so it is asked once.
+  #
+  # @return [String] the UUID, or an empty string when it cannot be found
+  def self.hardware_uuid
+    @hardware_uuid ||= `reg.exe query "HKLM\\SOFTWARE\\Microsoft\\Cryptography" /v MachineGuid 2>/dev/null`.split.last.to_s
+  end
+
+  # The hardware UUID of the computer.
   #
   # @return [String] the UUID, or an empty string when it cannot be found
   def hardware_uuid
-    @hardware_uuid ||= begin
-      output = `powershell.exe -NoProfile -Command "(Get-CimInstance -ClassName Win32_ComputerSystemProduct).UUID" 2>/dev/null`
-      output.strip
-    rescue StandardError
-      ''
-    end
+    self.class.hardware_uuid
   end
 
   # The time zone the times of the report are written in, and the offset that was in force on
@@ -181,7 +194,7 @@ class LiveSetReport
   #
   # @return [String] the time and the version
   def report_generated
-    "Generated #{format_time Time.now} by live_set v#{LiveSetVersion::VERSION}"
+    "#{format_time Time.now} by live_set v#{LiveSetVersion::VERSION}"
   end
 
   # The name of the time zone the times of the report are written in.
@@ -238,7 +251,7 @@ class LiveSetReport
     return modified_at(directory) unless path
 
     relative = path.delete_prefix("#{directory}/")
-    "`#{relative}`<br>#{format_time time}"
+    "#{path_cell relative}<br>#{format_time time}"
   end
 
   # The file of a folder that was changed last.
@@ -392,7 +405,7 @@ class LiveSetReport
   # @param depth [Integer] how deep the track is
   # @return [Array<String>] the lines
   def track_lines(track, number, depth, boxed: false)
-    kind, name, element, members = track
+    kind, _name, element, members = track
     indent = '  ' * depth
     group = kind == 'Group'
 
@@ -400,7 +413,7 @@ class LiveSetReport
 
     label = group ? "Group track #{number}" : "Track #{number}"
     line = "#{indent}- #{label}  #{LivePalette.icon_of kind} #{kind}  " \
-           "#{LivePalette.name_span escape(name), color_of(element), dark: problem}"
+           "#{track_label(track)}"
     states = states_of element
     line += "  #{states.join(', ')}" unless states.empty?
     lines = [line]
@@ -451,10 +464,7 @@ class LiveSetReport
   # @param device [LiveDevice] the device
   # @return [String] the kind
   def device_kind(device)
-    return 'plug-in' if device.plug_in?
-    return 'Max for Live' if device.max_for_live?
-
-    'native device'
+    device.kind
   end
 
   # The name of the devices of a kind of track.
@@ -549,8 +559,8 @@ class LiveSetReport
 
   # The identity of a clip: its name, and the file it plays.
   #
-  # Live writes a copy of a clip for every place it is in — in the session view, in the
-  # arrangement — and the copies are the references to the clip.
+  # Every place a clip is in holds a reference to it, and the references are what carry the
+  # settings of the clip in that place.
   #
   # @param clip [Nokogiri::XML::Element] the clip
   # @return [String] the identity
@@ -603,7 +613,7 @@ class LiveSetReport
       marks = clip_marks clip[:clip]
 
       line = "#{indent}* Clip #{number}.#{first[:index]} (#{count_of references.length})  " \
-             "#{LivePalette.name_span escape(name_of_clip(clip[:clip])), color_of(clip[:clip])}"
+             "#{clip_name(clip[:clip])}"
       line += "  #{marks.join(', ')}" unless marks.empty?
       line += "<br>`#{clip[:file]}`" if clip[:file]
       lines << line
@@ -629,7 +639,7 @@ class LiveSetReport
 
     groups.map { |settings, group| [group.length, settings] }
           .sort_by { |count, settings| [-count, settings] }
-          .map { |count, settings| "* References (#{count_of count}): warps: #{settings}" }
+          .map { |count, settings| "* References (#{count_of count}): #{settings}" }
   end
 
   # The settings of a reference: how it is launched, and how its sample is warped.
@@ -641,8 +651,23 @@ class LiveSetReport
     settings << 'disabled' if clip.at('Disabled')&.[]('Value') == 'true'
     mode = clip.at('LaunchMode')&.[]('Value')
     settings << "launch: #{LAUNCH_MODES.fetch mode.to_i, mode}" if mode
-    settings << "warp: #{warp_of clip}" if clip.at('WarpMode')
+    settings << if clip.at('WarpMode') && warped?(clip)
+                  "warp: #{warp_of clip}"
+                else
+                  'warp: none'
+                end
     settings.join(', ')
+  end
+
+  # Whether the sample of a clip is warped.
+  #
+  # The warp mode of a clip is written whether the sample is warped or not, so the mode says
+  # nothing about it on its own.
+  #
+  # @param clip [Nokogiri::XML::Element] the clip
+  # @return [Boolean] true when the sample is warped
+  def warped?(clip)
+    clip.at('IsWarped')&.[]('Value') == 'true'
   end
 
   # A count of things, as the report writes it.
@@ -734,17 +759,17 @@ class LiveSetReport
   # @return [String] the cross-reference
   def devices_markdown
     uses = device_uses
-    lines = ['## Device Cross-Reference', '']
+    lines = ['## Device/Track Cross-Reference', '']
     if uses.empty?
       lines << 'The set has no devices.'
       return lines.join("\n")
     end
 
-    rows = uses.sort_by { |(label, _kind, _unusable), _| label }.map do |(label, kind, unusable), tracks|
+    rows = uses.sort_by { |(label, _kind, _unusable), _| label.downcase }.map do |(label, kind, unusable), tracks|
       name = LivePalette.name_span escape(label), nil, dark: unusable
-      [name, kind, tracks.map { |track| "`#{escape track}`" }.join(', ')]
+      [name, kind, tracks.join(', ')]
     end
-    lines << MarkdownTables.make_table(['Device', 'Kind', 'Used in'], rows, align: %w[l l l], is_rows: true)
+    lines << MarkdownTables.make_table(['Device', 'Kind', 'Tracks With This Device'], rows, align: %w[l l l], is_rows: true)
     lines.join("\n")
   end
 
@@ -758,8 +783,8 @@ class LiveSetReport
         device = LiveDevice.new node
         unusable = device.blocking? && !frozen?(track[2])
         key = [device.label, device_kind(device), unusable]
-        uses[key] << track[1]
-        members.each { |member| uses[key] << member[1] }
+        uses[key] << track_label(track)
+        members.each { |member| uses[key] << track_label(member) }
       end
     end
     uses
@@ -847,11 +872,13 @@ class LiveSetReport
       listed = places.map do |label, counts|
         "`#{escape label}` " + counts.map { |place, count| "#{place} \u00d7#{count}" }.join(', ')
       end
-      rows << ["#{number} `#{escape track[1]}`", listed.join('; ')]
+      rows << [track[1], "#{number} #{track_label track}", listed.join('; ')]
     end
     return 'The set has no clips.' if rows.empty?
 
-    MarkdownTables.make_table(%w[Track Clips], rows, align: %w[l l], is_rows: true)
+    rows.sort_by! { |row| row[0].downcase }
+    MarkdownTables.make_table(%w[Track Clips], rows.map { |_, track, clips| [track, clips] },
+                              align: %w[l l], is_rows: true)
   end
 
   # The places the clips of a track are in, and how many of them there are in each.
@@ -882,7 +909,7 @@ class LiveSetReport
   # @return [String] the table
   def clips_and_tracks_table
     uses = tracks_of_clips
-    rows = uses.sort.map { |clip, tracks| ["`#{escape clip}`", tracks.join(', ')] }
+    rows = uses.sort_by { |clip, _| clip.downcase }.map { |clip, tracks| ["`#{escape clip}`", tracks.join(', ')] }
     return 'The set has no clips.' if rows.empty?
 
     MarkdownTables.make_table(%w[Clip Tracks], rows, align: %w[l l], is_rows: true)
@@ -890,28 +917,59 @@ class LiveSetReport
 
   # The tracks that hold each clip of the set.
   #
-  # A clip of a take lane is marked with the lane it is in.
+  # A track that holds a clip in its take lanes as well as in itself is one entry, and the
+  # lanes it holds the clip in are named with it.
   #
   # @return [Hash] each clip, and the tracks that hold it
   def tracks_of_clips
-    uses = Hash.new { |hash, key| hash[key] = [] }
+    uses = Hash.new { |hash, key| hash[key] = {} }
     each_numbered_track do |number, track|
-      clips_of_track(track[2]).each do |clip|
-        entry = "#{number} `#{escape track[1]}`"
-        tracks = uses[clip_label(clip)]
-        tracks << entry unless tracks.include? entry
-      end
+      name = track_label track
+      clips_of_track(track[2]).each { |clip| holds_of uses, clip_label(clip), number, name }
+      holds_of_lanes uses, track, number, name
+    end
 
-      take_lanes_of(track[2]).each_with_index do |lane, index|
-        lane_number = "#{number}.#{index + 1}"
-        lane[:clips].each do |clip|
-          entry = "#{number} `#{escape track[1]}` (take lane #{lane_number})"
-          tracks = uses[label_of(clip)]
-          tracks << entry unless tracks.include? entry
-        end
+    uses.transform_values { |holds| holds.map { |number, hold| hold_line number, hold } }
+  end
+
+  # The take lanes of a track, and the clips of them.
+  #
+  # @param uses [Hash] the clips and the tracks that hold them
+  # @param track [Array] the kind, the name, the element and the members of the track
+  # @param number [String] the number of the track
+  # @param name [String] the name of the track, on its color
+  # @return [void]
+  def holds_of_lanes(uses, track, number, name)
+    take_lanes_of(track[2]).each_with_index do |lane, index|
+      lane_number = "#{number}.#{index + 1}"
+      lane[:clips].each do |clip|
+        hold = holds_of uses, label_of(clip), number, name
+        hold[:lanes] << lane_number unless hold[:lanes].include? lane_number
       end
     end
-    uses
+  end
+
+  # The line of a track that holds a clip.
+  #
+  # @param number [String] the number of the track
+  # @param hold [Hash] the record of the track
+  # @return [String] the line
+  def hold_line(number, hold)
+    lanes = hold[:lanes].empty? ? '' : " (take lane #{hold[:lanes].join(', ')})"
+    "#{number} #{hold[:name]}#{lanes}"
+  end
+
+  # The record of a track that holds a clip.
+  #
+  # @param uses [Hash] the clips and the tracks that hold them
+  # @param label [String] the name of the clip
+  # @param number [String] the number of the track
+  # @param name [String] the name of the track
+  # @return [Hash] the record of the track
+  def holds_of(uses, label, number, name)
+    holds = uses[label]
+    holds[number] ||= { name: name, lanes: [] }
+    holds[number]
   end
 
   # The name of a clip, as the cross-reference names it: the file it plays, without its
@@ -1022,8 +1080,16 @@ class LiveSetReport
   # @param clip [Nokogiri::XML::Element] the clip
   # @return [String, nil] the path of the file, or nil when the clip refers to none
   def file_of(clip)
-    clip.at('SampleRef/FileRef/RelativePath')&.[]('Value') ||
-      clip.at('SampleRef/FileRef/Path')&.[]('Value')
+    reference = clip.at 'SampleRef/FileRef'
+    return nil if reference.nil?
+
+    relative = reference.at('RelativePath')&.[]('Value')
+    return relative unless relative.nil? || relative.empty?
+
+    # Live 12 writes an empty relative path for a sample that is not in the project, and
+    # keeps only the absolute path of it.
+    absolute = reference.at('Path')&.[]('Value')
+    absolute.nil? || absolute.empty? ? nil : absolute
   end
 
   # The icon of a clip: a musical note for an audio clip, a keyboard for a MIDI clip.
@@ -1049,7 +1115,12 @@ class LiveSetReport
   end
 
   # The mark of a clip whose sample is not in the project.
-  NOT_COLLECTED = '<span style="background-color:#8B0000;color:#FFFFFF">⚠ not in project</span>'.freeze
+  #
+  # The mark is on a dark red, in white text, and the style is on the code element itself: a
+  # renderer that gives code its own color would otherwise win. The mark is aligned with the
+  # text beside it, whose glyphs are of an ordinary height.
+  NOT_COLLECTED =
+    '<code style="background-color:#8B0000;color:#FFFFFF;vertical-align:middle">⚠ not in project</code>'.freeze
 
   # Whether the sample of a clip is in the folder of the project.
   #
@@ -1146,6 +1217,22 @@ class LiveSetReport
   def color_of(element)
     value = element.at('Color')&.[]('Value')
     value&.to_i
+  end
+
+  # The name of a track, on the color Live gave it.
+  #
+  # @param track [Array] the kind, the name, the element and the members of the track
+  # @return [String] the name of the track, on its color
+  def track_label(track)
+    LivePalette.name_span escape(track[1]), color_of(track[2]), dark: problem_for?(track[2])
+  end
+
+  # The name of a clip, on the color Live gave it.
+  #
+  # @param clip [Nokogiri::XML::Element] the clip
+  # @return [String] the name of the clip, on its color
+  def clip_name(clip)
+    LivePalette.name_span escape(name_of_clip(clip)), color_of(clip)
   end
 
   # The value of an element of a track or a clip.

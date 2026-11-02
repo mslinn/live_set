@@ -64,6 +64,37 @@ class LiveDevice
     @manufacturer.empty? ? @name : "#{@name} (#{@manufacturer})"
   end
 
+  # What kind of device this is.
+  #
+  # A device of Live is a device of Live, whatever it does; a device of another company is a
+  # plug-in, and the format of the plug-in is in its description.
+  #
+  # @return [String] the kind of the device
+  def kind
+    return 'Max for Live' if max_for_live?
+    return plugin_format if plug_in?
+
+    'Live'
+  end
+
+  # The format of a plug-in.
+  #
+  # The description of the plug-in says which format it is in.
+  #
+  # @return [String] the format
+  def plugin_format
+    description = @node.at('PluginDesc')
+    return 'plug-in' if description.nil?
+
+    case description.element_children.first&.name
+    when 'VstPluginInfo' then 'VST2'
+    when 'Vst3PluginInfo' then 'VST3'
+    when 'AuPluginInfo' then 'Audio Unit'
+    when 'ClapPluginInfo' then 'CLAP'
+    else 'plug-in'
+    end
+  end
+
   # Whether the device is a Max for Live device.
   #
   # @return [Boolean] true when the device is a Max for Live device

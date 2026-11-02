@@ -1,0 +1,95 @@
+#!/usr/bin/env ruby
+
+# Writes the analysis of every reference set to the report of it.
+#
+# Usage: bin/generate_reference_als_reports [SETS_DIRECTORY]
+#
+# The sets are in the repository of the reference sets, and the report of a set is written
+# beside it, in the reports directory of the version of the set:
+#
+#   sets/live_11/projects_and_als/Fascination.als
+#   sets/live_11/reports/Fascination.md
+#
+#   sets/demo/11/Ninajirachi - In The Rain (Live 11 Intro Demo).als
+#   sets/demo/11/reports/Ninajirachi - In The Rain (Live 11 Intro Demo).md
+#
+# The sets directory defaults to the sets of the repository of the reference sets, which is
+# found through the environment variable `live_reference_sets`.
+#
+# A report that is newer than the set it is the report of, and newer than the code that
+# writes the report, is not written again.
+
+$LOAD_PATH.unshift File.expand_path('../dev', __dir__)
+$LOAD_PATH.unshift File.expand_path('../lib', __dir__)
+
+require 'fileutils'
+require 'live_set'
+require 'reference_sets'
+
+sets_directory = ARGV[0] || File.join(ReferenceSets.directory, 'sets')
+
+abort "Not a directory: #{sets_directory}" unless File.directory? sets_directory
+
+# The time the code that writes the reports was last changed.
+#
+# @return [Time] the time
+def code_time
+  files = Dir[File.expand_path('../lib/**/*.rb', __dir__)]
+  files.map { |file| File.mtime file }.max
+end
+
+# Whether a report is newer than the set it is the report of, and newer than the code that
+# writes it.
+#
+# @param set [String] the path of the set
+# @param report [String] the path of the report
+# @return [Boolean] true when the report does not have to be written
+def up_to_date?(set, report)
+  return false unless File.exist? report
+
+  time = File.mtime report
+  time >= File.mtime(set) && time >= code_time
+end
+
+# The sets of a version, and the reports of them.
+#
+# @param sets_dir [String] the directory of the sets
+# @param reports_dir [String] the directory the reports go in
+# @param label [String] the name of the version, as it is shown
+# @return [void]
+def analyse(sets_dir, reports_dir, label)
+  sets = Dir.glob File.join(sets_dir, '**', '*.als')
+  return if sets.empty?
+
+  FileUtils.mkdir_p reports_dir
+
+  sets.sort.each do |set|
+    report = File.join reports_dir, "#{File.basename set, '.als'}.md"
+    if up_to_date? set, report
+      puts "#{label}/#{File.basename report}: up to date"
+      next
+    end
+
+    File.write report, LiveSet.new(set, loglevel: 'ERROR').show
+    puts "#{label}/#{File.basename report}: written"
+  end
+end
+
+Dir.children(sets_directory).sort.each do |entry|
+  path = File.join(sets_directory, entry)
+  next unless File.directory? path
+
+  if entry.start_with? 'live_'
+    # the sets of a version of Live, and the reports of them
+    analyse File.join(path, 'projects_and_als'), File.join(path, 'reports'), entry
+    next
+  end
+
+  # a group of versions, such as the demo sets
+  Dir.children(path).sort.each do |version|
+    version_path = File.join path, version
+    next unless File.directory? version_path
+
+    analyse version_path, File.join(version_path, 'reports'), "#{entry}/#{version}"
+  end
+end

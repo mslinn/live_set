@@ -38,7 +38,7 @@ a set that holds the demo set.
 4. **Write down what the set holds.** The analysis of the set is the report `live_set` writes
    for it: the tracks, the state of each one, the effects on it, and the clips of it. The
    analyses are in the reports directory of the version of the set, in the repository of the
-   reference sets, and they are made by `bin/make_analysis`.
+   reference sets, and they are made by `bin/generate_reference_als_reports`.
 
 A case is done when the bridge reproduces what Live 12 did, and the version_diff document says
 what the difference is.

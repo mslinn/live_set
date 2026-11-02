@@ -104,7 +104,9 @@ class LiveSet
     group_tracks = @xml_doc.xpath('//GroupTrack')
 
     @tracks = LiveTracks.new @set_directory, audio_tracks, group_tracks
-    @scenes = @live_set.Scenes.map { |scene| LiveScene.new scene }
+    # A set of Live 8 or Live 9 has no scenes at all.
+    scenes = @live_set.at('Scenes')
+    @scenes = scenes ? scenes.map { |scene| LiveScene.new scene } : []
     @time_zone = options[:time_zone]
   end
 
