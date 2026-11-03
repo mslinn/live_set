@@ -10,8 +10,9 @@ class LiveTrackSerializer
   # Creates a serializer for the given track.
   #
   # @param track [LiveTrack] the track to serialize
-  def initialize(track)
+  def initialize(track, hierarchical_number)
     @track = track
+    @hierarchical_number = hierarchical_number
   end
 
   # Returns the track as markdown.

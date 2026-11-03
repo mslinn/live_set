@@ -19,6 +19,7 @@ Read this first. It is the map; the documents it points at are the detail.
 | [`live_control_plan.md`](live_control_plan.md) | The plan for proving a conversion by round-tripping it through Ableton Live under program control, using the `gui_harness` gem. |
 | [`ab_test_plan.md`](ab_test_plan.md) | **The PROGRAM.** Nearly-empty Live 11 sets, one thing in each, written by Live 11 and by Live 12 and compared: how a case is made, where the sets live, what the factory-default set holds, and the questions that are still open. |
 | [`report_design.md`](report_design.md) | **The MODEL.** The design of the model the report of a set is written from: the classes for the tracks of a set, group tracks included, for the clips and the references to them, and for the take lanes. |
+| [`serializer_plan.md`](serializer_plan.md) | **The PLAN.** What the TODO comments in `lib/live_set/live_palette.rb` ask for, and what the serializers in `lib/live_set/serializer/` are to take over from it: the helper that owns the formatting, the models the serializers need, and the order the work is done in. |
 | [`release_notes/index.md`](release_notes/index.md) | The release notes of Live 8 through Live 12, downloaded from Ableton's web site and kept in `release_notes/`, one HTML file per version. They are the evidence for what each version changed, and where they came from and how they were obtained is written down there. |
 
 **The release notes are not installed with Live.** No version of Live puts a
@@ -54,6 +55,8 @@ document. The numbers are gone, and the headings are cited instead.
 | The lane types Live 11 does not have | `live_11_12_diff.md` |
 | Every value is stored in a `Value` attribute | `als_notes.md` |
 | Where a track's audio is | `als_notes.md` |
+| Every place holds its own clip | `als_notes.md` |
+| The colour of a track or a clip | `als_notes.md` |
 | The sample references of a clip | `als_notes.md` |
 | Whether a sample has been collected | `als_notes.md` |
 | The warp mode of a sample | `als_notes.md` |

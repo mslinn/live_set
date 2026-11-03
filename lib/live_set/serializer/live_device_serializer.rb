@@ -10,8 +10,9 @@ class LiveDeviceSerializer
   # Creates a serializer for the given device.
   #
   # @param device [LiveDevice] the device to be serialized
-  def initialize(device)
+  def initialize(device, hierarchical_number)
     @device = device
+    @hierarchical_number = hierarchical_number
   end
 
   # Returns the device as markdown.

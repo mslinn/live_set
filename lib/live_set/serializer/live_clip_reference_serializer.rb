@@ -14,8 +14,9 @@ class LiveClipReferenceSerializer
   # Creates a serializer for the given clip reference.
   #
   # @param clip_reference [LiveClipReference] the reference whose metadata is to be serialized
-  def initialize(clip_reference)
+  def initialize(clip_reference, hierarchical_number)
     @clip_reference = clip_reference
+    @hierarchical_number = hierarchical_number
   end
 
   # Returns the clip reference metadata as markdown.

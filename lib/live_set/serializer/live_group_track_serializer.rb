@@ -7,14 +7,15 @@
 # LiveTrackSerializer.
 #
 # Sample usage:
-# group_track = LiveGroupTrack.new(...)
+# group_track = LiveGroupTrack.new(als_model)
 # markdown = LiveGroupTrackSerializer.new(group_track).to_markdown
 class LiveGroupTrackSerializer
   # Creates a serializer for the given group track.
   #
   # @param group_track [LiveGroupTrack] the group track to serialize
-  def initialize(group_track)
+  def initialize(group_track, hierarchical_number)
     @group_track = group_track
+    @hierarchical_number = hierarchical_number
   end
 
   # Returns the group and its member tracks as markdown.

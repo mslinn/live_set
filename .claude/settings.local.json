@@ -32,7 +32,13 @@
       "Bash(timeout 60 ddgr --json \"MiniMax-M2.5 context length tokens\")",
       "WebFetch(domain:help.ableton.com)",
       "WebFetch(domain:forum.ableton.com)",
-      "WebFetch(domain:www.reddit.com)"
+      "WebFetch(domain:www.reddit.com)",
+      "Read(//mnt/f/work/ableton/live_reference_sets/sets/live_11/projects_and_als/**)",
+      "Bash(zcat Fascination.als)",
+      "Bash(awk '/<MidiClip /{f=1} f&&/<\\\\/MidiClip>/{print; exit} f{print}')",
+      "Bash(awk ' *)",
+      "WebFetch(domain:sound.stackexchange.com)",
+      "WebFetch(domain:docs.cycling74.com)"
     ]
   }
 }

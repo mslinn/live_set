@@ -10,8 +10,9 @@ class LiveTakeLanesSerializer
   # Creates a serializer for the given take lanes.
   #
   # @param take_lanes [LiveTakeLanes] the take lanes to be serialized
-  def initialize(take_lanes)
+  def initialize(take_lanes, hierarchical_number)
     @take_lanes = take_lanes
+    @hierarchical_number = hierarchical_number
   end
 
   # Returns the take_lanes as markdown.

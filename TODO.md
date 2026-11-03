@@ -271,6 +271,39 @@ select two or more tracks in the arrangement view, use Link Tracks on them, save
 what is written. The set to use is a scratch copy of a small one — the factory default set of
 Live 11 or Live 12 is enough, since two of its tracks can be linked.
 
+#### N57. The legend of the report describes clip references, and there are none
+
+The legend the report writes — the `LEGEND` constant of `lib/live_set/live_set_report.rb` —
+says that a clip is its name and the file it plays, and that every place a clip is in — a
+slot of the session view, the arrangement, a take lane — holds a *reference* to it, and that
+the settings of a reference belong to the reference and not to the clip.
+
+**There is no clip reference in the format.** A clip belongs to a place, and each place holds
+the whole clip. The Session View and the Arrangement View "each hold individual collections
+of clips" (Live Concepts), and a Session clip copied into the Arrangement is an independent
+Arrangement clip. The set that is checked in shows it: the clip `3-Kontakt 7 1` is written
+out as eight complete `MidiClip` elements, seven of them with the same forty-seven
+`MidiNoteEvent` elements, and the audio clip `Pink Noise - EDMtips.com` is written out as
+eleven complete `AudioClip` elements, each with its own `Id` and its own `SampleRef`.
+`LomId` is `0` throughout and is the identifier the Live Object Model uses while Live is
+running; it ties nothing together. What is referenced rather than copied is the sample: the
+audio is in files beside the set, and several clips can point at the same file and play it
+differently. See `docs/als_notes.md`, "Every place holds its own clip", and `docs/glossary.md`,
+"Clip".
+
+What is left:
+
+- The wording of the legend, and the wording of the lines under a clip, which the report
+  calls "References (×7): launch: trigger, warp: none". The report groups the clips of a
+  track that are alike — the same name, file, colour and state — and counts them; the
+  settings they differ in are given under them. That grouping is the report's own, and the
+  report should say so rather than describe a reference that the format does not have.
+- The model. `LiveClip` is one clip in the file, with its own settings and its own place, and
+  there is no `LiveClipReference` and no `LiveClipSettings`. `docs/report_design.md` and
+  `docs/serializer_plan.md` say so; the code does not yet.
+- The reports of the reference sets carry the old legend, and are regenerated when the
+  wording changes.
+
 #### L1. Live ships its own schemas; use them
 
 Every Live installation carries a directory of schemas of the format, one file per format version, named after the `MinorVersion` of a set. They are Live's own description of the format, and they are more complete than the XSDs this repository infers from the demo sets: 114 of the element names in `schemas/vocab_live11.txt` are in Live's schema for 11.0 and cannot be in the inferred one, because no Live 11 demo set contains them.

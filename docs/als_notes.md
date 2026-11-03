@@ -157,6 +157,57 @@ them into the arrangement and the take lanes.
 See `lib/live_set/live_set_track.rb`.
 
 
+## Every place holds its own clip
+
+A place a clip is in holds the whole clip, not a reference to a clip that is
+held somewhere else. There is no pool of clips in a set, and nothing points
+into one.
+
+The Session View and the Arrangement View each hold their own clips: the manual
+says they "each hold individual collections of clips" ([Live
+Concepts](https://www.ableton.com/en/manual/live-concepts/)), and a Session clip
+copied into the Arrangement is an independent Arrangement clip.
+
+The set that is checked in shows it. The clip `3-Kontakt 7 1` is written out as
+eight complete `MidiClip` elements, seven of them with the same forty-seven
+`MidiNoteEvent` elements. The audio clip `Pink Noise - EDMtips.com` is written
+out as eleven complete `AudioClip` elements, each with its own `Id` and its own
+`SampleRef`. The set has 22 `AudioClip` elements in all.
+
+What is referenced rather than copied is the sample. The audio of a set is in
+files beside the set, and each clip points at the file in its `SampleRef`.
+Several clips can point at the same file, and each can play it differently —
+reversed, warped differently, trimmed — without touching the file. The notes of
+a MIDI clip are in the element, so they are copied along with it.
+
+`LomId` is the identifier the Live Object Model uses while Live is running. It
+is `0` in the elements of a saved set, and it is not a key that ties the copies
+of a clip together.
+
+So a report that says how many places a clip is in is counting the clips in
+the file that are alike — the same name, the same file, the same colour and the
+same state. That grouping is the report's own; the format does not make it.
+The legend the report writes still describes references; see **N57** in
+`TODO.md`.
+
+
+## The colour of a track or a clip
+
+Live writes the colour of a track or a clip as a number, in a `Color` element,
+and the number is an index into the colour menu of Live:
+
+```text
+<Color Value="1" />
+```
+
+The palette is the user's: it can be changed in the Preferences of Live, and
+the number means whatever the user's palette says it means. The default
+palette is in `lib/live_set/live_palette.rb`, in the order of the menu.
+
+The tooltip of a name in a report carries the number, so that the colour of a
+thing can be looked up in the palette the reader has.
+
+
 ## The sample references of a clip
 
 A clip that plays a file refers to it through `SampleRef/FileRef`:
@@ -172,6 +223,9 @@ A clip that plays a file refers to it through `SampleRef/FileRef`:
 Either path may be empty, meaning the file is not in the project folder. The
 relative path is the one to use: the absolute path is a fallback for a clip
 that has no relative path.
+
+The reference is to the file on disk, not to a clip. See "Every place holds
+its own clip".
 
 See `lib/live_set/live_set_audio_clip.rb`.
 

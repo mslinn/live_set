@@ -4,8 +4,8 @@
 # Writes the "Push 3 Standalone" section of the markdown report for a `LiveSet` model.
 #
 # Sample usage:
-# markdown = Push3StandaloneCompatibility.new(live_set).to_markdown
-class Push3StandaloneCompatibility
+# markdown = P3SCompatibility.new(live_set).to_markdown
+class P3SCompatibility
   # Create a serializer for the "Push 3 Standalone" report section for the given set.
   #
   # @param live_set [LiveSet] the live_set to report on

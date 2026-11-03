@@ -1,3 +1,5 @@
+require_relative 'lib/common/log'
+
 # The default Live color palette.
 #
 # Live writes the color of a track or a clip as a number, and the number is an index into the default Live color palette.
@@ -63,6 +65,8 @@ class LivePalette
       '💣'
     end
 
+    # TODO: Move to LiveTrackSerializer class
+    #
     # @return CSS for a Markdown table cell filled with the Live palette color.
     #
     # @param value [Integer, String, nil] the number Live writes

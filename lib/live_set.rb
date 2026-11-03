@@ -5,6 +5,9 @@ require_directory "#{__dir__}/common"
 require_directory "#{__dir__}/als_delta"
 require_directory "#{__dir__}/generate_xsd"
 require_directory "#{__dir__}/live_set"
+require_directory "#{__dir__}/live_set/model"
+require_directory "#{__dir__}/live_set/serializer"
+require_directory "#{__dir__}/live_set/tx"
 require_directory "#{__dir__}/validate_asd"
 
 # Each command is implemented as a class method called `run` on the class that

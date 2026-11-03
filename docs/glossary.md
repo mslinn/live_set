@@ -51,6 +51,20 @@ the appropriate `version_diff` document. For example, the bridge
 Live 11 XML to and from Live 12 XML, and the differences between those two
 versions are recorded in [live_11_12_diff.md](live_11_12_diff.md).
 
+## Clip
+
+A piece of musical material in a set: a melody, a drum pattern, a bassline. A
+clip belongs to a place — a slot of the session view, a position on the
+arrangement timeline, a take lane — and each place holds the whole clip. There
+is no clip in a set that the places point at, and no reference to a clip
+anywhere in the format.
+
+Two clips that carry the same name and play the same file are alike, and they
+are not the same clip. A report that counts how many places a clip is in is
+counting the clips in the file that are alike.
+
+See [als_notes.md](als_notes.md), "Every place holds its own clip".
+
 ## Conversion
 
 The act of converting a set from one version of Live to another. In the program

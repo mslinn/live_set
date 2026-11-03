@@ -228,6 +228,33 @@ Example:
 ```
 
 
+### The Report
+
+`live_set` writes a report of a set in markdown: the tracks of the set and the groups they
+are in, the devices of each of them, the clips and the take lanes, the samples that are not
+in the project, and a cross-reference of the tracks and the clips.
+
+The names in the report are written on the colour Live gave the thing, so that the colour of
+a track, a group or a clip can be seen at a glance:
+
+- the name is written in a `<code>` element, and the style is on that element and not on a
+  `<span>` around it, because a renderer that gives `code` a colour of its own would
+  otherwise win;
+- the text on a colour is black or white, and how bright the colour looks decides which of
+  the two: black on a colour that looks light, and white on a colour that looks dark;
+- the tooltip of a name carries the number Live writes for the colour, which is an index
+  into the colour menu of Live — the palette can be changed in the Preferences of Live, and
+  the default one is in `lib/live_set/live_palette.rb`;
+- a track, a group or a device that Push 3 Standalone cannot use is written on the dark
+  background `#212121` with white text, and a sample that is not in the project folder is
+  written on the dark red `#8B0000`.
+
+The styles are inline, so the report carries them wherever it is rendered. The reports of the
+reference sets are in the repository of the reference sets, and
+[sets/ANALYSIS.md](https://github.com/mslinn/live_reference_sets/blob/main/sets/ANALYSIS.md)
+describes what they hold.
+
+
 ### Convert
 
 Make the Live 12 set compatible with Live 11 and save as `path/to/my_set_11.als`:
