@@ -6,4 +6,6 @@ else
   require 'live_set'
 end
 
+# TODO AlsDelta.run should return an error code instead of calling exit, so this
+# can be called from other code without exiting the process. See LiveSet.run
 AlsDelta.run(ARGV)

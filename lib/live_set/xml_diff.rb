@@ -1,5 +1,9 @@
 require 'nokogiri'
 
+# TODO: This code is not used anywhere, and it has no test. How similar is it to
+# AlsDelta# and XmlDiff? Is there benefit in merging them, or should this just
+# be deleted?
+
 # Compares two XML documents element by element.
 #
 # The documents are walked in parallel: the children of two elements are matched by their names.

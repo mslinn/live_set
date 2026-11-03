@@ -21,6 +21,10 @@ class String # rubocop:disable Style/OneClassPerFile
       ENV.fetch(Regexp.last_match(1), nil)
     end
   end
+
+  def squish
+    gsub(/\s+/, ' ').strip
+  end
 end
 
 # Format a number so it is human-friendly with one decimal place

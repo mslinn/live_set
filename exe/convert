@@ -1,19 +1,22 @@
 #!/usr/bin/env ruby
 
-# Converts a Live set to the other version of the format, and writes it out.
+# TODO rename this command to `als_to_version` and make it a library, so it can
+# be called from other code. Then make this file a thin wrapper that calls the
+# library and returns an error code. See LiveSet.run
 #
-# The direction is not given: the version of the set decides which way the conversion goes, and
-# the set is written in the version it is converted to.
+# Converts a Live set to the other version of the format.
+#
+# The direction is not given: the version of the set decides which way the
+# conversion goes, and the set is written in the version it is converted to.
 #
 # A file may be given as a path, or as a selector of a demo set:
 #
-#   demo:11:suite  the Live 11 Suite demo set
-#   demo:12        the demo set of Live 12
+#   demo:11:suite  the Live 11 Suite demo set demo:12        the demo set of
+#   Live 12
 #
 # Usage: convert FILE DESTINATION [-f]
 #
-# Options:
-#   -f           overwrite the destination when it already exists.
+# Options: -f           overwrite the destination when it already exists.
 
 lib = File.expand_path('../lib', __dir__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)

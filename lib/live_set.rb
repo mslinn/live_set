@@ -7,12 +7,13 @@ require_directory "#{__dir__}/generate_xsd"
 require_directory "#{__dir__}/live_set"
 require_directory "#{__dir__}/validate_asd"
 
-# Each command is a class method on the class that implements it:
+# Each command is implemented as a class method called `run` on the class that
+# implements it:
 #
 #   live_set       LiveSet.run
 #   als_delta      AlsDelta.run
 #   generate_xsd   XsdFromXml.run
 #   validate_asd   ValidateAsd.run
 #
-# The executables in exe/ call these. Each class also parses its own options, in its
-# *_options.rb file, and displays its own help.
+# The executables in `exe/` call the class methods. Each class also parses its
+# own options, in its `*_options.rb` file, and displays its own help.

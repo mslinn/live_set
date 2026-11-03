@@ -6,20 +6,41 @@ require_relative '../common/xml'
 require_relative 'live_device'
 require_relative 'live_palette'
 
-# The report of a set, in markdown.
+# Generates a report of a set in markdown.
 #
-# The report names every track of the set, with the state of each one, the effects on it, and
-# the clips of it. The members of a group are under the group, and the clips of a track are
-# under the track.
+# The report describes every important element in an ALS file. The report is
+# written in markdown, so it can be read in a text editor, and it can be
+# converted to HTML or PDF for printing.
 #
-# The report of a set is written for a person to read, and it is checked in, so that what a
-# set holds is written down where it can be read again.
+# ## Report Organization
 #
-# The colour of a track, a group and a clip is the background of its name, and the name of the
-# colour Live writes for it is in the tooltip of the name. The text on the colour is black or
-# white, and how bright the colour looks decides which of the two is written on it. A track, a
-# group and a device that Push 3 Standalone cannot use is written on the dark background of
-# those things instead.
+# TODO create classes: HeaderBlock, P3SCompatible, LiveClip, LiveClipReference, LiveClipSettings,
+# LiveDevice, LiveSample, MissingSamples. Some of the functionality in this
+# file belongs in those classes.
+#
+# ```text
+# Header block
+# Push 3 Standalone compatibility
+# LiveGroup
+#   LiveTrack & devices
+#     TakeLanes & ClipReferences
+#     ClipReferences & devices
+# Missing samples
+# Device / track cross reference
+# Track / clip cross reference
+# ```
+
+# ## Report Content
+#
+# The report of a set is written for a person to read, and it is checked in, so
+# that what a set holds is written down where it can be read again.
+#
+# The colour of a track, a group and a clip is the background of its name, and
+# the name of the colour Live writes for it is in the tooltip of the name. The
+# text on the colour is black or white, and how bright the colour looks decides
+# which of the two is written on it. A track, a group and a device that Push 3
+# Standalone cannot use is written on the dark background of those things
+# instead.
 class LiveSetReport
   include Xml
 
@@ -63,14 +84,18 @@ class LiveSetReport
     ]
   end
 
+  # TODO: MiniMax 3.1 Flash insists on using the word "mark" but is unable to
+  # define that term. We must delete the word "mark" from this body of code and
+  # replace it with a commonly used term.
+
   # What the marks on a clip mean, and what a clip is.
-  LEGEND = 'A clip is its name and the file it plays. Every place a clip is in — a slot of ' \
-           'the session view, the arrangement, a take lane — holds a reference to it, and ' \
-           'the settings of a reference — how it is launched, how its sample is warped — ' \
-           'belong to the reference and not to the clip, and are given on the references. ' \
-           'The take lanes of a track are under the track. The mark `⚠ not in project` means ' \
-           'the sample is not in the folder of the project, and the set is not ' \
-           'self-contained.'.freeze
+  LEGEND = <<~TEXT.squish.freeze
+    Clip properties include the name of the clip and the audio file.
+    Clip references are found in session view slots, the arrangement, and a take lanes.
+    Reference properties include launch method and warp mode.
+    The take lanes of a track are under the track.
+    The string `⚠ not in project` means the sample is not the project directory tree, so the set is not self-contained.
+  TEXT
 
   # @param set_name [String] the path of the set
   # @param xml_doc [Nokogiri::XML::Document] the set
@@ -680,51 +705,110 @@ class LiveSetReport
 
   # The state of a track.
   #
+  # TODO accept a LiveTrack instead of an XML element, and move this method to
+  # the LiveTrack class.
+  #
   # @param track [Nokogiri::XML::Element] the track
   # @return [Array<String>] the marks
   def states_of(track)
     states = []
-    states << '✓ frozen' if frozen?(track)
-    states << '✓ solo' if soloed?(track)
-    states << '🔴 armed' if armed?(track)
-    states << 'off' if off?(track)
+    # FIXME: In Ruby, frozen? is a built-in method belonging to the Object class. This frozen? method should be incorporated into the LiveTrack class
+    states << "\u{1F976} frozen" if frozen?(track) # TODO: should be track.frozen? after cleanup
+    states << "\u{1F142} solo" if soloed?(track) # TODO: should be track.soloed? after cleanup
+    states << '🔴 armed' if armed?(track) # TODO: should be track.armed? after cleanup
+    states << "\u{23FD} off" if off?(track) # TODO: should be track.off? after cleanup
     group = linked_group_of track
     states << "linked group #{group}" if group
     states
   end
 
-  # The linked group of a track, when it is in one.
+  # In an Ableton Live .als XML file, the <LinkedTrackGroupId> element
+  # identifies which tracks are bound together for phase-locked editing using
+  # Ableton's "Link Tracks" feature.
   #
-  # Link Tracks, in the context menu of the head of a track in the arrangement view, locks the
-  # editing of several tracks together: the operations of the manual — moving and resizing the
-  # clips, selecting, editing the time, splitting and consolidating, the fades, arming, the take
-  # lanes — are applied to all of the tracks of the group at once. Live gives each group of
-  # linked tracks an id, and the tracks of a group share it. A track that is linked to no other
-  # has -1.
+  # The Link tracks feature is completely separate from the nested structural
+  # hierarchy used for Track Groups (<GroupTrack>).
   #
-  # The element is of Live 11 and later: it is in the schemas of Live 11 and Live 12 and in
-  # none of the schemas of Live 8, 9 and 10. The groups themselves are held by the set, in
-  # `LiveSet/LinkedTrackGroups`, a list whose items are `LinkedTrackGroup` elements, each with
-  # a `Uuid`. What the integer of a track is in relation to that list is not known: no set
-  # exercises it.
+  # If a track is not linked to any other track, the LinkedTrackGroupId value
+  # defaults to -1.
   #
-  # See "Linked-Track Editing" in the manual of Live 12, section 6.14:
+  # When you select multiple tracks, right-click, and select Link Tracks,
+  # Ableton assigns them a matching unique integer ID (starting at 0 and
+  # incrementing for each new link group you create in the project).
+  #
+  # Because Ableton allows you to link tracks that live in completely different
+  # parts of your session (e.g., linking a guitar track inside a "Guitars" Group
+  # with a vocal track inside a "Vocals" Group), it cannot rely on the layout
+  # tree of the XML to know they are connected.
+  #
+  # When your script or Ableton parses the .als file, it looks for any tracks
+  # sharing the exact same LinkedTrackGroupId value. If they match, Ableton
+  # instantly mirrors your mouse clicks, splits, crossfades, and warp markers
+  # across all of them simultaneously.
+  #
+  # Track Linking works across both the Arrangement View and the Session View,
+  # though it behaves differently depending for each view. When tracks share a
+  # matching <LinkedTrackGroupId>, Ableton links specific workflow actions
+  # across both views to keep your multi-mic takes or layered instruments in
+  # perfect sync.
+  #
+  # ## Session View
+  # While you can't "slice" a clip timeline in Session View, linking ensures
+  # your mixing, routing, and recording workflows stay perfectly aligned across
+  # your channels:
+  #
+  # • Arming one linked track automatically arms all other tracks in that link
+  # group. This is crucial for multi-mic setups (like a drum kit or a stereo
+  # piano) so you never accidentally miss recording a channel.
+  #
+  # • Toggling solo (🅂) or mute (🄼) on one channel immediately applies it to
+  # the rest of the group.
+  #
+  # • Triggering, stopping, or deleting a clip in a Session row will launch,
+  # stop, or delete the corresponding clips on the linked tracks simultaneously.
+  #
+  # ## Arrangement View
+  #
+  # In the arrangement view, a track group is edited as a unit. Operations are
+  # applied to all of the tracks of the group at once. For example, moving and
+  # resizing the clips, selecting, editing the time, splitting and
+  # consolidating, the fades, arming, the take lanes. Live gives each group of
+  # linked tracks an id.
+  #
+  # • Timeline Edits: Cutting (Ctrl+E / Cmd+E), duplicating, moving, or deleting
+  # clips.
+  #
+  # • Warping & Quantization: Adjusting warp markers or applying transients to
+  # one clip perfectly mirrors across all linked clips to maintain exact phase
+  # relationships.
+  #
+  # • Fades & Crossfades: Drawing a volume fade on the edge of one track applies
+  # the identical curve to the rest.
+  #
+  #
+  # Ableton Live introduced Track Linking in version 11.
+  #
+  # See §6.14 "Linked-Track Editing" in the Live 12 manual:
   # https://www.ableton.com/en/live-manual/12/arrangement-view/#linked-track-editing
   #
-  # @param track [Nokogiri::XML::Element] the track
-  # @return [String, nil] the group, or nil when the track is linked to no other
+  # @param track [Nokogiri::XML::Element] the track @return [String, nil] the
+  # group, or nil when the track is linked to no other
   def linked_group_of(track)
     value = track.at('LinkedTrackGroupId')&.[]('Value')
     value == '-1' ? nil : value
   end
 
-  # The samples of the set that are not in the project, grouped by the pack they are in.
+  # TODO: Move this method into the new MissingSamples class.
   #
-  # Live writes the absolute path of a sample in the set, and the path of the pack it is in is
-  # in it: a sample of a factory pack is under a folder of the pack, and the folder above the
-  # content of the pack is the pack.
+  # The samples of the set that are not in the project, grouped by the pack they
+  # are in.
   #
-  # @return [String] the summary
+  # Live writes the absolute path of a sample in the set, and the path of the
+  # pack it is in is in it: a sample of a factory pack is under a folder of the
+  # pack, and the folder above the content of the pack is the pack.
+  #
+  # @return [String] the summary of missing samples as a markdown table, or a
+  # message that there are no missing samples
   def missing_samples_markdown
     packs = Hash.new { |hash, key| hash[key] = [] }
     each_clip do |clip|
@@ -751,6 +835,8 @@ class LiveSetReport
     lines.join("\n")
   end
 
+  # TODO: Move this method into the new LiveDevices class and rename it to `markdown`.
+  #
   # The devices of the set, and the tracks they are on.
   #
   # A device of a group is on the group and on the tracks in the group, because the chain of
@@ -773,6 +859,9 @@ class LiveSetReport
     lines.join("\n")
   end
 
+  # TODO: Move this method into the new LiveDevices class and rename it to
+  # `device_track_hash`.
+  #
   # The devices of the set, and the tracks they are on.
   #
   # @return [Hash] each device, with the tracks it is on
@@ -1003,22 +1092,41 @@ class LiveSetReport
     [name_of_clip(clip), file_of(clip), color_of(clip), clip_marks(clip).join(', ')].join(' | ')
   end
 
+  # TODO: move to a new LiveTracks class, and rename to `tree`. LiveTracks would
+  # be a collection of LiveTrack objects, and LiveTrack sould be a wrapper
+  # around a track element.
+  #
   # The tracks of the set, as a tree: a group holds the tracks that are in it.
   #
-  # A member track's TrackGroupId holds the id of the group it belongs to, and -1 means the
-  # track is at the top level. See docs/als_notes.md, "A member track names its group".
+  # A member track's TrackGroupId holds the id of the group it belongs to, and
+  # -1 means the track is at the top level. See docs/als_notes.md, "A member
+  # track names its group".
   #
-  # @return [Array<Array>] the kind, the name, the element and the members of each track
+  # @return [Array<Array>] the kind, the name, the element and the members of
+  # each track
   def track_tree
     elements = @xml_doc.xpath('//MidiTrack | //AudioTrack | //GroupTrack | //Tracks/ReturnTrack | ' \
                               '//MasterTrack | //MainTrack')
     build_track_tree elements, nil
   end
 
-  # The tracks at one level of the tree.
+  # TODO: move to a LiveGroup class, and rename. This method does not really
+  # build a tree, because it returns an array. LiveTracks should be a collection
+  # of LiveTrack, and LiveTrack should be a wrapper around a track element.
   #
-  # @param elements [Array<Nokogiri::XML::Element>] the tracks of the set
-  # @param parent_id [String, nil] the id of the group the tracks belong to
+  # This method should return an array of LiveTrack objects. The LiveTrack class
+  # should have a method that returns the kind of the track, its name, and its
+  # children.
+  #
+  # The LiveTracks class should have a method that returns
+  # the tracks of the set as an array. The new name for this method should be
+  # tracks_for_group, and it should be private to the LiveTracks class.
+  #
+  # The tracks at one level of the tree. TODO what does this mean?
+  #
+  # @param elements [Array<Nokogiri::XML::Element>] the tracks of the set @param
+  # parent_id [String, nil] the id of the group the tracks belong to TODO Why
+  # would parent_id be an array? this seems wrong. Is the above @param wrong?
   # @return [Array<Array>] the tracks
   def build_track_tree(elements, parent_id)
     elements.select { |element| group_id_of(element) == parent_id }.map do |element|
@@ -1029,7 +1137,7 @@ class LiveSetReport
     end
   end
 
-  # The group a track belongs to.
+  # The group id a track belongs to.
   #
   # @param track [Nokogiri::XML::Element] the track
   # @return [String, nil] the id of the group, or nil when the track is at the top level
@@ -1244,18 +1352,19 @@ class LiveSetReport
     element.at_xpath(".//#{name}")&.[]('Value')
   end
 
-  # A mark for a state of a track.
+  # A checkmark for a state of a track.
+  # TODO rename this method to checkmark
   #
-  # @param state [Boolean] the state
-  # @return [String] the mark, or nothing when the state does not hold
+  # @param state [Boolean] the state to test
+  # @return [String] a checkmark character, or the empty string when the state is falsey
   def mark(state)
     state ? '✓' : ''
   end
 
-  # A name, with the characters that would break the table escaped.
+  # Escapes the characters that would break the table.
   #
-  # @param text [String] the name
-  # @return [String] the name
+  # @param text [String] the text string to escape
+  # @return [String] the escaped string
   def escape(text)
     text.to_s.gsub('|', '&#124;')
   end

@@ -1,29 +1,33 @@
 #!/usr/bin/env ruby
 
+# TODO rename this command to `als_release_notes`, and make it a library, so it
+# can be called from other code. Then make this file a thin wrapper that calls
+# the library.
+#
 # Prints the release notes of a version of Live as markdown.
 #
-# The release notes are the evidence the version_diff documents are built from: they say which
-# differences to expect, and which version introduced each one. They are written for the
-# musicians who use Live, and they never give an element name or an attribute name, so they
-# are a filter over the differences rather than a source of them.
+# The release notes are the evidence the version_diff documents are built from:
+# they say which differences to expect, and which version introduced each one.
+# They are written for the musicians who use Live, and they never give an
+# element name or an attribute name, so they are a filter over the differences
+# rather than a source of them.
 #
-# The notes are HTML, downloaded from Ableton's web site and kept in docs/release_notes/, one
-# file per version. This tool reads one of them and prints it as markdown, so that the notes
-# can be read, searched, and pasted into a document.
+# The notes are HTML, downloaded from Ableton's web site and kept in
+# docs/release_notes/, one file per version. This tool reads one of them and
+# prints it as markdown, so that the notes can be read, searched, and pasted
+# into a document.
 #
 # Usage: release_notes VERSION [--find PATTERN]
 #
-# VERSION is the version of Live, e.g. 12, and it may name a single release, e.g. 12.0. The
-# notes of a single release are printed when it does.
+# VERSION is the version of Live, e.g. 12, and it may name a single release,
+# e.g. 12.0. The notes of a single release are printed when it does.
 #
-# With --find PATTERN, the lines of the notes that match PATTERN are printed, each with the
-# release it belongs to. The pattern is matched without regard to case.
+# With --find PATTERN, the lines of the notes that match PATTERN are printed,
+# each with the release it belongs to. The pattern is matched without regard to
+# case.
 #
-# Examples:
-#   release_notes 12
-#   release_notes 12.0
-#   release_notes 12 --find "scale awareness"
-#   release_notes 12 > docs/release_notes/live-12.md
+# Examples: release_notes 12 release_notes 12.0 release_notes 12 --find "scale
+#   awareness" release_notes 12 > docs/release_notes/live-12.md
 
 require 'nokogiri'
 

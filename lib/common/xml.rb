@@ -9,8 +9,11 @@ require_relative 'log'
 #   As an attribute:  <EffectiveName Value="My Track" />
 #   As text:          <EffectiveName>My Track</EffectiveName>
 #   As nested text:   <Path><Path>E:/media/song.mp3</Path></Path>
-#
-# Rather than have every call site guess which shape it is looking at, put the guess in one place.
+
+# TODO: what does this comment mean?
+# Rather than have every call site guess which shape it is looking at, put the
+# guess in one place.
+
 # Mix this module into a class that needs to read XML values:
 #
 #   class LiveTrack

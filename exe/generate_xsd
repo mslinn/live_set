@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 
+# TODO rename this command to `als_to_xsd`. change returns an error code. See LiveSet.run
 if ENV['VO_DEBUGGING']
   require_relative '../lib/live_set'
 else

@@ -4,6 +4,9 @@ require 'logger'
 # The valid logging levels, in increasing order of severity.
 LOG_LEVELS = Logger::Severity.constants.sort_by { |name| Logger::Severity.const_get(name) }.freeze
 
+# Do not add other methods or constants to this file. This is a singleton for
+# logging. See the Log constant below.
+
 # Define singleton for logging. Logs are color-coded by severity.
 #
 # The log goes to stderr, so that the output a program writes to stdout is only what the program

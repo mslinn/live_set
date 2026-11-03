@@ -1,6 +1,10 @@
 #!/usr/bin/env ruby
 
-# Compares two XML documents element by element, and prints the differences.
+# Compares two Ableton Live Sets element by element, and prints the differences.
+#
+# TODO rename this command to `als_diff`, and make it a library, so it can be
+# called from other code. Then make this file a thin wrapper that calls the
+# library.
 #
 # A Live set is XML, usually gzip-compressed, so the documents can be .als files or any XML
 # files. The two documents are walked in parallel: the children of two elements are matched by

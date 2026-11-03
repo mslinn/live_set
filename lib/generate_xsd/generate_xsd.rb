@@ -5,17 +5,22 @@ require_relative '../live_set/als_file'
 require_relative 'generate_xsd_options'
 require_relative 'xsd_builder'
 
+# TODO: rename this command to `als_to_xsd` and make it a library, so it can be
+# called from other code. Then make this file a thin wrapper that calls the
+# library and returns an error code. See LiveSet.run
+#
 # Generates an XML Schema (XSD) from one or more Ableton Live sets.
 #
-# The sets are read and their structure is handed to XsdBuilder, which turns it into the schema.
-# See lib/generate_xsd/xsd_builder.rb for what the schema describes, and what the generator
-# infers from the sample.
+# The sets are read and their structure is handed to XsdBuilder, which turns it
+# into the schema. See `lib/generate_xsd/xsd_builder.rb`` for what the schema
+# describes, and what the generator infers from the sample.
 #
-# The schema is inferred from the XML stored in the sets it is given, so it describes what those
-# sets contain and nothing more. Newer versions of Live write constructs that older demo sets do
-# not have: the schema inferred from the demo sets alone rejects the file Live wrote when it
-# opened and saved a set of an older version. Give the generator every set of the version you
-# have, not just the demo sets.
+# The schema is inferred from the XML stored in the sets it is given, so it
+# describes what those sets contain and nothing more. Newer versions of Live
+# write constructs that older demo sets do not have: the schema inferred from
+# the demo sets alone rejects the file Live wrote when it opened and saved a set
+# of an older version. Give the generator every set of the version you have, not
+# just the demo sets.
 #
 # Usage: generate_xsd OPTIONS XSD_FILE_NAME PATH_TO_ALS_FILE...
 class XsdFromXml
@@ -23,6 +28,8 @@ class XsdFromXml
   #
   # @param args [Array<String>] the command line arguments
   # @return [void]
+  # TODO return an error code instead of calling exit, so this can be called
+  # from other code without exiting the process. See LiveSet.run
   def self.run(args)
     options, xsd_file, als_files = parse_options(args)
 
