@@ -1,6 +1,11 @@
 # Change Log
 
-## 0.2.5 2026-10-21
+## 0.2.6 In progress
+
+* Quality review added TODO and FIXME comments to code and docs
+
+
+## 0.2.5 2026-11-01
 
 * Changed license from MIT to source-available non-commercial.
 * Added `generate_xsd` command.
