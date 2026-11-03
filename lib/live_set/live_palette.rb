@@ -3,7 +3,7 @@
 # Live writes the color of a track or a clip as a number, and the number is an index into the default Live color palette.
 
 class LivePalette
-  # TODO delete this stupid idea
+  # TODO: delete this stupid idea
   # Text color written on a dark background color.
   LIGHT = '#F0F0F0'.freeze
 
@@ -31,7 +31,6 @@ class LivePalette
   }.freeze
 
   class << self
-
     # @param value [Integer, String] the Live color number, expressed as a string or an int
     # @return [String, nil] the color, as six hex digits, or nil when the number
     #   is not in the palette
@@ -42,7 +41,7 @@ class LivePalette
       COLORS[index]
     end
 
-    # TODO rename to icon_for
+    # TODO: rename to icon_for
     #
     # TODO Move to LiveTrackSerializer class. a serializer object initialized with a model instance. This keeps the
     # model focused on representing the XML entity, while the serializer owns XML formatting, escaping, namespaces, and
@@ -50,6 +49,8 @@ class LivePalette
     # extract that behavior into a helper or a focused module. Avoid mixing serializer methods into models just for
     # testability; testability is better served by isolating the serializer and testing its output directly. Use model
     # methods when serialization is truly intrinsic to the model and there is one stable representation.
+    #
+    # TODO **Additional serializer classes are expected. Dialog with the user and get approval for each one.**
     #
     # Returns the icon for a known track type.  Logs unexpected values and returns a bomb icon for them.
     #
@@ -73,7 +74,7 @@ class LivePalette
       "background-color:##{color};color:#{text_color(color)}"
     end
 
-    # TODO rename to colored_code
+    # TODO: rename to colored_code
     #
     # TODO Move to LiveTrackSerializer class
     #
@@ -109,7 +110,7 @@ class LivePalette
       code_span(string, style: style, title: "Live color ##{color_number}")
     end
 
-    # TODO Move to LiveTrackSerializer class
+    # TODO: Move to LiveTrackSerializer class
     # Applies a readable background and foreground color to a <code> tag.
     #
     # @param string [String] the text to wrap
@@ -125,7 +126,7 @@ class LivePalette
       %(#{opening_tag}#{string}</code>)
     end
 
-    # TODO Move to LiveTrackSerializer class
+    # TODO: Move to LiveTrackSerializer class
     #
     # Returns a colorized HTML table cell that displays the Ableton Live color number in
     # a cell with background color set to that value.
@@ -146,7 +147,7 @@ class LivePalette
       %(<code style="#{style}">#{value}</code>)
     end
 
-    # TODO Delete this stupid idea
+    # TODO: Delete this stupid idea
     #
     # The color of the text that is written on a color.
     #
@@ -160,7 +161,7 @@ class LivePalette
       brightness(color) > 128 ? '#000000' : LIGHT
     end
 
-    # TODO Delete this stupid idea
+    # TODO: Delete this stupid idea
     #
     # How bright a color looks.
     #
