@@ -1,5 +1,7 @@
 require_relative 'live_device_serializer'
+require_relative 'live_devices_serializer'
 require_relative 'live_track_serializer'
+require_relative 'live_tracks_serializer'
 
 # Serializes a `LiveGroup` model as markdown by serializing each member track.
 #
@@ -75,23 +77,17 @@ class LiveGroupTrackSerializer
 
   # The lines of the devices of the group.
   #
-  # @return [Array<String>] the lines
+  # @return [String] the devices
   def device_lines
-    @group.devices.each_with_index.map do |device, index|
-      letter = ('a'.ord + index).chr
-      number = "#{@hierarchical_number}#{letter}"
-      serializer = LiveDeviceSerializer.new device, number
-      "#{@indent}  - Group Track Device #{number}  #{serializer.to_markdown}"
-    end
+    LiveDevicesSerializer.new(@group.devices, @hierarchical_number,
+                                                     slot_label: 'Group Track Device',
+                                                     indent: "#{@indent}  ").to_markdown
   end
 
   # The lines of the tracks in the group.
   #
-  # @return [Array<String>] the lines
+  # @return [String] the tracks
   def track_lines
-    @group.tracks.each_with_index.map do |track, index|
-      number = "#{@hierarchical_number}.#{index + 1}"
-      LiveTrackSerializer.new(track, number, "#{@indent}  ").to_markdown
-    end
+    LiveTracksSerializer.new(@group.tracks, @hierarchical_number, "#{@indent}  ").to_markdown
   end
 end

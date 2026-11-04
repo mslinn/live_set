@@ -8,6 +8,9 @@ The current code probably does not work and the docs are a mess.
 Come back real soon now, and things should be much better!
 </blockquote>
 
+
+## Capabilities
+
 This software can:
 
 1. Make a copy of an Ableton Live 12 set and save to Live 11 format.
@@ -43,6 +46,9 @@ This software can:
 8. Report the samples in frozen tracks. During playback, a frozen track
    *shadows* the track with the editable material. Both tracks are reported.
 
+
+## Current Project Status
+
 The published gem converted the Ableton Live 12 demo project to Live 11. Other
 functionality has been tested with Live 8.6 session files.
 
@@ -56,10 +62,10 @@ differently — see
 The conversion in this repository is not yet known to produce a set that Live 11
 opens: the lane types are the open risk (TODO.md N42).
 
-This project is transitioning to being driven by XLST transformations, derived
-by recursively running Ableton Live in a GUI test harness. The demo programs
-provided with each version of Ableton Live were an important source of
-information.
+This project has almost reached the goal of transitioning to being driven by
+XLST transformations, derived by recursively running Ableton Live in a GUI test
+harness. The demo programs provided with each version of Ableton Live were an
+important source of information.
 
 ## Push 3 Standalone (P3S)
 
@@ -237,20 +243,18 @@ in the project, and a cross-reference of the tracks and the clips.
 The names in the report are written on the colour Live gave the thing, so that the colour of
 a track, a group or a clip can be seen at a glance:
 
-- the name is written in a `<code>` element, and the style is on that element and not on a
-  `<span>` around it, because a renderer that gives `code` a colour of its own would
-  otherwise win;
-- the text on a colour is black or white, and how bright the colour looks decides which of
-  the two: black on a colour that looks light, and white on a colour that looks dark;
-- the tooltip of a name carries the number Live writes for the colour, which is an index
-  into the colour menu of Live — the palette can be changed in the Preferences of Live, and
-  the default one is in `lib/live_set/live_palette.rb`;
-- a track, a group or a device that Push 3 Standalone cannot use is written on the dark
-  background `#212121` with white text, and a sample that is not in the project folder is
-  written on the dark red `#8B0000`.
+- the name is written in a `<code>` element, and the colors are applied as a
+  style attribute;
+- colors are defined in class [`ColorPalette`](../lib/live_set/live_palette.rb);
+- Every node displayed in the markdown output of an ALS report is colored
+  according to the value for the corresponding node in the XML of the ALS. The
+  default Live colour palette is assumed.
+- a track, a group or a device that Push 3 Standalone cannot use is highlighted,
+  and a sample that is not in the project folder is highlighted differently.
 
-The styles are inline, so the report carries them wherever it is rendered. The reports of the
-reference sets are in the repository of the reference sets, and
+The styles are inline, because Mike is unaware of a widely accepted way to use
+stylesheets with markdown. (TODO is this possible?) The reports of the reference
+sets are in the associated repository of reference Live sets, and
 [sets/ANALYSIS.md](https://github.com/mslinn/live_reference_sets/blob/main/sets/ANALYSIS.md)
 describes what they hold.
 

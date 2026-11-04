@@ -1,31 +1,47 @@
 # TODO Implementation Plan for`lib/live_set/live_palette.rb`
 
-This is the plan for addressing the TODO comments in
-`lib/live_set/live_palette.rb`, and for the serializer classes in
-`lib/live_set/serializer/` that are to take the work over from it, and for the
-model classes that should be moved into `lib/live_set/model/`.
+This is the plan for preparing the next major version of `live_set`.
 
+## Target Architecture
 
-## The architecture the TODOs describe
-
-The long TODO in `live_palette.rb` states the rules, and the plan obeys them:
-
-- Serializers are objects, initialized with a model instance.
-- An outline of class AlsModel was created in lib/live_set/model/als_model.rb
-  that holds everything stored in an ALS file. We can call this "the ALS model."
-- The ALS model represents the entire XML entity stored in an ALS file. A
-  separate serializer class is responsible for generating a markdown
-  representation, and includes methods for escaping characters and namespace
-  support.
-- The serializers mirror the model hierarchy; each model class has a small associated
-  serializer class.
+- Ableton Live sets are stored in ALS files, containing XML.
+- This project has (or will have) a model class for every node type in the XML.
+  - The ALS XML hierarchy of nodes will be mirrored by the hierarchy of Ruby classes
+  defined in this project's `lib/live_set/model` directory.
+  - Just as some ALS XML nodes have child collections, the Ruby model classes
+    have mirror collections of child models (e.g. LiveTrack contains an
+  array of LiveClip.)
+- Every model class has an associated serializer class. Another way of saying
+  this is: a parallel hierarchy of serializers mirrors the model hierarchy,
+  which mirrors the XML structure. The serializer class is responsible for
+  generating a markdown representation, and includes methods for escaping
+  characters and namespace support. Serializers are initialized from a model
+  class instance.
+- [Class AlsModel](lib/live_set/model/als_model.rb) holds everything stored in
+  an ALS file. We can call this singleton instance "the ALS model."
 - Where several serializers have common behaviour, that behaviour shall be
   extracted into a helper of some sort.
-- Test data for serializers requires matching model class instances. For
-  efficiency, extract an XML file from the largest Live 12 demo and save it as
-  test fixture data. Inflate a test ALS model from the text fixture data, then
-  write unit tests the fully exercise each serializer and compare results against
-  literal strings.
+
+
+## Testing
+
+Standard operating procedure is:
+
+1. For each ALS version that we support (Live 8.4 to 12.x):
+
+   1. Maintain one complete test of the best ALS file we know of that exercises
+    each feature. At present we just extract an XML file from the largest Live
+    12 demo and save it as test fixture data. Later we will find (or create)
+    better test data, and an ALS file for every Live version we support.
+
+   2. Unit tests that fully exercise every leaf node of the serializer class
+    tree. (Notify the user of any missing tests)
+
+       1. Inflate test ALS models from the text fixture data
+
+       2. We require unit tests that fully exercise each serializer.
+
+       3. Compare results against literal strings. These strings should be reviewed by a human familiar with CSS.
 
 
 ## TODOs
@@ -581,77 +597,91 @@ Each step leaves the program working, and the reports unchanged.
 
    Three things the move breaks, and what is done about each:
 
-   a. **The new directories are loaded.** `require_directory` globs `dir/*.rb` and does not
-      recurse (`lib/common/util.rb:37`), so `lib/live_set.rb` requires `live_set/model`,
-      `live_set/serializer` and `live_set/tx` as well as `live_set` itself. What is left
-      is that each file in them requires what it uses: the model files use `LiveDevice`,
-      `LiveTrack` and `LiveGroup` without requiring them today (`live_set_track.rb:34`,
-      `live_set_group.rb:41`, `live_tracks.rb:4`), and the specs require the files one at a
-      time (`require 'live_set/live_set_track'`), so the files have to stand on their own.
-   b. **`lib/common/xml.rb:102` reaches `LiveDevice::CONTAINER_ELEMENTS`** — a dependency of
-      `lib/common` on a model class, and `lib/common` is loaded before the model. It works
-      today only because the constant is looked up when the method is called. The
+   a. **The new directories are loaded.** `require_directory` globs `dir/*.rb`
+      and does not recurse (`lib/common/util.rb:37`), so `lib/live_set.rb`
+      requires `live_set/model`, `live_set/serializer` and `live_set/tx` as well
+      as `live_set` itself. What is left is that each file in them requires what
+      it uses: the model files use `LiveDevice`, `LiveTrack` and `LiveGroup`
+      without requiring them today (`live_set_track.rb:34`,
+      `live_set_group.rb:41`, `live_tracks.rb:4`), and the specs require the
+   files one at a time (`require 'live_set/live_set_track'`), so the files have
+      to stand on their own.  b. **`lib/common/xml.rb:102` reaches
+      `LiveDevice::CONTAINER_ELEMENTS`** — a dependency of `lib/common` on a
+      model class, and `lib/common` is loaded before the model. It works today
+      only because the constant is looked up when the method is called. The
       device-chain walk moves into the model layer: `xml_chain_devices`
-      (`lib/common/xml.rb:99`) and the container-element filter become part of the model of
-      a track, and `lib/common/xml.rb` keeps the XML helpers that are not about devices.
-   c. **The load order.** Today the files lean on alphabetical order: `live_device.rb`
-      sorts before `live_set_track.rb`, and `live_tracks.rb` after both. The explicit
-      requires of (a) make the order irrelevant.
+   (`lib/common/xml.rb:99`) and the container-element filter become part of the
+      model of a track, and `lib/common/xml.rb` keeps the XML helpers that are
+      not about devices.  c. **The load order.** Today the files lean on
+      alphabetical order: `live_device.rb` sorts before `live_set_track.rb`, and
+      `live_tracks.rb` after both. The explicit requires of (a) make the order
+      irrelevant.
 
-   Two small things the move touches: the `require` lines of the seven specs that name the
-   moved files, and the `CustomTransform` map in `.rubocop.yml:99` that names the old file
-   names (the cop is disabled, but the map should not be stale).
+   Two small things the move touches: the `require` lines of the seven specs
+   that name the moved files, and the `CustomTransform` map in `.rubocop.yml:99`
+   that names the old file names (the cop is disabled, but the map should not be
+   stale).
 
-   What the move does not do: it does not move `verdict_markdown` out of `LiveTracks` —
-   that belongs to `P3SCompatibility`, and it is the business of the serializer step; and
-   it does not retire `LiveSetReport`, which is the business of the last step.
-   `Rakefile:21` (`load 'live_set/version.rb'`, which is at `lib/live_set/version.rb`) is a
-   pre-existing bug and is not touched by this.
+   What the move does not do: it does not move `verdict_markdown` out of
+   `LiveTracks` — that belongs to `P3SCompatibility`, and it is the business of
+   the serializer step; and it does not retire `LiveSetReport`, which is the
+   business of the last step.  `Rakefile:21` (`load 'live_set/version.rb'`,
+   which is at `lib/live_set/version.rb`) is a pre-existing bug and is not
+   touched by this.
 
-2. **The formatting moves from the palette to `LiveTrackSerializer`.** `LivePalette` keeps
-   `COLORS` and `color_of`, and loses `LIGHT`, `ICONS`, `icon_of`, `name_span`,
-   `code_span`, `text_color` and `brightness`. The markup written is the markup written
-   today, so the report does not change. The log is required by the serializer. A spec for
-   the serializer.
+2. **The formatting moves from the palette to `LiveTrackSerializer`.**
+   `LivePalette` keeps `COLORS` and `color_of`, and loses `LIGHT`, `ICONS`,
+   `icon_of`, `name_span`, `code_span`, `text_color` and `brightness`. The
+   markup written is the markup written today, so the report does not change.
+   The log is required by the serializer. A spec for the serializer.
 3. **The models are written**, one at a time, each with a spec: `LiveClip` and
    `LiveClipSettings` first, because the clip lines carry the most detail, then
    `LiveTakeLane` and `LiveTakeLanes`, then `LiveClip`, then `LiveTrack` and
-   `LiveGroup`. Each model leaves a note where it does not parse something, as above.
-4. **The serializers are written**, one at a time, each with a spec, and the report calls
-   each one in place of the method it replaces. The report shrinks as they arrive. Each new
-   serializer class is agreed with the user before it is written. The spec of a serializer
-   is written before the serializer is finished, and the expected values in it are the
-   markdown as it is at that moment.
-5. **The report is left as a writer.** What is left of `LiveSetReport` is the header block
-   and the four tables, and the header block becomes `HeaderBlock` when the models are in
-   place.
-6. **The identity of a MIDI clip is its content.** The model computes the identity of a
-   MIDI clip under the definition that is asked for — `notes`, `keys` or `loop` — and the
-   name is never part of it. The option is parsed by `live_set_options.rb` and is passed to
-   the model. The grouping of the clips of a track is by identity, and a new section,
-   `## Identical MIDI Clips`, with a serializer of its own, crosses the tracks of the set.
-7. **The sizes and the checksum of the set.** The model computes the four sizes and the two
-   checksums, and the report carries them: the size of the set file, the expected size of the
-   project, the actual size of the project when the project folder is there, and the fully
-   resolved size; the hash of the file and the hash of the content. A table of the assets
-   says what the sizes are made of. The header block says what made the report and where the
-   tool is documented.
+   `LiveGroup`. Each model leaves a note where it does not parse something, as
+   above.
+4. **The serializers are written**, one at a time, each with a spec, and the
+   report calls each one in place of the method it replaces. The report shrinks
+   as they arrive. Each new serializer class is agreed with the user before it
+   is written. The spec of a serializer is written before the serializer is
+   finished, and the expected values in it are the markdown as it is at that
+   moment.
+5. **The report is left as a writer.** What is left of `LiveSetReport` is the
+   header block and the four tables, and the header block becomes `HeaderBlock`
+   when the models are in place. This phase is not complete until the user is
+   able to run reports and is happy with the displayed reports, with the
+   understanding that MIDI clips may not be properly represented yet in the
+   report.
+6. **The identity of a MIDI clip is its content.** The model computes the
+   identity of a MIDI clip under the definition that is asked for — `notes`,
+   `keys` or `loop` — and the name is never part of it. The option is parsed by
+   `live_set_options.rb` and is passed to the model. The grouping of the clips
+   of a track is by identity, and a new section, `## Identical MIDI Clips`, with
+   a serializer of its own, crosses the tracks of the set.
+7. **The sizes and the checksum of the set.** The model computes the four sizes
+   and the two checksums, and the report carries them: the size of the set file,
+   the expected size of the project, the actual size of the project when the
+   project folder is there, and the fully resolved size; the hash of the file
+   and the hash of the content. A table of the assets says what the sizes are
+   made of. The header block says what made the report and where the tool is
+   documented.
 
 ## The evidence that nothing has broken
 
-- The 23 reports under `sets/*/reports/` of the reference sets are regenerated after every
-  step, and diffed. The report must not change, except for what is asked for.
-- The spec of the report as a whole compares the report of a set with the report that is
-  checked in.
-- The specs of the serializers hold the expected markdown, whole and literal, so a change
-  to the markdown shows up in the diff of the spec that expects it.
+- The 23 reports under `sets/*/reports/` of the reference sets are regenerated
+  after every step, and diffed. The report must not change, except for what is
+  asked for.
+- The spec of the report as a whole compares the report of a set with the report
+  that is checked in.
+- The specs of the serializers hold the expected markdown, whole and literal, so
+  a change to the markdown shows up in the diff of the spec that expects it.
 - The specs of the report (`spec/live_set/live_set_show_spec.rb`) are the other check.
-- `bundle exec rubocop` is clean after every step, and the specs pass before it is run.
+- `bundle exec rubocop` is clean after every step, and the specs pass before it
+  is run.
 
 ## The other TODOs in the code
 
-These are not in `live_palette.rb`, and are not part of this plan, but they are the same
-work and are listed here so that they are not lost:
+These are not in `live_palette.rb`, and are not part of this plan, but they are
+the same work and are listed here so that they are not lost:
 
 | Where | The TODO |
 | --- | --- |

@@ -5,6 +5,8 @@ require_relative '../../common/log'
 require_relative '../live_palette'
 require_relative 'live_clip_serializer'
 require_relative 'live_device_serializer'
+require_relative 'live_devices_serializer'
+require_relative 'live_take_lanes_serializer'
 #
 # Serializes a LiveTrack model as markdown by serializing each member.
 #
@@ -175,11 +177,8 @@ class LiveTrackSerializer
   #
   # @return [String] the serialized markdown
   def to_markdown
-    lines = [track_line]
-    lines += device_lines
-    lines += clip_lines
-    lines += take_lane_lines
-    lines.join "\n"
+    parts = [track_line, device_lines, clip_lines.join("\n"), take_lane_lines.join("\n")]
+    parts.reject(&:empty?).join "\n"
   end
 
   private
@@ -241,14 +240,11 @@ class LiveTrackSerializer
 
   # The lines of the devices of the track.
   #
-  # @return [Array<String>] the lines
+  # @return [String] the devices
   def device_lines
-    @track.devices.each_with_index.map do |device, index|
-      letter = ('a'.ord + index).chr
-      number = "#{@hierarchical_number}#{letter}"
-      serializer = LiveDeviceSerializer.new device, number, track_frozen: @track.frozen?
-      "#{@indent}  - #{slot_label} #{number}  #{serializer.to_markdown}"
-    end
+    LiveDevicesSerializer.new(@track.devices, @hierarchical_number, slot_label: slot_label,
+                                                      indent: "#{@indent}  ",
+                                                      track_frozen: @track.frozen?).to_markdown
   end
 
   # The name of the devices of a kind of track.
