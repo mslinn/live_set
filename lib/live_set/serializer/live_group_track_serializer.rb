@@ -37,7 +37,8 @@ class LiveGroupTrackSerializer
   #
   # @return [String] the line
   def group_line
-    "#{@indent}- Group track #{@hierarchical_number}  👥 Group  #{name_markdown}"
+    name = LiveTrackSerializer.display_name @group
+    "#{@indent}- Group track #{@hierarchical_number}  👥 Group  #{name_markdown(name)}"
   end
 
   # The name of the group, on the colour Live gave it.
@@ -46,17 +47,17 @@ class LiveGroupTrackSerializer
   # things, and the name of it is in light text.
   #
   # @return [String] the name of the group
-  def name_markdown
+  def name_markdown(name)
     if problem?
-      return LiveTrackSerializer.colored_code LiveTrackSerializer.escape(@group.name),
-                                                              background_color: LiveTrackSerializer::DARK_BACKGROUND,
-                                                              foreground_color: LiveTrackSerializer::LIGHT_TEXT
+      return LiveTrackSerializer.colored_code LiveTrackSerializer.escape(name),
+                                              background_color: LiveTrackSerializer::DARK_BACKGROUND,
+                                              foreground_color: LiveTrackSerializer::LIGHT_TEXT
     end
 
     color = LivePalette.color_of @group.color
-    return "<code>#{LiveTrackSerializer.escape @group.name}</code>" unless color
+    return "<code>#{LiveTrackSerializer.escape name}</code>" unless color
 
-    LiveTrackSerializer.colored_code LiveTrackSerializer.escape(@group.name),
+    LiveTrackSerializer.colored_code LiveTrackSerializer.escape(name),
                                      color_number:     @group.color,
                                      background_color: "##{color}",
                                      foreground_color: LiveTrackSerializer.text_color(color)

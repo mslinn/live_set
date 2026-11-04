@@ -178,21 +178,25 @@ class LiveTrack
     SEQUENCERS.flat_map { |sequencer| @audio_track.xpath("./DeviceChain/#{sequencer}/#{path}").to_a }
   end
 
-  # The name to display for this track.
+  # The name Live resolved for this track.
   #
   # EffectiveName is the name Ableton resolved, which accounts for renames and for the numbering
   # it adds to duplicate tracks. UserName is the raw name the user typed, and is the only one
   # present in Live 8. Annotation and MemorizedFirstClipName are not names of the track.
   #
-  # The name the user typed is the name of the track. When there is none, the name Ableton
-  # resolved is the name, without the number Ableton gives the tracks that share a name.
+  # @return [String] the name
   def name
-    user_name = @audio_track.at('Name/UserName')&.[]('Value')
-    effective_name = @audio_track.at('Name/EffectiveName')&.[]('Value')
-    return user_name unless user_name.nil? || user_name.empty?
-    return '(unnamed)' if effective_name.nil? || effective_name.empty?
+    xml_first_value(
+      @audio_track.at('Name/EffectiveName'),
+      @audio_track.at('Name/UserName')
+    ) || "##{@id}"
+  end
 
-    effective_name.sub(/\A\d+[- ]/, '')
+  # The name the user typed for this track.
+  #
+  # @return [String, nil] the name, or nil when the user has not named the track
+  def user_name
+    @audio_track.at('Name/UserName')&.[]('Value')
   end
 
   # The value of an element of the track.

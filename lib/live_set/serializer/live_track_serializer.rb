@@ -112,6 +112,20 @@ class LiveTrackSerializer
       brightness(color) > 128 ? '#000000' : LIGHT_TEXT
     end
 
+    # The name of a thing, as the report writes it.
+    #
+    # The name the user typed is the name of the thing. When there is none, the name Live
+    # resolved is the name, without the number Live gives the things that share a name.
+    #
+    # @param thing [LiveTrack, LiveGroup] the thing
+    # @return [String] the name
+    def display_name(thing)
+      user_name = thing.user_name
+      return user_name unless user_name.nil? || user_name.empty?
+
+      thing.name.sub(/\A\d+[- ]/, '')
+    end
+
     # The characters of a name that would break a table.
     #
     # @param text [String] the text
@@ -175,8 +189,9 @@ class LiveTrackSerializer
   # @return [String] the line
   def track_line
     states = states_of @track
+    name = LiveTrackSerializer.display_name @track
     line = "#{@indent}- Track #{@hierarchical_number}  #{TRACK_TYPE_ICONS[@track.kind]} #{@track.kind}  " \
-           "#{name_markdown}"
+           "#{name_markdown(name)}"
     line += "  #{states.join(', ')}" unless states.empty?
     line
   end
@@ -187,20 +202,20 @@ class LiveTrackSerializer
   # things, and the name of it is in light text.
   #
   # @return [String] the name of the track
-  def name_markdown
+  def name_markdown(name)
     if problem?
-      return LiveTrackSerializer.colored_code LiveTrackSerializer.escape(@track.name),
-                                                              background_color: DARK_BACKGROUND,
-                                                              foreground_color: LIGHT_TEXT
+      return LiveTrackSerializer.colored_code LiveTrackSerializer.escape(name),
+                                              background_color: DARK_BACKGROUND,
+                                              foreground_color: LIGHT_TEXT
     end
 
     color = LivePalette.color_of @track.color
-    return "<code>#{LiveTrackSerializer.escape @track.name}</code>" unless color
+    return "<code>#{LiveTrackSerializer.escape name}</code>" unless color
 
-    LiveTrackSerializer.colored_code LiveTrackSerializer.escape(@track.name),
-                                                   color_number:     @track.color,
-                                                   background_color: "##{color}",
-                                                   foreground_color: LiveTrackSerializer.text_color(color)
+    LiveTrackSerializer.colored_code LiveTrackSerializer.escape(name),
+                                     color_number:     @track.color,
+                                     background_color: "##{color}",
+                                     foreground_color: LiveTrackSerializer.text_color(color)
   end
 
   # The state of the track.
@@ -256,7 +271,7 @@ class LiveTrackSerializer
   def take_lane_lines
     return [] if @track.take_lanes.empty?
 
-    serializer = LiveTakeLanesSerializer.new @track.take_lanes, @hierarchical_number
-    serializer.to_markdown.split("\n").map { |line| "#{@indent}  #{line}" }
+    serializer = LiveTakeLanesSerializer.new @track.take_lanes, @hierarchical_number, "#{@indent}  "
+    serializer.to_markdown.split("\n")
   end
 end

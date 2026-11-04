@@ -1,22 +1,41 @@
-# TODO: This is a placeholder to start off the changes described as TODO comments in lib/live_set/live_palette.rb
-# TODO Write unit tests
+require 'markdown-tables'
+require_relative '../model/header_block'
+
+# Writes the table of the facts about a set, at the top of the report.
 #
-# Writes the "Push 3 Standalone" section of the markdown report for a `LiveSet` model.
+# The rows are sorted alphabetically, so that the facts are in the same order whatever they
+# are.
 #
 # Sample usage:
-# markdown = LiveHeaderSerializer.new(live_set).to_markdown
+# header = HeaderBlock.new(path, xml)
+# markdown = LiveHeaderSerializer.new(header).to_markdown
 class LiveHeaderSerializer
-  # Create a serializer for the HTML table at the top of the report for the given set.
+  # Creates a serializer for the facts about a set.
   #
-  # @param live_set [LiveSet] the live_set to report on
-  def initialize(live_set)
-    @live_set = live_set
+  # @param header [HeaderBlock] the facts about the set
+  def initialize(header)
+    @header = header
   end
 
-  # Return the HTML table at the top of the report as markdown.
+  # Returns the table of the facts about the set as markdown.
   #
   # @return [String] the serialized markdown
   def to_markdown
-    # TODO: write me
+    rows = [
+      ['Written by', @header.creator],
+      ['Format', @header.format],
+      ['SchemaChangeCount', @header.schema_change_count],
+      ['Revision', @header.revision],
+      ['On computer', @header.computer],
+      ['Directory', @header.path_cell(@header.directory)],
+      ['Time zone', @header.time_zone],
+      ['Set created', @header.set_created],
+      ['Set last modified', @header.set_last_modified],
+      ['Project created', @header.project_created],
+      ['Project last modified', @header.project_last_modified],
+      ['Report generated', @header.report_generated]
+    ].sort_by { |row| row.first.downcase }
+
+    MarkdownTables.make_table ['', ''], rows, align: %w[l r], is_rows: true
   end
 end

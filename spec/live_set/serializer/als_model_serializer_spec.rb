@@ -19,7 +19,7 @@ RSpec.describe AlsModelSerializer, '#to_markdown' do
   # @return [AlsModel] the model
   def model
     path = LiveSets.fascination
-    described_class.new path, LiveSets.document(path), Time.now, Time.now
+    AlsModel.new path, LiveSets.document(path), Time.now, Time.now
   end
 
   it 'writes the sections of the report, in order' do
@@ -29,6 +29,7 @@ RSpec.describe AlsModelSerializer, '#to_markdown' do
       '## Push 3 Standalone',
       '## Groups/Tracks/Clips/Devices',
       '## Missing Samples',
+      '## Samples',
       '## Device/Track Cross-Reference',
       '## Track / Clip Cross Reference'
     ]
@@ -36,7 +37,14 @@ RSpec.describe AlsModelSerializer, '#to_markdown' do
 
   it 'writes the facts about the set at the top of the report' do
     expect(described_class.new(model).to_markdown).to start_with(
-      "# `Fascination.als`\n\n|||\n|:-|-:|\n"
+      "|||\n|:-|-:|\n"
     )
+  end
+
+  it 'writes the tracks of the set under the legend' do
+    markdown = described_class.new(model).to_markdown
+
+    expect(markdown).to include('- Track 1  🎵 Audio  ')
+    expect(markdown).to include('- Group track 1  👥 Group  ')
   end
 end

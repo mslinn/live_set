@@ -25,7 +25,7 @@ class LiveTakeLaneSerializer
   def to_markdown
     lines = ["#{@indent}- Take lane #{@hierarchical_number}  #{@take_lane.name}"]
     lines += LiveClipGroups.new(@take_lane.clips).to_markdown(@hierarchical_number)
-                 .map { |line| "#{@indent}  #{line}" }
+                           .map { |line| "#{@indent}  #{line}" }
     lines.join "\n"
   end
 end

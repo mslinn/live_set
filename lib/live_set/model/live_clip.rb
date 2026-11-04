@@ -36,6 +36,13 @@ class LiveClip
   # @return [Array<String>] the marks
   attr_reader :marks
 
+  # The absolute path of the file the clip plays, as Live wrote it.
+  #
+  # @return [String, nil] the path, or nil when the clip plays no file
+  def absolute_path
+    @element.at('SampleRef/FileRef/Path')&.[]('Value')
+  end
+
   # What makes a clip the same clip as another.
   #
   # The copies of a clip that are alike are counted together, and the report writes them as

@@ -56,20 +56,32 @@ class LiveGroup
     value == '-1' ? nil : value
   end
 
-  # The name of the group.
-  #
-  # The name the user typed is the name of the group. When there is none, the name Ableton
-  # resolved is the name, without the number Ableton gives the groups that share a name.
+  # The name Live resolved for the group.
   #
   # @param group_track [Nokogiri::XML::Element] the group
   # @return [String] the name of the group
   def name_of(group_track)
-    user_name = group_track.at('Name/UserName')&.[]('Value')
-    effective_name = group_track.at('Name/EffectiveName')&.[]('Value')
-    return user_name unless user_name.nil? || user_name.empty?
-    return '(unnamed)' if effective_name.nil? || effective_name.empty?
+    xml_first_value(
+      group_track.at('Name/EffectiveName'),
+      group_track.at('Name/UserName')
+    ) || "##{@id}"
+  end
 
-    effective_name.sub(/\A\d+[- ]/, '')
+  # The name the user typed for the group.
+  #
+  # @return [String, nil] the name, or nil when the user has not named the group
+  def user_name
+    @group_track.at('Name/UserName')&.[]('Value')
+  end
+
+  # Whether the group cannot be transferred to Push 3 Standalone.
+  #
+  # A group cannot be frozen, so a device in its chain that Push 3 cannot run cannot be
+  # rendered away.
+  #
+  # @return [Boolean] true when the group is a problem
+  def problem?
+    devices.any?(&:blocking?)
   end
 
   # The devices in the group's chain.
