@@ -119,8 +119,9 @@ numbering (1.1) is consistent with the indentation.
 
 ## Serializer Classes
 
-The classes in `lib/live_set/serializer/` are placeholders, and the five below have been agreed with the user, as the
-long TODO asks.
+The classes in `lib/live_set/serializer/` are class outlines. The ones below are the classes to
+write, and each additional serializer class is agreed with the user before it is written,
+as the long TODO asks.
 
 <!-- markdownlint-disable MD013 MD060 -->
 | The class                           | It serializes                                                                        | Its model           |
@@ -146,7 +147,7 @@ long TODO asks.
 <!-- markdownlint-enable MD013 MD060 -->
 
 Every serializer is given the hierarchical number of the thing it writes, along with the
-model, and the constructors of the placeholders are written that way already.
+model.
 
 
 ## Serializer Responsibilities
@@ -176,6 +177,13 @@ A serializer is given what it cannot know by itself. A device serializer is give
 device and whether the track it is on is frozen: a device on a frozen track is written in
 the ordinary way and carries no warning, because freezing a track renders its devices away,
 and the device alone does not say so.
+
+**The track serializer writes the name and the hierarchical number of a device; the device
+serializer writes the device.** The report writes a device of a track as `Track Device
+1.1a`, and a device of a group as `Group Track Device 1a`: the name depends on the kind of
+the track, which only the track serializer knows, and the hierarchical number is the number
+the track serializer gives it. The device serializer writes the device itself — its name on
+the background of the thing Push 3 cannot use, the kind of device it is, and the warning.
 
 The outline is written by AlsModelSerializer, which iterates through the groups and the
 top-level tracks, and passes each of them along with a hierarchical base number to the
@@ -301,32 +309,16 @@ they are written:
 - the parts of the XML that hold the state of the Live window itself, rather than of the
   set: the selected track, the unfolded state of the browser, the zoom of the arrangement
 
-## What is broken now, and what is to be decided about it
+## The icon of Live 12's master track
 
-Three things were found while the plan was written. None of them is fixed; they are part of
-the plan, and two of them need a decision.
+Live 12 writes a `MainTrack`, the report calls its kind `Main`, and `ICONS` has no `Main`,
+so `icon_of` logs a warning and writes the bomb. Live 11's `MasterTrack` is in the map and
+gets the fader.
 
-1. **The program does not run.** The palette's `name_span` takes `p3s_incompatible:` where
-   the report passes `dark:`, so `live_set -s <set>` raises
-   `ArgumentError: unknown keyword: :dark`. The checked-in reports and the specs were made
-   against the older markup: the palette now writes `title="Live color 32"` where the
-   report wrote `title="color 32"`, and `background-color: #…; color: #…` where it wrote
-   `background-color:#…;color:#…`.
-
-   **To be decided:** whether the report's calls are corrected first, as a step of their
-   own, so that the program runs again and the reports can be regenerated; or whether the
-   program stays broken until step 1 replaces those calls with `colored_code`.
-
-2. **The palette does not require the log, and `icon_of` calls `Log.warn`.** The method
-   raises `NameError` when the palette is loaded on its own. The serializer that takes the
-   icons requires the log.
-
-3. **Live 12's master track has no icon.** Live 12 writes a `MainTrack`, the report calls
-   its kind `Main`, and `ICONS` has no `Main`, so `icon_of` logs a warning and writes the
-   bomb. Live 11's `MasterTrack` is in the map and gets the fader.
-
-   **To be decided:** the icon for `Main`, or whether the report calls the kind of the
-   master track `Master` in both versions, so that the map needs no second entry.
+`Main` is given the fader, the icon of the master track. The kind of the track is what Live
+calls it — `Master` in Live 11, `Main` in Live 12 — so the report says what Live says, and
+the icon says what the thing is. The map is written in step 2, with the rest of the
+formatting.
 
 ## The unit tests for the serializers
 
@@ -378,56 +370,58 @@ the reference sets — the Live 11 demo set, the Live 12 one, and the factory de
 so that the expected values are the values of a real set and not of a hand-made one. The
 specs use the same code the report uses to build the models; nothing is mocked.
 
-**The specs that are written already** are the ones whose model exists today:
-
-| The spec | What it pins |
-| --- | --- |
-| `spec/live_set/serializer/p3s_compatibility_spec.rb` | the whole verdict, as a heredoc, from the report of the Live 11 reference set |
-| `spec/live_set/serializer/live_device_serializer_spec.rb` | the device as the report writes it: the name on the dark background, the kind, and the warning |
-| `spec/live_set/serializer/als_model_serializer_spec.rb` | the sections of the report, in order, and the facts about the set at the top of it |
-| `spec/live_set/model/als_model_spec.rb` | the four values the model of a file holds: its path, its XML, and the times of it |
-
-The spec of a serializer whose model does not exist yet is written with the model, in step 3
-and step 4: `LiveClipReference`, `LiveTakeLane`, `LiveTakeLanes`, `LiveGroupTrack` and
-`LiveTrack` are written before the serializers that write them.
+The spec of a serializer is written with its model, in step 3 and step 4: the model of
+`LiveClipReference`, `LiveTakeLane`, `LiveTakeLanes`, `LiveGroupTrack` and `LiveTrack` is
+written before the serializer that writes it.
 
 **The report as a whole has a spec of its own.** One spec asserts that the report of a set
 is the report that is checked in, so that a change to any part of it cannot slip through
 the specs of the parts. The checked-in reports are the ones `bin/generate_reference_als_reports`
 writes, and the spec reads them from the repository of the reference sets.
 
+**The fixture.** The model of a set is inflated from the XML of a real set, and the XML of
+the largest Live 12 demo is the fixture: it is saved under `spec/fixtures/`, gzipped,
+because it is 3.9 MB compressed and tens of megabytes of XML when it is inflated. A spec
+inflates the model from the fixture, so the specs need neither Live nor the reference sets
+installed, and the expected values are the values of a real set and not of a hand-made one.
+
 **The specs are written before the serializers are finished.** Each serializer is written to
-its spec, and the spec is where the new markdown is seen first. The placeholder classes
+its spec, and the markdown in the tests is reviewed for quality. The class outlines
 already say "TODO Write unit tests", and that is where the tests go.
 
-## The work in the serializer placeholders
+## The work in the serializer outlines
 
-The classes in `lib/live_set/serializer/` are placeholders: each has a class, a
-constructor, and a `to_markdown` that returns nothing. Each carries the TODO "Write unit
-tests".
+The classes in `lib/live_set/serializer/` are outlines. Seven of them have a class, a
+constructor, a `to_markdown` that returns nothing, and a comment with the sample usage of
+the serializer and the TODO "Write unit tests". Two of them have example code in
+`to_markdown` — the delegation to the serializers of the things they hold — and
+`LiveTakeLanesSerializer` has one line of it. Each of them is implemented completely in
+step 4, with the model it serializes and a spec of its own; none of them is left as an
+outline.
 
-Three of them have mistakes that are fixed as they are written:
+The example code shows how the serializers are to be used, and it has these faults, which
+are fixed as it is implemented:
 
 - `LiveTrackSerializer#to_markdown` refers to `group_track_devices_markdown`, which does not
   exist there, and it iterates `@track.clip_references` to write the devices of the track.
 - `LiveGroupTrackSerializer#to_markdown` has no header line, and the TODO says what it
   should be: `Group track 1 👥 Group # Drums`.
-- `AlsModelSerializer#to_markdown` writes the hierarchy by calling `to_markdown` on a model,
-  which is the one thing the architecture says never happens. The hierarchy is written by
-  the group serializer, which is given the ALS model:
+- `AlsModelSerializer#to_markdown` writes the hierarchy by calling `to_markdown` on a model —
+  `LiveGroupTrack.new(@als_model)` — which is the one thing the architecture says never
+  happens. The top-level serializer iterates the groups and the top-level tracks, and each
+  of them, with its base number, is written by the serializer that writes it:
 
   ```ruby
-  hierarchical_entities = LiveGroupTrackSerializer.new(@als_model).to_markdown
+  groups = @als_model.groups.map { |group, index| LiveGroupTrackSerializer.new(group, index + 1).to_markdown }
+  tracks = @als_model.tracks.map { |track, index| LiveTrackSerializer.new(track, index + 1).to_markdown }
   ```
 
-  The group serializer is given the ALS model, so it is the one that iterates the groups and
-  the top-level tracks, and passes each of them, with its base number, to the serializer
-  that writes it.
-
-The name `LiveGroupTrack` in that file is a typo for `LiveGroup`, the class that exists, and
-is corrected. The sample usage in that file also names an argument the existing class does
-not take: `LiveGroup` is built from a group element and the tracks of the set, and the
-serializer is given the group and the number to write it under.
+- `LiveTakeLanesSerializer#to_markdown` calls `to_markdown` on the model objects it holds —
+  `@take_lanes.map(&:to_markdown)` — which is the same fault; it delegates each lane to
+  `LiveTakeLaneSerializer`.
+- The model of `LiveGroupTrackSerializer` is named `LiveGroupTrack` in that file. The model
+  is `LiveGroup`, which is reworked in step 3 to expose the tracks of the group, and the
+  serializer is given the group and the number to write it under.
 
 ## The text that changes with this work
 
@@ -455,23 +449,6 @@ Two of them are in the standing list, and each is a question rather than a piece
   produced the report.
 
 Both are in `TODO.md`.
-
-## The documentation
-
-The facts that were learned while this plan was written are in the documents, so that they
-are not lost when the plan is executed:
-
-| What was learned | Where it is written down |
-| --- | --- |
-| Every place holds its own clip; there is no clip reference in the format; the sample is what is referenced | `docs/als_notes.md`, "Every place holds its own clip" |
-| A set is a gzip file, so the hash of the file and the hash of the content differ | `docs/als_notes.md`, "The set file is a gzip file" |
-| The colour of a track or a clip is a number that indexes the colour menu of Live | `docs/als_notes.md`, "The colour of a track or a clip" |
-| What a clip is, and what alike clips are | `docs/glossary.md`, "Clip" |
-| What the fully resolved size is | `docs/glossary.md`, "Fully resolved size" |
-| How the report writes a name: the style on the `code` element, black or white by brightness, the tooltip with the number | `README.md`, "The Report" |
-| The sizes and the checksums the report carries | `README.md`, "The sizes and the checksum of a set" |
-| The model, its classes, and the rules the models and the serializers follow | `docs/report_design.md` |
-| The work itself | this document |
 
 ## The identity of a MIDI clip
 
