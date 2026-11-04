@@ -389,6 +389,13 @@ installed, and the expected values are the values of a real set and not of a han
 its spec, and the markdown in the tests is reviewed for quality. The class outlines
 already say "TODO Write unit tests", and that is where the tests go.
 
+**The specs of the work that is not done yet fail, and that is what they are for.** The
+spec of `AlsModel` pins the four values the model of a file holds, and the specs of the
+serializers pin the markdown they are to write. They fail until the model and the
+serializers are written, in steps 3 and 4: they are the specification of the work, not a
+regression. The specs of the code that exists — the spec of the report — pass, and rubocop
+is run after the specs that are to pass have passed.
+
 ## The work in the serializer outlines
 
 The classes in `lib/live_set/serializer/` are outlines. Seven of them have a class, a
@@ -435,6 +442,9 @@ are fixed as it is implemented:
 - **The lines under a clip** read `References (×5): launch: trigger, warp: none`. They are the
   copies of the clip and the settings they differ in, so they are not references. The word
   changes, and the count of the copies stays.
+- **The example in "Hierarchical Numnbering System"** shows those lines, and is written in
+  the new wording. The tooltip of a name keeps the wording the palette writes now,
+  `Live color 1`.
 - **The reports of the reference sets** are regenerated, so the legend and the tables of the
   reports change with it.
 
