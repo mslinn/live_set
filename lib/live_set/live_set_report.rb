@@ -391,6 +391,9 @@ class LiveSetReport
   # The groups at the top of the set are numbered from one, and the tracks at the top of the
   # set are numbered from one as well: a group and a track are numbered in their own company.
   #
+  # TODO: this walks the elements of the tracks. The outline is to be written by the
+  # serializers, from the model: see docs/serializer_plan.md, step 5.
+  #
   # @param tracks [Array<Array>] the tracks of the set
   # @return [Array<String>] the lines
   def top_level_lines(tracks)
@@ -1130,11 +1133,13 @@ class LiveSetReport
   # the tracks of the set as an array. The new name for this method should be
   # tracks_for_group, and it should be private to the LiveTracks class.
   #
-  # The tracks at one level of the tree. TODO what does this mean?
+  # The tracks at one level of the tree.
   #
-  # @param elements [Array<Nokogiri::XML::Element>] the tracks of the set @param
-  # parent_id [String, nil] the id of the group the tracks belong to TODO Why
-  # would parent_id be an array? this seems wrong. Is the above @param wrong?
+  # TODO: this returns arrays of the element and its members. The model holds the tracks as
+  # objects, and the report is to be written from them: see docs/serializer_plan.md, step 5.
+  #
+  # @param elements [Array<Nokogiri::XML::Element>] the tracks of the set
+  # @param parent_id [String, nil] the id of the group the tracks belong to
   # @return [Array<Array>] the tracks
   def build_track_tree(elements, parent_id)
     elements.select { |element| group_id_of(element) == parent_id }.map do |element|

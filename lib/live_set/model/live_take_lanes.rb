@@ -20,6 +20,11 @@ class LiveTakeLanes
     lanes.length
   end
 
+  # @return [Boolean] true when the track has no lanes
+  def empty?
+    lanes.empty?
+  end
+
   # @param index [Integer] the number of the lane, from one
   # @return [LiveTakeLane, nil] the lane
   def [](index)

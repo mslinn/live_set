@@ -36,6 +36,16 @@ class LiveClip
   # @return [Array<String>] the marks
   attr_reader :marks
 
+  # What makes a clip the same clip as another.
+  #
+  # The copies of a clip that are alike are counted together, and the report writes them as
+  # one line.
+  #
+  # @return [String] the key of the clip
+  def key
+    "#{name}:#{file}"
+  end
+
   # Whether the clip is a MIDI clip.
   #
   # @return [Boolean] true when the clip holds notes and plays no file

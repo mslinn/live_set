@@ -21,7 +21,7 @@ require_relative 'live_track'
 class LiveGroup
   include Xml
 
-  attr_reader :id, :name, :members, :tracks
+  attr_reader :id, :name, :members, :tracks, :color
 
   def initialize(group_track, tracks = [], set_directory = nil)
     @group_track = group_track
@@ -30,8 +30,16 @@ class LiveGroup
       @group_track.at('Name/EffectiveName'),
       @group_track.at('Name/UserName')
     ) || "##{@id}"
+    @color       = @group_track.at('Color')&.[]('Value')&.to_i
     @members = member_tracks tracks
     @tracks = @members.map { |member| LiveTrack.new set_directory, member }
+  end
+
+  # Whether the group is a group track.
+  #
+  # @return [Boolean] true, always: a group is a group track
+  def group?
+    true
   end
 
   # The devices in the group's chain.

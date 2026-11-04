@@ -25,7 +25,7 @@ class LiveTrack
     'ReturnTrack' => 'Return', 'MasterTrack' => 'Master', 'MainTrack' => 'Main'
   }.freeze
 
-  attr_reader :audio_clips, :id, :kind, :color, :clips, :take_lanes
+  attr_reader :audio_clips, :id, :kind, :color, :clips, :take_lanes, :devices
 
   # The two sequencers a track can have.
   #

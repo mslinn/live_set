@@ -3,7 +3,7 @@
 #
 require_relative '../../common/log'
 require_relative '../live_palette'
-require_relative 'live_clip_reference_serializer'
+require_relative 'live_clip_serializer'
 require_relative 'live_device_serializer'
 #
 # Serializes a LiveTrack model as markdown by serializing each member.
@@ -102,6 +102,30 @@ class LiveTrackSerializer
       %(<code style="#{style}">#{value}</code>)
     end
 
+    # The colour the text on a colour is written in.
+    #
+    # Black is written on a colour that looks light, and white on a colour that looks dark.
+    #
+    # @param color [String] the colour, as six hex digits
+    # @return [String] the colour of the text
+    def text_color(color)
+      brightness(color) > 128 ? '#000000' : LIGHT_TEXT
+    end
+
+    # How bright a colour looks.
+    #
+    # The brightness is the weighted sum of the three channels, the way the eye weighs them:
+    # green counts the most, and blue the least.
+    #
+    # @param color [String] the colour, as six hex digits
+    # @return [Float] the brightness, from 0 to 255
+    def brightness(color)
+      red = color[0, 2].to_i(16)
+      green = color[2, 2].to_i(16)
+      blue = color[4, 2].to_i(16)
+      (0.299 * red) + (0.587 * green) + (0.114 * blue)
+    end
+
     # The CSS for a table cell filled with a colour.
     #
     # @param background_color [String, nil] the colour the cell is filled with
@@ -117,33 +141,112 @@ class LiveTrackSerializer
   # Creates a serializer for the given track.
   #
   # @param track [LiveTrack] the track to serialize
-  def initialize(track, hierarchical_number)
+  # @param hierarchical_number [String] the number of the track in the report
+  # @param indent [String] the indentation of the lines of the track
+  def initialize(track, hierarchical_number, indent = '')
     @track = track
     @hierarchical_number = hierarchical_number
+    @indent = indent
   end
 
   # Returns the track as markdown.
   #
   # @return [String] the serialized markdown
   def to_markdown
-    # TODO: finish writing me.
+    lines = [track_line]
+    lines += device_lines
+    lines += clip_lines
+    lines += take_lane_lines
+    lines.join "\n"
+  end
 
-    # Serialize clip references associated with a track. Similar code needs to be
-    # written for take lanes and arrangement view:
-    clips_markdown = @track.clip_references.map do |clip_reference|
-      LiveClipReferenceSerializer.new(clip_reference).to_markdown
-    end.join("\n")
+  private
 
-    # Serialize devices associated with a track
-    track_devices_markdown = @track.clip_references.map do |track|
-      LiveDeviceSerializer.new(track.devices).to_markdown
-    end.join("\n")
+  # The line of the track: its number, its icon, its kind, its name and its state.
+  #
+  # @return [String] the line
+  def track_line
+    states = states_of @track
+    line = "#{@indent}- Track #{@hierarchical_number}  #{TRACK_TYPE_ICONS[@track.kind]} #{@track.kind}  " \
+           "#{name_markdown}"
+    line += "  #{states.join(', ')}" unless states.empty?
+    line
+  end
 
-    # TODO: include header line, e.g.: Track 1.1 🎹 MIDI Kontakt 7
-    <<~END_MARKDOWN
-      #{group_track_devices_markdown}
-      #{track_devices_markdown}
-      #{clips_markdown}
-    END_MARKDOWN
+  # The name of the track, on the colour Live gave it.
+  #
+  # A track that Push 3 Standalone cannot use is written on the dark background of those
+  # things, and the name of it is in light text.
+  #
+  # @return [String] the name of the track
+  def name_markdown
+    if problem?
+      return LiveTrackSerializer.colored_code @track.name, background_color: DARK_BACKGROUND,
+                                                           foreground_color: LIGHT_TEXT
+    end
+
+    color = LivePalette.color_of @track.color
+    return "<code>#{@track.name}</code>" unless color
+
+    LiveTrackSerializer.colored_code @track.name, color_number:     @track.color,
+                                                  background_color: "##{color}",
+                                                  foreground_color: LiveTrackSerializer.text_color(color)
+  end
+
+  # The state of the track.
+  #
+  # @param track [LiveTrack] the track
+  # @return [Array<String>] the marks
+  def states_of(track)
+    states = []
+    states << "\u{1F976} frozen" if track.frozen?
+    states << "\u{1F142} solo" if track.soloed?
+    states << '🔴 armed' if track.armed?
+    states << "\u{23FD} off" if track.off?
+    states << "linked group #{track.linked_group}" if track.linked_group
+    states
+  end
+
+  # Whether the track cannot be transferred to Push 3 Standalone.
+  #
+  # @return [Boolean] true when the track is a problem
+  def problem?
+    @track.problem?
+  end
+
+  # The lines of the devices of the track.
+  #
+  # @return [Array<String>] the lines
+  def device_lines
+    @track.devices.each_with_index.map do |device, index|
+      letter = ('a'.ord + index).chr
+      number = "#{@hierarchical_number}#{letter}"
+      serializer = LiveDeviceSerializer.new device, number, track_frozen: @track.frozen?
+      "#{@indent}  - #{slot_label} #{number}  #{serializer.to_markdown}"
+    end
+  end
+
+  # The name of the devices of a kind of track.
+  #
+  # @return [String] the name
+  def slot_label
+    @track.group? ? 'Group Track Device' : 'Track Device'
+  end
+
+  # The lines of the clips of the track.
+  #
+  # @return [Array<String>] the lines
+  def clip_lines
+    LiveClipGroups.new(@track.clips).to_markdown(@hierarchical_number).map { |line| "#{@indent}  #{line}" }
+  end
+
+  # The lines of the take lanes of the track.
+  #
+  # @return [Array<String>] the lines
+  def take_lane_lines
+    return [] if @track.take_lanes.empty?
+
+    serializer = LiveTakeLanesSerializer.new @track.take_lanes, @hierarchical_number
+    serializer.to_markdown.lines.map { |line| "#{@indent}  #{line}" }
   end
 end
