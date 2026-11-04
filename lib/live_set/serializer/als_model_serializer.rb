@@ -1,3 +1,7 @@
+require_relative 'live_group_track_serializer'
+require_relative 'p3s_compatibility'
+require_relative 'report_header_serializer'
+
 # Serializes an AlsModel as a markdown report.
 class AlsModelSerializer
   # Creates a serializer for the given ALS model.

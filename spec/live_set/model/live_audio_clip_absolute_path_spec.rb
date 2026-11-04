@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'live_set/live_set_audio_clip'
+require 'live_set/model/live_audio_clip'
 require 'support/live_sets'
 
 # Where a clip's sample is, and how big it is.

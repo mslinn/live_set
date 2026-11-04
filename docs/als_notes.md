@@ -154,7 +154,7 @@ clips is not the number of files.
 An `<AudioClip>` is not always inside a `<ClipSlot>`. Live 12 moved most of
 them into the arrangement and the take lanes.
 
-See `lib/live_set/live_set_track.rb`.
+See `lib/live_set/model/live_track.rb`.
 
 
 ## Every place holds its own clip
@@ -169,10 +169,11 @@ Concepts](https://www.ableton.com/en/manual/live-concepts/)), and a Session clip
 copied into the Arrangement is an independent Arrangement clip.
 
 The set that is checked in shows it. The clip `3-Kontakt 7 1` is written out as
-eight complete `MidiClip` elements, seven of them with the same forty-seven
-`MidiNoteEvent` elements. The audio clip `Pink Noise - EDMtips.com` is written
-out as eleven complete `AudioClip` elements, each with its own `Id` and its own
-`SampleRef`. The set has 22 `AudioClip` elements in all.
+nine complete `MidiClip` elements, eight of them with the same forty-seven
+`MidiNoteEvent` elements and one with nineteen. The audio clip
+`Pink Noise - EDMtips.com` is written out as eleven complete `AudioClip` elements,
+each with its own `Id` and its own `SampleRef`. The set has 22 `AudioClip`
+elements in all.
 
 What is referenced rather than copied is the sample. The audio of a set is in
 files beside the set, and each clip points at the file in its `SampleRef`.
@@ -236,7 +237,7 @@ reversed, warped differently, trimmed — without touching the file. So the size
 of a set counts each file once, and it is not the sum of the sizes of the
 clips.
 
-See `lib/live_set/live_set_audio_clip.rb`.
+See `lib/live_set/model/live_audio_clip.rb`.
 
 
 ## The set file is a gzip file
@@ -293,7 +294,7 @@ default values of all three.
 See `lib/live_set/live_set_report.rb`, which reports the mode of a clip by
 its name and its number.
 
-See `lib/live_set/live_set_audio_clip.rb`.
+See `lib/live_set/model/live_audio_clip.rb`.
 
 
 ## The devices of a chain, and the plug-ins among them
@@ -321,7 +322,7 @@ A Max for Live device is an `MxDeviceAudioEffect` for an audio effect and an
 Standalone, but with less headroom, so it is treated separately from a
 third-party plug-in.
 
-See `lib/live_set/live_device.rb`.
+See `lib/live_set/model/live_device.rb`.
 
 
 ## The device chain, and the chains nested inside it
@@ -405,7 +406,7 @@ track.
 `live_set` does not search for a file called `Options.txt`, so it always reads a
 group track as unfrozen.
 
-See `lib/live_set/live_set_group.rb`.
+See `lib/live_set/model/live_group.rb`.
 
 
 ## The take lanes of a track
@@ -493,7 +494,7 @@ nothing. Both have to be searched.
 
 The freeze state of a track is its `<Freeze Value="true"/>` element.
 
-See `lib/live_set/live_set_track.rb`.
+See `lib/live_set/model/live_track.rb`.
 
 
 ## The lane types

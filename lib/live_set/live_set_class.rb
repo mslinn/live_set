@@ -9,6 +9,8 @@ require_relative '../common/log'
 require_relative 'als_file'
 require_relative 'live_set_converter'
 require_relative 'live_set_report'
+require_relative 'model/live_scene'
+require_relative 'model/live_tracks'
 
 # See https://www.ionos.ca/digitalguide/websites/web-development/xpath-tutorial/
 # See https://www.scrapingbee.com/webscraping-questions/selenium/how-to-find-elements-by-xpath-selenium

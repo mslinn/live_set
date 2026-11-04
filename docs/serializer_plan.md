@@ -233,9 +233,10 @@ collections of clips" (Live Concepts), and a Session clip copied into the Arrang
 independent Arrangement clip.
 
 The file agrees. One clip of the Live 11 reference set, `3-Kontakt 7 1`, is written out as
-eight complete `MidiClip` elements, seven of them with the same forty-seven note events; an
-audio clip, `Pink Noise - EDMtips.com`, is written out eleven times, each with its own
-`Id` and its own `SampleRef`. `LomId` is `0` throughout and ties nothing together.
+nine complete `MidiClip` elements, eight of them with the same forty-seven note events and
+one with nineteen; an audio clip, `Pink Noise - EDMtips.com`, is written out eleven times,
+each with its own `Id` and its own `SampleRef`. `LomId` is `0` throughout and ties nothing
+together.
 
 What is referenced rather than copied is the sample: the audio of a set is in files beside
 it, and each clip holds the pointer to the file in its `<SampleRef>`. Several clips can
@@ -483,8 +484,8 @@ and the default is `notes`.
 
 **What it changes in the report.** The grouping of the clips of a track is by identity, so
 the clips that are alike are one line with the number of them. In the Live 11 reference set
-the eight copies of `3-Kontakt 7 1` are one line today, because the key is the name, the
-colour and the marks — and seven of them hold forty-seven notes while one holds nineteen.
+the nine copies of `3-Kontakt 7 1` are one line today, because the key is the name, the
+colour and the marks — and eight of them hold forty-seven notes while one holds nineteen.
 Under `notes` they are two lines.
 
 **And a section that crosses the tracks of the set.** A new section, `## Identical MIDI

@@ -81,7 +81,7 @@ RSpec.describe LiveSet, '#show' do
 
   it 'gives the color of each track, on the name of the track' do
     expect(report(LiveSets.fascination)).to match(
-      /background-color:\s*#[0-9A-F]{6};\s*color:\s*#[0-9A-F]{6};\s*vertical-align:\s*middle" title="Live color \d+">/
+      /background-color:\s*#[0-9A-F]{6};\s*color:\s*#[0-9A-F]{6};\s*vertical-align:\s*middle" title="Live color #\d+">/
     )
   end
 
@@ -123,7 +123,7 @@ RSpec.describe LiveSet, '#show' do
 
   it 'marks the devices that Push 3 cannot use with a dark background' do
     expect(report(LiveSets.fascination)).to include(
-      'background-color:#212121; color:#FFFFFF; vertical-align:middle">Filter</code>'
+      'background-color: #212121; color: #FFFFFF; vertical-align: middle">Filter</code>'
     )
   end
 
@@ -148,12 +148,14 @@ RSpec.describe LiveSet, '#show' do
   it 'marks the tracks that Push 3 cannot use with a dark background' do
     markdown = report(LiveSets.fascination)
 
-    expect(markdown).to include('background-color:#212121; color:#FFFFFF; vertical-align:middle"># Drums</code>')
-    expect(markdown).to include('background-color:#212121; color:#FFFFFF; vertical-align:middle">Kontakt 7</code>')
+    expect(markdown).to include('background-color: #212121; color: #FFFFFF; vertical-align: middle"># Drums</code>')
+    expect(markdown).to include('background-color: #212121; color: #FFFFFF; vertical-align: middle">Kontakt 7</code>')
   end
 
   it 'explains the marks on a clip' do
-    expect(report(LiveSets.fascination)).to include('`⚠ not in project` means the sample is not in the folder')
+    expect(report(LiveSets.fascination)).to include(
+      '`⚠ not in project` means the sample is not the project directory tree'
+    )
   end
 
   it 'gives the effects on a track' do

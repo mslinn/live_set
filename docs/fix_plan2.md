@@ -399,7 +399,7 @@ superseded.
 | `docs/als_work.md:1012` | the `PluginDevice` FIXME: the name is not where the code looks for it |
 | `docs/als_work.md:1057` | the paragraph about telling a third-party plug-in from a native device |
 | `docs/als_work.md:1072` | the elements the code looks for that no real set has |
-| `docs/als_work.md:1086` | cites **TODO N21**, which is not an identifier in `TODO.md`. **Done.** The citation is gone: the passage now says the code has been rewritten, and points at `lib/live_set/live_device.rb`. The two other dangling identifiers were `TODO.md N39` (`spec/live_set/live_set_modify_als_spec.rb`, twice — now T1, which is the question it was) and `TODO.md S3` (`spec/live_set/live_set_track_show_track_spec.rb` — now the code that does the clip parsing). |
+| `docs/als_work.md:1086` | cites **TODO N21**, which is not an identifier in `TODO.md`. **Done.** The citation is gone: the passage now says the code has been rewritten, and points at `lib/live_set/model/live_device.rb`. The two other dangling identifiers were `TODO.md N39` (`spec/live_set/live_set_modify_als_spec.rb`, twice — now T1, which is the question it was) and `TODO.md S3` (`spec/live_set/live_set_track_show_track_spec.rb` — now the code that does the clip parsing). |
 | `docs/als_work.md:1337` | the discussion of blocking transfers and blocking group devices |
 | `docs/live_control_plan.md:18`, `:63`, `:95`, `:116`, `:148`, `:173`, `:175`, `:319` | the plan for proving a conversion by running Live |
 

@@ -1,4 +1,6 @@
-require_relative '../common/xml'
+require_relative '../../common/xml'
+require_relative 'live_device'
+require_relative 'live_track'
 
 # A group track in an Ableton Live set.
 #
@@ -19,9 +21,9 @@ require_relative '../common/xml'
 class LiveGroup
   include Xml
 
-  attr_reader :id, :name, :members
+  attr_reader :id, :name, :members, :tracks
 
-  def initialize(group_track, tracks = [])
+  def initialize(group_track, tracks = [], set_directory = nil)
     @group_track = group_track
     @id          = @group_track['Id']
     @name        = xml_first_value(
@@ -29,6 +31,7 @@ class LiveGroup
       @group_track.at('Name/UserName')
     ) || "##{@id}"
     @members = member_tracks tracks
+    @tracks = @members.map { |member| LiveTrack.new set_directory, member }
   end
 
   # The devices in the group's chain.
@@ -38,7 +41,7 @@ class LiveGroup
   #
   # @return [Array<LiveDevice>] the devices
   def devices
-    @devices ||= xml_chain_devices(@group_track).map { |node| LiveDevice.new node }
+    @devices ||= LiveDevice.chain_devices(@group_track).map { |node| LiveDevice.new node }
   end
 
   # The group's devices that Push 3 Standalone cannot run.

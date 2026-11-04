@@ -1,10 +1,31 @@
-require_relative '../common/log'
-require_relative '../common/xml'
+require_relative '../../common/log'
+require_relative '../../common/xml'
+require_relative 'live_clip'
+require_relative 'live_device'
+require_relative 'live_take_lanes'
 
+# A track of a set: a MIDI track, an audio track, a group track, a return track or the master
+# track.
+#
+# A group track is a track that holds other tracks, and it is different in three ways: it
+# holds no clips of its own, it cannot be frozen, and its device chain is nested one level
+# deeper than a track's. See docs/als_notes.md, "The group tracks".
+#
+# The model holds no number: the XML has no notion of a track number, and the serializer
+# generates the numbers of the report.
+#
+# not implemented: parsing of elements AutomationEnvelopes, AutomationLane and the
+# arrangement of a track
 class LiveTrack
   include Xml
 
-  attr_reader :audio_clips, :id
+  # The kinds of track, and the element that holds each of them.
+  KINDS = {
+    'MidiTrack' => 'MIDI', 'AudioTrack' => 'Audio', 'GroupTrack' => 'Group',
+    'ReturnTrack' => 'Return', 'MasterTrack' => 'Master', 'MainTrack' => 'Main'
+  }.freeze
+
+  attr_reader :audio_clips, :id, :kind, :color, :clips, :take_lanes
 
   # The two sequencers a track can have.
   #
@@ -31,9 +52,83 @@ class LiveTrack
     # The devices in the track's chain, at any depth. A track in a group holds the group's chain
     # in an AudioEffectGroupDevice, several levels down. See docs/als_notes.md, "The device
     # chain, and the chains nested inside it", and "The device chain of a group".
-    @devices = xml_chain_devices(@audio_track).map { |node| LiveDevice.new node }
+    @devices = LiveDevice.chain_devices(@audio_track).map { |node| LiveDevice.new node }
 
     @audio_clips = define_audio_clips set_directory
+    @kind = KINDS.fetch(@audio_track.name, @audio_track.name)
+    @color = @audio_track.at('Color')&.[]('Value')&.to_i
+    @clips = clips_of_track
+    @take_lanes = LiveTakeLanes.new @audio_track
+  end
+
+  # The clips of the track, and the place each of them is in.
+  #
+  # A track's audio can be in the session view, in the arrangement, and in the take lanes.
+  # The clips of the take lanes are in the lanes, which are subordinate to the track.
+  #
+  # @return [Array<LiveClip>] the clips
+  def clips_of_track
+    places = {
+      'session view' => ['DeviceChain/MainSequencer/ClipSlotList/ClipSlot/ClipSlot/Value/AudioClip',
+                         'DeviceChain/MainSequencer/ClipSlotList/ClipSlot/ClipSlot/Value/MidiClip'],
+      'arrangement'  => ['DeviceChain/MainSequencer/Sample/ArrangerAutomation/Events/AudioClip',
+                         'DeviceChain/MainSequencer/ClipTimeable/ArrangerAutomation/Events/MidiClip'],
+    }
+
+    places.flat_map do |place, paths|
+      @audio_track.xpath(paths.join(' | ')).map { |node| LiveClip.new node, place: place }
+    end
+  end
+
+  # Whether the track is a group track.
+  #
+  # @return [Boolean] true for a group track
+  def group?
+    kind == 'Group'
+  end
+
+  # Whether the track is soloed.
+  #
+  # @return [Boolean] true when the track is soloed
+  def soloed?
+    value_of(@audio_track, 'IsSoloed') == 'true'
+  end
+
+  # Whether the track is armed for recording.
+  #
+  # @return [Boolean] true when the track is armed
+  def armed?
+    value_of(@audio_track, 'IsArmed') == 'true'
+  end
+
+  # Whether the track is switched off.
+  #
+  # The on/off state of a track is in the mixer of the track: the Manual value of the On
+  # element is false when the track is off.
+  #
+  # @return [Boolean] true when the track is off
+  def off?
+    @audio_track.at_xpath('./Mixer/On/Manual | ./On/Manual')&.[]('Value') == 'false'
+  end
+
+  # The group of tracks this track is linked to.
+  #
+  # The Link Tracks command locks the editing of several tracks together. See TODO N56.
+  #
+  # @return [String, nil] the id of the group, or nil when the track is linked to no other
+  def linked_group
+    value = @audio_track.at('LinkedTrackGroupId')&.[]('Value')
+    value == '-1' ? nil : value
+  end
+
+  # Whether the track cannot be transferred to Push 3 Standalone.
+  #
+  # A track that is not frozen and that has a device Push 3 cannot run cannot be transferred:
+  # the device has to be rendered away by freezing the track.
+  #
+  # @return [Boolean] true when the track is a problem
+  def problem?
+    !frozen? && blocking_devices.any?
   end
 
   # The clips in this track, grouped by where they come from.
@@ -89,6 +184,15 @@ class LiveTrack
       @audio_track.at('Name/EffectiveName'),
       @audio_track.at('Name/UserName')
     ) || "##{@id}"
+  end
+
+  # The value of an element of the track.
+  #
+  # @param element [Nokogiri::XML::Element] the track
+  # @param name [String] the name of the element
+  # @return [String, nil] the value, or nil when there is no such element
+  def value_of(element, name)
+    element.at_xpath(".//#{name}")&.[]('Value')
   end
 
   def frozen?

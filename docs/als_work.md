@@ -1103,7 +1103,7 @@ The elements `live_set` used to look for are all absent from real sets:
 | `<ClapPlugin>`, `<PluginId>`                                 | 0                      |
 | `<VstPreset>`                                                | 10, in one file        |
 
-The code has been rewritten since: `lib/live_set/live_device.rb` reads the elements a device
+The code has been rewritten since: `lib/live_set/model/live_device.rb` reads the elements a device
 chain actually holds, and a plug-in is a `PluginDevice`.
 
 ### The device chain

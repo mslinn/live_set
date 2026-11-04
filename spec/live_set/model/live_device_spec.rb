@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'live_set/live_device'
+require 'live_set/model/live_device'
 require 'support/live_sets'
 
 # The devices in a chain are the children of DeviceChain/DeviceChain/Devices. A plug-in is a

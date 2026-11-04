@@ -3,8 +3,9 @@ require 'socket'
 require 'time'
 require_relative '../common/log'
 require_relative '../common/xml'
-require_relative 'live_device'
 require_relative 'live_palette'
+require_relative 'model/live_device'
+require_relative 'serializer/live_track_serializer'
 
 # Generates a report of a set in markdown.
 #
@@ -52,6 +53,12 @@ class LiveSetReport
 
   # The ways a clip can be launched.
   LAUNCH_MODES = { 0 => 'trigger', 1 => 'toggle', 2 => 'gate' }.freeze
+
+  # The background a thing that Push 3 Standalone cannot use is written on.
+  DARK_BACKGROUND = '#212121'.freeze
+
+  # The color the text on a dark background is written in.
+  LIGHT_TEXT = '#FFFFFF'.freeze
 
   # The warp modes of a sample, in the order of the manual.
   #
@@ -437,7 +444,7 @@ class LiveSetReport
     problem = problem_for? element
 
     label = group ? "Group track #{number}" : "Track #{number}"
-    line = "#{indent}- #{label}  #{LivePalette.icon_of kind} #{kind}  " \
+    line = "#{indent}- #{label}  #{LiveTrackSerializer.icon_for kind} #{kind}  " \
            "#{track_label(track)}"
     states = states_of element
     line += "  #{states.join(', ')}" unless states.empty?
@@ -478,7 +485,7 @@ class LiveSetReport
     own_devices(element).each_with_index.map do |node, index|
       device = LiveDevice.new node
       unusable = device.blocking? && !frozen?(element)
-      parts = [LivePalette.name_span(device.label, nil, p3s_incompatible: unusable), device_kind(device)]
+      parts = [plain_name(device.label, dark: unusable), device_kind(device)]
       parts << '⚠ not usable on Push 3' if unusable
       "#{indent}- #{device_slot_label kind} #{number}#{letter_of index}  #{parts.join '  '}"
     end
@@ -852,7 +859,7 @@ class LiveSetReport
     end
 
     rows = uses.sort_by { |(label, _kind, _unusable), _| label.downcase }.map do |(label, kind, unusable), tracks|
-      name = LivePalette.name_span escape(label), nil, p3s_incompatible: unusable
+      name = plain_name label, dark: unusable
       [name, kind, tracks.join(', ')]
     end
     lines << MarkdownTables.make_table(['Device', 'Kind', 'Tracks With This Device'], rows, align: %w[l l l], is_rows: true)
@@ -1332,7 +1339,7 @@ class LiveSetReport
   # @param track [Array] the kind, the name, the element and the members of the track
   # @return [String] the name of the track, on its color
   def track_label(track)
-    LivePalette.name_span escape(track[1]), color_of(track[2]), p3s_incompatible: problem_for?(track[2])
+    name_on_color track[1], track[2], dark: problem_for?(track[2])
   end
 
   # The name of a clip, on the color Live gave it.
@@ -1340,7 +1347,65 @@ class LiveSetReport
   # @param clip [Nokogiri::XML::Element] the clip
   # @return [String] the name of the clip, on its color
   def clip_name(clip)
-    LivePalette.name_span escape(name_of_clip(clip)), color_of(clip)
+    name_on_color name_of_clip(clip), clip
+  end
+
+  # The name of a thing, on the color Live gave it.
+  #
+  # A thing that Push 3 Standalone cannot use is written on the dark background of those
+  # things, and the name of it is in light text.
+  #
+  # @param name [String] the name of the thing
+  # @param element [Nokogiri::XML::Element] the track or the clip
+  # @param dark [Boolean] true when the thing cannot be used on Push 3 Standalone
+  # @return [String] the name, on its color
+  def name_on_color(name, element, dark: false)
+    return plain_name(name, dark: true) if dark
+
+    color = LivePalette.color_of color_of(element)
+    return plain_name(name) unless color
+
+    LiveTrackSerializer.colored_code escape(name), color_number:     color_of(element),
+                                                   background_color: "##{color}",
+                                                   foreground_color: text_color(color)
+  end
+
+  # The name of a thing that has no color of its own.
+  #
+  # @param name [String] the name of the thing
+  # @param dark [Boolean] true when the thing cannot be used on Push 3 Standalone
+  # @return [String] the name
+  def plain_name(name, dark: false)
+    if dark
+      return LiveTrackSerializer.colored_code escape(name), background_color: DARK_BACKGROUND,
+                                                            foreground_color: LIGHT_TEXT
+    end
+
+    "<code>#{escape name}</code>"
+  end
+
+  # The color the text on a color is written in.
+  #
+  # Black is written on a color that looks light, and white on a color that looks dark.
+  #
+  # @param color [String] the color, as six hex digits
+  # @return [String] the color of the text
+  def text_color(color)
+    brightness(color) > 128 ? '#000000' : LIGHT_TEXT
+  end
+
+  # How bright a color looks.
+  #
+  # The brightness is the weighted sum of the three channels, the way the eye weighs them:
+  # green counts the most, and blue the least.
+  #
+  # @param color [String] the color, as six hex digits
+  # @return [Float] the brightness, from 0 to 255
+  def brightness(color)
+    red = color[0, 2].to_i(16)
+    green = color[2, 2].to_i(16)
+    blue = color[4, 2].to_i(16)
+    (0.299 * red) + (0.587 * green) + (0.114 * blue)
   end
 
   # The value of an element of a track or a clip.

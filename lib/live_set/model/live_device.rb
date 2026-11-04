@@ -1,4 +1,4 @@
-require_relative '../common/xml'
+require_relative '../../common/xml'
 
 # One device from an Ableton track's device chain.
 #
@@ -47,6 +47,27 @@ class LiveDevice
     @name         = device_name
     @manufacturer = xml_value(node.at('Manufacturer')) || ''
     @type         = xml_value(node.at('Type')) || xml_value(node.at('DeviceType')) || ''
+  end
+
+  # The devices in a track's device chain.
+  #
+  # The devices are the children of a Devices element. The path to the top-level one is doubled:
+  # the track's DeviceChain contains a DeviceChain, which contains Devices.
+  #
+  # A chain can be nested. An AudioEffectGroupDevice holds a group's device chain in its branches,
+  # and a DrumGroupDevice holds a drum rack, so a track's real devices can be several levels down.
+  # Every device in the chain is found, at any depth.
+  #
+  # The container devices themselves are not returned. They are not devices that process audio —
+  # they hold devices that do. See docs/als_notes.md, "The device chain, and the chains nested
+  # inside it", and "The device chain of a group".
+  #
+  # @param element [Nokogiri::XML::Node, nil] the track or group element
+  # @return [Array<Nokogiri::XML::Element>] the devices
+  def self.chain_devices(element)
+    return [] if element.nil?
+
+    element.xpath('.//Devices/*').reject { |node| CONTAINER_ELEMENTS.include? node.name }
   end
 
   # @return true if the device is a plug-in, or a Max for Live device

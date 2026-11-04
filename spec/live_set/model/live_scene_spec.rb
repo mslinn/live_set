@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'live_set/live_set_scene'
+require 'live_set/model/live_scene'
 require 'support/live_sets'
 
 # A scene of a set, and the tempo it carries.

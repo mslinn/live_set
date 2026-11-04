@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'live_set/live_set_group'
+require 'live_set/model/live_group'
 require 'support/live_sets'
 
 # A group track is a summing container, not a track that plays clips. It has no clips, so it is
@@ -93,6 +93,12 @@ RSpec.describe LiveGroup do
       group = described_class.new suite_group, []
 
       expect(group.members).to be_empty
+    end
+
+    it 'holds the tracks that belong to it' do
+      group = described_class.new suite_group, suite_tracks, LiveSets.directory(LiveSets.suite)
+
+      expect(group.tracks.map(&:name)).to eq(['Lead', 'Harmony', 'Delay Vox', 'Extra Line'])
     end
   end
 end

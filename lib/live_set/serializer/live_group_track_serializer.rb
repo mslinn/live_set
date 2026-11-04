@@ -1,6 +1,9 @@
 # TODO: This is a placeholder to start off the changes described as TODO comments in lib/live_set/live_palette.rb
 # TODO Write unit tests
 #
+require_relative 'live_device_serializer'
+require_relative 'live_track_serializer'
+#
 # Serializes a `LiveGroupTrack` model as markdown by serializing each member track.
 #
 # Assuming a `LiveGroupTrack` exposes member tracks through `tracks`, the group serializer can delegate each track to

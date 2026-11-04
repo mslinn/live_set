@@ -1,6 +1,6 @@
 require 'spec_helper'
-require 'live_set/live_set_track'
-require 'live_set/live_device'
+require 'live_set/model/live_track'
+require 'live_set/model/live_device'
 require 'support/live_sets'
 
 # A track's device chain can be nested. An AudioEffectGroupDevice holds a group's device chain in

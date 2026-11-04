@@ -1,3 +1,6 @@
+require_relative 'live_group'
+require_relative 'live_track'
+
 class LiveTracks
   def initialize(set_directory, tracks, groups = [])
     @tracks = tracks

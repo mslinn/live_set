@@ -92,12 +92,12 @@ RSpec/MultipleExpectations:
 RSpec/MultipleMemoizedHelpers:
   Enabled: false
 
-# The classes in this project are namespaced under the live_set_ prefix, so that
-# the spec files can be named to match.
+# The model classes are named for the thing they model, so that the spec files can be
+# named to match.
 RSpec/SpecFilePathFormat:
   CustomTransform:
-    LiveScene: live_set_scene
-    LiveTrack: live_set_track
+    LiveScene: live_scene
+    LiveTrack: live_track
     LiveTracks: live_tracks
     Run: common/run
     String: string

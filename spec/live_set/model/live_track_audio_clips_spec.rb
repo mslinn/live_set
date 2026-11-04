@@ -1,6 +1,6 @@
 require 'spec_helper'
-require 'live_set/live_set_track'
-require 'live_set/live_set_audio_clip'
+require 'live_set/model/live_track'
+require 'live_set/model/live_audio_clip'
 require 'support/live_sets'
 
 # The clips of a track, and where they come from.

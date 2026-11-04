@@ -1,7 +1,7 @@
 require 'colorator'
 require 'date'
 require 'pathname'
-require_relative '../common/xml'
+require_relative '../../common/xml'
 
 class LiveAudioClip
   include Xml
