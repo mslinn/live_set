@@ -1,4 +1,4 @@
-require_relative 'lib/common/log'
+require_relative '../common/log'
 
 # The default Live color palette.
 #

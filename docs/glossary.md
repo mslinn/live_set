@@ -120,6 +120,14 @@ document says "the Live 11 format", read "the elements, attributes and values
 that Live 11 writes". The two are kept apart elsewhere in these documents, and
 so they are here.
 
+## Fully resolved size
+
+The size of everything a set draws on: the project, and the assets outside it — the samples
+in the user library, the Live Packs, the Racks, the Live Clips.
+
+A report gives it beside the size of the set file, the expected size of the project and the
+actual size of the project, and says what each of them was computed from.
+
 ## Ground truth
 
 A document that Live itself produced, used as the expected result of a

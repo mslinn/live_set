@@ -304,6 +304,42 @@ What is left:
 - The reports of the reference sets carry the old legend, and are regenerated when the
   wording changes.
 
+#### N58. Should each asset of a set carry a hash of its own?
+
+The report is to carry a table of the assets of a set — every `FileRef` of it, which is 124
+in the Live 11 reference set — with the path as it is written, how the path was resolved, the
+size Live recorded, the size on disk, where the file is, and when it was last changed. That
+table is the evidence behind the sizes the report gives.
+
+A hash of each file would be stronger evidence than a size: a file that has changed and keeps
+its size would not be noticed by the size alone. The sets of the corpus are checked in, so the
+hashes could be checked in as well, and a set could be compared with the copy that was taken.
+
+What is open:
+
+- Whether the report computes a hash of each asset at all. The cost is a read of every file
+  the set draws on, and a set can draw on a whole library.
+- Whether the hash is of the file as it is on disk, or of the content Live recorded. Live
+  records a `CRC` of each sample — `OriginalCrc` — and what that CRC is a checksum of is not
+  yet known, so it cannot be compared with a hash of the file without knowing what it covers.
+- Whether the hashes are of the assets only, or of the set file as well. The set file has the
+  two SHA-256 checksums the plan gives it: of the file, and of the content.
+
+#### N59. Should the report carry a checksum of the tool that made it?
+
+The report says what made it: the version of `live_set`, and where the tool is documented,
+<https://www.mslinn.com/av_studio/ableton_live_set.html>. A report is evidence, and evidence
+is stronger when the program that wrote it can be identified exactly.
+
+What is open:
+
+- Whether the report carries a checksum of the tool — of the gem, of the file it was run
+  from, or of the model — and of what: the gem as installed, the working copy, or the
+  version.
+- Whether the checksum is of the tool or of the model, or of both.
+- Whether it is wanted at all, given that the version of the tool is already in the report and
+  the version is what identifies a release of the gem.
+
 #### L1. Live ships its own schemas; use them
 
 Every Live installation carries a directory of schemas of the format, one file per format version, named after the `MinorVersion` of a set. They are Live's own description of the format, and they are more complete than the XSDs this repository infers from the demo sets: 114 of the element names in `schemas/vocab_live11.txt` are in Live's schema for 11.0 and cannot be in the inferred one, because no Live 11 demo set contains them.

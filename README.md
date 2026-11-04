@@ -255,6 +255,36 @@ reference sets are in the repository of the reference sets, and
 describes what they hold.
 
 
+### The sizes and the checksum of a set
+
+A report is evidence: it has to say how big a set is, and it has to show that the set has not
+been tampered with.
+
+**The checksums.** A set is a gzipped XML document, and two files with the same content need
+not have the same bytes. The report carries both SHA-256 checksums of the set that was read:
+
+- the hash of the **file**, of the `.als` as it is on disk. It changes when anything in the
+  file changes, including the compression.
+- the hash of the **content**, of the XML the `.als` holds when it is inflated. It says the
+  material of the set did not change, however it was compressed.
+
+**The sizes.** Four of them, and the report says what each was computed from:
+
+| The size | What it is |
+| --- | --- |
+| The set file | the size of the `.als` |
+| The expected size of the project | what the project should be, according to the `.als`: the set file, and every sample the set refers to that is in the project, counted once |
+| The actual size of the project | what the project is on disk, when the project folder is there |
+| The fully resolved size | everything the set draws on: the project, and the assets outside it — the samples in the user library, the Live Packs, the Racks, the Live Clips |
+
+A sample that is not on disk has no size on disk, and the report says so rather than
+guessing. A table of the assets says what the sizes are made of: each file, the size Live
+recorded for it, the size on disk, where it is, and when it was last changed.
+
+The report says what made it — the version of `live_set`, and where the tool is documented:
+<https://www.mslinn.com/av_studio/ableton_live_set.html>.
+
+
 ### Convert
 
 Make the Live 12 set compatible with Live 11 and save as `path/to/my_set_11.als`:

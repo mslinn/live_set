@@ -227,7 +227,28 @@ that has no relative path.
 The reference is to the file on disk, not to a clip. See "Every place holds
 its own clip".
 
+The size Live records is the size of the source file as Live saw it, and it
+is sometimes zero even though the file exists and is not empty. The size on
+disk is used in that case.
+
+Several clips can refer to the same file, and each can play it differently —
+reversed, warped differently, trimmed — without touching the file. So the size
+of a set counts each file once, and it is not the sum of the sizes of the
+clips.
+
 See `lib/live_set/live_set_audio_clip.rb`.
+
+
+## The set file is a gzip file
+
+A set is a gzipped XML document, and the gzip header holds the time the file
+was compressed. Two files with the same content can therefore have different
+bytes: a set that was recompressed has the same content and a different file.
+
+So a hash of the file and a hash of the content are different things, and a
+report that is evidence carries both. The hash of the file says that nothing in
+the file has changed. The hash of the content says that the material of the
+set has not changed, however it was compressed.
 
 
 ## Whether a sample has been collected

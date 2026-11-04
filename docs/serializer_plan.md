@@ -52,16 +52,14 @@ The long TODO in `live_palette.rb` states the rules, and the plan obeys them:
 
 ## Colors
 
-With `text_color`, `brightness` and `LIGHT` deleted, nothing in the palette works out the
-colour of the text on a colour, and the caller says what the background colour is. The one
-thing the TODOs do not say is who chooses the colour of the text.
+With `text_color`, `brightness` and `LIGHT` deleted, nothing in the palette works out the colour of the text on a
+colour, and the caller says what the background colour is. The one thing the TODOs do not say is who chooses the colour
+of the text.
 
-Answer: The default color is the default markdown color. Look at the existing
-reports in `$live_reference_sets/sets/live_12/reports` and use those colors for
-now. We will optimize them later.
+Answer: The default color is the default markdown color. Look at the existing reports in
+`$live_reference_sets/sets/live_12/reports` and use those colors for now. We will optimize them later.
 
-The caller passes the foreground and background colours.
-The serializer only writes what it is given:
+The caller passes the foreground and background colours.  The serializer only writes what it is given:
 
 ```ruby
 LiveTrackSerializer.colored_code text, color_number: 21, background_color: '#18E9FE',
@@ -69,11 +67,60 @@ LiveTrackSerializer.colored_code text, color_number: 21, background_color: '#18E
 LiveTrackSerializer.swatch 21, background_color: '#18E9FE', foreground_color: '#000000'
 ```
 
+## Hierarchical Numnbering System
+
+In a hierarchical numbering system, `1.1.2a` represents a specific sub-item nested deep within a structured list or
+document outline.
+
+Here is how this specific number breaks down from the top level down to the most specific point:
+
+• 1. — The first main section or chapter.
+• 1.1. — The first subsection under main section 1.
+• 1.1.2. — The second sub-subsection under subsection 1.1.
+• 1.1.2a — The first individual clause, paragraph, or item (denoted by 'a') within sub-subsection 1.1.2.
+
+### Visual Example
+
+To see how this looks in a legal document, technical manual, or project outline:
+• 1. Main Heading
+ • 1.1 Subheading
+  • 1.1.1 Sub-subheading
+  • 1.1.2 Sub-subheading
+   • 1.1.2a This is the exact item you are looking at.
+   • 1.1.2b The next item at this same level.
+
+### Usage in This Project
+
+The hierarchical relationships between the ALS model classes and their corresponding serializer classes is reflected in
+the markdown generated for the ALS report. Nested XML items stored in the ALS file are reported using a hierarchical
+numbering system.
+
+TODO: the following was taken from the `Fascination.md` reference report
+($live_reference_sets/sets/live_11/reports/Fascination.md). Notice how it shows references, which we recently learned do
+not exist for MIDI. Audio files live in separate files, so ALS XML elements can only point to the audio files. in that
+sense audio samples are always references.
+
+```text
+ALS_Model
+  Group track 1 👥 Group # Drums
+  Group Track Device 1a Filter Max for Live ⚠ not usable on Push 3
+  Group Track Device 1b DrumBuss Live
+  Track 1.1 🎹 MIDI Kontakt 7
+    Track Device 1.1a Kontakt 7 VST3 ⚠ not usable on Push 3
+    Clip 1.1.1 (×5) Kontakt 7 1 ⚠ not in project
+      References (×5): launch: trigger, warp: none
+    Take lane 1.1.1 3-Kontakt 7 1
+      Clip 1.1.1.1 (×3) Kontakt 7 1 ⚠ not in project
+        References (×3): launch: trigger, warp: none
+```
+
+Notice how Track 1.1 appears beneath Group track 1; That means the track is a member of the group. The hierarchical
+numbering (1.1) is consistent with the indentation.
 
 ## Serializer Classes
 
-The classes in `lib/live_set/serializer/` are placeholders, and the five below have been
-agreed with the user, as the long TODO asks.
+The classes in `lib/live_set/serializer/` are placeholders, and the five below have been agreed with the user, as the
+long TODO asks.
 
 <!-- markdownlint-disable MD013 MD060 -->
 | The class                           | It serializes                                                                        | Its model           |
@@ -192,8 +239,8 @@ are copied with it.
 the elements of a saved set, and it is not a key that ties the copies of a clip together.
 
 So `LiveClip` is one clip in the file, with its own settings and its own place, and there is
-no `LiveClipReference` and no `LiveClipSettings`: the launch mode and the warp mode belong
-to the clip element they are written in.
+no `LiveClipReference`: the launch mode and the warp mode belong to the clip element they
+are written in.
 
 The grouping of the copies that are the same clip — the report's `Clip 1.1 (×7)` — is the
 report's own, and belongs to the report and not to the model.
@@ -331,6 +378,19 @@ the reference sets — the Live 11 demo set, the Live 12 one, and the factory de
 so that the expected values are the values of a real set and not of a hand-made one. The
 specs use the same code the report uses to build the models; nothing is mocked.
 
+**The specs that are written already** are the ones whose model exists today:
+
+| The spec | What it pins |
+| --- | --- |
+| `spec/live_set/serializer/p3s_compatibility_spec.rb` | the whole verdict, as a heredoc, from the report of the Live 11 reference set |
+| `spec/live_set/serializer/live_device_serializer_spec.rb` | the device as the report writes it: the name on the dark background, the kind, and the warning |
+| `spec/live_set/serializer/als_model_serializer_spec.rb` | the sections of the report, in order, and the facts about the set at the top of it |
+| `spec/live_set/model/als_model_spec.rb` | the four values the model of a file holds: its path, its XML, and the times of it |
+
+The spec of a serializer whose model does not exist yet is written with the model, in step 3
+and step 4: `LiveClipReference`, `LiveTakeLane`, `LiveTakeLanes`, `LiveGroupTrack` and
+`LiveTrack` are written before the serializers that write them.
+
 **The report as a whole has a spec of its own.** One spec asserts that the report of a set
 is the report that is checked in, so that a change to any part of it cannot slip through
 the specs of the parts. The checked-in reports are the ones `bin/generate_reference_als_reports`
@@ -378,8 +438,23 @@ serializer is given the group and the number to write it under.
   belong to the clip element they are written in. The legend says that instead, and the
   reports of the reference sets are regenerated, so the new wording is in them. The item is
   **N57** in `TODO.md`.
+- **The lines under a clip** read `References (×5): launch: trigger, warp: none`. They are the
+  copies of the clip and the settings they differ in, so they are not references. The word
+  changes, and the count of the copies stays.
 - **The reports of the reference sets** are regenerated, so the legend and the tables of the
   reports change with it.
+
+## The questions that are still open
+
+Two of them are in the standing list, and each is a question rather than a piece of work:
+
+- **N58** — should each asset of a set carry a hash of its own? The assets table carries the
+  size of each file, and a hash would notice a file that has changed and kept its size.
+- **N59** — should the report carry a checksum of the tool that made it? The report says the
+  version of `live_set` and where the tool is documented; a checksum would say which code
+  produced the report.
+
+Both are in `TODO.md`.
 
 ## The documentation
 
@@ -389,11 +464,110 @@ are not lost when the plan is executed:
 | What was learned | Where it is written down |
 | --- | --- |
 | Every place holds its own clip; there is no clip reference in the format; the sample is what is referenced | `docs/als_notes.md`, "Every place holds its own clip" |
+| A set is a gzip file, so the hash of the file and the hash of the content differ | `docs/als_notes.md`, "The set file is a gzip file" |
 | The colour of a track or a clip is a number that indexes the colour menu of Live | `docs/als_notes.md`, "The colour of a track or a clip" |
 | What a clip is, and what alike clips are | `docs/glossary.md`, "Clip" |
+| What the fully resolved size is | `docs/glossary.md`, "Fully resolved size" |
 | How the report writes a name: the style on the `code` element, black or white by brightness, the tooltip with the number | `README.md`, "The Report" |
+| The sizes and the checksums the report carries | `README.md`, "The sizes and the checksum of a set" |
 | The model, its classes, and the rules the models and the serializers follow | `docs/report_design.md` |
 | The work itself | this document |
+
+## The identity of a MIDI clip
+
+A MIDI clip has no file, so its identity is its content. The name of a clip is never part of
+it: two clips that hold the same notes under different names are the same material.
+
+There are three definitions of "the same", and the report can be asked for any of them:
+
+| The definition | Two MIDI clips are the same when |
+| --- | --- |
+| `notes` | they hold the same note events: pitch, time, duration, velocity, probability, and whether the note is enabled. The note ids are left out, since they are ids. |
+| `keys` | they hold the same note events and the same key tracks |
+| `loop` | they hold the same note events, the same key tracks, and the same loop markers |
+
+The choice is an option of the program:
+
+```shell
+live_set -s path/to/my_set.als -i notes
+```
+
+and the default is `notes`.
+
+**What it changes in the report.** The grouping of the clips of a track is by identity, so
+the clips that are alike are one line with the number of them. In the Live 11 reference set
+the eight copies of `3-Kontakt 7 1` are one line today, because the key is the name, the
+colour and the marks — and seven of them hold forty-seven notes while one holds nineteen.
+Under `notes` they are two lines.
+
+**And a section that crosses the tracks of the set.** A new section, `## Identical MIDI
+Clips`, lists every group of MIDI clips of the set that hold the same notes, and where each
+of them is: the track, and the place in the track. It is the one place where the material
+of a set is compared across the set rather than within a track.
+
+The identity of an audio clip does not change: it is its file, with its colour and its
+marks.
+
+## The sizes and the checksum of a set
+
+The report is evidence. It has to say how big a set is, and it has to show that the set has
+not been tampered with, so that the opinions drawn from it survive cross-examination.
+
+### The checksum
+
+The report carries two checksums of the set, both SHA-256:
+
+- **the hash of the file**, of the `.als` as it is on disk. It changes when anything changes
+  in the file, including the compression.
+- **the hash of the content**, of the XML the `.als` holds when it is inflated. A set is a
+  gzip file, and two files with the same content need not have the same bytes: a set that was
+  recompressed has the same content and a different file. The hash of the content says the
+  material did not change; the hash of the file says the file did not change.
+
+Both are of the set that was read, and the report says which is which.
+
+### The sizes
+
+Four sizes, and the report says what each one was computed from, and what could not be
+computed:
+
+| The size | What it is | How it is computed | What it needs |
+| --- | --- | --- | --- |
+| The set file | the size of the `.als` | the file on disk | the set |
+| The expected size of the project | what the project should be, according to the `.als`: the set file, and every sample the set refers to that is in the project, counted once | the sizes Live recorded in `OriginalFileSize`, and the size on disk where Live recorded zero | the set |
+| The actual size of the project | what the project is, on disk | the files in the project folder | the project folder |
+| The fully resolved size | everything the set draws on: the project, and the assets outside it — the samples in the user library, the Live Packs, the Racks, the Live Clips | the expected size, with the assets outside the project added | the set, and the files outside the project |
+
+A sample that is not on disk has no size on disk, and the report says so rather than
+guessing at one. A project folder that is not there has no actual size, and the report says
+that instead of the expected one.
+
+### The assets
+
+Every external asset of a set is named by a `FileRef` — the same element a sample is
+referenced by, whether the asset is a sample or a device preset. The Live 11 reference set
+has 124 of them, and the paths they name take four shapes:
+
+| The path | What it is |
+| --- | --- |
+| relative to the set | an asset in the project folder |
+| absolute | an asset in the user library, or in the Core Library of the Live installation |
+| relative, with `..` in it | an asset outside the project folder, in the folder the set was made in |
+| a folder | a folder rather than a file, and not an asset at all |
+
+A table of the assets says what the sizes are made of: each one, the path as it is written,
+how the path was resolved, the size Live recorded for it, the size on disk, where it is — in
+the project, in the user library, in the Core Library, or missing — and when it was last
+changed. The reader can add the columns up.
+
+So the fully resolved size is computed over every `FileRef` of the set: the path is
+resolved, the size on disk is taken, and what is not there is reported as not there.
+
+### The tool
+
+The report says what made it: the version of `live_set`, and where the tool is documented —
+<https://www.mslinn.com/av_studio/ableton_live_set.html> — so that a report can be traced to
+the program that wrote it.
 
 ## The steps
 
@@ -451,7 +625,7 @@ Each step leaves the program working, and the reports unchanged.
    `code_span`, `text_color` and `brightness`. The markup written is the markup written
    today, so the report does not change. The log is required by the serializer. A spec for
    the serializer.
-3. **The models are written**, one at a time, each with a spec: `LiveClipReference` and
+3. **The models are written**, one at a time, each with a spec: `LiveClip` and
    `LiveClipSettings` first, because the clip lines carry the most detail, then
    `LiveTakeLane` and `LiveTakeLanes`, then `LiveClip`, then `LiveTrack` and
    `LiveGroup`. Each model leaves a note where it does not parse something, as above.
@@ -463,6 +637,17 @@ Each step leaves the program working, and the reports unchanged.
 5. **The report is left as a writer.** What is left of `LiveSetReport` is the header block
    and the four tables, and the header block becomes `HeaderBlock` when the models are in
    place.
+6. **The identity of a MIDI clip is its content.** The model computes the identity of a
+   MIDI clip under the definition that is asked for — `notes`, `keys` or `loop` — and the
+   name is never part of it. The option is parsed by `live_set_options.rb` and is passed to
+   the model. The grouping of the clips of a track is by identity, and a new section,
+   `## Identical MIDI Clips`, with a serializer of its own, crosses the tracks of the set.
+7. **The sizes and the checksum of the set.** The model computes the four sizes and the two
+   checksums, and the report carries them: the size of the set file, the expected size of the
+   project, the actual size of the project when the project folder is there, and the fully
+   resolved size; the hash of the file and the hash of the content. A table of the assets
+   says what the sizes are made of. The header block says what made the report and where the
+   tool is documented.
 
 ## The evidence that nothing has broken
 

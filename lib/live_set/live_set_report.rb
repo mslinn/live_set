@@ -478,7 +478,7 @@ class LiveSetReport
     own_devices(element).each_with_index.map do |node, index|
       device = LiveDevice.new node
       unusable = device.blocking? && !frozen?(element)
-      parts = [LivePalette.name_span(device.label, nil, dark: unusable), device_kind(device)]
+      parts = [LivePalette.name_span(device.label, nil, p3s_incompatible: unusable), device_kind(device)]
       parts << '⚠ not usable on Push 3' if unusable
       "#{indent}- #{device_slot_label kind} #{number}#{letter_of index}  #{parts.join '  '}"
     end
@@ -852,7 +852,7 @@ class LiveSetReport
     end
 
     rows = uses.sort_by { |(label, _kind, _unusable), _| label.downcase }.map do |(label, kind, unusable), tracks|
-      name = LivePalette.name_span escape(label), nil, dark: unusable
+      name = LivePalette.name_span escape(label), nil, p3s_incompatible: unusable
       [name, kind, tracks.join(', ')]
     end
     lines << MarkdownTables.make_table(['Device', 'Kind', 'Tracks With This Device'], rows, align: %w[l l l], is_rows: true)
@@ -1332,7 +1332,7 @@ class LiveSetReport
   # @param track [Array] the kind, the name, the element and the members of the track
   # @return [String] the name of the track, on its color
   def track_label(track)
-    LivePalette.name_span escape(track[1]), color_of(track[2]), dark: problem_for?(track[2])
+    LivePalette.name_span escape(track[1]), color_of(track[2]), p3s_incompatible: problem_for?(track[2])
   end
 
   # The name of a clip, on the color Live gave it.
