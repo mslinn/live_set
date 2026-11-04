@@ -26,10 +26,7 @@ class LiveGroup
   def initialize(group_track, tracks = [], set_directory = nil)
     @group_track = group_track
     @id          = @group_track['Id']
-    @name        = xml_first_value(
-      @group_track.at('Name/EffectiveName'),
-      @group_track.at('Name/UserName')
-    ) || "##{@id}"
+    @name        = name_of group_track
     @color       = @group_track.at('Color')&.[]('Value')&.to_i
     @members = member_tracks tracks
     @tracks = @members.map { |member| LiveTrack.new set_directory, member }
@@ -40,6 +37,39 @@ class LiveGroup
   # @return [Boolean] true, always: a group is a group track
   def group?
     true
+  end
+
+  # The kind of the track.
+  #
+  # @return [String] the kind
+  def kind
+    'Group'
+  end
+
+  # The id of the group the group is in.
+  #
+  # A group can be in a group. See docs/als_notes.md, "A member track names its group".
+  #
+  # @return [String, nil] the id of the group, or nil when the group is in no group
+  def group_id
+    value = @group_track.at('TrackGroupId')&.[]('Value')
+    value == '-1' ? nil : value
+  end
+
+  # The name of the group.
+  #
+  # The name the user typed is the name of the group. When there is none, the name Ableton
+  # resolved is the name, without the number Ableton gives the groups that share a name.
+  #
+  # @param group_track [Nokogiri::XML::Element] the group
+  # @return [String] the name of the group
+  def name_of(group_track)
+    user_name = group_track.at('Name/UserName')&.[]('Value')
+    effective_name = group_track.at('Name/EffectiveName')&.[]('Value')
+    return user_name unless user_name.nil? || user_name.empty?
+    return '(unnamed)' if effective_name.nil? || effective_name.empty?
+
+    effective_name.sub(/\A\d+[- ]/, '')
   end
 
   # The devices in the group's chain.

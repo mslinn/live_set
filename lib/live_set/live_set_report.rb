@@ -6,6 +6,7 @@ require_relative '../common/xml'
 require_relative 'live_palette'
 require_relative 'model/live_device'
 require_relative 'serializer/live_device_serializer'
+require_relative 'serializer/live_group_track_serializer'
 require_relative 'serializer/live_track_serializer'
 require_relative 'serializer/p3s_compatibility'
 
@@ -372,7 +373,7 @@ class LiveSetReport
   #
   # @return [String] the outline
   def tracks_markdown
-    tracks = track_tree
+    tracks = @tracks.top_level
     lines = ['## Groups/Tracks/Clips/Devices', '']
 
     if tracks.empty?
@@ -391,21 +392,18 @@ class LiveSetReport
   # The groups at the top of the set are numbered from one, and the tracks at the top of the
   # set are numbered from one as well: a group and a track are numbered in their own company.
   #
-  # TODO: this walks the elements of the tracks. The outline is to be written by the
-  # serializers, from the model: see docs/serializer_plan.md, step 5.
-  #
-  # @param tracks [Array<Array>] the tracks of the set
+  # @param tracks [Array<LiveTrack, LiveGroup>] the tracks of the set
   # @return [Array<String>] the lines
   def top_level_lines(tracks)
     groups = 0
     others = 0
     tracks.flat_map do |track|
-      if track[0] == 'Group'
+      if track.group?
         groups += 1
-        track_lines track, groups, 0
+        LiveGroupTrackSerializer.new(track, groups).to_markdown.split("\n")
       else
         others += 1
-        track_lines track, others, 0
+        LiveTrackSerializer.new(track, others).to_markdown.split("\n")
       end
     end
   end

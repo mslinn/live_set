@@ -70,6 +70,22 @@ class LiveDevice
     element.xpath('.//Devices/*').reject { |node| CONTAINER_ELEMENTS.include? node.name }
   end
 
+  # The devices of an element itself, and not of the chain it is in.
+  #
+  # The chain of a track in a group holds the chain of the group, and the devices of that
+  # chain belong to the group. A device of the group's chain is not a device of the track.
+  #
+  # @param element [Nokogiri::XML::Node, nil] the track or group element
+  # @return [Array<Nokogiri::XML::Element>] the devices
+  def self.own_devices(element)
+    return [] if element.nil?
+
+    element.xpath('.//Devices/*').reject do |node|
+      CONTAINER_ELEMENTS.include?(node.name) ||
+        node.ancestors.any? { |ancestor| CONTAINER_ELEMENTS.include? ancestor.name }
+    end
+  end
+
   # @return true if the device is a plug-in, or a Max for Live device
   def blocking?
     plug_in? || max_for_live?

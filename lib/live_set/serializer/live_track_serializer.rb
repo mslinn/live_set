@@ -112,6 +112,14 @@ class LiveTrackSerializer
       brightness(color) > 128 ? '#000000' : LIGHT_TEXT
     end
 
+    # The characters of a name that would break a table.
+    #
+    # @param text [String] the text
+    # @return [String] the text, escaped
+    def escape(text)
+      text.to_s.gsub('|', '&#124;')
+    end
+
     # How bright a colour looks.
     #
     # The brightness is the weighted sum of the three channels, the way the eye weighs them:
@@ -181,16 +189,18 @@ class LiveTrackSerializer
   # @return [String] the name of the track
   def name_markdown
     if problem?
-      return LiveTrackSerializer.colored_code @track.name, background_color: DARK_BACKGROUND,
-                                                           foreground_color: LIGHT_TEXT
+      return LiveTrackSerializer.colored_code LiveTrackSerializer.escape(@track.name),
+                                                              background_color: DARK_BACKGROUND,
+                                                              foreground_color: LIGHT_TEXT
     end
 
     color = LivePalette.color_of @track.color
-    return "<code>#{@track.name}</code>" unless color
+    return "<code>#{LiveTrackSerializer.escape @track.name}</code>" unless color
 
-    LiveTrackSerializer.colored_code @track.name, color_number:     @track.color,
-                                                  background_color: "##{color}",
-                                                  foreground_color: LiveTrackSerializer.text_color(color)
+    LiveTrackSerializer.colored_code LiveTrackSerializer.escape(@track.name),
+                                                   color_number:     @track.color,
+                                                   background_color: "##{color}",
+                                                   foreground_color: LiveTrackSerializer.text_color(color)
   end
 
   # The state of the track.
@@ -247,6 +257,6 @@ class LiveTrackSerializer
     return [] if @track.take_lanes.empty?
 
     serializer = LiveTakeLanesSerializer.new @track.take_lanes, @hierarchical_number
-    serializer.to_markdown.lines.map { |line| "#{@indent}  #{line}" }
+    serializer.to_markdown.split("\n").map { |line| "#{@indent}  #{line}" }
   end
 end

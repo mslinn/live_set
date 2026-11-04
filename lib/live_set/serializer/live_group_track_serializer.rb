@@ -42,15 +42,34 @@ class LiveGroupTrackSerializer
 
   # The name of the group, on the colour Live gave it.
   #
+  # A group that Push 3 Standalone cannot use is written on the dark background of those
+  # things, and the name of it is in light text.
+  #
   # @return [String] the name of the group
   def name_markdown
-    color = LivePalette.color_of @group.color
-    return "<code>#{@group.name}</code>" unless color
+    if problem?
+      return LiveTrackSerializer.colored_code LiveTrackSerializer.escape(@group.name),
+                                                              background_color: LiveTrackSerializer::DARK_BACKGROUND,
+                                                              foreground_color: LiveTrackSerializer::LIGHT_TEXT
+    end
 
-    LiveTrackSerializer.colored_code @group.name,
+    color = LivePalette.color_of @group.color
+    return "<code>#{LiveTrackSerializer.escape @group.name}</code>" unless color
+
+    LiveTrackSerializer.colored_code LiveTrackSerializer.escape(@group.name),
                                      color_number:     @group.color,
                                      background_color: "##{color}",
                                      foreground_color: LiveTrackSerializer.text_color(color)
+  end
+
+  # Whether the group cannot be transferred to Push 3 Standalone.
+  #
+  # A group cannot be frozen, so a device in its chain that Push 3 cannot run cannot be
+  # rendered away.
+  #
+  # @return [Boolean] true when the group is a problem
+  def problem?
+    @group.blocking_devices.any?
   end
 
   # The lines of the devices of the group.

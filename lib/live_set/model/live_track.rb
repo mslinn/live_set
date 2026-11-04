@@ -25,7 +25,7 @@ class LiveTrack
     'ReturnTrack' => 'Return', 'MasterTrack' => 'Master', 'MainTrack' => 'Main'
   }.freeze
 
-  attr_reader :audio_clips, :id, :kind, :color, :clips, :take_lanes, :devices
+  attr_reader :audio_clips, :id, :kind, :color, :clips, :take_lanes, :devices, :chain_devices
 
   # The two sequencers a track can have.
   #
@@ -49,10 +49,14 @@ class LiveTrack
       Log.debug "  #{sequencer} exists: #{!device_chain&.at(sequencer).nil?}"
     end
 
-    # The devices in the track's chain, at any depth. A track in a group holds the group's chain
-    # in an AudioEffectGroupDevice, several levels down. See docs/als_notes.md, "The device
+    # The devices of the track itself. The chain of the group the track is in holds the
+    # group's own devices, and those belong to the group. See docs/als_notes.md, "The device
     # chain, and the chains nested inside it", and "The device chain of a group".
-    @devices = LiveDevice.chain_devices(@audio_track).map { |node| LiveDevice.new node }
+    @devices = LiveDevice.own_devices(@audio_track).map { |node| LiveDevice.new node }
+
+    # Every device in the chain of the track, at any depth. A track in a group holds the
+    # group's chain in an AudioEffectGroupDevice, several levels down.
+    @chain_devices = LiveDevice.chain_devices(@audio_track).map { |node| LiveDevice.new node }
 
     @audio_clips = define_audio_clips set_directory
     @kind = KINDS.fetch(@audio_track.name, @audio_track.name)
@@ -128,7 +132,7 @@ class LiveTrack
   #
   # @return [Boolean] true when the track is a problem
   def problem?
-    !frozen? && blocking_devices.any?
+    !frozen? && @devices.any?(&:blocking?)
   end
 
   # The clips in this track, grouped by where they come from.
@@ -179,11 +183,16 @@ class LiveTrack
   # EffectiveName is the name Ableton resolved, which accounts for renames and for the numbering
   # it adds to duplicate tracks. UserName is the raw name the user typed, and is the only one
   # present in Live 8. Annotation and MemorizedFirstClipName are not names of the track.
+  #
+  # The name the user typed is the name of the track. When there is none, the name Ableton
+  # resolved is the name, without the number Ableton gives the tracks that share a name.
   def name
-    xml_first_value(
-      @audio_track.at('Name/EffectiveName'),
-      @audio_track.at('Name/UserName')
-    ) || "##{@id}"
+    user_name = @audio_track.at('Name/UserName')&.[]('Value')
+    effective_name = @audio_track.at('Name/EffectiveName')&.[]('Value')
+    return user_name unless user_name.nil? || user_name.empty?
+    return '(unnamed)' if effective_name.nil? || effective_name.empty?
+
+    effective_name.sub(/\A\d+[- ]/, '')
   end
 
   # The value of an element of the track.
@@ -200,12 +209,26 @@ class LiveTrack
   end
 
   # Only unfrozen tracks can be blocked by their devices.
+  #
+  # The devices of the chain of the track are the devices of the group the track is in, and
+  # they are counted here as well: TODO N41.
   def blocking_devices
-    frozen? ? [] : @devices.select(&:blocking?)
+    frozen? ? [] : @chain_devices.select(&:blocking?)
   end
 
   def device_summary
-    @devices.map(&:label).uniq.join(', ')
+    @chain_devices.map(&:label).uniq.join(', ')
+  end
+
+  # The id of the group the track is in.
+  #
+  # A member track's TrackGroupId holds the id of the group it belongs to, and -1 means the
+  # track is at the top level. See docs/als_notes.md, "A member track names its group".
+  #
+  # @return [String, nil] the id of the group, or nil when the track is in no group
+  def group_id
+    value = @audio_track.at('TrackGroupId')&.[]('Value')
+    value == '-1' ? nil : value
   end
 
   def clips_collected?

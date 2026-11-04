@@ -86,26 +86,16 @@ class LiveSet
 
     @live_set = @ableton.LiveSet
 
-    # Get AudioTrack elements safely - returns empty NodeSet if none exist
-    #
-    # Only the tracks that play clips are reported. A group track is a summing container and
-    # holds no clips, so it is not one of these. See docs/als_notes.md, "A group track holds no
-    # clips".
-    audio_tracks = begin
-      # Use XPath directly on the document to avoid Slop method_missing issues
-      result = @xml_doc.xpath('//AudioTrack')
-      result
-    rescue StandardError => e
-      Log.error "Error accessing AudioTrack elements: #{e.message}"
-      []
-    end
-
     # A group track is a summing container, not a track that plays clips. It holds no clips, so it
     # is not reported alongside the tracks, but its members' audio is routed through its device
     # chain, so its devices are checked. See docs/als_notes.md, "The group tracks".
-    group_tracks = @xml_doc.xpath('//GroupTrack')
+    #
+    # Every track of the set is in the model: the MIDI tracks, the audio tracks, the groups,
+    # the return tracks and the master track, in the order Live wrote them.
+    track_elements = @xml_doc.xpath('//MidiTrack | //AudioTrack | //GroupTrack | //Tracks/ReturnTrack | ' \
+                                    '//MasterTrack | //MainTrack')
 
-    @tracks = LiveTracks.new @set_directory, audio_tracks, group_tracks
+    @tracks = LiveTracks.new @set_directory, track_elements
     # A set of Live 8 or Live 9 has no scenes at all.
     scenes = @live_set.at('Scenes')
     @scenes = scenes ? scenes.map { |scene| LiveScene.new scene } : []

@@ -2,10 +2,43 @@ require_relative 'live_group'
 require_relative 'live_track'
 
 class LiveTracks
-  def initialize(set_directory, tracks, groups = [])
-    @tracks = tracks
-    @track_instances = tracks.map { |track| LiveTrack.new set_directory, track }
-    @group_instances = groups.map { |group| LiveGroup.new group, tracks }
+  # The tracks of the set.
+  #
+  # @param set_directory [String] the directory of the set
+  # @param elements [Array<Nokogiri::XML::Element>] the elements of the tracks of the set, in
+  #   the order Live wrote them
+  def initialize(set_directory, elements)
+    @instances = elements.map do |element|
+      if element.name == 'GroupTrack'
+        LiveGroup.new element, elements, set_directory
+      else
+        LiveTrack.new set_directory, element
+      end
+    end
+  end
+
+  # The tracks at the top of the set, in the order Live wrote them.
+  #
+  # @return [Array<LiveTrack, LiveGroup>] the groups, and the tracks that are in no group
+  def top_level
+    @instances.select { |track| track.group_id.nil? }
+  end
+
+  # The audio tracks of the set.
+  #
+  # The verdict for a transfer to Push 3 Standalone is about the audio of the set: a MIDI
+  # clip has no file, and nothing of it is transferred.
+  #
+  # @return [Array<LiveTrack>] the audio tracks
+  def audio_tracks
+    @instances.select { |track| track.kind == 'Audio' }
+  end
+
+  # The groups of the set.
+  #
+  # @return [Array<LiveGroup>] the groups
+  def groups
+    @instances.select(&:group?)
   end
 
   # The clips of the set that have not been collected.
@@ -15,7 +48,7 @@ class LiveTracks
   #
   # @return [Array<String>] the paths of the clips
   def uncollected_clips
-    @track_instances.flat_map do |track|
+    audio_tracks.flat_map do |track|
       track.distinct_clips.reject(&:collected?).filter_map(&:absolute_path).uniq
     end
   end
@@ -27,7 +60,7 @@ class LiveTracks
   #
   # @return [Array<String>] the errors
   def p3s_errors
-    @track_instances.flat_map { |track| track_errors(track) } + group_errors
+    audio_tracks.flat_map { |track| track_errors(track) } + group_errors
   end
 
   # The advice about a set that can be transferred.
@@ -38,7 +71,7 @@ class LiveTracks
   # @return [Array<String>] the advice
   def p3s_advice
     advice = []
-    @track_instances.each do |track|
+    audio_tracks.each do |track|
       next if track.frozen? || track.distinct_clips.empty? || track.device_summary.empty?
 
       advice << "Track '#{track.name}' is unfrozen; devices: #{track.device_summary}"
@@ -64,9 +97,9 @@ class LiveTracks
   # The only requirement for transfer to a P3S is that all audio files are collected and no missing raw devices are referenced.
   # Freezing is recommended for tracks with 3rd party plugins, but are not required for native devices.
   def ready_for_p3s?
-    @track_instances.all?(&:clips_collected?) &&
-      @track_instances.none? { |track| track.blocking_devices.any? } &&
-      @group_instances.none? { |group| group.blocking_devices.any? }
+    audio_tracks.all?(&:clips_collected?) &&
+      audio_tracks.none? { |track| track.blocking_devices.any? } &&
+      groups.none? { |group| group.blocking_devices.any? }
   end
 
   # The errors caused by the devices in the groups' chains.
@@ -87,7 +120,7 @@ class LiveTracks
   #
   # @return [Array<String>] the errors
   def group_errors
-    @group_instances.flat_map do |group|
+    groups.flat_map do |group|
       affected = affected_track_names group
       group.blocking_devices.map do |device|
         message = " - Group '#{group.name}' uses #{device.label}, which Push 3 Standalone cannot run. " \

@@ -13,17 +13,19 @@ class LiveTakeLaneSerializer
   #
   # @param take_lane [LiveTakeLane] the take lane to be serialized
   # @param hierarchical_number [String] the number of the lane in the report
-  def initialize(take_lane, hierarchical_number)
+  def initialize(take_lane, hierarchical_number, indent = '')
     @take_lane = take_lane
     @hierarchical_number = hierarchical_number
+    @indent = indent
   end
 
   # Returns the take lane as markdown.
   #
   # @return [String] the serialized markdown
   def to_markdown
-    lines = ["- Take lane #{@hierarchical_number}  #{@take_lane.name}"]
+    lines = ["#{@indent}- Take lane #{@hierarchical_number}  #{@take_lane.name}"]
     lines += LiveClipGroups.new(@take_lane.clips).to_markdown(@hierarchical_number)
+                 .map { |line| "#{@indent}  #{line}" }
     lines.join "\n"
   end
 end
