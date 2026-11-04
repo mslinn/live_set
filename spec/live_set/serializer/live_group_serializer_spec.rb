@@ -1,12 +1,12 @@
 require 'spec_helper'
-require 'live_set/serializer/live_group_track_serializer'
+require 'live_set/serializer/live_group_serializer'
 require 'support/live_sets'
 
 # A group of a set.
 #
 # The expected values are the lines of the report of the Live 11 reference set, which is
 # checked in.
-RSpec.describe LiveGroupTrackSerializer, '#to_markdown' do
+RSpec.describe LiveGroupSerializer, '#to_markdown' do
   # The group with the given name.
   #
   # @param name [String] the name of the group

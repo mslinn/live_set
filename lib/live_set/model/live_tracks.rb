@@ -1,4 +1,5 @@
 require_relative 'live_group'
+require_relative 'live_groups'
 require_relative 'live_track'
 
 class LiveTracks
@@ -22,6 +23,20 @@ class LiveTracks
   # @return [Array<LiveTrack, LiveGroup>] the groups, and the tracks that are in no group
   def top_level
     @instances.select { |track| track.group_id.nil? }
+  end
+
+  # The groups of the set: the groups that are at the top of it.
+  #
+  # @return [LiveGroups] the groups
+  def groups_of_the_set
+    LiveGroups.new top_level.select(&:group?)
+  end
+
+  # The tracks of the set: the tracks that are at the top of it, and in no group.
+  #
+  # @return [Array<LiveTrack>] the tracks
+  def tracks_of_the_set
+    top_level.reject(&:group?)
   end
 
   # The tracks at the top of the set, with the number each of them has in the report.

@@ -1,5 +1,6 @@
 require_relative 'device_cross_reference_serializer'
-require_relative 'live_group_track_serializer'
+require_relative 'live_group_serializer'
+require_relative 'live_groups_serializer'
 require_relative 'live_samples_serializer'
 require_relative 'live_track_serializer'
 require_relative 'missing_samples_serializer'
@@ -57,14 +58,22 @@ class AlsModelSerializer
     lines = ['## Groups/Tracks/Clips/Devices', '']
     lines << LEGEND
     lines << ''
-    lines << @als_model.live_set.top_level_numbered.map do |number, track|
-      if track.group?
-        LiveGroupTrackSerializer.new(track, number).to_markdown
-      else
-        LiveTrackSerializer.new(track, number).to_markdown
-      end
-    end.join("\n")
-    lines.join("\n")
+
+    groups = LiveGroupsSerializer.new(@als_model.live_set.groups_of_the_set).to_markdown
+    unless groups.empty?
+      lines << '### Groups'
+      lines << ''
+      lines << groups
+    end
+
+    tracks = LiveTracksSerializer.new(@als_model.live_set.tracks_of_the_set).to_markdown
+    unless tracks.empty?
+      lines << '### UnGrouped'
+      lines << ''
+      lines << tracks
+    end
+
+    lines.reject(&:empty?).join("\n")
   end
 
   # The clips of the set.

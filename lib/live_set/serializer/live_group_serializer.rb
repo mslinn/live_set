@@ -10,8 +10,8 @@ require_relative 'live_tracks_serializer'
 #
 # Sample usage:
 # group = LiveGroup.new(...)
-# markdown = LiveGroupTrackSerializer.new(group, '1').to_markdown
-class LiveGroupTrackSerializer
+# markdown = LiveGroupSerializer.new(group, '1').to_markdown
+class LiveGroupSerializer
   # Creates a serializer for the given group.
   #
   # @param group [LiveGroup] the group to be serialized
@@ -27,10 +27,8 @@ class LiveGroupTrackSerializer
   #
   # @return [String] the serialized markdown
   def to_markdown
-    lines = [group_line]
-    lines += device_lines
-    lines += track_lines
-    lines.join "\n"
+    parts = [group_line, device_lines, track_lines]
+    parts.reject(&:empty?).join "\n"
   end
 
   private
@@ -80,8 +78,8 @@ class LiveGroupTrackSerializer
   # @return [String] the devices
   def device_lines
     LiveDevicesSerializer.new(@group.devices, @hierarchical_number,
-                                                     slot_label: 'Group Track Device',
-                                                     indent: "#{@indent}  ").to_markdown
+                              slot_label: 'Group Track Device',
+                              indent:     "#{@indent}  ").to_markdown
   end
 
   # The lines of the tracks in the group.

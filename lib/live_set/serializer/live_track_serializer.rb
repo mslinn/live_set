@@ -242,9 +242,9 @@ class LiveTrackSerializer
   #
   # @return [String] the devices
   def device_lines
-    LiveDevicesSerializer.new(@track.devices, @hierarchical_number, slot_label: slot_label,
-                                                      indent: "#{@indent}  ",
-                                                      track_frozen: @track.frozen?).to_markdown
+    LiveDevicesSerializer.new(@track.devices, @hierarchical_number, slot_label:   slot_label,
+                                                                    indent:       "#{@indent}  ",
+                                                                    track_frozen: @track.frozen?).to_markdown
   end
 
   # The name of the devices of a kind of track.

@@ -12,7 +12,7 @@ require_relative 'model/live_samples'
 require_relative 'serializer/als_model_serializer'
 require_relative 'serializer/device_cross_reference_serializer'
 require_relative 'serializer/live_device_serializer'
-require_relative 'serializer/live_group_track_serializer'
+require_relative 'serializer/live_group_serializer'
 require_relative 'serializer/live_samples_serializer'
 require_relative 'serializer/live_track_serializer'
 require_relative 'serializer/missing_samples_serializer'
@@ -143,39 +143,24 @@ class LiveSetReport
   #
   # @return [String] the outline
   def tracks_markdown
-    tracks = @tracks.top_level
-    lines = ['## Groups/Tracks/Clips/Devices', '']
+    return 'The set has no tracks.' if @tracks.top_level.empty?
 
-    if tracks.empty?
-      lines << 'The set has no tracks.'
-      return lines.join("\n")
-    end
-
-    lines << LEGEND
-    lines << ''
-    lines += top_level_lines(tracks)
-    lines.join("\n")
+    als_model_serializer.hierarchy_markdown
   end
 
-  # The lines of the tracks and the groups at the top of the set.
+  # The serializer of the model of the set.
   #
-  # The groups at the top of the set are numbered from one, and the tracks at the top of the
-  # set are numbered from one as well: a group and a track are numbered in their own company.
+  # @return [AlsModelSerializer] the serializer
+  def als_model_serializer
+    AlsModelSerializer.new als_model
+  end
+
+  # The model of the set.
   #
-  # @param tracks [Array<LiveTrack, LiveGroup>] the tracks of the set
-  # @return [Array<String>] the lines
-  def top_level_lines(tracks)
-    groups = 0
-    others = 0
-    tracks.flat_map do |track|
-      if track.group?
-        groups += 1
-        LiveGroupTrackSerializer.new(track, groups).to_markdown.split("\n")
-      else
-        others += 1
-        LiveTrackSerializer.new(track, others).to_markdown.split("\n")
-      end
-    end
+  # @return [AlsModel] the model
+  def als_model
+    @als_model ||= AlsModel.new @set_name, @xml_doc, created_at(@set_name), modified_at(@set_name),
+                                    @time_zone
   end
 
   # The samples of the set that are not in the project, by the pack they are in.

@@ -23,9 +23,16 @@ This is the plan for preparing the next major version of `live_set`.
   extracted into a helper of some sort.
 
 
+
+
+## Ruby Coding Standards
+
+See `$agent_instructions/ruby_standards.md`
+
+
 ## Testing
 
-Standard operating procedure is:
+Standard operating procedure (SOP) is:
 
 1. For each ALS version that we support (Live 8.4 to 12.x):
 
@@ -43,6 +50,8 @@ Standard operating procedure is:
 
        3. Compare results against literal strings. These strings should be reviewed by a human familiar with CSS.
 
+The above is not intended to imply that no other tests are required. On the
+contrary, SOP requires every class to be designed for testability and to have unit tests.
 
 ## TODOs
 

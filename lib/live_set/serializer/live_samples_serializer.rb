@@ -1,20 +1,22 @@
 require 'markdown-tables'
-require_relative '../model/live_samples'
+require_relative 'live_sample_serializer'
 
-# Writes the section of the report that names the samples of the set, by the pack they are
-# in, and says whether each of them is in the project.
+# Writes a collection of samples.
+#
+# The collection is never written by itself: each sample is written by the serializer of a
+# sample, and the outputs are mapped together, under the pack each sample is in.
 #
 # Sample usage:
 # markdown = LiveSamplesSerializer.new(samples).to_markdown
 class LiveSamplesSerializer
-  # Creates a serializer for the samples of the set.
+  # Creates a serializer for a collection of samples.
   #
-  # @param samples [LiveSamples] the samples of the set
+  # @param samples [LiveSamples] the samples of the collection
   def initialize(samples)
     @samples = samples
   end
 
-  # Returns the section as markdown.
+  # Returns the collection as markdown.
   #
   # @return [String] the serialized markdown
   def to_markdown
@@ -25,9 +27,8 @@ class LiveSamplesSerializer
     end
 
     rows = @samples.samples.group_by(&:pack).sort.map do |pack, in_pack|
-      names = in_pack.map(&:name).uniq.sort.map do |name|
-        sample = in_pack.find { |candidate| candidate.name == name }
-        sample.collected? ? "`#{name}`" : "`#{name}` (not in the project)"
+      names = in_pack.uniq(&:name).sort.map do |sample|
+        LiveSampleSerializer.new(sample).to_markdown
       end
       [pack, names.join(', ')]
     end

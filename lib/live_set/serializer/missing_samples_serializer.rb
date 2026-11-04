@@ -1,8 +1,11 @@
 require 'markdown-tables'
-require_relative '../model/missing_samples'
+require_relative 'live_sample_serializer'
+require_relative 'live_track_serializer'
 
-# Writes the section of the report that names the samples of the set that are not in the
-# project, by the pack they are in.
+# Writes a collection of the samples that are not in the project.
+#
+# The collection is never written by itself: each sample is written by the serializer of a
+# sample, and the outputs are mapped together, under the pack each sample is in.
 #
 # Sample usage:
 # markdown = MissingSamplesSerializer.new(missing_samples).to_markdown
@@ -14,7 +17,7 @@ class MissingSamplesSerializer
     @missing = missing
   end
 
-  # Returns the section as markdown.
+  # Returns the collection as markdown.
   #
   # @return [String] the serialized markdown
   def to_markdown
@@ -25,7 +28,7 @@ class MissingSamplesSerializer
     end
 
     rows = @missing.packs.sort.map do |pack, names|
-      [pack, names.map { |name| "`#{name}`" }.join(', ')]
+      [pack, names.map { |name| "`#{LiveTrackSerializer.escape name}`" }.join(', ')]
     end
     lines << MarkdownTables.make_table(%w[Pack Samples], rows, align: %w[l l], is_rows: true)
     lines.join("\n")
