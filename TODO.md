@@ -340,6 +340,28 @@ What is open:
 - Whether it is wanted at all, given that the version of the tool is already in the report and
   the version is what identifies a release of the gem.
 
+#### N60. The report should fold when a reader clicks a node
+
+A reader of the report should be able to click on a node — an `<li>` element of the HTML
+that the markdown becomes — and have the children of that node hidden. Clicking the node
+again shows them again.
+
+Clicking the name of a group folds the whole group: its tracks, their devices, their clips
+and their take lanes all become invisible, and only the name of the group is left. Clicking
+the name of a track folds that track and the things under it; clicking the name of a clip
+folds it.
+
+The default is the report in full: nothing is folded, and nothing is hidden, until the
+reader folds it.
+
+What it needs:
+
+- The markdown has to become HTML that has the structure to fold: a list item for each
+  track, group and clip, with the children of a node inside it.
+- The folding needs a little JavaScript, or CSS alone — a `<details>` element folds its
+  children without any script at all, and the report is read in a browser as often as it is
+  read in an editor.
+
 #### L1. Live ships its own schemas; use them
 
 Every Live installation carries a directory of schemas of the format, one file per format version, named after the `MinorVersion` of a set. They are Live's own description of the format, and they are more complete than the XSDs this repository infers from the demo sets: 114 of the element names in `schemas/vocab_live11.txt` are in Live's schema for 11.0 and cannot be in the inferred one, because no Live 11 demo set contains them.

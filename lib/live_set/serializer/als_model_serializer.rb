@@ -1,3 +1,6 @@
+require_relative '../model/live_device_cross_reference'
+require_relative '../model/live_devices'
+require_relative '../model/live_track_clip_cross_reference'
 require_relative 'device_cross_reference_serializer'
 require_relative 'live_group_serializer'
 require_relative 'live_groups_serializer'
@@ -36,7 +39,7 @@ class AlsModelSerializer
     missing_samples           = MissingSamplesSerializer.new(samples.missing).to_markdown
     samples_section           = LiveSamplesSerializer.new(samples).to_markdown
     device_track_xref         = DeviceCrossReferenceSerializer.new(devices).to_markdown
-    track_clip_xref           = TrackClipCrossReferenceSerializer.new(@als_model.live_set).to_markdown
+    track_clip_xref           = TrackClipCrossReferenceSerializer.new(cross_reference).to_markdown
 
     <<~REPORT_END
       #{header_block_section}
@@ -49,21 +52,18 @@ class AlsModelSerializer
     REPORT_END
   end
 
-  private
-
   # The groups and the tracks at the top of the set, and the things under them.
   #
   # @return [String] the outline of the set
   def hierarchy_markdown
-    lines = ['## Groups/Tracks/Clips/Devices', '']
-    lines << LEGEND
-    lines << ''
+    lines = ['## Groups/Tracks/Clips/Devices', '', LEGEND, '']
 
     groups = LiveGroupsSerializer.new(@als_model.live_set.groups_of_the_set).to_markdown
     unless groups.empty?
       lines << '### Groups'
       lines << ''
       lines << groups
+      lines << ''
     end
 
     tracks = LiveTracksSerializer.new(@als_model.live_set.tracks_of_the_set).to_markdown
@@ -73,8 +73,10 @@ class AlsModelSerializer
       lines << tracks
     end
 
-    lines.reject(&:empty?).join("\n")
+    lines.join("\n")
   end
+
+  private
 
   # The clips of the set.
   #
@@ -92,8 +94,16 @@ class AlsModelSerializer
 
   # The devices of the set, and the tracks they are on.
   #
-  # @return [LiveDevices] the devices
+  # @return [LiveDeviceCrossReference] the cross-reference
   def devices
-    @devices ||= LiveDevices.new(@als_model.live_set.top_level)
+    @devices ||= LiveDeviceCrossReference.new LiveDevices.new(@als_model.live_set.top_level)
+  end
+
+  # The tracks of the set and the clips they hold, and the clips and the tracks that hold
+  # them.
+  #
+  # @return [LiveTrackClipCrossReference] the cross-reference
+  def cross_reference
+    @cross_reference ||= LiveTrackClipCrossReference.new @als_model.live_set
   end
 end

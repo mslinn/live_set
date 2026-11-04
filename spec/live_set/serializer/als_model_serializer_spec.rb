@@ -41,10 +41,12 @@ RSpec.describe AlsModelSerializer, '#to_markdown' do
     )
   end
 
-  it 'writes the tracks of the set under the legend' do
+  it 'writes the tracks of the set under the legend, in two subsections' do
     markdown = described_class.new(model).to_markdown
 
-    expect(markdown).to include('- Track 1  🎵 Audio  ')
+    expect(markdown).to include('### Groups')
+    expect(markdown).to include('### UnGrouped')
     expect(markdown).to include('- Group track 1  👥 Group  ')
+    expect(markdown).to include('- Track 1  🎵 Audio  ')
   end
 end

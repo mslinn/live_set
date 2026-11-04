@@ -141,6 +141,20 @@ class HeaderBlock
     created_at @set_name
   end
 
+  # The time the set was created, as a time.
+  #
+  # @return [Time] the time
+  def set_created_at
+    creation_time(@set_name) || File.mtime(@set_name)
+  end
+
+  # The time the set was last written, as a time.
+  #
+  # @return [Time] the time
+  def set_last_modified_at
+    File.mtime @set_name
+  end
+
   # The time the set was last written.
   #
   # @return [String] the time

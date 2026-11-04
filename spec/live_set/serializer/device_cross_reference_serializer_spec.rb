@@ -1,35 +1,39 @@
 require 'spec_helper'
+require 'live_set/model/live_device_cross_reference'
 require 'live_set/model/live_devices'
 require 'live_set/serializer/device_cross_reference_serializer'
-require 'support/live_sets'
+require 'support/live_fixtures'
 
 # The devices of the set, and the tracks they are on.
 #
-# The expected values are the section of the report of the Live 11 reference set, which is
-# checked in.
+# The model is inflated from the fixture data: the XML of the largest Live 12 demo set.
+# See docs/serializer_plan.md, "Testing".
 RSpec.describe DeviceCrossReferenceSerializer, '#to_markdown' do
-  # The devices of the set.
+  # The devices of the set, and the tracks they are on.
   #
-  # @return [LiveDevices] the devices
-  def devices
-    tracks = LiveTracks.new LiveSets.directory(LiveSets.fascination),
-                            LiveSets.nodes(LiveSets.fascination,
-                                           '//MidiTrack | //AudioTrack | //GroupTrack')
-    LiveDevices.new tracks.top_level
+  # @return [LiveDeviceCrossReference] the cross-reference
+  def cross_reference
+    @cross_reference ||= begin
+      document = LiveFixtures.document 'live_12_suite_demo'
+      elements = document.xpath('//MidiTrack | //AudioTrack | //GroupTrack | //Tracks/ReturnTrack | ' \
+                                '//MasterTrack | //MainTrack')
+      tracks = LiveTracks.new LiveFixtures.directory_of('live_12_suite_demo'), elements
+      LiveDeviceCrossReference.new LiveDevices.new(tracks.top_level)
+    end
   end
 
   it 'writes the heading of the section' do
-    expect(described_class.new(devices).to_markdown).to start_with "## Device/Track Cross-Reference\n"
+    expect(described_class.new(cross_reference).to_markdown).to start_with "## Device/Track Cross-Reference\n"
   end
 
   it 'writes the columns of the table' do
-    expect(described_class.new(devices).to_markdown).to include('|Device|Kind|Tracks With This Device|')
+    expect(described_class.new(cross_reference).to_markdown).to include('|Device|Kind|Tracks With This Device|')
   end
 
   it 'names the tracks a device is on' do
-    markdown = described_class.new(devices).to_markdown
+    markdown = described_class.new(cross_reference).to_markdown
 
-    expect(markdown).to include('|<code>DrumBuss</code>|Live|')
-    expect(markdown).to include('Kontakt 7</code>')
+    expect(markdown).to include('|<code>Drift</code>|Live|')
+    expect(markdown).to include('Coffee Leaf</code>')
   end
 end

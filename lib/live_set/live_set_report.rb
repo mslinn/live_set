@@ -4,11 +4,14 @@ require 'time'
 require_relative '../common/log'
 require_relative '../common/xml'
 require_relative 'live_palette'
+require_relative 'model/als_model'
 require_relative 'model/header_block'
 require_relative 'model/live_clips'
+require_relative 'model/live_device_cross_reference'
 require_relative 'model/live_devices'
 require_relative 'model/live_device'
 require_relative 'model/live_samples'
+require_relative 'model/live_track_clip_cross_reference'
 require_relative 'serializer/als_model_serializer'
 require_relative 'serializer/device_cross_reference_serializer'
 require_relative 'serializer/live_device_serializer'
@@ -159,8 +162,10 @@ class LiveSetReport
   #
   # @return [AlsModel] the model
   def als_model
-    @als_model ||= AlsModel.new @set_name, @xml_doc, created_at(@set_name), modified_at(@set_name),
-                                    @time_zone
+    @als_model ||= begin
+      header = HeaderBlock.new @set_name, @xml_doc, @time_zone
+      AlsModel.new @set_name, @xml_doc, header.set_created_at, header.set_last_modified_at, @time_zone
+    end
   end
 
   # The samples of the set that are not in the project, by the pack they are in.
@@ -198,7 +203,8 @@ class LiveSetReport
   #
   # @return [String] the cross-reference
   def devices_markdown
-    DeviceCrossReferenceSerializer.new(LiveDevices.new(@tracks.top_level)).to_markdown
+    devices = LiveDevices.new @tracks.top_level
+    DeviceCrossReferenceSerializer.new(LiveDeviceCrossReference.new(devices)).to_markdown
   end
 
   # The clips of the set, and the tracks that use them.
@@ -209,7 +215,8 @@ class LiveSetReport
   #
   # @return [String] the cross-reference
   def cross_reference_markdown
-    TrackClipCrossReferenceSerializer.new(@tracks).to_markdown
+    cross_reference = LiveTrackClipCrossReference.new @tracks
+    TrackClipCrossReferenceSerializer.new(cross_reference).to_markdown
   end
 
   # The key a clip is known by: its name, the file it refers to, its color and its state.

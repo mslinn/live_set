@@ -1,5 +1,6 @@
 require_relative '../../common/log'
 require_relative '../../common/xml'
+require_relative 'live_audio_clip'
 require_relative 'live_clip'
 require_relative 'live_device'
 require_relative 'live_take_lanes'

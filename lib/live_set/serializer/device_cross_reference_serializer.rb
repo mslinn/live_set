@@ -5,17 +5,14 @@ require_relative 'live_track_serializer'
 # Writes the section of the report that crosses the devices of the set with the tracks they
 # are on.
 #
-# A device of a group is on the group and on the tracks in the group, because the chain of
-# the group processes the audio of the tracks in it.
-#
 # Sample usage:
-# markdown = DeviceCrossReferenceSerializer.new(devices).to_markdown
+# markdown = DeviceCrossReferenceSerializer.new(cross_reference).to_markdown
 class DeviceCrossReferenceSerializer
-  # Creates a serializer for the devices of the set.
+  # Creates a serializer for the cross-reference of the devices and the tracks.
   #
-  # @param devices [LiveDevices] the devices of the set, and the tracks they are on
-  def initialize(devices)
-    @devices = devices
+  # @param cross_reference [LiveDeviceCrossReference] the devices and the tracks they are on
+  def initialize(cross_reference)
+    @cross_reference = cross_reference
   end
 
   # Returns the section as markdown.
@@ -40,15 +37,7 @@ class DeviceCrossReferenceSerializer
   #
   # @return [Array<Array>] the rows
   def rows_of_devices
-    uses = {}
-    @devices.each_with_its_tracks do |device, tracks|
-      unusable = device.blocking? && !tracks.first.frozen?
-      key = [device.label, device.kind, unusable]
-      uses[key] ||= []
-      tracks.each { |track| uses[key] << track }
-    end
-
-    uses.sort_by { |(label, _kind, _unusable), _| label.downcase }.map do |(label, kind, unusable), tracks|
+    @cross_reference.uses.sort_by { |(label, _kind, _unusable), _| label.downcase }.map do |(label, kind, unusable), tracks|
       name = if unusable
                LiveTrackSerializer.colored_code label,
                                                 background_color: LiveTrackSerializer::DARK_BACKGROUND,
