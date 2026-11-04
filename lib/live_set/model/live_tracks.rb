@@ -8,48 +8,32 @@ class LiveTracks
     @group_instances = groups.map { |group| LiveGroup.new group, tracks }
   end
 
-  # The verdict for a transfer to Push 3 Standalone, in markdown.
+  # The clips of the set that have not been collected.
   #
-  # Two kinds of message are reported. An error stops a set from being transferred: a clip that
-  # is not collected, and a third-party device on an unfrozen track or in a group's chain. Advice
-  # is not an error and does not change the verdict: an unfrozen track that uses only native
-  # devices.
+  # The clips that are not collected are counted and not named: a demo set holds dozens of
+  # them, and the list of them says nothing that the count does not.
   #
-  # The clips that are not collected are counted and not named: a demo set holds dozens of them,
-  # and the list of them says nothing that the count does not.
-  #
-  # @return [String] the report
-  def verdict_markdown
-    errors = p3s_errors
-    uncollected, others = errors.partition { |error| error.include? 'has not been collected' }
-
-    lines = ['## Push 3 Standalone', '']
-    lines << if errors.empty?
-               '✅ Ready for transfer to Push 3 Standalone'
-             else
-               '❌ Warning: This set should not be transferred to Push 3 Standalone.'
-             end
-    unless uncollected.empty?
-      lines << "- [#{uncollected.length} #{uncollected.length == 1 ? 'clip has' : 'clips have'} " \
-               'not been collected.](#missing-samples)'
+  # @return [Array<String>] the paths of the clips
+  def uncollected_clips
+    @track_instances.flat_map do |track|
+      track.distinct_clips.reject(&:collected?).filter_map(&:absolute_path).uniq
     end
-    others.each { |error| lines << "- #{error.sub(/\A\s*-\s*/, '')}" }
-    p3s_advice.each { |advice| lines << "- #{advice.sub(/\A\s*-\s*/, '')}" }
-    lines.join("\n")
   end
-
-  private
 
   # The errors that stop a set from being transferred.
   #
+  # A third-party device on an unfrozen track or in a group's chain. The clips that have not
+  # been collected are counted, and are not errors here.
+  #
   # @return [Array<String>] the errors
   def p3s_errors
-    errors = []
-    @track_instances.each { |track| errors += track_errors(track) }
-    errors + group_errors
+    @track_instances.flat_map { |track| track_errors(track) } + group_errors
   end
 
   # The advice about a set that can be transferred.
+  #
+  # Advice is not an error and does not change the verdict: an unfrozen track that uses only
+  # native devices.
   #
   # @return [Array<String>] the advice
   def p3s_advice
@@ -62,23 +46,17 @@ class LiveTracks
     advice
   end
 
+  private
+
   # The errors caused by one track.
   #
   # @param track [LiveTrack] the track
   # @return [Array<String>] the errors
   def track_errors(track)
-    errors = []
-
-    # Name each uncollected file once, however many clips refer to it.
-    uncollected = track.distinct_clips.reject(&:collected?).filter_map(&:absolute_path).uniq
-    errors += uncollected.map { |path| " - Clip '#{path}' has not been collected." }
-
-    track.blocking_devices.each do |device|
-      errors << " - Track '#{track.name}' is unfrozen and uses #{device.label}, " \
-                'which Push 3 Standalone cannot run. Freeze or render this track.'
+    track.blocking_devices.map do |device|
+      " - Track '#{track.name}' is unfrozen and uses #{device.label}, " \
+        'which Push 3 Standalone cannot run. Freeze or render this track.'
     end
-
-    errors
   end
 
   # This method is not used at present, but it should be because it is a neat test that is easier to write unit tests

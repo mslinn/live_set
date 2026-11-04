@@ -5,7 +5,9 @@ require_relative '../common/log'
 require_relative '../common/xml'
 require_relative 'live_palette'
 require_relative 'model/live_device'
+require_relative 'serializer/live_device_serializer'
 require_relative 'serializer/live_track_serializer'
+require_relative 'serializer/p3s_compatibility'
 
 # Generates a report of a set in markdown.
 #
@@ -125,7 +127,7 @@ class LiveSetReport
 
       #{metadata_markdown}
 
-      #{@tracks.verdict_markdown}
+      #{P3SCompatibility.new(@tracks).to_markdown}
 
       #{tracks_markdown}
 
@@ -484,10 +486,9 @@ class LiveSetReport
   def device_lines(kind, number, element, indent)
     own_devices(element).each_with_index.map do |node, index|
       device = LiveDevice.new node
-      unusable = device.blocking? && !frozen?(element)
-      parts = [plain_name(device.label, dark: unusable), device_kind(device)]
-      parts << '⚠ not usable on Push 3' if unusable
-      "#{indent}- #{device_slot_label kind} #{number}#{letter_of index}  #{parts.join '  '}"
+      letter = letter_of index
+      serializer = LiveDeviceSerializer.new device, "#{number}#{letter}", track_frozen: frozen?(element)
+      "#{indent}- #{device_slot_label kind} #{number}#{letter}  #{serializer.to_markdown}"
     end
   end
 

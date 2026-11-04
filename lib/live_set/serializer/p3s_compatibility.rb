@@ -3,6 +3,14 @@
 #
 # Writes the "Push 3 Standalone" section of the markdown report for a `LiveSet` model.
 #
+# Two kinds of message are reported. An error stops a set from being transferred: a clip that
+# is not collected, and a third-party device on an unfrozen track or in a group's chain.
+# Advice is not an error and does not change the verdict: an unfrozen track that uses only
+# native devices.
+#
+# The clips that are not collected are counted and not named: a demo set holds dozens of
+# them, and the list of them says nothing that the count does not.
+#
 # Sample usage:
 # markdown = P3SCompatibility.new(live_set).to_markdown
 class P3SCompatibility
@@ -17,6 +25,21 @@ class P3SCompatibility
   #
   # @return [String] the serialized markdown
   def to_markdown
-    # TODO: write me
+    errors = @live_set.p3s_errors
+    uncollected = @live_set.uncollected_clips.length
+
+    lines = ['## Push 3 Standalone', '']
+    lines << if errors.empty? && uncollected.zero?
+               '✅ Ready for transfer to Push 3 Standalone'
+             else
+               '❌ Warning: This set should not be transferred to Push 3 Standalone.'
+             end
+    unless uncollected.zero?
+      lines << "- [#{uncollected} #{uncollected == 1 ? 'clip has' : 'clips have'} " \
+               'not been collected.](#missing-samples)'
+    end
+    errors.each { |error| lines << "- #{error.sub(/\A\s*-\s*/, '')}" }
+    @live_set.p3s_advice.each { |advice| lines << "- #{advice.sub(/\A\s*-\s*/, '')}" }
+    lines.join("\n")
   end
 end

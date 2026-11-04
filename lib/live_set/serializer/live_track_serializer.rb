@@ -16,6 +16,12 @@ require_relative 'live_device_serializer'
 # track = LiveTrack.new(...)
 # markdown = LiveTrackSerializer.new(track).to_markdown
 class LiveTrackSerializer
+  # The background a thing that Push 3 Standalone cannot use is written on.
+  DARK_BACKGROUND = '#212121'.freeze
+
+  # The color the text on a dark background is written in.
+  LIGHT_TEXT = '#FFFFFF'.freeze
+
   # Hash from track type to track icon.
   #
   # Live 12 renamed the master track to the main track, and it is the same thing, so it has
