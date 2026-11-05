@@ -2,7 +2,7 @@
 
 # Makes a reference set of one version of Live from a reference set of the version before it.
 #
-# Usage: bin/make_reference_set VERSION NAME [SOURCE]
+# Usage: dev/make_reference_set VERSION NAME [SOURCE]
 #
 # The set is made by running Live: the source set is opened in the version of Live that is asked
 # for, and Live saves it under the name that is given. Live writes a set as a project folder: a
@@ -70,7 +70,7 @@ version, name, source = ARGV
 if version.nil? || name.nil?
   abort <<~USAGE
 
-    Usage: bin/make_reference_set VERSION NAME [SOURCE]
+    Usage: dev/make_reference_set VERSION NAME [SOURCE]
 
     VERSION is the version of Live the set is made with, e.g. 12.
     NAME is the name of the set, e.g. Fascination_12_converted_by_live.

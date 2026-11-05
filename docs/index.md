@@ -106,7 +106,7 @@ The transformations of a version_diff are written by hand, and the process for f
 | The end-to-end check | `spec/live_set/tx/live_conversion_spec.rb` — converts the Live 12 demo set and validates the result against the Live 11 schema |
 | The tools for looking inside sets | `exe/als_nodes`, `exe/als_diff`, `exe/als_to_xsd`, `exe/als_xsd_order`, `exe/als_validate` |
 | The release notes of Live, as markdown | `exe/als_release_notes` — the notes of a version, or of a single release, or the lines of them that match a pattern |
-| The schemas | generated into `schemas/` by `bin/generate_xsds`; checked in, so a new contributor and a new machine can use them without installing Live |
+| The schemas | generated into `schemas/` by `dev/generate_xsds`; checked in, so a new contributor and a new machine can use them without installing Live |
 
 ## The commands
 
@@ -145,7 +145,7 @@ of failing with a backtrace.
 | --- | --- |
 | [`../README.md`](../README.md) | What the program does, how to install and use it, and the sample report. |
 | [`../TODO.md`](../TODO.md) | The outstanding work of the gem, with the stable identifiers (`T1`, `N42`, `GH1`, `L1`, …) that the code and the other documents cite. The plan the conversion is measured against is in [`fix_plan2.md`](fix_plan2.md). |
-| [`../analysis/README.md`](../analysis/README.md) | **The ANALYSES.** What each set holds, written down: the tracks of the set, the state of each one, the effects on it, and the clips of it. Made by `bin/generate_reference_als_reports`. The analyses are in the repository of the reference sets, in the reports directory of the version of each set. |
+| [`../analysis/README.md`](../analysis/README.md) | **The ANALYSES.** What each set holds, written down: the tracks of the set, the state of each one, the effects on it, and the clips of it. Made by `dev/generate_reference_als_reports`. The analyses are in the repository of the reference sets, in the reports directory of the version of each set. |
 
 The reference sets themselves, and the reports of them, are in the repository of the reference
 sets, which is found through the environment variable `live_reference_sets`. The sets are in

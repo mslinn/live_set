@@ -10,7 +10,7 @@
 * Changed license from MIT to source-available non-commercial.
 * Added `generate_xsd` command.
 * Added `validate_asd` command.
-* Added `bin/make_reference_set`, which opens a reference set in a version of Live and saves
+* Added `dev/make_reference_set`, which opens a reference set in a version of Live and saves
   it under a name of its own, as a project folder, in the reference set directory of that
   version.
 * Added the Live 12 reference set, `sets/live_12/Fascination_12_converted_by_live Project`,

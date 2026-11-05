@@ -8,7 +8,7 @@ require 'nokogiri'
 # schema is missing proves nothing, so the schema is generated when it is not there, and the
 # spec fails when it cannot be generated.
 #
-# See bin/generate_xsds, which generates the schemas of every version at once.
+# See dev/generate_xsds, which generates the schemas of every version at once.
 module Schemas
   # The directory the schemas are written to.
   DIRECTORY = File.expand_path('../../schemas', __dir__)

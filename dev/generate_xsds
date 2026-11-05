@@ -2,7 +2,7 @@
 
 # Regenerates the XSD schemas from the Ableton Live installations on this computer.
 #
-# Usage: bin/generate_xsds [ABLETON_HOME]
+# Usage: dev/generate_xsds [ABLETON_HOME]
 #
 # The schemas are written to the schemas/ subdirectory of this project. They are checked in, so
 # that a new contributor and a new machine can work with the latest information without having

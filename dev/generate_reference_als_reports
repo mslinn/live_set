@@ -2,7 +2,7 @@
 
 # Writes the analysis of every reference set to a reference report.
 #
-# Usage: bin/generate_reference_als_reports [SETS_DIRECTORY]
+# Usage: dev/generate_reference_als_reports [SETS_DIRECTORY]
 #
 # The sets are in the repository of the reference sets, and the report of a set is written
 # beside it, in the reports directory of the version of the set:

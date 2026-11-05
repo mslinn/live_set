@@ -168,7 +168,7 @@ The differences between two versions are found by diffing their schemas. See
 
 The schemas are used. The schema of a version is the index of that version's
 format, and it is what the transformations are written from and what a converted set is
-checked against. `bin/generate_xsds` generates them, and
+checked against. `dev/generate_xsds` generates them, and
 `spec/live_set/tx/live_conversion_spec.rb` validates a converted set against the
 schema of the version it was converted to.
 
@@ -459,7 +459,7 @@ exe/als_to_xsd -f schemas/live_10.1.3d1.xsd "$ableton_10_demo_home"/*.als
 # TODO (low urgency) live 9 & 8
 ```
 
-`bin/generate_xsds` does all of that in one step, for every version of Live installed
+`dev/generate_xsds` does all of that in one step, for every version of Live installed
 on the computer.
 
 
@@ -511,7 +511,7 @@ So the schema of a version is inferred from the demo sets of that version *and* 
 sets Live wrote by converting a set of an older version. The converted sets are kept in
 `conversions/`, which is not in the repository — they are reference material, not code.
 See `spec/support/schemas.rb`, which finds the sets and generates the schemas, and
-`bin/generate_xsds`, which regenerates every schema at once.
+`dev/generate_xsds`, which regenerates every schema at once.
 
 
 ## Test Suite

@@ -21,10 +21,10 @@ a set that holds the demo set.
    XML, is not a case: Live has not accepted it, and until it has, nothing the set says about
    the format of Live 11 is known to be true.
 2. **Open it in Live 12, and save it there.** The tool that does that is
-   `bin/make_reference_set`:
+   `dev/make_reference_set`:
 
    ```shell
-   bundle exec ruby bin/make_reference_set 12 <name> sets/live_11/projects_and_als/<set>
+   bundle exec ruby dev/make_reference_set 12 <name> sets/live_11/projects_and_als/<set>
    ```
 
    It opens the set in Live 12, waits for Live to say that it has loaded it, and saves it under
@@ -38,7 +38,7 @@ a set that holds the demo set.
 4. **Write down what the set holds.** The analysis of the set is the report `live_set` writes
    for it: the tracks, the state of each one, the effects on it, and the clips of it. The
    analyses are in the reports directory of the version of the set, in the repository of the
-   reference sets, and they are made by `bin/generate_reference_als_reports`.
+   reference sets, and they are made by `dev/generate_reference_als_reports`.
 
 A case is done when the bridge reproduces what Live 12 did, and the version_diff document says
 what the difference is.
@@ -154,4 +154,4 @@ registration of the `ableton:` protocol before it starts Live, and takes it away
 over, so that no prompt comes and the machine is as it was before the run. That is described in
 the `gui_harness` project, in `docs/elevation.md`.
 
-The tool that opens a set in Live 12 is `bin/make_reference_set`, and it uses the harness.
+The tool that opens a set in Live 12 is `dev/make_reference_set`, and it uses the harness.
