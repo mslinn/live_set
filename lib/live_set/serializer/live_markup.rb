@@ -194,7 +194,7 @@ module LiveMarkup
     # The state of a track.
     #
     # @param track [LiveMidiTrack, LiveAudioTrack, LiveReturnTrack, LiveMasterTrack] the track
-    # @return [Array<String>] the marks
+    # @return [Array<String>] the track messages
     def states_of(track)
       states = []
       states << "\u{1F976} frozen" if track.frozen?

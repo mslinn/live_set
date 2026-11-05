@@ -2,13 +2,16 @@ require_relative '../model/live_device_cross_reference'
 require_relative '../model/live_devices'
 require_relative '../model/live_track_clip_cross_reference'
 require_relative 'device_cross_reference_serializer'
+require_relative 'live_assets_serializer'
 require_relative 'live_audio_tracks_serializer'
+require_relative 'live_checksums_serializer'
 require_relative 'live_group_serializer'
 require_relative 'live_groups_serializer'
 require_relative 'live_master_tracks_serializer'
 require_relative 'live_midi_tracks_serializer'
 require_relative 'live_return_tracks_serializer'
 require_relative 'live_samples_serializer'
+require_relative 'live_sizes_serializer'
 require_relative 'missing_samples_serializer'
 require_relative 'p3s_compatibility'
 require_relative 'report_header_serializer'
@@ -16,13 +19,14 @@ require_relative 'track_clip_cross_reference_serializer'
 
 # Serializes an AlsModel as a markdown report.
 class AlsModelSerializer
-  # What a clip is, and what the marks on a clip mean.
+  # What a clip is, and what the messages for a clip mean.
   LEGEND = <<~TEXT.squish.freeze
     Clip properties include the name of the clip and the audio file.
     Clip references are found in session view slots, the arrangement, and a take lanes.
     Reference properties include launch method and warp mode.
     The take lanes of a track are under the track.
-    The string `⚠ not in project` means the sample is not the project directory tree, so the set is not self-contained.
+    The string `⚠ not in project` means the sample is not within the project directory tree,
+    so the set is not self-contained.
   TEXT
 
   # Creates a serializer for the given ALS model.
@@ -48,11 +52,18 @@ class AlsModelSerializer
     samples_section           = LiveSamplesSerializer.new(samples).to_markdown
     device_track_xref         = DeviceCrossReferenceSerializer.new(devices).to_markdown
     track_clip_xref           = TrackClipCrossReferenceSerializer.new(cross_reference).to_markdown
+    sizes_section             = LiveSizesSerializer.new(@als_model.sizes).to_markdown
+    checksums_section         = LiveChecksumsSerializer.new(@als_model.checksums).to_markdown
+    assets_section            = LiveAssetsSerializer.new(@als_model.assets).to_markdown
 
     <<~REPORT_END
       # `#{File.basename @als_model.path}`
 
       #{header_block_section}
+
+      #{sizes_section}
+
+      #{checksums_section}
 
       #{p3s_compatibility_section}
 
@@ -65,6 +76,8 @@ class AlsModelSerializer
       #{device_track_xref}
 
       #{track_clip_xref}
+
+      #{assets_section}
     REPORT_END
   end
 

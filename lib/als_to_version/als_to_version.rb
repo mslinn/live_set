@@ -21,28 +21,25 @@ class AlsToVersion
   def self.help(msg = nil)
     help = <<~END_HELP
       Als_to_version converts a Live set to another version of the Live format.
-
-      The direction of the conversion is given: the set is converted to the version named on
-      the command line. The set is written the way Live writes it, so that the converted set is
-      a set of that version and not merely XML that happens to mean the same thing.
+      If SRC is already at the version it is converted to, the program says so and stops.
 
       Syntax: als_to_version [-f] VERSION SRC [DST]
 
-      VERSION is the Ableton Live version to be converted to, e.g. 11.
-      SRC is the set to convert: the path of the file, or a selector of a demo set, e.g.
-        demo:11:suite  the Live 11 Suite demo set
-        demo:12        the demo set of Live 12
-      DST is where the converted set is written. Without it, the set is written next to the set
-      that was converted, with the version as a suffix, e.g. set_11.als.
+      Where:
+        VERSION  is the Ableton Live version to be converted to, e.g. 11.
+        SRC      is the path of of the set to be converted
+        DST      is the optional path to write the converted set to. Without it, the
+                 converted set is written next to the original set, with the version
+                 as a suffix, e.g. SRC is set.als, and VERSION is 11, the default
+                 destination path would be set_11.als.
 
       Options are:
-        -f Overwrite the destination when it already exists.
-        -h Display this help message.
-
-      If SRC is already at the version it is converted to, the program says so and stops.
+        -f    Overwrite the destination when it already exists.
+        -h    Display this help message.
 
       Example:
-        als_to_version 11 $path/to/my_v12_set.als
+        als_to_version 11 "$path/to/sample_set.als"  # writes to "$path/to/sample_set_11.als"
+        als_to_version 12 "$path/to/sample_set.als" "live_12_test_conversion.als" -f
     END_HELP
 
     msg.nil? ? help : "Error: #{msg}\n\n#{help}"

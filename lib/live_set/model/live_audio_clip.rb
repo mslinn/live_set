@@ -38,7 +38,7 @@ require_relative 'live_clip_settings'
 class LiveAudioClip
   include Xml
 
-  # The mark of a clip whose sample is not in the project.
+  # Warning string for clips whose samples are not stored in the project.
   NOT_COLLECTED = '⚠ not in project'.freeze
 
   attr_reader :absolute_path, :color, :file_size, :last_modified, :name, :path, :place, :relative_path,
@@ -119,11 +119,9 @@ class LiveAudioClip
 
   # What is said about the clip.
   #
-  # @return [Array<String>] the marks
-  def marks
-    marks = []
-    marks << NOT_COLLECTED unless collected?
-    marks
+  # @return [Array<String>] displayed messages for a clip
+  def messages
+    collected? ? [] : [NOT_COLLECTED]
   end
 
   # The size of the file on disk.
@@ -157,7 +155,7 @@ class LiveAudioClip
       begin
         constructed_path.realpath.to_s
       rescue Errno::ENOENT, Errno::ELOOP => e
-        Log.warn "Warning: File path does not exist (from source system): #{constructed_path}\n#{e}"
+        Log.warn "Warning: File path does not exist: #{constructed_path}\n#{e}"
         constructed_path.to_s
       end
     elsif absolute_path_xml && !absolute_path_xml.empty?

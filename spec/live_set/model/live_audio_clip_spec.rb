@@ -44,7 +44,7 @@ RSpec.describe LiveAudioClip do
 
   it 'is not collected, because its file is not in the project folder' do
     expect(clip).not_to be_collected
-    expect(clip.marks).to eq ['⚠ not in project']
+    expect(clip.messages).to eq ['⚠ not in project']
   end
 
   it 'is named after the file it plays, in the cross-reference' do

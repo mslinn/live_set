@@ -34,5 +34,7 @@
   "peacock.remoteColor": "#4246b8",
   "files.watcherExclude": {
     "**/target/**": true
-  }
+  },
+  "rust-analyzer.semanticHighlighting.comments.enable": true,
+  "editor.tabSize": 2
 }

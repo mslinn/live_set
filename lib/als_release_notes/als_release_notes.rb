@@ -40,29 +40,36 @@ class AlsReleaseNotes
     help = <<~END_HELP
       Als_release_notes prints the release notes of a version of Live as markdown.
 
-      The release notes are the evidence the version_diff documents are built from: they say
-      which differences to expect, and which version introduced each one. They are written for
-      the musicians who use Live, and they never give an element name or an attribute name, so
-      they are a filter over the differences rather than a source of them.
+      The release notes are the evidence the version_diff documents are built from:
+      they say which differences to expect, and which version introduced each one.
+      They are written for the musicians who use Live, and they never give an element
+      name or an attribute name, so they are a filter over the differences rather
+      than a source of them.
 
-      The notes are HTML, downloaded from Ableton's web site and kept in docs/release_notes/,
-      one file per version. This command reads one of them and prints it as markdown, so that
-      the notes can be read, searched, and pasted into a document. When the file is not there,
-      the notes are fetched from the page they came from.
+      Ableton provides the notes at https://www.ableton.com/en/release-notes/live-%s/.
+      The fetched notes are cached in markdown format at docs/release_notes/, one
+      file per version. The cache allows the notes to be accessed easily. When the
+      cache does not contain the requested release notes, they are fetched.
 
-      Syntax: als_release_notes VERSION [--find PATTERN]
+      TODO decide how to resolve docs/release_notes/ because that is a relative
+      directory and its location is not known at present when the command runs as a gem.
 
-      VERSION is the version of Live, e.g. 12, and it may name a single release, e.g. 12.0. The
-      notes of a single release are printed when it does.
+      Syntax: als_release_notes VERSION [OPTIONS]
 
-      Options are:
-        --find PATTERN  print the lines of the notes that match PATTERN, each with the release
-                        it belongs to. The pattern is matched without regard to case.
+      VERSION is the version of Live
+        Specifying just the major release (e.g. 12) returns the release notes for all
+        versions of that major release. Specifying the minor release (e.g. 12.0)
+        returns just the release notes for that minor release.
+
+      OPTIONS are:
+        --find PATTERN  print the lines of the notes that match PATTERN, each with the
+                        release it belongs to. The pattern is case-insensitive.
         -h              Display this help message.
 
       Examples:
-        als_release_notes 12          # the notes of Live 12
-        als_release_notes 12.0        # the notes of the release 12.0
+        als_release_notes 12          # output the release notes for all Live 12 versions
+        als_release_notes 12.0        # output the release notes for 12.0 only
+        als_release_notes 12.1        # output the release notes for 12.1 only
         als_release_notes 12 --find "scale awareness"
         als_release_notes 12 > docs/release_notes/live-12.md
     END_HELP

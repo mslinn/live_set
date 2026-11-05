@@ -200,6 +200,21 @@ The samples of the set that are not in the project, by the pack they are in. It 
 of the samples that is missing, so it is a view of that collection and not a collection of
 its own.
 
+### `LiveAsset` — a file the set refers to
+
+One `FileRef` of the set: the path as the set writes it, how the path was resolved, the
+size Live recorded for it, the size on disk, where it is, and when it was last changed.
+
+### `LiveSizes` — the sizes of the set
+
+The four sizes: the set file, the expected size of the project, the actual size of the
+project, and the fully resolved size. Each of them says what it was computed from, and a
+size that could not be computed says so.
+
+### `LiveChecksums` — the checksums of the set
+
+The hash of the file, and the hash of the content the file holds when it is inflated.
+
 ### `HeaderBlock` — the facts about the set
 
 The version of Live that wrote the set, the computer it is on, the times of the set and of
@@ -220,6 +235,7 @@ the project it is in, and the time zone the times are written in.
 | `LiveClips` | the MIDI clips of the set, and the MIDI clips of a track |
 | `LiveSamples` | the samples of the set |
 | `LiveAudioClips` | the clips of the audio side of a track |
+| `LiveAssets` | the files the set refers to |
 
 ## What the model replaces
 

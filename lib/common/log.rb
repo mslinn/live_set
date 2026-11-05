@@ -13,7 +13,7 @@ LOG_LEVELS = Logger::Severity.constants.sort_by { |name| Logger::Severity.const_
 # was asked to produce.
 unless Object.const_defined?(:Log, false)
   Log = Logger.new($stderr)
-  Log.level = Logger::WARN # Can set with a string ('WARN') or an int (Logger::WARN is 2)
+  Log.level = Logger::INFO # Can set with a string ('WARN') or an int (Logger::WARN is 2)
   Log.formatter = proc do |severity, _time, _progname, message|
     line = "[#{severity}] #{message}\n"
 

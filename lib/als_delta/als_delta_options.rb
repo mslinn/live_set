@@ -34,7 +34,7 @@ class AlsDelta
         -l LOGLEVEL Set the log level (#{LOG_LEVELS.join ', '})
 
       Example (references an environment variable called `path`):
-      als_delta $path/to/my_set.als
+        $ als_delta "$path/to/my_set.als"
     END_HELP
 
     msg.nil? ? help : "Error: #{msg}\n\n#{help}"

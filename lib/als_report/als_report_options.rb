@@ -28,17 +28,20 @@ class AlsReport
       Environment variables used in PATH_TO_ALS_FILE are expanded.
 
       Options are:
-        -v  Show the version of this program.
-        -z  The time zone to use in the report in, e.g. America/Chicago. The time zone
-            of the computer the command ran on when this option is not specified.
-        -h Display this help message.
+        -h    Display this help message.
+        -v    Show the version of this program.
+        -z    The time zone to use in the report in, e.g. America/Chicago. The time zone
+              of the computer the command ran on when this option is not specified.
         --show_midi_and_audio_tracks_separately
-            Report the audio tracks and the MIDI tracks separately. By default, every
-            track is displayed in the order found in the ALS file.
+              Report the audio tracks and the MIDI tracks separately. By default, every
+              track is displayed in the order found in the ALS file.
 
 
       Example:
-        als_report $path/to/my_set.als
+        als_report \\
+          -z America/Toronto \\
+          --show_midi_and_audio_tracks_separately \\
+          "$path_to_my_set/demo.als"
     END_HELP
 
     msg.nil? ? help : "Error: #{msg}\n\n#{help}"

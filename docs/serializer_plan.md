@@ -189,6 +189,9 @@ as the long TODO asks.
 | `MissingSamplesSerializer`          | the samples that are not in the project, by pack                                     | `MissingSamples`    |
 | `DeviceCrossReferenceSerializer`    | the devices of the set, and the tracks they are on                                   | the set             |
 | `TrackClipCrossReferenceSerializer` | the tracks and their clips, and the clips and their tracks                           | the set             |
+| `LiveSizesSerializer`         | the four sizes of the set                                                            | `LiveSizes`         |
+| `LiveChecksumsSerializer`     | the two checksums of the set                                                         | `LiveChecksums`     |
+| `LiveAssetsSerializer`        | the files the set refers to                                                          | `LiveAssets`        |
 <!-- markdownlint-enable MD013 MD060 -->
 
 Every serializer is given the hierarchical number of the thing it writes, along with the
@@ -259,6 +262,9 @@ them.
 | `LiveDevice` | a device of a chain: its name, its kind, its plug-in format, and whether Push 3 Standalone can run it | `LiveDevice`, the class that exists |
 | `LiveMidiClip` | one MIDI clip in the file: its name, its colour, its launch mode, its warp mode, its notes, and the place it is in | the clip handling in `LiveSetReport` |
 | `LiveAudioClip` | a clip of the audio side of a track: its name, its colour, its file, its size, whether the file is collected, its launch mode, its warp mode, and the place it is in | `LiveAudioClip`, the class that exists |
+| `LiveAsset` | one file the set refers to: the path as the set writes it, how the path was resolved, the size Live recorded, the size on disk, where it is, and when it was last changed | the `FileRef` elements of the set |
+| `LiveSizes` | the four sizes of the set: the set file, the expected size of the project, the actual size of the project, and the fully resolved size | the sizes of the files of the set |
+| `LiveChecksums` | the hash of the file, and the hash of the content the file holds | the set |
 | `LiveTakeLane` | a take lane of a track: its name, and the clips of it | `take_lanes_of` in `LiveSetReport` |
 | `LiveSample` | a sample of the set, its file, and the pack it is in | the sample handling in `LiveSetReport` |
 | `MissingSamples` | the samples that are not in the project, by pack | `missing_samples_markdown` in `LiveSetReport` |
@@ -280,6 +286,7 @@ of them has a serializer of its own:
 | `LiveClips` | the MIDI clips of the set, and the MIDI clips of a track | `LiveClipsSerializer` |
 | `LiveSamples` | the samples of the set | `LiveSamplesSerializer` |
 | `LiveAudioClips` | the clips of the audio side of a track | `LiveAudioClipsSerializer` |
+| `LiveAssets` | the files the set refers to | `LiveAssetsSerializer` |
 
 `MissingSamples` is the part of `LiveSamples` that is not in the project, so it is a view of
 the collection and not a collection of its own.
@@ -775,6 +782,25 @@ Each step leaves the program working, and the reports unchanged.
    and the hash of the content. A table of the assets says what the sizes are
    made of. The header block says what made the report and where the tool is
    documented.
+
+   **What the phase turned out to be.** Four classes of the model and three
+   serializers, and three sections of the report:
+
+   | The model | It holds | Its serializer |
+   | --- | --- | --- |
+   | `LiveAsset` | one file the set refers to: the path as the set writes it, how the path was resolved, the size Live recorded, the size on disk, and when it was last changed | `LiveAssetsSerializer` |
+   | `LiveAssets` | every file the set refers to, each file once | `LiveAssetsSerializer` |
+   | `LiveSizes` | the four sizes of the set | `LiveSizesSerializer` |
+   | `LiveChecksums` | the hash of the file, and the hash of the content | `LiveChecksumsSerializer` |
+
+   The sections are `## The Size of the Set` and `## The Checksums of the Set`,
+   after the header block, and `## The Assets of the Set` at the end of the
+   report.
+
+   A size that could not be computed says so: a project folder that is not there
+   has no actual size, and the report says that instead of the expected one. An
+   asset that is not on disk has no size on disk, and the report says that
+   rather than guessing at one.
 
 ## The evidence that nothing has broken
 

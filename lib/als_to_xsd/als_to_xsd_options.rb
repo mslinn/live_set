@@ -15,7 +15,7 @@ class AlsToXsd
 
       Syntax: als_to_xsd OPTIONS XSD_FILE_NAME PATH_TO_ALS_FILE...
 
-      Environment variables used in XSD_FILE_NAME and PATH_TO_ALS_FILE are expanded.
+      Environment variables used in XSD_FILE_NAME and PATH_TO_ALS_FILE are expanded by the operating system.
 
       Options are:
         -f Overwrite any existing xsd.

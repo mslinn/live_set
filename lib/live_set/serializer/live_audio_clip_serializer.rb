@@ -30,7 +30,7 @@ class LiveAudioClipSerializer
   # @return [String] the serialized markdown
   def to_markdown
     text = name_markdown
-    text += "  #{marks_markdown}" unless @clip.marks.empty?
+    text += "  #{warning_markdown}" unless @clip.messages.empty?
     text += "<br>`#{@clip.file}`" if @clip.file
     text += "  #{place_markdown}" if @clip.place
     text += "  #{size_markdown}" if @clip.file_size.positive?
@@ -39,14 +39,14 @@ class LiveAudioClipSerializer
 
   private
 
-  # The marks of the clip.
+  # The warnings for a clip.
   #
-  # A clip whose sample is not in the project is marked on a dark red, in white text.
+  # A clip whose sample is not in the project is highlighted.
   #
-  # @return [String] the marks
-  def marks_markdown
-    @clip.marks.map do |mark|
-      LiveMarkup.code_span mark,
+  # @return [String] the messages for a clip
+  def warning_markdown
+    @clip.messages.map do |warning|
+      LiveMarkup.code_span warning,
                            style: "background-color:#{NOT_COLLECTED_BACKGROUND}; " \
                                   "color:#{LiveMarkup::LIGHT_TEXT}; vertical-align:middle"
     end.join ', '

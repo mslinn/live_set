@@ -410,9 +410,9 @@ als_report "$live_set"
 ```
 
 
-#### Sizes Checksums
+#### Sizes and Checksums
 
-A report is intended to be use in a courtroom as reliable evidence. It must
+A report is intended to be used in a courtroom as reliable evidence. It must
 display all relevant metadata (dates, size, permissions, owner, etc.), and it
 must prove that the set has not been tampered with.
 
@@ -427,23 +427,20 @@ of the set that was read:
 
 **Sizes:** Four of them, and the report says what each was computed from:
 
-TODO some of the following explanations are incorrect, and the code that
-implements them should be inspected for reasonableness:
+| The size | What it is | How it was computed |
+| --- | --- | --- |
+| The set file | the size of the `.als` | the file on disk |
+| The expected size of the project | what the project should be, according to the `.als`: the set file, and every sample the set refers to that is in the project, counted once | the sizes Live recorded, and the size on disk where Live recorded zero |
+| The actual size of the project | what the project is, on disk | the files in the project folder |
+| The fully resolved size | everything the set draws on: the project, and the assets outside it | the expected size, with the assets outside the project added |
 
-| The size                         | What it is                                                                                                                               |
-|----------------------------------|------------------------------------------------------------------------------------------------------------------------------------------|
-| The set file                     | Size of the `.als` file as reported by the file system                                                                                   |
-| The expected size of the project | Expected sum total of the entire Live set, including the ALS file, and every sample the set refers to, including samples from live packs |
-| The actual size of the project   | Actual sum total of the entire Live set (requires the project folder)                                                                    |
-| The fully resolved size          | everything the set draws on: the project, and the assets outside it — the samples in the user library, Live packs, racks, and clips      |
+A size that could not be computed says so: a project folder that is not there has no actual
+size, and the report says that instead of the expected one.
 
-
-TODO this explanation seems problematic and the code is also suspect:
-
-A sample that is not found has no reportable size, and the report says so. The
-report contains a table of assets that explains the sizes of each asset: the
-file size, the size Live recorded for it, where it is, and when it was last
-changed.
+The report contains a table of the assets of the set — every file it refers to — that explains
+the sizes: the path as the set writes it, how the path was resolved, the size Live recorded
+for it, the size on disk, where it is, and when it was last changed. A file that is not on
+disk has no size on disk, and the report says so.
 
 The report says what made it — the version of `live_set`, and where the tool is
 documented: <https://www.mslinn.com/av_studio/ableton_live_set.html>.

@@ -1,5 +1,8 @@
 require_relative 'header_block'
+require_relative 'live_assets'
+require_relative 'live_checksums'
 require_relative 'live_master_tracks'
+require_relative 'live_sizes'
 require_relative 'live_tracks'
 
 # The complete model of the contents of an ALS file.
@@ -53,6 +56,27 @@ class AlsModel
   #
   # @return [HeaderBlock] the facts about the set
   attr_reader :header_block
+
+  # The external assets of the set: every file it refers to.
+  #
+  # @return [LiveAssets] the assets
+  def assets
+    @assets ||= LiveAssets.new directory, xml
+  end
+
+  # The sizes of the set.
+  #
+  # @return [LiveSizes] the sizes
+  def sizes
+    @sizes ||= LiveSizes.new path, assets
+  end
+
+  # The checksums of the set: the hash of the file, and the hash of the content.
+  #
+  # @return [LiveChecksums] the checksums
+  def checksums
+    @checksums ||= LiveChecksums.new path
+  end
 
   # The directory the file is in.
   #

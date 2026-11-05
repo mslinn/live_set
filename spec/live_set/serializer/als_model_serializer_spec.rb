@@ -31,12 +31,15 @@ RSpec.describe AlsModelSerializer, '#to_markdown' do
     markdown = described_class.new(model).to_markdown
 
     expect(markdown.scan(/^## .*$/)).to eq [
+      '## The Size of the Set',
+      '## The Checksums of the Set',
       '## Push 3 Standalone',
       '## Groups/Tracks/Clips/Devices',
       '## Missing Samples',
       '## Samples',
       '## Device/Track Cross-Reference',
-      '## Track / Clip Cross Reference'
+      '## Track / Clip Cross Reference',
+      '## The Assets of the Set'
     ]
   end
 

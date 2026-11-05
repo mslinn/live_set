@@ -148,13 +148,14 @@ RSpec.describe AlsReport, '#show' do
   it 'marks the tracks that Push 3 cannot use with a dark background' do
     markdown = report(LiveSets.fascination)
 
+    # TODO: use project-wide constants for color values
     expect(markdown).to include('background-color: #212121; color: #FFFFFF; vertical-align: middle"># Drums</code>')
     expect(markdown).to include('background-color: #212121; color: #FFFFFF; vertical-align: middle">Kontakt 7</code>')
   end
 
-  it 'explains the marks on a clip' do
+  it 'explains the messages for a clip' do
     expect(report(LiveSets.fascination)).to include(
-      '`⚠ not in project` means the sample is not the project directory tree'
+      '`⚠ not in project` means the sample is not within the project directory tree'
     )
   end
 
