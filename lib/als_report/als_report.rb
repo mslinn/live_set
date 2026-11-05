@@ -8,9 +8,10 @@ require 'zlib'
 require_relative '../common/command'
 require_relative '../common/log'
 require_relative '../live_set/als_file'
-require_relative '../live_set/live_set_report'
+require_relative '../live_set/model/als_model'
+require_relative '../live_set/model/header_block'
 require_relative '../live_set/model/live_scene'
-require_relative '../live_set/model/live_tracks'
+require_relative '../live_set/serializer/als_model_serializer'
 
 # See https://www.ionos.ca/digitalguide/websites/web-development/xpath-tutorial/
 # See https://www.scrapingbee.com/webscraping-questions/selenium/how-to-find-elements-by-xpath-selenium
@@ -63,15 +64,6 @@ class AlsReport
 
     @live_set = @ableton.LiveSet
 
-    # A group track is a summing container, not a track that plays clips. It holds no clips, so it
-    # is not reported alongside the tracks, but its members' audio is routed through its device
-    # chain, so its devices are checked. See docs/als_notes.md, "The group tracks".
-    #
-    # Every track of the set is in the model: the MIDI tracks, the audio tracks, the groups
-    # and the return tracks, in the order Live wrote them.
-    track_elements = @xml_doc.xpath('//MidiTrack | //AudioTrack | //GroupTrack | //Tracks/ReturnTrack')
-
-    @tracks = LiveTracks.new @set_directory, track_elements
     # A set of Live 8 or Live 9 has no scenes at all.
     scenes = @live_set.at('Scenes')
     @scenes = scenes ? scenes.map { |scene| LiveScene.new scene } : []
@@ -79,15 +71,30 @@ class AlsReport
     @show_midi_and_audio_tracks_separately = options[:show_midi_and_audio_tracks_separately]
   end
 
-  # The report of the set.
+  # Generates the complete report for a Live set.
   #
-  # The report is markdown. It is written to stdout, and the log is written to stderr, so that
-  # the report can be read as a document and not as the output of a program.
+  # The report is generated in markdown format. It is written to stdout, and the log is written to stderr.
+  #
+  # The report is the model of the set written as markdown: the model holds the facts, and the serializer of the model
+  # writes them.
   #
   # @return [String] the report
   def show
     check_ableton_project_info
-    LiveSetReport.new(@set_name, @xml_doc, @tracks, @time_zone,
-                      show_midi_and_audio_tracks_separately: @show_midi_and_audio_tracks_separately).to_markdown
+    AlsModelSerializer.new(als_model).to_markdown
+  end
+
+  # The model of the set.
+  #
+  # Every XML element of the set shall be stored in the model: groups, MIDI tracks, audio tracks, return tracks, etc.,
+  # in the order Live wrote them.
+  #
+  # @return [AlsModel] the model
+  def als_model
+    @als_model ||= begin
+      header = HeaderBlock.new @set_name, @xml_doc, @time_zone
+      AlsModel.new @set_name, @xml_doc, header,
+                   show_midi_and_audio_tracks_separately: @show_midi_and_audio_tracks_separately
+    end
   end
 end

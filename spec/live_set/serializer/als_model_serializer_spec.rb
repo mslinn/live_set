@@ -40,8 +40,14 @@ RSpec.describe AlsModelSerializer, '#to_markdown' do
     ]
   end
 
-  it 'writes the facts about the set at the top of the report' do
+  it 'writes the name of the set at the top of the report' do
     expect(described_class.new(model).to_markdown).to start_with(
+      "# `Fascination.als`\n"
+    )
+  end
+
+  it 'writes the facts about the set under the name of the set' do
+    expect(described_class.new(model).to_markdown).to include(
       "|||\n|:-|-:|\n"
     )
   end

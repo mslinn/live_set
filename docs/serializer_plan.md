@@ -737,6 +737,31 @@ Each step leaves the program working, and the reports unchanged.
    able to run reports and is happy with the displayed reports, with the
    understanding that MIDI clips may not be properly represented yet in the
    report.
+
+   **What the phase turned out to be.** Every one of the TODOs in
+   `live_set_report.rb` is done: the header block is `HeaderBlock`, the verdict
+   is `P3SCompatibility`, the clips are `LiveMidiClip` and `LiveAudioClip`, the
+   devices are `LiveDevice` and `LiveDevices`, the samples are `LiveSample` and
+   `MissingSamples`, and the tree of the tracks is `LiveTracks` and `LiveGroup`.
+   What was left of `LiveSetReport` was a second writer of the report: it read
+   the XML, built the model by hand, and wrote the same six sections that
+   `AlsModelSerializer` writes from the model. Two writers of one document is
+   one too many, so `LiveSetReport` is retired, and the report is the model of
+   the set written as markdown by the serializer of the model:
+
+   ```text
+   AlsReport#show
+     └── AlsModelSerializer#to_markdown      the title and the six sections
+         ├── LiveHeaderSerializer#to_markdown        the header block
+         ├── P3SCompatibility#to_markdown           the verdict
+         ├── AlsModelSerializer#hierarchy_markdown   the outline of the tracks
+         ├── MissingSamplesSerializer#to_markdown    the samples that are not in the project
+         ├── LiveSamplesSerializer#to_markdown       the samples of the set
+         ├── DeviceCrossReferenceSerializer#to_markdown
+         └── TrackClipCrossReferenceSerializer#to_markdown
+   ```
+
+   The reports of the reference sets do not change.
 6. **The identity of a MIDI clip is its content.** The model computes the
    identity of a MIDI clip under the definition that is asked for — `notes`,
    `keys` or `loop` — and the name is never part of it. The option is parsed by
@@ -767,16 +792,17 @@ Each step leaves the program working, and the reports unchanged.
 ## The other TODOs in the code
 
 These are not in `live_palette.rb`, and are not part of this plan, but they are
-the same work and are listed here so that they are not lost:
+the same work and are listed here so that they are not lost. Every one of them
+is done, and the file they were in is gone:
 
-| Where | The TODO |
-| --- | --- |
-| `live_set_report.rb:17` | create the classes: `HeaderBlock`, `P3SCompatible`, `LiveClip`, `LiveClipReference`, `LiveClipSettings`, `LiveDevice`, `LiveSample`, `MissingSamples` |
-| `live_set_report.rb:708` | `states_of` should take a `LiveTrack` instead of an XML element, and move to the `LiveTrack` class |
-| `live_set_report.rb:714` | `frozen?` is a built-in method of `Object` in Ruby; the method should be part of the `LiveTrack` class |
-| `live_set_report.rb:716-719` | `frozen?`, `soloed?`, `armed?` and `off?` should be methods of the track |
-| `live_set_report.rb:801` | `missing_samples_markdown` should move to a `MissingSamples` class |
-| `live_set_report.rb:838`, `:862` | the device methods should move to a `LiveDevices` class, and be renamed to `markdown` |
-| `live_set_report.rb:1095` | `track_tree` should move to a `LiveTracks` class, and be renamed to `tree`; `LiveTracks` would be a collection of `LiveTrack` objects, and `LiveTrack` a wrapper around a track element |
-| `live_set_report.rb:1113` | `build_track_tree` should move to a `LiveGroup` class, and be renamed |
-| `live_set_report.rb:1356` | `mark` should be renamed to `checkmark` |
+| Where | The TODO | What it became |
+| --- | --- | --- |
+| `live_set_report.rb:17` | create the classes: `HeaderBlock`, `P3SCompatible`, `LiveClip`, `LiveClipReference`, `LiveClipSettings`, `LiveDevice`, `LiveSample`, `MissingSamples` | `HeaderBlock`, `P3SCompatibility`, `LiveMidiClip`, `LiveAudioClip`, `LiveClipSettings`, `LiveDevice`, `LiveSample`, `MissingSamples` |
+| `live_set_report.rb:708` | `states_of` should take a `LiveTrack` instead of an XML element, and move to the `LiveTrack` class | `LiveMarkup.states_of`, which takes a track of any kind |
+| `live_set_report.rb:714` | `frozen?` is a built-in method of `Object` in Ruby; the method should be part of the `LiveTrack` class | `LiveTrackFacts#frozen?` |
+| `live_set_report.rb:716-719` | `frozen?`, `soloed?`, `armed?` and `off?` should be methods of the track | `LiveTrackFacts` |
+| `live_set_report.rb:801` | `missing_samples_markdown` should move to a `MissingSamples` class | `MissingSamplesSerializer` |
+| `live_set_report.rb:838`, `:862` | the device methods should move to a `LiveDevices` class, and be renamed to `markdown` | `LiveDevices`, `LiveDeviceCrossReference` and `DeviceCrossReferenceSerializer` |
+| `live_set_report.rb:1095` | `track_tree` should move to a `LiveTracks` class, and be renamed to `tree`; `LiveTracks` would be a collection of `LiveTrack` objects, and `LiveTrack` a wrapper around a track element | `LiveTracks`, the model of the `<Tracks>` element, holding `LiveMidiTracks` and `LiveAudioTracks` |
+| `live_set_report.rb:1113` | `build_track_tree` should move to a `LiveGroup` class, and be renamed | `LiveGroup` |
+| `live_set_report.rb:1356` | `mark` should be renamed to `checkmark` | `LiveMarkup.swatch` |

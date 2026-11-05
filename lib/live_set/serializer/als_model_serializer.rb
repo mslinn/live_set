@@ -34,6 +34,11 @@ class AlsModelSerializer
 
   # Returns the complete ALS model as markdown.
   #
+  # The model of a set is the report of the set: the title, the facts about the file, the
+  # verdict for a transfer to Push 3 Standalone, the outline of the tracks and the things
+  # under them, the samples that are not in the project, the samples of the set, and the two
+  # cross-references.
+  #
   # @return [String] the serialized markdown for the entire ALS model
   def to_markdown
     header_block_section      = LiveHeaderSerializer.new(@als_model.header_block).to_markdown
@@ -45,12 +50,20 @@ class AlsModelSerializer
     track_clip_xref           = TrackClipCrossReferenceSerializer.new(cross_reference).to_markdown
 
     <<~REPORT_END
+      # `#{File.basename @als_model.path}`
+
       #{header_block_section}
+
       #{p3s_compatibility_section}
+
       #{hierarchical_entities}
+
       #{missing_samples}
+
       #{samples_section}
+
       #{device_track_xref}
+
       #{track_clip_xref}
     REPORT_END
   end

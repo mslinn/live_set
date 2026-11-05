@@ -223,9 +223,11 @@ Als_diff compares two Ableton Live sets element by element, and prints the
 differences.
 
 A Live set is XML, usually gzip-compressed, so the documents can be .als files
-or any XML files. The two documents are walked in parallel: the children of two
-elements are matched by their names, and the children that one of the elements
-has and the other does not are reported as differences.
+or files containing XML extracted from an ALS file. The two documents are
+first promoted to the newer of the two ALS versions, and are then walked in
+parallel: the children of two elements are matched by their names, and the
+children that one of the elements has and the other does not are reported as
+differences.
 
 TODO: compare attributes as well
 

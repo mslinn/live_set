@@ -22,11 +22,13 @@ set in arrays and hashes:
 
 Everything the report says is computed from those, in the report: the outline of the set,
 the places the clips of a track are in, the tracks that hold a clip, the devices of the set
-and the tracks they are on. The same set is read twice as well — once by `LiveSetReport` and
+and the tracks they are on. The same set was read twice as well — once by `LiveSetReport` and
 once by `LiveTrack`, `LiveGroup` and `LiveTracks`, which know about the audio of the set and
 its verdict for a transfer to Push 3 Standalone.
 
 The model replaces both: one reading of the set, and one place where the facts about it live.
+`LiveSetReport` is retired with them: the report is the model of the set written as markdown
+by the serializer of the model.
 
 ## The rules
 
@@ -56,9 +58,8 @@ the two cross-references.
 ### `AlsReport` — the command that writes the report
 
 The report of a set is written by the `als_report` command, and the class that implements it
-is `AlsReport`, in `lib/als_report/als_report.rb`. The model of the contents of a set is
-`AlsModel`, and the report itself is written by `LiveSetReport`, in
-`lib/live_set/live_set_report.rb`.
+is `AlsReport`, in `lib/als_report/als_report.rb`. It builds the model of the set — the
+`AlsModel` — and asks the serializer of the model for the markdown of it.
 
 ### `LiveTracks` — the tracks of the set
 
@@ -222,7 +223,7 @@ the project it is in, and the time zone the times are written in.
 
 ## What the model replaces
 
-In `LiveSetReport`:
+In `LiveSetReport`, which is retired:
 
 - `track_tree` and `build_track_tree` — the tree of tracks
 - `each_track` and `each_numbered_track` — the tracks
@@ -234,5 +235,5 @@ In `LiveSetReport`:
 - `problem_for?`, `frozen?`, `soloed?`, `armed?`, `off?` — the state of a track, and whether
   it is a problem
 
-And the reading of the XML that `LiveTrack`, `LiveGroup` and `LiveTracks` do for the
+And the reading of the XML that `LiveTrack`, `LiveGroup` and `LiveTracks` did for the
 verdict: the same set, read twice.
