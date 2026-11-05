@@ -1,3 +1,5 @@
+require 'optparse'
+require_relative '../common/command'
 require_relative '../live_set/als_file'
 require_relative '../live_set/demo_sets'
 
@@ -7,6 +9,8 @@ require_relative '../live_set/demo_sets'
 # file. The XPath expression is the only thing that has to change from one question to the next,
 # which makes this the tool to reach for instead of writing a program for each element.
 class AlsNodes
+  extend Command
+
   # Display help message for als_nodes
   #
   # @param msg [String, nil] an error message to show above the help
@@ -52,16 +56,15 @@ class AlsNodes
   # @param args [Array<String>] the command line arguments
   # @return [Integer] the exit status of the command
   def self.run(args)
-    argv = args.dup
+    found, remaining = parse_options(args)
 
-    if argv.length < 2
+    if remaining.length < 2
       warn help
       return 1
     end
 
-    path = DemoSets.path_of(argv.shift)
-    xpath = argv.shift
-    found = options(argv)
+    path = DemoSets.path_of(remaining.shift)
+    xpath = remaining.shift
 
     abort "No such file: #{path}" unless File.exist?(path)
 
@@ -81,23 +84,27 @@ class AlsNodes
     0
   end
 
-  # The options the tool was given.
+  # The options the command starts with.
   #
-  # @param argv [Array<String>] the arguments that are left
   # @return [Hash] the options
-  def self.options(argv)
-    { attributes: [], max: nil, unique: false }.tap do |found|
-      until argv.empty?
-        case argv.first
-        when '--attribute' then found[:attributes] << argv.shift(2).last
-        when '--attributes' then found[:all_attributes] = argv.shift
-        when '--name'       then found[:name] = argv.shift
-        when '--children'   then found[:children] = argv.shift
-        when '--count'      then found[:count] = argv.shift
-        when '--max'        then found[:max] = argv.shift(2).last.to_i
-        when '--unique'     then found[:unique] = argv.shift
-        else break
-        end
+  def self.default_options
+    super.merge(attribute: [])
+  end
+
+  def self.parser
+    OptionParser.new do |parser|
+      parser.program_name = 'als_nodes'
+
+      parser.on('--attribute NAME', Array, 'Print the value of an attribute of each node')
+      parser.on('--attributes', 'Print every attribute of each node')
+      parser.on('--name', 'Print the name of each node')
+      parser.on('--children', 'Print the names of the children of each node')
+      parser.on('--count', 'Print the number of nodes that were found')
+      parser.on('--max N', Integer, 'Print at most N nodes')
+      parser.on('--unique', 'Print each distinct result once')
+
+      parser.on_tail('-h', '--help', 'Show this message') do
+        abort help
       end
     end
   end
@@ -108,9 +115,9 @@ class AlsNodes
   # @param found [Hash] the options
   # @return [String] the text of the node
   def self.text_of(node, found)
-    attributes = found[:attributes]
+    attributes = found[:attribute]
     return attributes.map { |name| node[name].to_s }.join(' ') unless attributes.empty?
-    return node.attribute_nodes.map { |attribute| "#{attribute.name}=#{attribute.value}" }.join(' ') if found[:all_attributes]
+    return node.attribute_nodes.map { |attribute| "#{attribute.name}=#{attribute.value}" }.join(' ') if found[:attributes]
     return node.name if found[:name]
     return node.element_children.map(&:name).inspect if found[:children]
 

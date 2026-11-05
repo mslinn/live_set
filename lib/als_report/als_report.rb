@@ -5,6 +5,7 @@ require 'nokogiri'
 require 'pathname'
 require 'time'
 require 'zlib'
+require_relative '../common/command'
 require_relative '../common/log'
 require_relative '../live_set/als_file'
 require_relative '../live_set/live_set_report'
@@ -20,6 +21,8 @@ require_relative '../live_set/model/live_tracks'
 # The conversion of a set to another version of the format is the work of the
 # `als_to_version` command, and this command does not do it.
 class AlsReport
+  extend Command
+
   # Report on a Live set.
   #
   # @param args [Array<String>] the command line arguments

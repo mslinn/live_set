@@ -1,12 +1,15 @@
 require 'date'
 require 'fileutils'
 require 'shellwords'
+require_relative '../common/command'
 require_relative '../common/run'
 
 # Validates an Ableton Live set against an XSD schema.
 #
 # The .als file is gzip compressed XML, and the schema is read with Nokogiri, so no temporary file is needed.
 class AlsValidate
+  extend Command
+
   # The error raised when one of the two files is not what it was said to be.
   class InvalidInput < StandardError; end
 
@@ -15,9 +18,8 @@ class AlsValidate
   # @param args [Array<String>] the command line arguments
   # @return [Integer] the exit status of the command
   def self.run(args)
-    remaining = parse_options(args)
+    _, remaining = parse_options(args)
     set_name, xsd_name = check_arguments remaining
-
     validate_asd = new set_name, xsd_name
     errors = validate_asd.validate
 

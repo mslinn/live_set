@@ -1,4 +1,6 @@
 require 'nokogiri'
+require 'optparse'
+require_relative '../common/command'
 require_relative '../live_set/als_file'
 require_relative '../live_set/demo_sets'
 
@@ -9,32 +11,34 @@ require_relative '../live_set/demo_sets'
 # their names, and the children that one of the elements has and the other does not are reported
 # as differences.
 class AlsDiff
+  extend Command
+
   # Display help message for als_diff
   #
   # @param msg [String, nil] an error message to show above the help
   # @return [String] the help message
   def self.help(msg = nil)
     help = <<~END_HELP
-      Als_diff compares two Ableton Live sets element by element, and prints the differences.
+      Als_diff compares two Ableton Live sets element by element, and prints the
+      differences.
 
-      A Live set is XML, usually gzip-compressed, so the documents can be .als files or any XML
-      files. The two documents are walked in parallel: the children of two elements are matched
-      by their names, and the children that one of the elements has and the other does not are
-      reported as differences.
+      A Live set is XML, usually gzip-compressed, so the documents can be .als files
+      or any XML files. The two documents are walked in parallel: the children of two
+      elements are matched by their names, and the children that one of the elements
+      has and the other does not are reported as differences.
 
-      Syntax: als_diff FILE1 FILE2 [options]
+      TODO: compare attributes as well
 
-      FILE1 and FILE2 are paths, or selectors of demo sets:
-        demo:11:suite            the Live 11 Suite demo set
-        demo:12                  the demo set of Live 12
-        demo:converted:11:suite  the Live 12 conversion of the Live 11 Suite demo set
+      Syntax: als_diff [OPTIONS] FILE1 FILE2
 
-      Options are:
-        --skip NAME    do not compare the elements with this name, or anything below them. The
-                       option may be given more than once.
+      Where: FILE1 and FILE2 are paths
+
+      OPTIONS can be specified before or after positional parameters:
+        -h             Display this help message.
         --count        print the number of differences, and nothing else
         --max N        print at most N differences
-        -h             Display this help message.
+        --skip NAME    do not compare the elements with this name, or anything below
+                      them. This option may be given more than once.
 
       The exit status is 0 when the documents are the same, and 1 when they are not.
 
@@ -42,6 +46,7 @@ class AlsDiff
         als_diff live11.als live12.als
         als_diff live11.als live12.als --skip Devices --skip DeviceChain
         als_diff live11.als live12.als --count
+        als_diff --skip Devices --skip DeviceChain live11.als live12.als
     END_HELP
 
     msg.nil? ? help : "Error: #{msg}\n\n#{help}"
@@ -52,16 +57,15 @@ class AlsDiff
   # @param args [Array<String>] the command line arguments
   # @return [Integer] the exit status of the command
   def self.run(args)
-    argv = args.dup
+    found, remaining = parse_options(args)
 
-    if argv.length < 2
+    if remaining.length < 2
       warn help
       return 1
     end
 
-    ours_path = DemoSets.path_of(argv.shift)
-    theirs_path = DemoSets.path_of(argv.shift)
-    found = options(argv)
+    ours_path = DemoSets.path_of(remaining.shift)
+    theirs_path = DemoSets.path_of(remaining.shift)
 
     [ours_path, theirs_path].each do |path|
       abort "No such file: #{path}" unless File.exist?(path)
@@ -81,19 +85,23 @@ class AlsDiff
     differences.empty? ? 0 : 1
   end
 
-  # The options the tool was given.
+  # The options the command starts with.
   #
-  # @param argv [Array<String>] the arguments that are left
   # @return [Hash] the options
-  def self.options(argv)
-    { skip: [], max: nil }.tap do |found|
-      until argv.empty?
-        case argv.first
-        when '--skip' then found[:skip] << argv.shift(2).last
-        when '--count' then found[:count] = argv.shift
-        when '--max'  then found[:max] = argv.shift(2).last.to_i
-        else break
-        end
+  def self.default_options
+    super.merge(skip: [])
+  end
+
+  def self.parser
+    OptionParser.new do |parser|
+      parser.program_name = 'als_diff'
+
+      parser.on('--skip NAME', Array, 'Do not compare the elements with this name')
+      parser.on('--count', 'Print the number of differences')
+      parser.on('--max N', Integer, 'Print at most N differences')
+
+      parser.on_tail('-h', '--help', 'Show this message') do
+        abort help
       end
     end
   end

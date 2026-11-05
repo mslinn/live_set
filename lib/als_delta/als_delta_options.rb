@@ -1,7 +1,7 @@
 require 'colorator'
 require 'logger'
 require 'optparse'
-require_relative '../common/command_options'
+require_relative '../common/command'
 require_relative '../common/log'
 
 class AlsDelta
@@ -40,21 +40,14 @@ class AlsDelta
     msg.nil? ? help : "Error: #{msg}\n\n#{help}"
   end
 
-  # Parse options for als_delta executable
+  # The options the command starts with.
   #
-  # @param args [Array<String>] the command line arguments
-  # @return [Array(Hash, Array<String>)] the options and the remaining arguments
-  def self.parse_options(args)
-    options = { keep: false, loglevel: 'WARN' }
-    remaining = do_parse.order!(args, into: options)
-
-    error = CommandOptions.loglevel_error(options)
-    abort help(error) if error
-
-    [options, remaining]
+  # @return [Hash] the options
+  def self.default_options
+    super.merge(keep: false)
   end
 
-  def self.do_parse
+  def self.parser
     OptionParser.new do |parser|
       parser.program_name = 'als_delta'
 

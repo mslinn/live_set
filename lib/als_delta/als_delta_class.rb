@@ -1,9 +1,11 @@
 require 'date'
 require 'fileutils'
 require 'shellwords'
+require_relative '../common/command'
 require_relative '../common/run'
 
 class AlsDelta
+  extend Command
   include Run
 
   # Show the changes to a Live set each time it is saved.

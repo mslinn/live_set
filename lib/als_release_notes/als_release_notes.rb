@@ -1,5 +1,7 @@
 require 'net/http'
 require 'nokogiri'
+require 'optparse'
+require_relative '../common/command'
 
 # Prints the release notes of a version of Live as markdown.
 #
@@ -13,6 +15,8 @@ require 'nokogiri'
 # notes can be read, searched, and pasted into a document. When the file is not there, the
 # notes are fetched from the web page they came from.
 class AlsReleaseNotes
+  extend Command
+
   # The directory the release notes are kept in.
   NOTES = File.expand_path('../../docs/release_notes', __dir__).freeze
 
@@ -71,15 +75,10 @@ class AlsReleaseNotes
   # @param args [Array<String>] the command line arguments
   # @return [Integer] the exit status of the command
   def self.run(args)
-    argv = args.dup
-    version = argv.shift
-    if version.nil? || %w[-h --help].include?(version)
-      warn help
-      return 1
-    end
+    found, remaining = parse_options(args)
 
-    pattern = pattern_of(argv)
-    if pattern == :error
+    version = remaining.shift
+    if version.nil?
       warn help
       return 1
     end
@@ -87,23 +86,20 @@ class AlsReleaseNotes
     live = version.split('.').first
     notes = notes_of html_of(live)
 
-    print_notes notes, version, pattern
+    print_notes notes, version, found[:find]
     0
   end
 
-  # The pattern the notes are searched for.
-  #
-  # @param argv [Array<String>] the arguments that are left
-  # @return [Regexp, nil, Symbol] the pattern, or nil when there is none, or :error when the
-  #   pattern is missing
-  def self.pattern_of(argv)
-    return nil unless argv.first == '--find'
+  def self.parser
+    OptionParser.new do |parser|
+      parser.program_name = 'als_release_notes'
 
-    argv.shift
-    text = argv.shift
-    return :error if text.nil?
+      parser.on('--find PATTERN', 'Print the lines of the notes that match PATTERN')
 
-    Regexp.new(text, Regexp::IGNORECASE)
+      parser.on_tail('-h', '--help', 'Show this message') do
+        abort help
+      end
+    end
   end
 
   # The HTML of the notes of a version.
@@ -122,11 +118,12 @@ class AlsReleaseNotes
   #
   # @param notes [Array<Array(String, String)>] the lines of the notes
   # @param version [String] the version asked for
-  # @param pattern [Regexp, nil] the pattern the notes are searched for
+  # @param pattern [String, nil] the pattern the notes are searched for
   # @return [void]
   def self.print_notes(notes, version, pattern)
     if pattern
-      notes.each { |release, line| puts "#{release} | #{line}" if line&.match?(pattern) }
+      matcher = Regexp.new(pattern, Regexp::IGNORECASE)
+      notes.each { |release, line| puts "#{release} | #{line}" if line&.match?(matcher) }
       return
     end
 

@@ -114,6 +114,12 @@ Every command is named with the `als_` prefix, and the class that implements a c
 named after the command. The class has a `run` method that takes the command line arguments,
 and a `help` method that prints what the command does and what its options mean.
 
+Every command extends the `Command` module, in `lib/common/command.rb`, which holds the parts
+that are the same everywhere: the parsing of the options, the check of the log level, and the
+handling of the errors of the parser. A command that is given an option it does not
+understand, or an option that is missing its argument, says so and prints its help, instead
+of failing with a backtrace.
+
 | The command | The class | What it does |
 | --- | --- | --- |
 | `als_report` | `AlsReport` | writes the report of a set in markdown |

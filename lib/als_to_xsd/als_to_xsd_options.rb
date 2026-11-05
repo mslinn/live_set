@@ -1,7 +1,7 @@
 require 'colorator'
 require 'logger'
 require 'optparse'
-require_relative '../common/command_options'
+require_relative '../common/command'
 require_relative '../common/log'
 
 class AlsToXsd
@@ -28,13 +28,12 @@ class AlsToXsd
     msg.nil? ? help : "Error: #{msg}\n\n#{help}"
   end
 
-  # Parse options for generate_xsd executable
+  # Parse options for the als_to_xsd command
   #
   # @param args [Array<String>] the command line arguments
   # @return [Array(Hash, String, Array<String>)] the options, the XSD file name, and the ALS file names
   def self.parse_options(args)
-    options = { loglevel: 'WARN' }
-    remaining = do_parse.order!(args, into: options)
+    options, remaining = super
 
     abort help('No XSD file name provided.') if remaining.empty?
     xsd_file = remaining.shift.expand_env
@@ -44,13 +43,10 @@ class AlsToXsd
     xsd_directory = File.dirname(File.expand_path(xsd_file))
     abort help("Directory does not exist: #{xsd_directory}") unless Dir.exist?(xsd_directory)
 
-    error = CommandOptions.loglevel_error(options)
-    abort help(error) if error
-
     [options, xsd_file, remaining]
   end
 
-  def self.do_parse
+  def self.parser
     OptionParser.new do |parser|
       parser.program_name = 'als_to_xsd'
 

@@ -155,82 +155,202 @@ $ gem upgrade live_set
 ```
 
 
-## Usage
+## Commands
 
 The following commands are provided:
 
-- `als_report` writes a report of a Live set in markdown.
-- `als_to_version` converts a Live set to another version of the format.
 - `als_delta` (used when Live is running) shows changes to a session file each
   time the session is saved.
+- `als_diff` compares two sets element by element, and prints the differences.
+- `als_nodes` prints the nodes of an XML document that an XPath expression finds.
+- `als_release_notes` prints the release notes of a version of Live as markdown.
+- `als_report` writes a report of a Live set in markdown.
+- `als_to_version` converts a Live set to another version of the format.
 - `als_to_xsd` reads one or more Ableton Live sets and generates an XSD.
 - `als_validate` checks that a session file conforms to an XSD schema.
-- `als_nodes` prints the nodes of an XML document that an XPath expression finds.
-- `als_diff` compares two sets element by element, and prints the differences.
 - `als_xsd_order` prints the order of the children of an element in a schema.
-- `als_release_notes` prints the release notes of a version of Live as markdown.
 
-```text
-$ als_report
-Writes a report of an Ableton Live set in markdown: the tracks of the set and the groups they
-are in, the devices of each of them, the clips and the take lanes, the samples that are not in
-the project, and a cross-reference of the tracks and the clips.
+The examples of how to use each command assume $live_set points to an ALS file,
+for example:
 
-Also verifies that 'Ableton Project Info' is in the same directory as the .als file,
-and there is no parent directory with a directory of that name.
-
-Syntax: als_report OPTIONS PATH_TO_ALS_FILE
-
-Environment variables used in PATH_TO_ALS_FILE are expanded.
-
-Options are:
-  -v Show the version of this program.
-  -z The time zone the times in the report are written in, e.g. America/Chicago. The
-     times are written in the time zone of the computer when it is not given.
-  --show_midi_and_audio_tracks_separately Write the audio tracks and the MIDI tracks
-     of the set in their own lists. By default, every track is written in the order
-     Live saved it in.
-  -h Display this help message.
-
-The report of a set is markdown. It is written to stdout, and the log is written to
-stderr, where it is never markdown.
-
-To convert a set to another version of the format, use the als_to_version command.
-
-Example:
-  als_report $path/to/my_set.als
+```shell
+live_home="/mnt/c/ProgramData/Ableton"
+live_12_home="$live_home/Live 12 Suite/Resources/Core Library/Lessons/Demo Songs"
+live_set="$live_12_home/Chuck Sutton - Patience (Live 12 Suite Demo).als"
 ```
 
+
+### `als_delta`
+
 ```text
-$ als_delta
+$ als_delta -h
 als_delta: Shows changes to an .als file each time a session file is saved.
-Press any key to compare with previous version.
+Press any key to make a backup of the current version of the `als` file and
+compare it with previous version.
+
+Backups can be kept by using the -k option. By default, only one backup is
+used, and it is deleted when the process exits.
 
 Syntax: als_delta OPTIONS PATH_TO_ALS_FILE
 
 Environment variables used in PATH_TO_ALS_FILE are expanded.
 
 Options are:
-  -k Keep each backup (default is to delete them)
+  -k Keep each backup and timestamp it, instead of overwriting the previous backup.
   -h Display this help message.
+  -l LOGLEVEL Set the log level (DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
 
-Example:
-als_delta $path/to/my_v12_set.als
+Example (references an environment variable called `path`):
+als_delta "$live_set"
 ```
 
+#### Example
+
+```shell
+$ als_delta "$live_set"
+Backing up Live set to '/mnt/c/ProgramData/Ableton/Live 12 Suite/Resources/Core Library/Lessons/Demo Songs/Chuck Sutton - Patience (Live 12 Suite Demo)_backup.als'
+Press any key to display the changes to the Live set XML file, or press Esc to exit.
+There were no changes to the saved live set.
+Press any key to display the changes to the Live set XML file, or press Esc to exit.
+Deleting '/mnt/c/ProgramData/Ableton/Live 12 Suite/Resources/Core Library/Lessons/Demo Songs/Chuck Sutton - Patience (Live 12 Suite Demo)_backup.als'
+```
+
+
+### `als_diff`
+
 ```text
-Als_to_xsd reads one or more Ableton Live sets and generates an XSD with the given name.
+Als_diff compares two Ableton Live sets element by element, and prints the
+differences.
 
-Syntax: als_to_xsd OPTIONS XSD_FILE_NAME PATH_TO_ALS_FILE...
+A Live set is XML, usually gzip-compressed, so the documents can be .als files
+or any XML files. The two documents are walked in parallel: the children of two
+elements are matched by their names, and the children that one of the elements
+has and the other does not are reported as differences.
 
-Environment variables used in XSD_FILE_NAME and PATH_TO_ALS_FILE are expanded.
+TODO: compare attributes as well
+
+Syntax: als_diff [OPTIONS] FILE1 FILE2
+
+Where: FILE1 and FILE2 are paths
+
+OPTIONS can be specified before or after positional parameters:
+  -h             Display this help message.
+  --count        print the number of differences, and nothing else
+  --max N        print at most N differences
+  --skip NAME    do not compare the elements with this name, or anything below
+                 them. This option may be given more than once.
+
+The exit status is 0 when the documents are the same, and 1 when they are not.
+
+Examples:
+  als_diff live11.als live12.als
+  als_diff live11.als live12.als --skip Devices --skip DeviceChain
+  als_diff live11.als live12.als --count
+  als_diff --skip Devices --skip DeviceChain live11.als live12.als
+```
+
+
+### `als_nodes`
+
+```text
+Als_nodes prints the nodes of an XML document that an XPath expression finds.
+
+A Live set is XML, usually gzip-compressed, so the document can be a .als file or any XML
+file. The XPath expression is the only thing that has to change from one question to the
+next, which makes this the tool to reach for instead of writing a program for each
+element.
+
+Syntax: als_nodes FILE XPATH [options]
+
+FILE is the path of the file, or a selector of a demo set, e.g. demo:11:suite.
 
 Options are:
-  -f Overwrite any existing xsd.
+  --attribute NAME  print the value of an attribute of each node, not the node itself. The
+                     option may be given more than once, and the values of the attributes
+                     are then printed in the order the options were given.
+  --attributes       print every attribute of each node, as name=value pairs
+  --name             print the name of each node, not the node itself
+  --children        print the names of the children of each node, not the node itself
+  --count           print the number of nodes that were found, and nothing else
+  --max N           print at most N nodes
+  --unique          print each distinct result once
+  -h                Display this help message.
+
+Examples:
+  als_nodes set.als '//MidiTrack/IsTuned' --attribute Value
+  als_nodes set.als '//MidiTrack' --attribute Id --attribute SelectedToolPanel
+  als_nodes set.als '//MidiTrack' --attributes
+  als_nodes set.als '//LiveSet/Scenes/Scene/FollowAction' --children
+  als_nodes set.als '//MidiTrack' --count
+```
+
+
+### `als_release_notes`
+
+```text
+Als_release_notes prints the release notes of a version of Live as markdown.
+
+The release notes are the evidence the version_diff documents are built from: they say
+which differences to expect, and which version introduced each one. They are written for
+the musicians who use Live, and they never give an element name or an attribute name, so
+they are a filter over the differences rather than a source of them.
+
+The notes are HTML, downloaded from Ableton's web site and kept in docs/release_notes/,
+one file per version. This command reads one of them and prints it as markdown, so that
+the notes can be read, searched, and pasted into a document. When the file is not there,
+the notes are fetched from the page they came from.
+
+Syntax: als_release_notes VERSION [--find PATTERN]
+
+VERSION is the version of Live, e.g. 12, and it may name a single release, e.g. 12.0. The
+notes of a single release are printed when it does.
+
+Options are:
+  --find PATTERN  print the lines of the notes that match PATTERN, each with the release
+                  it belongs to. The pattern is matched without regard to case.
+  -h              Display this help message.
+
+Examples:
+  als_release_notes 12          # the notes of Live 12
+  als_release_notes 12.0        # the notes of the release 12.0
+  als_release_notes 12 --find "scale awareness"
+  als_release_notes 12 > docs/release_notes/live-12.md
+```
+
+
+
+### `als_report`
+
+```text
+$ als_report -h
+Als_report writes a report of an Ableton Live set in markdown, including but not
+limited to the groups, tracks, the devices, clips, take lanes, missing samples,
+and several cross-references.
+
+The report is written to stdout as markdown. Log output is written in plaintext
+to stderr.
+
+If the special folder called 'Ableton Project Info' is not present in the same
+folder as the .als file, a warning is generated. Similarly, if 'Ableton Project
+Info' is present in any parent folder, a warning is issued and the user is asked
+if the directory should be renamed.
+
+Syntax: als_report OPTIONS PATH_TO_ALS_FILE
+
+Environment variables used in PATH_TO_ALS_FILE are expanded.
+
+Options are:
+  -v  Show the version of this program.
+  -z  The time zone to use in the report in, e.g. America/Chicago. The time zone
+      of the computer the command ran on when this option is not specified.
   -h Display this help message.
+  --show_midi_and_audio_tracks_separately
+      Report the audio tracks and the MIDI tracks separately. By default, every
+      track is displayed in the order found in the ALS file.
+
 
 Example:
-  als_to_xsd -f xsd_file_name $path/to/my_v12_set.als
+  als_report $path/to/my_set.als
 ```
 
 ```text
@@ -246,7 +366,7 @@ Example:
 ```
 
 
-### The Report
+#### The Report
 
 `als_report` writes a report of a set in markdown: the tracks of the set and the groups they
 are in, the devices of each of them, the clips and the take lanes, the samples that are not
@@ -275,50 +395,72 @@ sets are in the associated repository of reference Live sets, and
 [sets/ANALYSIS.md](https://github.com/mslinn/live_reference_sets/blob/main/sets/ANALYSIS.md)
 describes what they hold.
 
+#### Sample Usage
 
-### The sizes and the checksum of a set
+Report an ALS file this way:
 
-A report is evidence: it has to say how big a set is, and it has to show that the set has not
-been tampered with.
-
-**The checksums.** A set is a gzipped XML document, and two files with the same content need
-not have the same bytes. The report carries both SHA-256 checksums of the set that was read:
-
-- the hash of the **file**, of the `.als` as it is on disk. It changes when anything in the
-  file changes, including the compression.
-- the hash of the **content**, of the XML the `.als` holds when it is inflated. It says the
-  material of the set did not change, however it was compressed.
-
-**The sizes.** Four of them, and the report says what each was computed from:
-
-| The size | What it is |
-| --- | --- |
-| The set file | the size of the `.als` |
-| The expected size of the project | what the project should be, according to the `.als`: the set file, and every sample the set refers to that is in the project, counted once |
-| The actual size of the project | what the project is on disk, when the project folder is there |
-| The fully resolved size | everything the set draws on: the project, and the assets outside it — the samples in the user library, the Live Packs, the Racks, the Live Clips |
-
-A sample that is not on disk has no size on disk, and the report says so rather than
-guessing. A table of the assets says what the sizes are made of: each file, the size Live
-recorded for it, the size on disk, where it is, and when it was last changed.
-
-The report says what made it — the version of `live_set`, and where the tool is documented:
-<https://www.mslinn.com/av_studio/ableton_live_set.html>.
+```shell
+live_home="/mnt/c/ProgramData/Ableton"
+live_12_home="$live_home/Live 12 Suite/Resources/Core Library/Lessons/Demo Songs"
+live_set="$live_12_home/Chuck Sutton - Patience (Live 12 Suite Demo).als"
+zcat "$live_set" | less
+als_report "$live_set"
+```
 
 
-### Convert
+#### Sizes Checksums
+
+A report is intended to be use in a courtroom as reliable evidence. It must
+display all relevant metadata (dates, size, permissions, owner, etc.), and it
+must prove that the set has not been tampered with.
+
+**Checksums:** A set is a gzipped XML document, and two files with the same
+content need not have the same bytes. The report carries both SHA-256 checksums
+of the set that was read:
+
+- the hash of the **file**, of the `.als` as it is on disk. It changes when
+  anything in the file changes, including the compression.
+- the hash of the **content**, of the XML the `.als` holds when it is inflated.
+  It says the material of the set did not change, however it was compressed.
+
+**Sizes:** Four of them, and the report says what each was computed from:
+
+TODO some of the following explanations are incorrect, and the code that
+implements them should be inspected for reasonableness:
+
+| The size                         | What it is                                                                                                                               |
+|----------------------------------|------------------------------------------------------------------------------------------------------------------------------------------|
+| The set file                     | Size of the `.als` file as reported by the file system                                                                                   |
+| The expected size of the project | Expected sum total of the entire Live set, including the ALS file, and every sample the set refers to, including samples from live packs |
+| The actual size of the project   | Actual sum total of the entire Live set (requires the project folder)                                                                    |
+| The fully resolved size          | everything the set draws on: the project, and the assets outside it — the samples in the user library, Live packs, racks, and clips      |
+
+
+TODO this explanation seems problematic and the code is also suspect:
+
+A sample that is not found has no reportable size, and the report says so. The
+report contains a table of assets that explains the sizes of each asset: the
+file size, the size Live recorded for it, where it is, and when it was last
+changed.
+
+The report says what made it — the version of `live_set`, and where the tool is
+documented: <https://www.mslinn.com/av_studio/ableton_live_set.html>.
+
+
+### `als_to_version`
 
 Convert a set to another version of the Live format, and write it out:
 
 ```shell
-$ als_to_version 11 path/to/my_set.als
+$ als_to_version 11 path/to/my_set_12.als path/to/my_set_11.als
 ```
 
-The set is written as `path/to/my_set_11.als`, next to the set that was converted, unless
-another destination is named. The `-f` option overwrites a destination that is already there.
+The set is written to the same directory as the original set to be converted,
+unless another destination is named. The `-f` option overwrites any pre-existing
+destination set.
 
 ```text
-$ als_to_version
+$ als_to_version -h
 Als_to_version converts a Live set to another version of the Live format.
 
 The direction of the conversion is given: the set is converted to the version named on
@@ -344,9 +486,44 @@ Example:
   als_to_version 11 $path/to/my_v12_set.als
 ```
 
-The converted set uses the Live 11.3.21 schema. The sub-version is not
-configurable. For more infomation, see
+When converting to Live 11 format, the converted set uses the Live 11.3.21
+schema. The sub-version is not configurable. For more infomation, see
 [docs/live_11_12_diff.md](docs/live_11_12_diff.md#converting-a-set-to-live-11-uses-a-fixed-schema).
+
+
+### `als_to_xsd`
+
+```text
+Als_to_xsd reads one or more Ableton Live sets and generates an XSD with the given name.
+
+Syntax: als_to_xsd OPTIONS XSD_FILE_NAME PATH_TO_ALS_FILE...
+
+Environment variables used in XSD_FILE_NAME and PATH_TO_ALS_FILE are expanded.
+
+Options are:
+  -f Overwrite any existing xsd.
+  -h Display this help message.
+
+Example:
+  generate_xsd -f xsd_file_name $path/to/my_v12_set.als
+```
+
+
+### `als_validate`
+
+```text
+Als_validate checks that an Ableton Live set conforms to an XSD schema.
+
+Syntax: als_validate PATH_TO_ALS_FILE SCHEMA.xsd
+
+Environment variables used in PATH_TO_ALS_FILE are expanded.
+
+Options are:
+  -h Display this help message.
+
+Example:
+  validate_asd $path/to/my_v12_set.als schema.xsd
+```
 
 
 ## Live Experimental Features
@@ -399,15 +576,6 @@ $ bin/als_files "/mnt/c/ProgramData/Ableton/Live 12 Suite/Resources/Core Library
 Ableton documents the location in
 [Location of the default Demo Set](https://help.ableton.com/hc/en-us/articles/209774005-Location-of-the-default-Demo-Set).
 `locate -i "Demo Songs"` finds them.
-
-Examine a file this way:
-
-```shell
-live_home="/mnt/c/ProgramData/Ableton"
-live_12_home="$live_home/Live 12 Suite/Resources/Core Library/Lessons/Demo Songs"
-live_set="$live_12_home/Chuck Sutton - Patience (Live 12 Suite Demo).als"
-zcat "$live_set" | less
-```
 
 One Live 11 set is checked in, because no demo set of Live 11 has a return
 track: `sets/live_11/projects_and_als/Fascination.als`. It comes from

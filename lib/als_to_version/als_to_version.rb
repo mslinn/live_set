@@ -1,5 +1,6 @@
 require 'colorator'
 require 'optparse'
+require_relative '../common/command'
 require_relative '../live_set/als_file'
 require_relative '../live_set/demo_sets'
 require_relative '../live_set/live_set_converter'
@@ -11,6 +12,8 @@ require_relative '../live_set/live_set_transformer'
 # the `live_set` directory, and which are composed by the registry of them. See
 # docs/cpfir.md, "The Lifecycle of a Conversion", and docs/conversion.md.
 class AlsToVersion
+  extend Command
+
   # Display help message for als_to_version
   #
   # @param msg [String, nil] an error message to show above the help
@@ -100,17 +103,7 @@ class AlsToVersion
                                               overwrite: overwrite).convert
   end
 
-  # Parse the options of the command.
-  #
-  # @param args [Array<String>] the command line arguments
-  # @return [Array(Hash, Array<String>)] the options and the remaining arguments
-  def self.parse_options(args)
-    options = {}
-    remaining = do_parse.order!(args, into: options)
-    [options, remaining]
-  end
-
-  def self.do_parse
+  def self.parser
     OptionParser.new do |parser|
       parser.program_name = 'als_to_version'
 

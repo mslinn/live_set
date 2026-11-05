@@ -1,4 +1,6 @@
 require 'nokogiri'
+require 'optparse'
+require_relative '../common/command'
 
 # Reads the order of the children of an element out of a generated schema.
 #
@@ -9,6 +11,8 @@ require 'nokogiri'
 # The transformations of a conversion put elements in a particular place, and this is where they
 # get it.
 class AlsXsdOrder
+  extend Command
+
   # The namespace of the XML Schema vocabulary.
   NAMESPACE = { 'xs' => 'http://www.w3.org/2001/XMLSchema' }.freeze
 
@@ -45,12 +49,14 @@ class AlsXsdOrder
   # @param args [Array<String>] the command line arguments
   # @return [Integer] the exit status of the command
   def self.run(args)
-    if args.length != 2
+    _, remaining = parse_options(args)
+
+    if remaining.length != 2
       warn help
       return 1
     end
 
-    schema_file, element_name = args
+    schema_file, element_name = remaining
     abort "No such schema: #{schema_file}" unless File.exist?(schema_file)
 
     order = of_file(schema_file, element_name)
@@ -62,6 +68,16 @@ class AlsXsdOrder
 
     puts "#{element_name}: #{order.inspect}"
     0
+  end
+
+  def self.parser
+    OptionParser.new do |parser|
+      parser.program_name = 'als_xsd_order'
+
+      parser.on_tail('-h', '--help', 'Show this message') do
+        abort help
+      end
+    end
   end
 
   # The order of the children of an element.

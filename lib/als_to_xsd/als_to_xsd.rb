@@ -1,6 +1,7 @@
 require 'colorator'
 require 'nokogiri'
 require 'zlib'
+require_relative '../common/command'
 require_relative '../live_set/als_file'
 require_relative 'als_to_xsd_options'
 require_relative 'xsd_builder'
@@ -24,6 +25,8 @@ require_relative 'xsd_builder'
 #
 # Usage: generate_xsd OPTIONS XSD_FILE_NAME PATH_TO_ALS_FILE...
 class AlsToXsd
+  extend Command
+
   # Generate an XSD from one or more Live sets, and write it to a file.
   #
   # @param args [Array<String>] the command line arguments
