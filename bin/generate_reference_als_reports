@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-# Writes the analysis of every reference set to the report of it.
+# Writes the analysis of every reference set to a reference report.
 #
 # Usage: bin/generate_reference_als_reports [SETS_DIRECTORY]
 #

@@ -2,7 +2,7 @@
 
 # Regenerates the XSD schemas from the Ableton Live installations on this computer.
 #
-# Usage: bin/generate_xsds [ABLTON_HOME]
+# Usage: bin/generate_xsds [ABLETON_HOME]
 #
 # The schemas are written to the schemas/ subdirectory of this project. They are checked in, so
 # that a new contributor and a new machine can work with the latest information without having
@@ -24,13 +24,13 @@ set -euo pipefail
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SCHEMA_DIR="$PROJECT_DIR/schemas"
 CONVERSIONS_DIR="$PROJECT_DIR/conversions"
-ABLTON_HOME="${1:-${ableton_home:-/mnt/c/ProgramData/Ableton}}"
+ABLETON_HOME="${1:-${ableton_home:-/mnt/c/ProgramData/Ableton}}"
 
 # Use the code in this repository, not an installed gem of the same name.
 export VO_DEBUGGING=1
 
-if [ ! -d "$ABLTON_HOME" ]; then
-  echo "No Ableton Live installations found in $ABLTON_HOME" >&2
+if [ ! -d "$ABLETON_HOME" ]; then
+  echo "No Ableton Live installations found in $ABLETON_HOME" >&2
   exit 1
 fi
 
@@ -40,7 +40,7 @@ cd "$PROJECT_DIR"
 shopt -s nullglob
 
 generated=0
-for installation in "$ABLTON_HOME"/Live*/; do
+for installation in "$ABLETON_HOME"/Live*/; do
   installation="${installation%/}"
   demo_dir="$installation/Resources/Core Library/Lessons/Demo Songs"
   if [ ! -d "$demo_dir" ]; then

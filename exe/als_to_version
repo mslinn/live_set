@@ -1,23 +1,36 @@
 #!/usr/bin/env ruby
 
-# TODO make this a library, so it can be called from other code. Then make this
-# file a thin wrapper that calls the library and returns an error code. See
-# LiveSet.run
+# TODO make this a library, so it can be called from other code. Then make this file a thin wrapper that calls the
+# library and returns an error code. See LiveSet.run
 #
 # Converts a Live set to the other version of the format.
 #
-# The direction is not given: the version of the set decides which way the
-# conversion goes, and the set is written in the version it is converted to.
+# TODO The following describes a peculiar and unhelpful command line.
+# Unfortunately, this monstrosity was implemented. --start--
+#
+# The direction is not given: the version of the set decides which way the conversion goes, and the set is written in
+# the version it is converted to.
 #
 # A file may be given as a path, or as a selector of a demo set:
 #
-#   demo:11:suite  the Live 11 Suite demo set demo:12        the demo set of
-#   Live 12
+#   demo:11:suite  the Live 11 Suite demo set demo:12        the demo set of Live 12
 #
 # Usage: als_to_version FILE DESTINATION [-f]
 #
 # Options: -f           overwrite the destination when it already exists.
-
+# --end--
+# This is what we want instead:
+#
+# Syntax: als_to_version [-f] [VERSION] [SRC] [DST]
+#
+# Where:
+#   VERSION is the Ableton Live version to be converted TO.
+#   SRC and DST are valid file specification paths for the shell the command runs on.
+#   DST will be written with version VERSION; if SRC is already at that version the program prints a warning and stops.
+#
+# Options: -f           overwrite the destination when it already exists.
+# Example:
+#   als_to_version
 lib = File.expand_path('../lib', __dir__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 dev = File.expand_path('../dev', __dir__)
