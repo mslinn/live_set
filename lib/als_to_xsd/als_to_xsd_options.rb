@@ -11,18 +11,21 @@ class AlsToXsd
   # @return [String] the help message
   def self.help(msg = nil)
     help = <<~END_HELP
-      Als_to_xsd reads one or more Ableton Live sets and generates an XSD with the given name.
+      als_to_xsd reads one or more Ableton Live sets and generates an XSD with the given name.
 
-      Syntax: als_to_xsd OPTIONS XSD_FILE_NAME PATH_TO_ALS_FILE...
+      Syntax: als_to_xsd [OPTIONS] XSD_FILE_NAME PATH_TO_ALS_FILE...
 
       Environment variables used in XSD_FILE_NAME and PATH_TO_ALS_FILE are expanded by the operating system.
 
-      Options are:
+      OPTIONS may be specified anywhere on the command line:
         -f Overwrite any existing xsd.
         -h Display this help message.
 
       Example:
-        generate_xsd -f xsd_file_name $path/to/my_v12_set.als
+        TODO command line arguments should be expanded as if `shopt -s globstar nullglob` was active
+        $ generate_xsd -f "$live_reference_sets/xsd/demo11.xsd" \
+          "$live_reference_sets/sets/live_11/projects_and_als"/**/*.als
+        Wrote '/mnt/f/work/ableton/live_reference_sets/xsd/demo11.xsd'
     END_HELP
 
     msg.nil? ? help : "Error: #{msg}\n\n#{help}"

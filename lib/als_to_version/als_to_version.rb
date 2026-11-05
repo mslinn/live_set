@@ -23,18 +23,18 @@ class AlsToVersion
       Als_to_version converts a Live set to another version of the Live format.
       If SRC is already at the version it is converted to, the program says so and stops.
 
-      Syntax: als_to_version [-f] VERSION SRC [DST]
+      Syntax: als_to_version [OPTIONS] VERSION SRC [DST]
 
       Where:
         VERSION  is the Ableton Live version to be converted to, e.g. 11.
         SRC      is the path of of the set to be converted
         DST      is the optional path to write the converted set to. Without it, the
-                 converted set is written next to the original set, with the version
-                 as a suffix, e.g. SRC is set.als, and VERSION is 11, the default
+                 converted set is written to the same directory as SRC, with the version
+                 as a suffix. For example, if SRC is set.als, and VERSION is 11, the default
                  destination path would be set_11.als.
 
-      Options are:
-        -f    Overwrite the destination when it already exists.
+      OPTIONS can be specified anywhere on the command line:
+        -f    Overwrite the destination if it already exists.
         -h    Display this help message.
 
       Example:

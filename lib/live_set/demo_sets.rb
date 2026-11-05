@@ -29,7 +29,8 @@ module DemoSets
   DEFAULT_DIRECTORIES = [
     '/mnt/c/ProgramData/Ableton',
     '/mnt/e/media/Ableton',
-    '/mnt/m/Ableton'
+    '/mnt/m/Ableton 11 Factory Packs', # TODO: look in the appropriate Ableton configuration and discover where factory packs are stored instead of hard-coding this
+    '/mnt/m/Ableton 12 Factory Packs'  # TODO: the previous TODO should make this unnecessary
   ].freeze
 
   # The directories holding the demo sets.

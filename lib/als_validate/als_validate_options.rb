@@ -11,15 +11,18 @@ class AlsValidate
     help = <<~END_HELP
       Als_validate checks that an Ableton Live set conforms to an XSD schema.
 
-      Syntax: als_validate PATH_TO_ALS_FILE SCHEMA.xsd
+      Syntax: als_validate [OPTIONS] PATH_TO_ALS_FILE SCHEMA.xsd
 
-      Environment variables used in PATH_TO_ALS_FILE are expanded.
+      Environment variables used in PATH_TO_ALS_FILE are expanded by the operating system.
 
-      Options are:
+      OPTIONS may be specified anywhere on the command line:
         -h Display this help message.
 
       Example:
-        validate_asd $path/to/my_v12_set.als schema.xsd
+        $ validate_asd \
+          "$live_reference_sets/sets/live_11/projects_and_als/one_midi_track_only_11 Project/factory_default_11.als" \
+          "$live_reference_sets/xsd/demo11.xsd"
+        /mnt/f/work/ableton/live_reference_sets/sets/live_11/projects_and_als/one_midi_track_only_11 Project/factory_default_11.als is valid
     END_HELP
 
     msg.nil? ? help : "Error: #{msg}\n\n#{help}"
