@@ -40,28 +40,28 @@ class AlsReleaseNotes
     help = <<~END_HELP
       Als_release_notes prints the release notes of a version of Live as markdown.
 
-      The release notes are the evidence the version_diff documents are built from:
-      they say which differences to expect, and which version introduced each one.
-      They are written for the musicians who use Live, and they never give an element
-      name or an attribute name, so they are a filter over the differences rather
-      than a source of them.
+      The release notes are the evidence the version_diff documents are built from.
+      They say the changes to expect between version formats, and which version
+      introduced each change. Release notes are written for the musicians who use
+      Live, so they never give an element name or an attribute name, thus they are
+      only a guide to the differences rather than a detailed source of information.
 
-      Ableton provides the notes at https://www.ableton.com/en/release-notes/live-%s/.
-      The fetched notes are cached in markdown format at docs/release_notes/, one
-      file per version. The cache allows the notes to be accessed easily. When the
-      cache does not contain the requested release notes, they are fetched.
+      Ableton provides the notes at https://www.ableton.com/en/release-notes/live-XX/,
+      where XX is the version of Live. The fetched notes are cached in markdown format
+      at docs/release_notes/, one file per version. The cache allows the notes to be
+      accessed easily. The release notes are fetched when there is a cache miss.
 
       TODO decide how to resolve docs/release_notes/ because that is a relative
       directory and its location is not known at present when the command runs as a gem.
 
-      Syntax: als_release_notes VERSION [OPTIONS]
+      Syntax: als_release_notes [OPTIONS] VERSION
 
       VERSION is the version of Live
         Specifying just the major release (e.g. 12) returns the release notes for all
         versions of that major release. Specifying the minor release (e.g. 12.0)
         returns just the release notes for that minor release.
 
-      OPTIONS are:
+      OPTIONS can be specified anywhere on the command line:
         --find PATTERN  print the lines of the notes that match PATTERN, each with the
                         release it belongs to. The pattern is case-insensitive.
         -h              Display this help message.
@@ -72,6 +72,7 @@ class AlsReleaseNotes
         als_release_notes 12.1        # output the release notes for 12.1 only
         als_release_notes 12 --find "scale awareness"
         als_release_notes 12 > docs/release_notes/live-12.md
+        diff <(als_release_notes 12.0) <(als_release_notes 12.1)
     END_HELP
 
     msg.nil? ? help : "Error: #{msg}\n\n#{help}"
