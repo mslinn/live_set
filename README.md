@@ -174,9 +174,8 @@ The examples of how to use each command assume $live_set points to an ALS file,
 for example:
 
 ```shell
-live_home="/mnt/c/ProgramData/Ableton"
-live_12_home="$live_home/Live 12 Suite/Resources/Core Library/Lessons/Demo Songs"
-live_set="$live_12_home/Chuck Sutton - Patience (Live 12 Suite Demo).als"
+live_12_demos="$live_reference_sets/sets/live_12/projects_and_als/"
+live_set="$live_12_demos/Chuck Sutton - Patience (Live 12 Suite Demo).als"
 ```
 
 
