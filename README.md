@@ -574,12 +574,27 @@ $ bin/als_files "/mnt/c/ProgramData/Ableton/Live 12 Suite/Resources/Core Library
 
 Ableton documents the location in
 [Location of the default Demo Set](https://help.ableton.com/hc/en-us/articles/209774005-Location-of-the-default-Demo-Set).
-`locate -i "Demo Songs"` finds them.
+`locate -i "Demo Songs|Live 9 Demo"` finds them.
 
-One Live 11 set is checked in, because no demo set of Live 11 has a return
+One extra Live 11 set is checked in, because no demo set of Live 11 has a return
 track: `sets/live_11/projects_and_als/Fascination.als`. It comes from
 [owenbush/ableton-inspector](https://github.com/owenbush/ableton-inspector),
 which is under the MIT license.
+
+Live 8 and 9 did not store demo sets according to the above instructions. Live 9 demo sets can be found via:
+
+```shell
+$ pwd
+/mnt/c/ProgramData/Ableton/Live 9 Suite
+
+$ find . -iname *.als | grep 'Live 9 Demo'
+./Resources/Core Library/Lessons/Sets/Live 9 Demo_Intro.als
+./Resources/Core Library/Lessons/Sets/Live 9 Demo_Lite.als
+./Resources/Core Library/Lessons/Sets/Live 9 Demo_Standard.als
+./Resources/Core Library/Lessons/Sets/Live 9 Demo_Suite.als
+```
+
+We have not got Live 8 demo sets figured out yet.
 
 
 ### Run the Tests

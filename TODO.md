@@ -8,17 +8,9 @@ never changes what it means. When an item is completed its entry is deleted,
 and anything worth keeping is written up in another Markdown file in `docs/`
 and/or the code itself.
 
-The plan for the Live 12 → Live 11 conversion is `docs/fix_plan2.md`. That
-document holds the steps of that plan and the work list of the down direction.
-This file holds the outstanding work of the gem as a whole, and the two overlap
-where an item belongs to the conversion: **T1** is the contract the conversion
-has to meet, and **N42** is the lane `Type` risk the conversion carries. Such
-an item is described here, and the plan and the code refer to it by its
-identifier.
+This file holds the outstanding work of the gem as a whole.
 
 This project was developed for WSL, which implies Windows 10 or 11.
-It performs round-trip validation of Live 11 -> Live 12 -> Live 11 sets
-using `als_report -11`, followed by running Ableton Live under Windows.
 
 
 ## Reverse Engineering Work
@@ -38,82 +30,69 @@ At a high level, the GUI harness does the following:
 
 ### Outstanding work
 
-The `als_report -11` converter is incomplete and has bugs. The documentation has
-errors and omissions. See TODO and FIXME comments.
+The commands in `exe/` have just started to be usable, and bugs are expected,
+and the bugs musts of course be fixed. The documentation likely has errors,
+omissions and inconsistencies; these must also be fixed. See TODO and FIXME
+comments throughout the project. Ignore the contents of `docs/old/` unless
+historical information is required.
 
 
-#### GH1. Real round-trip equivalence
+#### GH1. Round-trip Equivalence
 
-The round-trip test should assert more than `no error` and `End
-ExchangeDocument`; it should confirm the converted set opens cleanly, preserves
-structure, and does not trigger restore or crash behavior.
-
-#### GH2. Recovery-state fixtures
-
-The harness and parser should be pinned against real recovery and crash cases,
-including clean exits, restore prompts, recovery-file moves, and `Restore
-Document: Rejected by the user` behavior.
-
-#### GH3. Outcome model and dialog matrix
-
-The harness result model should consistently report `loaded`, `crashed`,
-`blocked`, or `unknown`, and each dialog family should correspond to a known
-dismiss action and pass/fail classification.
-
-### Other open project work
+For each reference set, the round-trip test should assert more than just `no
+error` and `End ExchangeDocument`; it should also confirm the converted set
+preserves XML structure, and opens cleanly in the appropriate version of Ableton
+Live without triggering a crash.
 
 #### T1. XML-level validation of the Live 11 conversion
 
-The conversion contract should be made explicit by asserting the supported lane types, the expected `ContentLanes` and `ExpressionLanes` structure, and the required absence of unsupported Live 12-only nodes.
+The conversion contract should be made explicit by asserting the supported lane
+types, the expected `ContentLanes` and `ExpressionLanes` structure, and the
+required absence of unsupported Live 12-only nodes.
 
 #### T5. Tighten conversion check names and scope
 
-The existing specs should be organized around the exact contract they prove: conversion output, Live compatibility, or harness parsing.
+The existing specs should be organized around the exact contract they prove:
+conversion output, Live compatibility, or harness parsing.
 
-#### M11. `LiveScene` dead data path
+#### M11. Use `LiveScene`
 
-`LiveScene` is constructed but never used in a meaningful way. This is dead code and should either be removed or turned into a real part of the model.
+`LiveScene` is constructed but never used in a meaningful way. This should
+either be included as part of the model and reported.
 
-The class also reads its values the way Slop reads them — `@live_scene.Name`,
+The class reads its values the way Slop reads them — `@live_scene.Name`,
 `@live_scene.Tempo` — so it only works on an element of a Slop-decorated
-document. `LiveSet` decorates the document it reads, so the class works
-there, and it raises `NoMethodError` on an element of a plain Nokogiri
-document. If the class is kept, it should read its values with `at(...)`, the
-way every other class in the gem does.
+document. This is undesirable. `LiveSet` decorates the document it reads, so the
+class works there, and it raises `NoMethodError` on an element of a plain
+Nokogiri document.
 
-#### N53. The corpus holds no case for some of what the code has to read
+The fix: The class should read its values with `at(...)`, like every other class
+in this gem.
 
-The reporting-model examples read real sets. A case that no set in the
-corpus holds is made by copying a real element and changing one value in it,
-which is as close to the real thing as the corpus allows. The cases that are
-made that way are these, and each of them is a path the code takes that no
-real set exercises:
+#### N53. Corpus Lacks Complete Test Data
+
+Test ALS files must be created that contain:
 
 - a frozen track, and a track whose clips are only in its `FreezeSequencer`.
   Every track of every set in the corpus is unfrozen, and every
   `FreezeSequencer` of every track is empty.
 - a plug-in nested in a group branch. The corpus holds one group branch, and
   the devices in it are native ones.
-- a VST2 plug-in. The only plug-in in the corpus is a VST3 one, so the
+- a VST2 plug-in. The only plug-in in the corpus is a VST3, so the
   `PluginDesc/VstPluginInfo/PlugName` path is not read by any example.
 - a native device with a `Name` element of its own. Every native device in
-  the corpus has no `Name`, so its name is the name of the element it is
-  written as.
-- a `Manufacturer` element. No element in the corpus has one, so the
+  the corpus has no `Name`.
+  TODO How can a user add such a device to the reference set?
+- a Device `Manufacturer` element. No element in the corpus has one, so the
   manufacturer part of a device's label is never read.
-- a clip with no `SampleRef`, and a clip whose `LastModDate` is zero or
-  absent.
-- a track with no `DeviceChain`.
-- a scene with a tempo of its own. Every scene in the corpus has
-  `IsTempoEnabled` false.
+- a clip without a `SampleRef`
+- a clip whose `LastModDate` is zero or absent.
+- a track without a `DeviceChain`.
+- a scene with a tempo of its own. Every scene in the corpus has `IsTempoEnabled` false.
 
-The work is to get sets that hold these cases: a set with a frozen track, a
-set with a VST2 plug-in, and a set with a scene that has a tempo. Live 8 and
-Live 9 hold VST2 plug-ins, and their demo sets are not on this machine yet;
-the documents say they can be generated, and that has not been done. The
-licences of Live 8 Suite and Live 9 Suite are on the account now, so the
-versions can be installed and their demo sets read. See `docs/als_work.md`,
-"The licences".
+Also, Live 8 and Live 9 demo sets have been installed but are not in
+`$live_reference_sets/sets/` yet.
+
 
 #### N36. `als_delta` compares against a backup, not the previous version
 
