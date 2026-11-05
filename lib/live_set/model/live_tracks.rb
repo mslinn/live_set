@@ -1,108 +1,127 @@
+require_relative 'live_audio_tracks'
 require_relative 'live_group'
 require_relative 'live_groups'
-require_relative 'live_track'
+require_relative 'live_midi_tracks'
+require_relative 'live_return_tracks'
 
+# The tracks of a set: the `<Tracks>` element of the XML.
+#
+# The element holds the MIDI tracks, the audio tracks, the return tracks and the group
+# tracks of the set, and each of them is a collection of its own.
+#
+# The class deviates from the usual pattern in that it has two kinds of child: the MIDI
+# tracks and the audio tracks. It also holds the ids of the tracks, in the order Live wrote
+# them, so that the tracks can be written in that order.
+#
+# The master track of the set is a child of the set and not of the tracks of the set, so it
+# is not here.
 class LiveTracks
-  # The tracks of the set.
-  #
+  attr_reader :audio_tracks, :groups, :midi_tracks, :return_tracks, :track_ids
+
   # @param set_directory [String] the directory of the set
-  # @param elements [Array<Nokogiri::XML::Element>] the elements of the tracks of the set, in
-  #   the order Live wrote them
+  # @param elements [Array<Nokogiri::XML::Element>] the track elements of the set, in the
+  #   order Live wrote them
   def initialize(set_directory, elements)
-    @instances = elements.map do |element|
-      if element.name == 'GroupTrack'
-        LiveGroup.new element, elements, set_directory
-      else
-        LiveTrack.new set_directory, element
-      end
-    end
+    @elements = elements
+    @track_ids = elements.map { |element| element['Id'] }
+    @midi_tracks = LiveMidiTracks.new set_directory, elements_of(elements, 'MidiTrack')
+    @audio_tracks = LiveAudioTracks.new set_directory, elements_of(elements, 'AudioTrack')
+    @return_tracks = LiveReturnTracks.new set_directory, elements_of(elements, 'ReturnTrack')
+    @groups = LiveGroups.new(
+      elements_of(elements, 'GroupTrack').map { |element| LiveGroup.new element, elements, set_directory }
+    )
   end
 
-  # The tracks at the top of the set, in the order Live wrote them.
+  # Every track of the set, by its id.
   #
-  # @return [Array<LiveTrack, LiveGroup>] the groups, and the tracks that are in no group
-  def top_level
-    @instances.select { |track| track.group_id.nil? }
+  # @return [Hash] the id of the track, and the track
+  def tracks_by_id
+    @tracks_by_id ||= (midi_tracks.to_a + audio_tracks.to_a + return_tracks.to_a)
+                      .to_h { |track| [track.id, track] }
   end
 
   # The groups of the set: the groups that are at the top of it.
   #
   # @return [LiveGroups] the groups
   def groups_of_the_set
-    LiveGroups.new top_level.select(&:group?)
+    LiveGroups.new(groups.to_a.select { |group| group.group_id.nil? })
   end
 
-  # The tracks of the set: the tracks that are at the top of it, and in no group.
+  # The tracks at the top of the set, in the order Live wrote them.
   #
-  # @return [Array<LiveTrack>] the tracks
-  def tracks_of_the_set
-    top_level.reject(&:group?)
+  # The tracks of a group are written under their group, and not here.
+  #
+  # @return [Array<LiveMidiTrack, LiveAudioTrack, LiveReturnTrack>] the tracks
+  def top_level_tracks
+    @top_level_tracks ||= track_ids.filter_map { |id| tracks_by_id[id] }
+                                   .select { |track| track.group_id.nil? }
+  end
+
+  # The groups and the tracks at the top of the set.
+  #
+  # @return [Array<LiveGroup, LiveMidiTrack, LiveAudioTrack, LiveReturnTrack>] the tracks
+  def top_level
+    groups_of_the_set.to_a + top_level_tracks
   end
 
   # The tracks at the top of the set, with the number each of them has in the report.
   #
-  # The groups are numbered from one among themselves, and the tracks are numbered from one
-  # among themselves: a group and a track are numbered in their own company.
+  # The tracks are numbered in the order Live wrote them, so that the numbers of the tracks
+  # of the set are unique in the report. The groups are numbered among themselves, and a
+  # group and a track are numbered in their own company.
   #
   # @return [Array<Array>] the number of the track, and the track
-  def top_level_numbered
-    groups = 0
-    others = 0
-
-    top_level.map do |track|
-      if track.group?
-        groups += 1
-        [groups.to_s, track]
-      else
-        others += 1
-        [others.to_s, track]
-      end
+  def numbered_tracks_of_the_set
+    @numbered_tracks_of_the_set ||= top_level_tracks.each_with_index.map do |track, index|
+      [(index + 1).to_s, track]
     end
+  end
+
+  # The markdown of the tracks of the set.
+  #
+  # The tracks are written in the order Live wrote them. When they are to be shown
+  # separately, the audio tracks and the MIDI tracks are written in their own lists, and
+  # the caller writes the heading of each.
+  #
+  # @param separately [Boolean] whether the two kinds of track are written in their own
+  #   lists
+  # @param indent [String] the indentation of the lines
+  # @return [String] the markdown
+  def to_markdown(separately: false, indent: '')
+    return separate_markdown(indent) if separately
+
+    ordered_markdown(indent)
   end
 
   # Every track of the set, with the number it has in the report.
   #
-  # The groups at the top of the set are numbered from one, and the tracks at the top of the
-  # set are numbered from one as well: a group and a track are numbered in their own company.
-  # The tracks of a group are numbered after the group, as 1.1.
+  # The tracks at the top of the set are numbered from one, and the tracks of a group are
+  # numbered after the group, as 1.1.
   #
   # The XML has no notion of a track number, so the number is made here, and it is not held
   # by the model.
   #
   # @yieldparam number [String] the number of the track
-  # @yieldparam track [LiveTrack, LiveGroup] the track
+  # @yieldparam track [LiveMidiTrack, LiveAudioTrack] the track
   # @return [void]
-  def each_numbered_track
-    groups = 0
-    others = 0
+  def each_numbered_track(&)
+    numbered_tracks_of_the_set.each(&)
 
-    top_level.each do |track|
-      if track.group?
-        groups += 1
-        yield groups.to_s, track
-        track.tracks.each_with_index { |member, index| yield "#{groups}.#{index + 1}", member }
-      else
-        others += 1
-        yield others.to_s, track
+    groups.each_with_index do |group, index|
+      group.tracks.each_with_index do |member, position|
+        yield "#{index + 1}.#{position + 1}", member
       end
     end
   end
 
-  # The audio tracks of the set.
+  # The audio clips of the set.
   #
-  # The verdict for a transfer to Push 3 Standalone is about the audio of the set: a MIDI
-  # clip has no file, and nothing of it is transferred.
+  # The audio of the set is in these clips, and the files they play are the samples of the
+  # set.
   #
-  # @return [Array<LiveTrack>] the audio tracks
-  def audio_tracks
-    @instances.select { |track| track.kind == 'Audio' }
-  end
-
-  # The groups of the set.
-  #
-  # @return [Array<LiveGroup>] the groups
-  def groups
-    @instances.select(&:group?)
+  # @return [Array<LiveAudioClip>] the clips
+  def audio_clips
+    audio_tracks.audio_clips
   end
 
   # The clips of the set that have not been collected.
@@ -145,25 +164,43 @@ class LiveTracks
 
   private
 
+  # The tracks of the set, in the order Live wrote them.
+  #
+  # @param indent [String] the indentation of the lines
+  # @return [String] the markdown
+  def ordered_markdown(indent)
+    numbered_tracks_of_the_set.map do |number, track|
+      track.to_markdown number, indent
+    end.join("\n")
+  end
+
+  # The audio tracks and the MIDI tracks of the set, in their own lists.
+  #
+  # @param indent [String] the indentation of the lines
+  # @return [String] the markdown
+  def separate_markdown(indent)
+    [audio_tracks.to_markdown(nil, 1, indent), midi_tracks.to_markdown(nil, 1, indent)]
+      .reject(&:empty?).join("\n")
+  end
+
+  # The elements of one kind of track.
+  #
+  # @param elements [Array<Nokogiri::XML::Element>] the track elements of the set
+  # @param name [String] the name of the element
+  # @return [Array<Nokogiri::XML::Element>] the elements
+  def elements_of(elements, name)
+    elements.select { |element| element.name == name }
+  end
+
   # The errors caused by one track.
   #
-  # @param track [LiveTrack] the track
+  # @param track [LiveAudioTrack] the track
   # @return [Array<String>] the errors
   def track_errors(track)
     track.blocking_devices.map do |device|
       " - Track '#{track.name}' is unfrozen and uses #{device.label}, " \
         'which Push 3 Standalone cannot run. Freeze or render this track.'
     end
-  end
-
-  # This method is not used at present, but it should be because it is a neat test that is easier to write unit tests
-  # for than the verdict above.
-  # The only requirement for transfer to a P3S is that all audio files are collected and no missing raw devices are referenced.
-  # Freezing is recommended for tracks with 3rd party plugins, but are not required for native devices.
-  def ready_for_p3s?
-    audio_tracks.all?(&:clips_collected?) &&
-      audio_tracks.none? { |track| track.blocking_devices.any? } &&
-      groups.none? { |group| group.blocking_devices.any? }
   end
 
   # The errors caused by the devices in the groups' chains.

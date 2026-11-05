@@ -35,13 +35,13 @@ directly. The beta variant of each page is ignored.
 
 ## How to read them
 
-The files are HTML, written for a browser. `exe/release_notes` prints them as
+The files are HTML, written for a browser. `exe/als_release_notes` prints them as
 markdown, which is what a person writing a version_diff document wants:
 
 ```shell
-exe/release_notes 12          # the notes of Live 12
-exe/release_notes 12.0        # the notes of the release 12.0
-exe/release_notes 12 --find "scale awareness"
+exe/als_release_notes 12          # the notes of Live 12
+exe/als_release_notes 12.0        # the notes of the release 12.0
+exe/als_release_notes 12 --find "scale awareness"
 ```
 
 The last form prints the lines that match, each with the release it belongs to,
@@ -52,7 +52,7 @@ newest release is printed first.
 The markdown can be kept beside the HTML it came from:
 
 ```shell
-exe/release_notes 12 > docs/release_notes/live-12.md
+exe/als_release_notes 12 > docs/release_notes/live-12.md
 ```
 
 ## Where the release notes live

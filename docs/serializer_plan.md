@@ -9,8 +9,8 @@ This is the plan for preparing the next major version of `live_set`.
   - The ALS XML hierarchy of nodes will be mirrored by the hierarchy of Ruby classes
   defined in this project's `lib/live_set/model` directory.
   - Just as some ALS XML nodes have child collections, the Ruby model classes
-    have mirror collections of child models (e.g. LiveTrack contains an
-  array of LiveClip.)
+    have mirror collections of child models (e.g. LiveMidiTrack contains an
+  array of LiveMidiClip.)
 - Every model class has an associated serializer class. Another way of saying
   this is: a parallel hierarchy of serializers mirrors the model hierarchy,
   which mirrors the XML structure. The serializer class is responsible for
@@ -41,6 +41,16 @@ Standard operating procedure (SOP) is:
     12 demo and save it as test fixture data. Later we will find (or create)
     better test data, and an ALS file for every Live version we support.
 
+      The fixture that is checked in is `spec/fixtures/live_12_suite_demo.xml.gz`:
+      the XML of the largest Live 12 demo set, gzipped, because it is 27 MB of
+      text. It is read by `LiveFixtures`, in `spec/support/live_fixtures.rb`,
+      which gives the document, the text, the path of the file, and the directory
+      of the set it is in.
+
+      The set has eighteen tracks, 182 clips and 152 devices, and it has no group
+      track: no Live 12 demo set has one. The behaviour of the groups is exercised
+      by the reference sets, which are read from disk.
+
    2. Unit tests that fully exercise every leaf node of the serializer class
     tree. (Notify the user of any missing tests)
 
@@ -56,20 +66,20 @@ contrary, SOP requires every class to be designed for testability and to have un
 ## TODOs
 
 <!-- markdownlint-disable MD013 MD060 -->
-| The TODO, in `live_palette.rb`                                                                                                                                              | What is to be done                                                     | Where it goes                           |
-|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|-----------------------------------------|
-| `LIGHT` — "TODO: delete this stupid idea"                                                                                                                                   | The constant is deleted, and the text on a dark background is white    | `LiveTrackSerializer` writes it         |
-| `ICONS` — "TODO Move to a new LiveTrackSerializer class" and "TODO rename to TRACK_TYPE_ICONS"                                                                              | The map of icons moves, and is renamed                                 | `LiveTrackSerializer::TRACK_TYPE_ICONS` |
-| `icon_of` — "TODO: rename to icon_for"                                                                                                                                      | The method is renamed                                                  | `LiveTrackSerializer.icon_for`          |
-| `icon_of` — "TODO Move to LiveTrackSerializer class. a serializer object initialized with a model instance…"                                                                | The whole of the method moves, with the architecture of the long TODO  | `LiveTrackSerializer`                   |
-| `name_span` — "TODO: rename to colored_code"                                                                                                                                | The method is renamed                                                  | `LiveTrackSerializer.colored_code`      |
-| `name_span` — "TODO Move to LiveTrackSerializer class"                                                                                                                      | The method moves                                                       | `LiveTrackSerializer`                   |
-| `name_span` — "Tries and fails to select a background color based on a foreground color. TODO: add a new parameter for background_color so proper colors can be specified." | The method takes a background colour, and does not try to work one out | `LiveTrackSerializer.colored_code`      |
-| `code_span` — "TODO: Move to LiveTrackSerializer class"                                                                                                                     | The method moves                                                       | `LiveTrackSerializer.code_span`         |
-| `swatch` — "TODO Move to LiveTrackSerializer class"                                                                                                                         | The method moves                                                       | `LiveTrackSerializer.swatch`            |
-| `swatch` — "TODO add another parameter for background color instead of attempting to compute it"                                                                            | The method takes a background colour                                   | `LiveTrackSerializer.swatch`            |
-| `text_color` — "TODO: Delete this stupid idea"                                                                                                                              | The method is deleted                                                  | —                                       |
-| `brightness` — "TODO: Delete this stupid idea"                                                                                                                              | The method is deleted                                                  | —                                       |
+| The TODO, in `live_palette.rb`                                                                                                                                              | What is to be done                                                     | Where it goes                    |
+|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|-------------------------------------|
+| `LIGHT` — "TODO: delete this stupid idea"                                                                                                                                   | The constant is deleted, and the text on a dark background is white    | `LiveMarkup` writes it             |
+| `ICONS` — "TODO Move to a new LiveTrackSerializer class" and "TODO rename to TRACK_TYPE_ICONS"                                                                              | The map of icons moves, and is renamed                                 | `LiveMarkup::TRACK_TYPE_ICONS`     |
+| `icon_of` — "TODO: rename to icon_for"                                                                                                                                      | The method is renamed                                                  | `LiveMarkup.icon_for`              |
+| `icon_of` — "TODO Move to LiveTrackSerializer class. a serializer object initialized with a model instance…"                                                                | The whole of the method moves, with the architecture of the long TODO  | `LiveMarkup`                       |
+| `name_span` — "TODO: rename to colored_code"                                                                                                                                | The method is renamed                                                  | `LiveMarkup.colored_code`          |
+| `name_span` — "TODO Move to LiveTrackSerializer class"                                                                                                                      | The method moves                                                       | `LiveMarkup`                       |
+| `name_span` — "Tries and fails to select a background color based on a foreground color. TODO: add a new parameter for background_color so proper colors can be specified." | The method takes a background colour, and does not try to work one out | `LiveMarkup.colored_code`          |
+| `code_span` — "TODO: Move to LiveTrackSerializer class"                                                                                                                     | The method moves                                                       | `LiveMarkup.code_span`             |
+| `swatch` — "TODO Move to LiveTrackSerializer class"                                                                                                                         | The method moves                                                       | `LiveMarkup.swatch`                |
+| `swatch` — "TODO add another parameter for background color instead of attempting to compute it"                                                                            | The method takes a background colour                                   | `LiveMarkup.swatch`                |
+| `text_color` — "TODO: Delete this stupid idea"                                                                                                                              | The method is deleted                                                  | —                                   |
+| `brightness` — "TODO: Delete this stupid idea"                                                                                                                              | The method is deleted                                                  | —                                   |
 <!-- markdownlint-enable MD013 MD060 -->
 
 
@@ -87,9 +97,9 @@ Answer: The default color is the default markdown color. Look at the existing re
 The caller passes the foreground and background colours.  The serializer only writes what it is given:
 
 ```ruby
-LiveTrackSerializer.colored_code text, color_number: 21, background_color: '#18E9FE',
-                                           foreground_color: '#000000'
-LiveTrackSerializer.swatch 21, background_color: '#18E9FE', foreground_color: '#000000'
+LiveMarkup.colored_code text, color_number: 21, background_color: '#18E9FE',
+                                   foreground_color: '#000000'
+LiveMarkup.swatch 21, background_color: '#18E9FE', foreground_color: '#000000'
 ```
 
 ## Hierarchical Numnbering System
@@ -156,16 +166,26 @@ as the long TODO asks.
 | `P3SCompatibility`                  | the verdict for a transfer to Push 3 Standalone                                      | the set             |
 | `LiveGroupSerializer`               | a group: its line, its devices, the tracks in it                                     | `LiveGroup`         |
 | `LiveGroupsSerializer`              | the groups of the set                                                                | `LiveGroups`        |
-| `LiveTrackSerializer`               | a track: its line, its devices, its clips, its take lanes                            | `LiveTrack`         |
-| `LiveTracksSerializer`              | the tracks of the set, and of a group                                                | `LiveTracks`        |
+| `LiveMidiTrackSerializer`           | a MIDI track: its line, its devices, its clips, its take lanes                       | `LiveMidiTrack`     |
+| `LiveMidiTracksSerializer`          | the MIDI tracks of the set, and of a group                                           | `LiveMidiTracks`    |
+| `LiveAudioTrackSerializer`          | an audio track: its line, its devices, its clips, its take lanes                     | `LiveAudioTrack`    |
+| `LiveAudioTracksSerializer`         | the audio tracks of the set, and of a group                                          | `LiveAudioTracks`   |
+| `LiveReturnTrackSerializer`         | a return track: its line and its devices                                             | `LiveReturnTrack`   |
+| `LiveReturnTracksSerializer`        | the return tracks of the set                                                          | `LiveReturnTracks`  |
+| `LiveMasterTrackSerializer`         | the master track: its line and its devices                                            | `LiveMasterTrack`   |
+| `LiveMasterTracksSerializer`        | the master tracks of the set                                                          | `LiveMasterTracks`  |
 | `LiveDeviceSerializer`              | a device                                                                             | `LiveDevice`        |
 | `LiveDevicesSerializer`             | the devices of a track, or of a group                                                | `LiveDevices`       |
-| `LiveClipSerializer`                | a clip: its line, its file, and its settings                                          | `LiveClip`          |
+| `LiveMidiClipSerializer`            | a MIDI clip: its line and its settings                                               | `LiveMidiClip`      |
+| `LiveMidiClipGroups`                | the copies of a MIDI clip that are alike, written as one line                        | the MIDI clips      |
 | `LiveTakeLanesSerializer`           | the take lanes of a track                                                            | `LiveTakeLanes`     |
 | `LiveTakeLaneSerializer`            | a take lane                                                                          | `LiveTakeLane`      |
-| `LiveClipsSerializer`               | the clips of the set                                                                 | `LiveClips`         |
+| `LiveClipsSerializer`               | the MIDI clips of the set                                                            | `LiveClips`         |
 | `LiveSamplesSerializer`             | the samples of the set                                                               | `LiveSamples`       |
+| `LiveAudioClipSerializer`           | a clip of the audio side of a track: its line, its file, its size and its place       | `LiveAudioClip`     |
 | `LiveAudioClipsSerializer`          | the clips of the audio side of a track                                               | `LiveAudioClips`    |
+| `LiveAudioTrackSerializer`          | the audio side of a track: the clips of that audio                                   | `LiveAudioTrack`    |
+| `LiveMarkup`                        | the markup the report is written with: the colours, the escaping, the icons          | —                   |
 | `MissingSamplesSerializer`          | the samples that are not in the project, by pack                                     | `MissingSamples`    |
 | `DeviceCrossReferenceSerializer`    | the devices of the set, and the tracks they are on                                   | the set             |
 | `TrackClipCrossReferenceSerializer` | the tracks and their clips, and the clips and their tracks                           | the set             |
@@ -220,36 +240,86 @@ A model is a model of the XML contents. There is more than one model class, and 
 more than one kind of thing in a set: a track, a group, a clip, a device, a sample, a
 scene. Each class models the part of the XML it is about.
 
+The XML has an element for each kind of track, and the model has a class for each of them:
+a `<MidiTrack>` is a `LiveMidiTrack`, an `<AudioTrack>` is a `LiveAudioTrack`, a
+`<ReturnTrack>` is a `LiveReturnTrack`, and the `<MasterTrack>` (the `<MainTrack>` in Live
+12) is a `LiveMasterTrack`. There is no class for "a track", because there is no element
+for one.
+
 The models are not serializers. They represent the XML entity, and the serializers write
 them.
 
 | The model | It holds | It comes from |
 | --- | --- | --- |
-| `LiveTrack` | the kind, the name, the colour, the devices, the clips, the take lanes, the members and the state of a track | `LiveTrack`, `LiveGroup`, and the track handling in `LiveSetReport` |
+| `LiveMidiTrack` | the name, the colour, the devices, the MIDI clips, the take lanes and the state of a MIDI track | `LiveTrack`, and the track handling in `LiveSetReport` |
+| `LiveAudioTrack` | the name, the colour, the devices, the MIDI clips, the audio clips, the take lanes and the state of an audio track | `LiveTrack`, and the track handling in `LiveSetReport` |
+| `LiveReturnTrack` | the name, the colour, the devices and the state of a return track | `LiveTrack`, and the track handling in `LiveSetReport` |
+| `LiveMasterTrack` | the name, the colour, the devices and the state of the master track | `LiveTrack`, and the track handling in `LiveSetReport` |
 | `LiveGroup` | a model of the track group in the XML: the group, its devices, and the tracks in it | the class that exists |
 | `LiveDevice` | a device of a chain: its name, its kind, its plug-in format, and whether Push 3 Standalone can run it | `LiveDevice`, the class that exists |
-| `LiveClip` | one clip in the file: its name, its file, its colour, its marks, its launch mode, its warp mode, its notes, and the place it is in | the clip handling in `LiveSetReport` |
+| `LiveMidiClip` | one MIDI clip in the file: its name, its colour, its launch mode, its warp mode, its notes, and the place it is in | the clip handling in `LiveSetReport` |
+| `LiveAudioClip` | a clip of the audio side of a track: its name, its colour, its file, its size, whether the file is collected, its launch mode, its warp mode, and the place it is in | `LiveAudioClip`, the class that exists |
 | `LiveTakeLane` | a take lane of a track: its name, and the clips of it | `take_lanes_of` in `LiveSetReport` |
 | `LiveSample` | a sample of the set, its file, and the pack it is in | the sample handling in `LiveSetReport` |
 | `MissingSamples` | the samples that are not in the project, by pack | `missing_samples_markdown` in `LiveSetReport` |
 | `HeaderBlock` | the facts about the set | `metadata_markdown` in `LiveSetReport` |
-| `LiveAudioClip` | a clip of the audio side of a track: its file, its size, and whether the file is collected | `LiveAudioClip`, the class that exists |
 
 Every collection of a model is a class of its own, named for the things it holds, and each
 of them has a serializer of its own:
 
 | The collection | It holds | Its serializer |
 | --- | --- | --- |
-| `LiveTracks` | the tracks of the set, and the tracks of a group | `LiveTracksSerializer` |
+| `LiveTracks` | the `<Tracks>` element of the set: the MIDI tracks, the audio tracks, the return tracks and the groups | `LiveTracksSerializer` |
+| `LiveMidiTracks` | the MIDI tracks of the set, and the MIDI tracks of a group | `LiveMidiTracksSerializer` |
+| `LiveAudioTracks` | the audio tracks of the set, and the audio tracks of a group | `LiveAudioTracksSerializer` |
+| `LiveReturnTracks` | the return tracks of the set | `LiveReturnTracksSerializer` |
+| `LiveMasterTracks` | the master track of the set | `LiveMasterTracksSerializer` |
 | `LiveGroups` | the groups of the set | `LiveGroupsSerializer` |
 | `LiveDevices` | the devices of a track, or of a group | `LiveDevicesSerializer` |
 | `LiveTakeLanes` | the take lanes of a track | `LiveTakeLanesSerializer` |
-| `LiveClips` | the clips of the set, and the clips of a track | `LiveClipsSerializer` |
+| `LiveClips` | the MIDI clips of the set, and the MIDI clips of a track | `LiveClipsSerializer` |
 | `LiveSamples` | the samples of the set | `LiveSamplesSerializer` |
 | `LiveAudioClips` | the clips of the audio side of a track | `LiveAudioClipsSerializer` |
 
-`LiveTracks` is the class that exists. `MissingSamples` is the part of `LiveSamples` that is
-not in the project, so it is a view of the collection and not a collection of its own.
+`MissingSamples` is the part of `LiveSamples` that is not in the project, so it is a view of
+the collection and not a collection of its own.
+
+### `LiveTracks` and the order of the tracks
+
+`LiveTracks` is the model of the `<Tracks>` element of the XML, and it deviates from the
+usual pattern in that it has two kinds of child: `LiveMidiTracks` and `LiveAudioTracks`.
+It also holds the ids of the tracks of the set, in the order Live wrote them.
+
+The list of ids is what lets the tracks be written in the order they are found in the ALS
+XML: the MIDI tracks and the audio tracks are two collections, and the order of the tracks
+of the set is the order of the elements in the file, not the order of the collections.
+
+By default, every track of the set is written in the order it was saved in. The
+`--show_midi_and_audio_tracks_separately` option writes the audio tracks and the MIDI
+tracks in their own lists instead, and the return tracks and the master track have lists of
+their own either way.
+
+The hierarchy of the model is mirrored by the hierarchy of the markdown, and the
+indentation of the report and the numbers of the report agree: a track numbered `1.1` is a
+member of the group numbered `1`.
+
+```text
+LiveTracks#to_markdown                    the tracks of the set, in the order Live wrote them
+├── LiveMidiTracks#to_markdown            the MIDI tracks
+│   └── LiveMidiTrack#to_markdown         a MIDI track
+│       └── LiveMidiTrackSerializer#to_markdown
+├── LiveAudioTracks#to_markdown           the audio tracks
+│   └── LiveAudioTrack#to_markdown        an audio track
+│       └── LiveAudioTrackSerializer#to_markdown
+└── LiveGroupSerializer#to_markdown       a group
+    └── LiveMidiTracks#to_markdown        the MIDI tracks of the group
+        └── LiveMidiTrack#to_markdown     a MIDI track of the group
+            └── LiveMidiTrackSerializer#to_markdown
+```
+
+Each link in the chain delegates to the next: a collection writes its members by asking
+each of them for its markdown, and a track asks the serializer of a track for its markdown.
+The serializer is the only thing that writes the markup.
 
 ### There is no clip reference in the format
 
@@ -272,9 +342,11 @@ are copied with it.
 `LomId` is the identifier the Live Object Model uses while Live is running; it is `0` in
 the elements of a saved set, and it is not a key that ties the copies of a clip together.
 
-So `LiveClip` is one clip in the file, with its own settings and its own place, and there is
-no `LiveClipReference`: the launch mode and the warp mode belong to the clip element they
-are written in.
+So a clip is one clip in the file, with its own settings and its own place, and there is
+no clip reference: the launch mode and the warp mode belong to the clip element they
+are written in. A MIDI clip is `LiveMidiClip`, and it holds notes; the clip of the audio
+side of a track is `LiveAudioClip`, and it holds a file, its size, and whether the file is
+collected.
 
 The grouping of the copies that are the same clip — the report's `Clip 1.1 (×7)` — is the
 report's own, and belongs to the report and not to the model.
@@ -299,9 +371,11 @@ should agree.
 
 ## What the models do not yet know
 
-This project has several executables: `live_set` writes the report of a set, `als_delta`
-diffs two sets, `generate_xsd` writes a schema of the format, `validate_asd` checks a set
-against a schema, and one of them converts a set between two versions of Live.
+This project has several executables, and every one of them is named with the `als_`
+prefix: `als_report` writes the report of a set, `als_delta` diffs two sets, `als_to_xsd`
+writes a schema of the format, `als_validate` checks a set against a schema,
+`als_to_version` converts a set between two versions of Live, and `als_nodes`,
+`als_diff` and `als_xsd_order` are the tools for looking inside a set.
 
 **The converter needs a complete model of the XML.** A set cannot be converted from Live 12
 to Live 11 by a model that has not read what Live 12 wrote: whatever the model does not
@@ -502,7 +576,7 @@ There are three definitions of "the same", and the report can be asked for any o
 The choice is an option of the program:
 
 ```shell
-live_set -s path/to/my_set.als -i notes
+als_report -s path/to/my_set.als -i notes
 ```
 
 and the default is `notes`.
@@ -597,7 +671,7 @@ Each step leaves the program working, and the reports unchanged.
    | `lib/live_set/live_set_audio_clip.rb` | `lib/live_set/model/live_audio_clip.rb` | `LiveAudioClip` |
    | `lib/live_set/live_set_group.rb` | `lib/live_set/model/live_group.rb` | `LiveGroup` |
    | `lib/live_set/live_set_scene.rb` | `lib/live_set/model/live_scene.rb` | `LiveScene` |
-   | `lib/live_set/live_set_track.rb` | `lib/live_set/model/live_track.rb` | `LiveTrack` |
+   | `lib/live_set/live_set_track.rb` | `lib/live_set/model/live_track.rb` | `LiveTrack`, which the steps of the work later split into `LiveMidiTrack`, `LiveAudioTrack`, `LiveReturnTrack` and `LiveMasterTrack` |
    | `lib/live_set/live_tracks.rb` | `lib/live_set/model/live_tracks.rb` | `LiveTracks` |
 
    and their nine specs move with them into `spec/live_set/model/`, renamed the same way:
@@ -638,14 +712,14 @@ Each step leaves the program working, and the reports unchanged.
    which is at `lib/live_set/version.rb`) is a pre-existing bug and is not
    touched by this.
 
-2. **The formatting moves from the palette to `LiveTrackSerializer`.**
+2. **The formatting moves from the palette to `LiveMarkup`.**
    `LivePalette` keeps `COLORS` and `color_of`, and loses `LIGHT`, `ICONS`,
    `icon_of`, `name_span`, `code_span`, `text_color` and `brightness`. The
    markup written is the markup written today, so the report does not change.
    The log is required by the serializer. A spec for the serializer.
-3. **The models are written**, one at a time, each with a spec: `LiveClip` and
+3. **The models are written**, one at a time, each with a spec: `LiveMidiClip` and
    `LiveClipSettings` first, because the clip lines carry the most detail, then
-   `LiveTakeLane` and `LiveTakeLanes`, then `LiveClip`, then `LiveTrack` and
+   `LiveTakeLane` and `LiveTakeLanes`, then `LiveMidiClip`, then the tracks and
    `LiveGroup`. Each model leaves a note where it does not parse something, as
    above.
 4. **The serializers are written**, one at a time, each with a spec, and the

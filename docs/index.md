@@ -104,8 +104,8 @@ The transformations of a version_diff are written by hand, and the process for f
 | Reading a set, converting it, writing it out | `lib/live_set/live_set_converter.rb` |
 | One example per transformation, in each direction | `spec/live_set/tx/live_11_and_12_down_spec.rb`, `spec/live_set/tx/live_11_and_12_up_spec.rb` |
 | The end-to-end check | `spec/live_set/tx/live_conversion_spec.rb` — converts the Live 12 demo set and validates the result against the Live 11 schema |
-| The tools for looking inside sets | `exe/xml_nodes`, `exe/xml_diff`, `exe/generate_xsd`, `exe/xsd_order`, `exe/validate_asd` |
-| The release notes of Live, as markdown | `exe/release_notes` — the notes of a version, or of a single release, or the lines of them that match a pattern |
+| The tools for looking inside sets | `exe/als_nodes`, `exe/als_diff`, `exe/als_to_xsd`, `exe/als_xsd_order`, `exe/als_validate` |
+| The release notes of Live, as markdown | `exe/als_release_notes` — the notes of a version, or of a single release, or the lines of them that match a pattern |
 | The schemas | generated into `schemas/` by `bin/generate_xsds`; checked in, so a new contributor and a new machine can use them without installing Live |
 
 ## The superseded documents in `docs/old/`

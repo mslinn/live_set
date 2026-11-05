@@ -125,7 +125,7 @@ elements the two versions name differently, the values they write differently,
 the elements one adds, the elements one puts at another depth.
 
 They are generated, not written by hand: `bin/generate_xsds` walks the demo sets of every
-installed version and calls `exe/generate_xsd` on them. They are checked in, so that a new
+installed version and calls `exe/als_to_xsd` on them. They are checked in, so that a new
 contributor and a new machine can work with the latest information without having to install
 Live first; regenerating them is a matter of running `bin/generate_xsds` again. Each one is
 generated from every demo set of its version, so each accepts
@@ -475,5 +475,5 @@ bundle exec rspec spec/validate_asd/demo_sets_spec.rb
 
 The conversion is checked against the Live 11 schema, by the end-to-end example in Phase 3.
 
-Then by hand: convert a Live 12 demo set with `exe/live_set`, and validate the result with
-`exe/validate_asd` against `schemas/live_11.3d1.xsd`.
+Then by hand: convert a Live 12 demo set with `exe/als_report`, and validate the result with
+`exe/als_validate` against `schemas/live_11.3d1.xsd`.

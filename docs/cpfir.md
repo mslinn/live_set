@@ -220,7 +220,7 @@ The comparison is made by `lib/live_set/xml_diff.rb`, which walks two
 documents in parallel: the children of two elements are matched by their
 names, the children with the same name are compared with each other in the
 order they come, and the children that one of the elements has and the other
-does not are reported as differences. `exe/xml_diff` is the tool that runs it,
+does not are reported as differences. `exe/als_diff` is the tool that runs it,
 and it prints the differences it finds.
 
 Bytes play no part in the comparison. The gzip header, the mtime and the

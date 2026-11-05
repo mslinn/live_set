@@ -1,7 +1,7 @@
 # TODO: This is a placeholder to start off the changes described as TODO comments in lib/live_set/live_palette.rb.
 # TODO Write unit tests
 #
-require_relative 'live_track_serializer'
+require_relative 'live_markup'
 
 # Serializes a `LiveDevice` model as markdown.
 #
@@ -45,11 +45,11 @@ class LiveDeviceSerializer
   #
   # @return [String] the name of the device
   def name_markdown
-    return LiveTrackSerializer.colored_code(@device.label) unless unusable?
+    return LiveMarkup.colored_code(@device.label) unless unusable?
 
-    LiveTrackSerializer.colored_code @device.label,
-                                     background_color: LiveTrackSerializer::DARK_BACKGROUND,
-                                     foreground_color: LiveTrackSerializer::LIGHT_TEXT
+    LiveMarkup.colored_code @device.label,
+                            background_color: LiveMarkup::DARK_BACKGROUND,
+                            foreground_color: LiveMarkup::LIGHT_TEXT
   end
 
   # Whether the device stops the track from being transferred to Push 3 Standalone.

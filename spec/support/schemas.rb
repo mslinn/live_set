@@ -108,7 +108,7 @@ module Schemas
   def self.generate(version, file)
     sets = demo_sets(version)
     Dir.chdir(PROJECT_ROOT) do
-      command = ['bundle', 'exec', 'ruby', 'exe/generate_xsd', '-f', file, *sets]
+      command = ['bundle', 'exec', 'ruby', 'exe/als_to_xsd', '-f', file, *sets]
       output, status = Open3.capture2e(*command)
       raise "Generating the schema of Live #{version} failed:\n#{output}" unless status.success?
     end

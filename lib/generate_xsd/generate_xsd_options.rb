@@ -5,15 +5,15 @@ require_relative '../common/command_options'
 require_relative '../common/log'
 
 class XsdFromXml
-  # Display help message for generate_xsd
+  # Display help message for als_to_xsd
   #
   # @param msg [String, nil] an error message to show above the help
   # @return [String] the help message
   def self.help(msg = nil)
     help = <<~END_HELP
-      Generate_xsd reads one or more Ableton Live sets and generates an XSD with the given name.
+      Als_to_xsd reads one or more Ableton Live sets and generates an XSD with the given name.
 
-      Syntax: generate_xsd OPTIONS XSD_FILE_NAME PATH_TO_ALS_FILE...
+      Syntax: als_to_xsd OPTIONS XSD_FILE_NAME PATH_TO_ALS_FILE...
 
       Environment variables used in XSD_FILE_NAME and PATH_TO_ALS_FILE are expanded.
 
@@ -52,7 +52,7 @@ class XsdFromXml
 
   def self.do_parse
     OptionParser.new do |parser|
-      parser.program_name = 'generate_xsd'
+      parser.program_name = 'als_to_xsd'
 
       parser.on('-f', '--force', 'Overwrite the output xsd if it already exists')
       parser.on('-l', '--loglevel LOGLEVEL', String, "Logging level (#{LOG_LEVELS.join ', '})")

@@ -25,9 +25,9 @@ RSpec.describe LiveTakeLaneSerializer, '#to_markdown' do
     expect(markdown.lines.first.chomp).to eq '- Take lane 1.1  Pink Noise - EDMtips.com'
   end
 
-  it 'writes the clips of the lane under it' do
-    markdown = described_class.new(take_lane('Pink Noise - EDMtips.com'), '1.1').to_markdown
+  it 'writes the MIDI clips of the lane under it' do
+    markdown = described_class.new(take_lane('Kontakt 7'), '1.1').to_markdown
 
-    expect(markdown).to include('* Clip 1.1.1 (×4) ')
+    expect(markdown).to include('* Clip 1.1.1 (×3) ')
   end
 end

@@ -90,16 +90,16 @@ class LiveSet
     # is not reported alongside the tracks, but its members' audio is routed through its device
     # chain, so its devices are checked. See docs/als_notes.md, "The group tracks".
     #
-    # Every track of the set is in the model: the MIDI tracks, the audio tracks, the groups,
-    # the return tracks and the master track, in the order Live wrote them.
-    track_elements = @xml_doc.xpath('//MidiTrack | //AudioTrack | //GroupTrack | //Tracks/ReturnTrack | ' \
-                                    '//MasterTrack | //MainTrack')
+    # Every track of the set is in the model: the MIDI tracks, the audio tracks, the groups
+    # and the return tracks, in the order Live wrote them.
+    track_elements = @xml_doc.xpath('//MidiTrack | //AudioTrack | //GroupTrack | //Tracks/ReturnTrack')
 
     @tracks = LiveTracks.new @set_directory, track_elements
     # A set of Live 8 or Live 9 has no scenes at all.
     scenes = @live_set.at('Scenes')
     @scenes = scenes ? scenes.map { |scene| LiveScene.new scene } : []
     @time_zone = options[:time_zone]
+    @show_midi_and_audio_tracks_separately = options[:show_midi_and_audio_tracks_separately]
   end
 
   # The report of the set.
@@ -110,7 +110,8 @@ class LiveSet
   # @return [String] the report
   def show
     check_ableton_project_info
-    LiveSetReport.new(@set_name, @xml_doc, @tracks, @time_zone).to_markdown
+    LiveSetReport.new(@set_name, @xml_doc, @tracks, @time_zone,
+                      show_midi_and_audio_tracks_separately: @show_midi_and_audio_tracks_separately).to_markdown
   end
 
   # Writes out a Live 11 session

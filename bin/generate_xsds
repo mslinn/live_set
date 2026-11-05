@@ -85,7 +85,7 @@ for installation in "$ABLTON_HOME"/Live*/; do
   done
 
   echo "Generating $schema from ${#samples[@]} sets"
-  bundle exec ruby exe/generate_xsd -f "$schema" "${samples[@]}"
+  bundle exec ruby exe/als_to_xsd -f "$schema" "${samples[@]}"
   generated=$((generated + 1))
 done
 

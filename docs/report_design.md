@@ -1,6 +1,6 @@
 # The model behind the report of a set
 
-The report of a set — `live_set -s <set>` — is written from a model of what the set holds.
+The report of a set — `als_report -s <set>` — is written from a model of what the set holds.
 The model is built once, from the XML of the set; the report asks the model questions and
 writes markdown.
 
@@ -36,7 +36,8 @@ The model replaces both: one reading of the set, and one place where the facts a
   of the things under it.
 - **A model does not write markdown.** A serializer is an object, initialized with a model
   instance, and it writes the markdown of the model it was given. The serializers mirror the
-  model hierarchy: each model class has a small serializer class of its own.
+  model hierarchy: each model class has a small serializer class of its own. A model that
+  has a `to_markdown` of its own only delegates to the serializer that writes it.
 - **Every collection is a class of its own**, named for the things it holds, and it has a
   serializer of its own.
 
@@ -58,37 +59,69 @@ The tracks, the groups, the devices, the clips and the samples of the set. `Live
 name of the command that runs the program — `lib/live_set/live_set_class.rb` — and that is
 the class the command is; the model of the contents of a set is `AlsModel`.
 
-### `LiveTracks` — the tracks of the set, and the tracks of a group
+### `LiveTracks` — the tracks of the set
+
+The model of the `<Tracks>` element of the XML. It deviates from the usual pattern in that
+it has two kinds of child: `LiveMidiTracks` and `LiveAudioTracks`. It also holds the ids of
+the tracks, in the order Live wrote them.
 
 | | |
 | --- | --- |
-| `tracks` | the tracks at the top of the set, in the order Live wrote them |
-| `members` | the tracks in a group |
-| `devices` | the devices of the set, with the tracks they are on |
-| `clips` | the clips of the set, with the tracks they are in |
+| `track_ids` | the ids of the tracks of the set, in the order Live wrote them |
+| `midi_tracks` | the MIDI tracks of the set, and the MIDI tracks of a group |
+| `audio_tracks` | the audio tracks of the set, and the audio tracks of a group |
+| `return_tracks` | the return tracks of the set |
+| `groups` | the groups of the set |
+| `top_level_tracks` | the tracks that are in no group, in the order Live wrote them |
+| `audio_clips` | the clips of the audio side of every track of the set |
 | `missing_samples` | the samples of the set that are not in the project, by the pack they are in |
 
-### `LiveTrack` — a track of any kind, group tracks included
+The list of ids is what lets the tracks be written in the order they are found in the ALS
+XML: the MIDI tracks and the audio tracks are two collections, and the order of the tracks
+of the set is the order of the elements in the file, not the order of the collections.
 
-One class for every kind of track: a MIDI track, an audio track, a group track, a return
-track and the master track. A group track is a track that holds other tracks, and it is
-different in three ways, which are questions the class answers rather than cases the report
-branches on:
+By default, every track of the set is written in the order it was saved in. The
+`--show_midi_and_audio_tracks_separately` option writes the audio tracks and the MIDI
+tracks in their own lists instead.
+
+### `LiveMidiTrack`, `LiveAudioTrack`, `LiveReturnTrack`, `LiveMasterTrack` — the tracks
+
+The XML has an element for each kind of track, and the model has a class for each of them:
+a `<MidiTrack>` is a `LiveMidiTrack`, an `<AudioTrack>` is a `LiveAudioTrack`, a
+`<ReturnTrack>` is a `LiveReturnTrack`, and the `<MasterTrack>` (the `<MainTrack>` in Live
+12) is a `LiveMasterTrack`. There is no class for "a track", because there is no element
+for one.
 
 | | |
 | --- | --- |
-| `kind` | `'MIDI'`, `'Audio'`, `'Group'`, `'Return'` or `'Master'` |
+| `kind` | `'MIDI'`, `'Audio'`, `'Return'`, `'Master'` or `'Main'` |
 | `name` | the name Live resolved for the track |
+| `user_name` | the name the user typed for the track |
 | `color` | the number Live writes for the colour of the track |
-| `element` | the element of the track in the XML |
-| `group?` | true for a group track |
-| `members` | the tracks in the group, for a group track |
-| `devices` | the devices of the track, and of the group it is in |
-| `clips` | the clips of the track, not counting the clips of its take lanes |
+| `devices` | the devices of the track itself |
+| `chain_devices` | every device in the chain of the track, at any depth |
+| `clips` | the MIDI clips of the track, not counting the clips of its take lanes |
+| `audio_clips` | the clips of the audio side of the track (an audio track only) |
 | `take_lanes` | the take lanes of the track |
-| `frozen?` | true when the track is frozen; a group track never is |
+| `group_id` | the id of the group the track is in, or nil when it is in no group |
+| `frozen?` | true when the track is frozen |
 | `soloed?`, `armed?`, `off?` | the state of the track |
 | `problem?` | true when the track cannot be transferred to Push 3 Standalone: it is not frozen, and it has a device Push 3 cannot run |
+
+**A MIDI track and an audio track.** A MIDI track holds MIDI clips and plays no file. An
+audio track plays files, and it can hold MIDI clips as well. The clips of the audio side of
+a track are `LiveAudioClip`, and they say where the file is, how big it is, and whether it
+is in the project.
+
+**The devices of a track.** The devices of the group a track is in are the devices of the
+track as well: the chain of the group processes the audio of the tracks in it. A report
+that names the devices of a track names the group's devices too.
+
+### `LiveGroup` — a group of the set
+
+A model of the track group in the XML: the group, its devices, and the tracks in it. The
+members of a group are MIDI tracks and audio tracks, and each of them is a model of its own
+kind.
 
 **A group track.** A group holds no clips of its own, and it cannot be frozen, because only
 a track that holds clips can be frozen. Its device chain is nested one level deeper than a
@@ -98,14 +131,6 @@ the audio of the tracks in it, so a plug-in in a group's chain blocks a transfer
 just as much as one on a track. See [als_notes.md](als_notes.md), "The group tracks" and "The
 device chain of a group".
 
-**The devices of a track.** The devices of the group a track is in are the devices of the
-track as well: the chain of the group processes the audio of the tracks in it. A report
-that names the devices of a track names the group's devices too.
-
-### `LiveGroup` — a group of the set
-
-A model of the track group in the XML: the group, its devices, and the tracks in it.
-
 ### `LiveDevice` — a device of a chain
 
 Its name, its kind, its plug-in format, and whether Push 3 Standalone can run it. A device
@@ -113,24 +138,49 @@ on a frozen track is written in the ordinary way and carries no warning, because
 track renders its devices away, so the serializer of a device is told whether the track is
 frozen.
 
-### `LiveClip` — one clip in the file
+### `LiveMidiClip` — one MIDI clip in the file
 
 A clip belongs to a place. Every place — a slot of the session view, the arrangement, a take
 lane — holds the whole clip, and the settings of it belong to it. There is no reference to
 a clip in the format. See [als_notes.md](als_notes.md), "Every place holds its own clip".
 
+A MIDI clip holds notes and plays no file. The clip of the audio side of a track is
+`LiveAudioClip`, and it is a different thing: it holds a file.
+
 | | |
 | --- | --- |
 | `name` | the name of the clip |
-| `file` | the file the clip plays, or nil when it plays no file |
+| `color` | the number Live writes for the colour of the clip |
+| `launch_mode` | how the clip is launched |
+| `warp_mode` | how the clip's sample is warped, and whether it is warped at all |
+| `notes` | the notes of the clip |
+| `place` | where the clip is: `session view`, `arrangement`, `take lane 1.1` |
+
+Two clips that carry the same name, file, colour and state are alike, and the report counts
+them together. That grouping is the report's own, and it is done in the report.
+
+### `LiveAudioClip` — a clip of the audio side of a track
+
+The file the clip plays, and the facts about that file: where it is, how big it is, and
+whether it is in the project.
+
+| | |
+| --- | --- |
+| `name` | the name of the clip |
+| `file` | the file the clip plays, relative to the project |
+| `path` | the path Live wrote for the file, which says which pack it is in |
+| `absolute_path` | where the file is, resolved against the directory of the set |
+| `file_size` | the size of the file, as Live recorded it, and as it is on disk |
 | `color` | the number Live writes for the colour of the clip |
 | `marks` | what is said about the clip: `⚠ not in project`, and the state of it |
 | `launch_mode` | how the clip is launched |
 | `warp_mode` | how the clip's sample is warped, and whether it is warped at all |
 | `place` | where the clip is: `session view`, `arrangement`, `take lane 1.1` |
 
-Two clips that carry the same name, file, colour and state are alike, and the report counts
-them together. That grouping is the report's own, and it is done in the report.
+### `LiveAudioTrack` — the audio side of a track
+
+The name and the colour of the track, and the clips of that audio. The line of the track
+itself is written by the serializer of the track.
 
 ### `LiveTakeLane` — a take lane of a track
 
@@ -157,11 +207,15 @@ the project it is in, and the time zone the times are written in.
 
 | The collection | It holds |
 | --- | --- |
-| `LiveTracks` | the tracks of the set, and the tracks of a group |
+| `LiveTracks` | the `<Tracks>` element of the set: the MIDI tracks, the audio tracks, the return tracks and the groups |
+| `LiveMidiTracks` | the MIDI tracks of the set, and the MIDI tracks of a group |
+| `LiveAudioTracks` | the audio tracks of the set, and the audio tracks of a group |
+| `LiveReturnTracks` | the return tracks of the set |
+| `LiveMasterTracks` | the master track of the set |
 | `LiveGroups` | the groups of the set |
 | `LiveDevices` | the devices of a track, or of a group |
 | `LiveTakeLanes` | the take lanes of a track |
-| `LiveClips` | the clips of the set, and the clips of a track |
+| `LiveClips` | the MIDI clips of the set, and the MIDI clips of a track |
 | `LiveSamples` | the samples of the set |
 | `LiveAudioClips` | the clips of the audio side of a track |
 

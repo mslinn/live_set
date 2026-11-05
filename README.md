@@ -159,20 +159,21 @@ $ gem upgrade live_set
 
 The following commands are provided:
 
-- `live_set` reports status of a session file, or converts a Live 12 session file to
+- `als_report` reports status of a session file, or converts a Live 12 session file to
   Live 11 format.
 - `als_delta` (used when Live is running) shows changes to a session file each
   time the session is saved.
-- `generate_xsd` reads one or more Ableton Live sets and generates an XSD.
-- `validate_asd` checks that a session file conforms to an XSD schema.
+- `als_to_version` converts a Live set to the other version of the format.
+- `als_to_xsd` reads one or more Ableton Live sets and generates an XSD.
+- `als_validate` checks that a session file conforms to an XSD schema.
 
 ```text
-$ live_set
+$ als_report
 Displays information about a Live set or converts a copy of a Live 12 set in Live 11 format.
 Also verifies that 'Ableton Project Info' is in the same directory as the .als file,
 and there is no parent directory with a directory of that name.
 
-Syntax: live_set OPTIONS PATH_TO_ALS_FILE
+Syntax: als_report OPTIONS PATH_TO_ALS_FILE
 
 Environment variables used in PATH_TO_ALS_FILE are expanded.
 
@@ -183,10 +184,13 @@ Options are:
   -v Show the version of this program.
   -z The time zone the times in the report are written in, e.g. America/Chicago. The
      times are written in the time zone of the computer when it is not given.
+  --show_midi_and_audio_tracks_separately Write the audio tracks and the MIDI tracks
+     of the set in their own lists. By default, every track is written in the order
+     Live saved it in.
   -h Display this help message.
 
 Example:
-  live_set -11 -f $path/to/my_set.als
+  als_report -11 -f $path/to/my_set.als
 ```
 
 ```text
@@ -207,9 +211,9 @@ als_delta $path/to/my_v12_set.als
 ```
 
 ```text
-Generate_xsd reads one or more Ableton Live sets and generates an XSD with the given name.
+Als_to_xsd reads one or more Ableton Live sets and generates an XSD with the given name.
 
-Syntax: generate_xsd OPTIONS XSD_FILE_NAME PATH_TO_ALS_FILE...
+Syntax: als_to_xsd OPTIONS XSD_FILE_NAME PATH_TO_ALS_FILE...
 
 Environment variables used in XSD_FILE_NAME and PATH_TO_ALS_FILE are expanded.
 
@@ -218,27 +222,32 @@ Options are:
   -h Display this help message.
 
 Example:
-  generate_xsd -f xsd_file_name $path/to/my_v12_set.als
+  als_to_xsd -f xsd_file_name $path/to/my_v12_set.als
 ```
 
 ```text
-$ validate_asd
-Validate_asd checks that an Ableton Live set conforms to an XSD schema.
+$ als_validate
+Als_validate checks that an Ableton Live set conforms to an XSD schema.
 
-Syntax: validate_asd PATH_TO_ALS_FILE SCHEMA.xsd
+Syntax: als_validate PATH_TO_ALS_FILE SCHEMA.xsd
 
 Environment variables used in PATH_TO_ALS_FILE are expanded.
 
 Example:
-  validate_asd $path/to/my_v12_set.als schema.xsd
+  als_validate $path/to/my_v12_set.als schema.xsd
 ```
 
 
 ### The Report
 
-`live_set` writes a report of a set in markdown: the tracks of the set and the groups they
+`als_report` writes a report of a set in markdown: the tracks of the set and the groups they
 are in, the devices of each of them, the clips and the take lanes, the samples that are not
 in the project, and a cross-reference of the tracks and the clips.
+
+Every track of the set is written in the order Live saved it in. The
+`--show_midi_and_audio_tracks_separately` option writes the audio tracks and the MIDI
+tracks in their own lists instead, which is easier to read when a set has many tracks of
+one kind.
 
 The names in the report are written on the colour Live gave the thing, so that the colour of
 a track, a group or a clip can be seen at a glance:
@@ -294,7 +303,7 @@ The report says what made it — the version of `live_set`, and where the tool i
 Make the Live 12 set compatible with Live 11 and save as `path/to/my_set_11.als`:
 
 ```shell
-$ live_set -11 -f path/to/my_set.als
+$ als_report -11 -f path/to/my_set.als
 ```
 
 The converted set uses the Live 11.3.21 schema. The sub-version is not
@@ -372,7 +381,7 @@ Define the `VO_DEBUGGING` environment variable so the code is loaded from the pr
 instead of attempting to load the `live_set` gem.
 
 ```shell
-$ VO_DEBUGGING=true ruby exe/live_set /path/to/my_set.als
+$ VO_DEBUGGING=true ruby exe/als_report /path/to/my_set.als
 ```
 
 ### Interactive Session

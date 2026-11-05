@@ -1,6 +1,6 @@
 require 'markdown-tables'
 require_relative '../live_palette'
-require_relative 'live_track_serializer'
+require_relative 'live_markup'
 
 # Writes the section of the report that crosses the devices of the set with the tracks they
 # are on.
@@ -39,11 +39,11 @@ class DeviceCrossReferenceSerializer
   def rows_of_devices
     @cross_reference.uses.sort_by { |(label, _kind, _unusable), _| label.downcase }.map do |(label, kind, unusable), tracks|
       name = if unusable
-               LiveTrackSerializer.colored_code label,
-                                                background_color: LiveTrackSerializer::DARK_BACKGROUND,
-                                                foreground_color: LiveTrackSerializer::LIGHT_TEXT
+               LiveMarkup.colored_code label,
+                                       background_color: LiveMarkup::DARK_BACKGROUND,
+                                       foreground_color: LiveMarkup::LIGHT_TEXT
              else
-               "<code>#{LiveTrackSerializer.escape label}</code>"
+               "<code>#{LiveMarkup.escape label}</code>"
              end
       [name, kind, tracks.map { |track| track_label track }.uniq.join(', ')]
     end
@@ -54,19 +54,19 @@ class DeviceCrossReferenceSerializer
   # @param track [LiveTrack, LiveGroup] the track
   # @return [String] the name of the track
   def track_label(track)
-    name = LiveTrackSerializer.display_name track
+    name = LiveMarkup.display_name track
     if track.problem?
-      return LiveTrackSerializer.colored_code LiveTrackSerializer.escape(name),
-                                              background_color: LiveTrackSerializer::DARK_BACKGROUND,
-                                              foreground_color: LiveTrackSerializer::LIGHT_TEXT
+      return LiveMarkup.colored_code LiveMarkup.escape(name),
+                                     background_color: LiveMarkup::DARK_BACKGROUND,
+                                     foreground_color: LiveMarkup::LIGHT_TEXT
     end
 
     color = LivePalette.color_of track.color
-    return "<code>#{LiveTrackSerializer.escape name}</code>" unless color
+    return "<code>#{LiveMarkup.escape name}</code>" unless color
 
-    LiveTrackSerializer.colored_code LiveTrackSerializer.escape(name),
-                                     color_number:     track.color,
-                                     background_color: "##{color}",
-                                     foreground_color: LiveTrackSerializer.text_color(color)
+    LiveMarkup.colored_code LiveMarkup.escape(name),
+                            color_number:     track.color,
+                            background_color: "##{color}",
+                            foreground_color: LiveMarkup.text_color(color)
   end
 end

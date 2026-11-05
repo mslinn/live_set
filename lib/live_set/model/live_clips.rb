@@ -1,10 +1,11 @@
-require_relative 'live_clip'
+require_relative 'live_midi_clip'
 
-# The clips of a set: every clip of every track.
+# The MIDI clips of a set: every MIDI clip of every track.
 #
 # A clip is written once for each place it is in, and the copies of it are alike. The
 # outline counts the copies that are alike, and the cross-reference says which tracks hold
-# them.
+# them. The clips of the audio side of a track are `LiveAudioClip`, and they are a
+# different thing.
 #
 # A group holds no clips of its own; the clips of the tracks in it are the clips of the set.
 class LiveClips
@@ -22,7 +23,7 @@ class LiveClips
   # The clips of the take lanes of a track are the clips of the track as well, and the lane
   # they are in is named with them.
   #
-  # @yieldparam clip [LiveClip] a clip
+  # @yieldparam clip [LiveMidiClip] a clip
   # @yieldparam number [String] the number of the track that holds it
   # @yieldparam track [LiveTrack, LiveGroup] the track that holds it
   # @yieldparam lane [String, nil] the number of the lane it is in, or nil when it is not
@@ -42,7 +43,7 @@ class LiveClips
 
   # Every clip of the set.
   #
-  # @yieldparam clip [LiveClip] a clip
+  # @yieldparam clip [LiveMidiClip] a clip
   # @return [Enumerator, LiveClips] the clips
   def each(&)
     return enum_for(:each) unless block_given?

@@ -27,7 +27,7 @@ class LiveSamplesSerializer
     end
 
     rows = @samples.samples.group_by(&:pack).sort.map do |pack, in_pack|
-      names = in_pack.uniq(&:name).sort.map do |sample|
+      names = in_pack.uniq(&:name).sort_by(&:name).map do |sample|
         LiveSampleSerializer.new(sample).to_markdown
       end
       [pack, names.join(', ')]

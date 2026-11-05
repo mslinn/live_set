@@ -1,6 +1,6 @@
 require 'markdown-tables'
 require_relative '../live_palette'
-require_relative 'live_track_serializer'
+require_relative 'live_markup'
 
 # Writes the table of the clips of the set, and the tracks that hold them.
 #
@@ -21,7 +21,7 @@ class LiveClipsSerializer
   # @return [String] the serialized markdown
   def to_markdown
     rows = holds.sort_by { |clip, _| clip.downcase }.map do |clip, tracks|
-      ["`#{LiveTrackSerializer.escape clip}`", tracks.join(', ')]
+      ["`#{LiveMarkup.escape clip}`", tracks.join(', ')]
     end
     return 'The set has no clips.' if rows.empty?
 
@@ -40,7 +40,7 @@ class LiveClipsSerializer
     uses = Hash.new { |hash, key| hash[key] = {} }
 
     @clips.each_with_its_track do |clip, number, track, lane|
-      name = LiveTrackSerializer.display_name track
+      name = LiveMarkup.display_name track
       hold = uses[label_of(clip)][number] ||= { name: name, lanes: [] }
       hold[:lanes] << lane unless lane.nil? || hold[:lanes].include?(lane)
     end
@@ -55,9 +55,9 @@ class LiveClipsSerializer
 
   # The name of a clip, as the cross-reference names it.
   #
-  # @param clip [LiveClip] the clip
+  # @param clip [LiveMidiClip, LiveAudioClip] the clip
   # @return [String] the name
   def label_of(clip)
-    clip.file.nil? ? clip.name : File.basename(clip.file, File.extname(clip.file))
+    clip.label
   end
 end

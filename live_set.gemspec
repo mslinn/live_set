@@ -5,7 +5,7 @@ Gem::Specification.new do |spec|
 
   spec.authors               = ['Mike Slinn']
   spec.bindir                = 'exe'
-  spec.executables           = %w[als_delta generate_xsd live_set validate_asd]
+  spec.executables           = %w[als_delta als_report als_to_xsd als_validate]
   spec.description           = <<~END_DESC
     This software can:
       - Make a copy of an Ableton Live 12 set and save to Live 11 format.

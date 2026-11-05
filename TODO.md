@@ -18,7 +18,7 @@ identifier.
 
 This project was developed for WSL, which implies Windows 10 or 11.
 It performs round-trip validation of Live 11 -> Live 12 -> Live 11 sets
-using `live_set -11`, followed by running Ableton Live under Windows.
+using `als_report -11`, followed by running Ableton Live under Windows.
 
 
 ## Reverse Engineering Work
@@ -38,7 +38,7 @@ At a high level, the GUI harness does the following:
 
 ### Outstanding work
 
-The `live_set -11` converter is incomplete and has bugs. The documentation has
+The `als_report -11` converter is incomplete and has bugs. The documentation has
 errors and omissions. See TODO and FIXME comments.
 
 
@@ -110,7 +110,10 @@ real set exercises:
 The work is to get sets that hold these cases: a set with a frozen track, a
 set with a VST2 plug-in, and a set with a scene that has a tempo. Live 8 and
 Live 9 hold VST2 plug-ins, and their demo sets are not on this machine yet;
-the documents say they can be generated, and that has not been done.
+the documents say they can be generated, and that has not been done. The
+licences of Live 8 Suite and Live 9 Suite are on the account now, so the
+versions can be installed and their demo sets read. See `docs/als_work.md`,
+"The licences".
 
 #### N36. `als_delta` compares against a backup, not the previous version
 
@@ -197,9 +200,16 @@ needs the permission of an administrator. On this machine only Live 11 and Live 
 authorized. Live 8, Live 9 and Live 10 start, but they cannot save sets: the registration cannot
 be completed for them, so a set they are given is never written back.
 
-A support request has been sent to Ableton, asking for a way to authorize Live 8, Live 9 and
-Live 10. Until there is an answer, the round trip through those versions cannot be proved by
-running Live, and the examples that need them are the ones that are skipped.
+The licences were the other half of it, and they are in place: the account holds the Suite
+licence of every version from Live 8 to Live 12, and Ableton added the licences of Live 8
+Suite, Live 9 Suite and Live 10 Suite on 4 November 2026. Live 9 Standard was installed in
+the place of Live 9 Suite, and it is to be replaced by it. The versions are downloaded from
+the Ableton download archive, and an offline authorization is tried when the online one does
+not work. See `docs/als_work.md`, "The licences".
+
+What is left is the registration, which the licences do not help with: until it is done for
+those versions, the round trip through them cannot be proved by running Live, and the
+examples that need them are the ones that are skipped.
 
 The prompt is per version, and it only comes once per version: the first time a version runs it
 asks, switching to another version asks again for that version, and running a version again does

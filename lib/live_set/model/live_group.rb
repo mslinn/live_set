@@ -1,6 +1,7 @@
 require_relative '../../common/xml'
+require_relative 'live_audio_tracks'
 require_relative 'live_device'
-require_relative 'live_track'
+require_relative 'live_midi_tracks'
 
 # A group track in an Ableton Live set.
 #
@@ -21,15 +22,28 @@ require_relative 'live_track'
 class LiveGroup
   include Xml
 
-  attr_reader :id, :name, :members, :tracks, :color
+  attr_reader :audio_tracks, :color, :id, :members, :midi_tracks, :name
 
-  def initialize(group_track, tracks = [], set_directory = nil)
+  # @param group_track [Nokogiri::XML::Element] the `<GroupTrack>` element
+  # @param elements [Array<Nokogiri::XML::Element>] the track elements of the set
+  # @param set_directory [String, nil] the directory of the set
+  def initialize(group_track, elements = [], set_directory = nil)
     @group_track = group_track
     @id          = @group_track['Id']
     @name        = name_of group_track
     @color       = @group_track.at('Color')&.[]('Value')&.to_i
-    @members = member_tracks tracks
-    @tracks = @members.map { |member| LiveTrack.new set_directory, member }
+    @members = member_tracks elements
+    @midi_tracks = LiveMidiTracks.new(set_directory, @members.select { |member| member.name == 'MidiTrack' })
+    @audio_tracks = LiveAudioTracks.new(set_directory, @members.select { |member| member.name == 'AudioTrack' })
+  end
+
+  # The member tracks of the group, in the order the report writes them.
+  #
+  # The MIDI members come first, and the audio members after them.
+  #
+  # @return [Array<LiveMidiTrack, LiveAudioTrack>] the tracks
+  def tracks
+    midi_tracks.to_a + audio_tracks.to_a
   end
 
   # Whether the group is a group track.

@@ -1,4 +1,4 @@
-require_relative 'live_clip_groups'
+require_relative 'live_midi_clip_groups'
 
 # Serializes a `LiveTakeLane` model as markdown.
 #
@@ -24,8 +24,8 @@ class LiveTakeLaneSerializer
   # @return [String] the serialized markdown
   def to_markdown
     lines = ["#{@indent}- Take lane #{@hierarchical_number}  #{@take_lane.name}"]
-    lines += LiveClipGroups.new(@take_lane.clips).to_markdown(@hierarchical_number)
-                           .map { |line| "#{@indent}  #{line}" }
+    groups = LiveMidiClipGroups.new(@take_lane.clips).to_markdown(@hierarchical_number)
+    lines += groups.map { |line| "#{@indent}  #{line}" }
     lines.join "\n"
   end
 end

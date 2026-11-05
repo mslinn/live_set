@@ -1,9 +1,9 @@
 require 'markdown-tables'
 require_relative '../live_palette'
-require_relative 'live_clip_groups'
-require_relative 'live_clip_serializer'
+require_relative 'live_midi_clip_groups'
+require_relative 'live_midi_clip_serializer'
 require_relative 'live_clips_serializer'
-require_relative 'live_track_serializer'
+require_relative 'live_markup'
 
 # Writes the section of the report that crosses the tracks of the set with the clips they
 # hold.
@@ -45,7 +45,7 @@ class TrackClipCrossReferenceSerializer
       next if places.empty?
 
       listed = places.map do |label, counts|
-        "`#{LiveTrackSerializer.escape label}` " + counts.map { |place, count| "#{place} ×#{count}" }.join(', ')
+        "`#{LiveMarkup.escape label}` " + counts.map { |place, count| "#{place} ×#{count}" }.join(', ')
       end
       rows << [track_name(track), "#{number} #{track_label(track)}", listed.join('; ')]
     end
@@ -62,7 +62,7 @@ class TrackClipCrossReferenceSerializer
   def clips_and_tracks_table
     uses = @cross_reference.tracks_of_clips
     rows = uses.sort_by { |clip, _| clip.downcase }.map do |clip, tracks|
-      ["`#{LiveTrackSerializer.escape clip}`", tracks.join(', ')]
+      ["`#{LiveMarkup.escape clip}`", tracks.join(', ')]
     end
     return 'The set has no clips.' if rows.empty?
 
@@ -74,7 +74,7 @@ class TrackClipCrossReferenceSerializer
   # @param track [LiveTrack, LiveGroup] the track
   # @return [String] the name
   def track_name(track)
-    LiveTrackSerializer.display_name track
+    LiveMarkup.display_name track
   end
 
   # The name of a track, on the colour Live gave it.
@@ -84,17 +84,17 @@ class TrackClipCrossReferenceSerializer
   def track_label(track)
     name = track_name(track)
     if track.problem?
-      return LiveTrackSerializer.colored_code LiveTrackSerializer.escape(name),
-                                              background_color: LiveTrackSerializer::DARK_BACKGROUND,
-                                              foreground_color: LiveTrackSerializer::LIGHT_TEXT
+      return LiveMarkup.colored_code LiveMarkup.escape(name),
+                                     background_color: LiveMarkup::DARK_BACKGROUND,
+                                     foreground_color: LiveMarkup::LIGHT_TEXT
     end
 
     color = LivePalette.color_of track.color
-    return "<code>#{LiveTrackSerializer.escape name}</code>" unless color
+    return "<code>#{LiveMarkup.escape name}</code>" unless color
 
-    LiveTrackSerializer.colored_code LiveTrackSerializer.escape(name),
-                                     color_number:     track.color,
-                                     background_color: "##{color}",
-                                     foreground_color: LiveTrackSerializer.text_color(color)
+    LiveMarkup.colored_code LiveMarkup.escape(name),
+                            color_number:     track.color,
+                            background_color: "##{color}",
+                            foreground_color: LiveMarkup.text_color(color)
   end
 end

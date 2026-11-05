@@ -1,4 +1,5 @@
 require_relative 'header_block'
+require_relative 'live_master_tracks'
 require_relative 'live_tracks'
 
 # The complete model of the contents of an ALS file.
@@ -9,33 +10,49 @@ class AlsModel
 
   # @param path [String] the path of the file
   # @param xml [Nokogiri::XML::Document] the XML of the file
-  # @param file_created [Time] the time the file was created
-  # @param file_last_modified [Time] the time the file was last written
-  # @param time_zone [String, nil] the time zone the times are written in
-  def initialize(path, xml, file_created, file_last_modified, time_zone = nil)
+  # @param header_block [HeaderBlock] the facts about the set, which hold the times of it
+  # @param show_midi_and_audio_tracks_separately [Boolean] whether the audio tracks and the
+  #   MIDI tracks of the set are written in their own lists
+  def initialize(path, xml, header_block, show_midi_and_audio_tracks_separately: false)
     @path = path
     @xml = xml
-    @file_created = file_created
-    @file_last_modified = file_last_modified
-    @time_zone = time_zone
+    @header_block = header_block
+    @file_created = header_block.set_created_at
+    @file_last_modified = header_block.set_last_modified_at
+    @time_zone = header_block.time_zone
+    @show_midi_and_audio_tracks_separately = show_midi_and_audio_tracks_separately
   end
+
+  # Whether the audio tracks and the MIDI tracks of the set are written in their own lists.
+  #
+  # By default, every track is written in the order Live saved it in.
+  #
+  # @return [Boolean] true when the two kinds of track have their own lists
+  attr_reader :show_midi_and_audio_tracks_separately
 
   # The Live contents of the file.
   #
-  # Every track of the set is in the model: the MIDI tracks, the audio tracks, the groups,
-  # the return tracks and the master track, in the order Live wrote them.
+  # Every track of the set is in the model: the MIDI tracks, the audio tracks, the groups
+  # and the return tracks, in the order Live wrote them.
   #
   # @return [LiveTracks] the tracks of the set
   def live_set
     @live_set ||= LiveTracks.new directory, track_elements
   end
 
+  # The master track of the set.
+  #
+  # The master track is a child of the set and not of the tracks of the set.
+  #
+  # @return [LiveMasterTracks] the master tracks
+  def master_tracks
+    @master_tracks ||= LiveMasterTracks.new directory, master_track_elements
+  end
+
   # The facts about the file.
   #
   # @return [HeaderBlock] the facts about the set
-  def header_block
-    @header_block ||= HeaderBlock.new path, xml, time_zone
-  end
+  attr_reader :header_block
 
   # The directory the file is in.
   #
@@ -50,7 +67,13 @@ class AlsModel
   #
   # @return [Array<Nokogiri::XML::Element>] the elements
   def track_elements
-    xml.xpath('//MidiTrack | //AudioTrack | //GroupTrack | //Tracks/ReturnTrack | ' \
-              '//MasterTrack | //MainTrack')
+    xml.xpath('//MidiTrack | //AudioTrack | //GroupTrack | //Tracks/ReturnTrack')
+  end
+
+  # The elements of the master track of the set.
+  #
+  # @return [Array<Nokogiri::XML::Element>] the elements
+  def master_track_elements
+    xml.xpath('//MasterTrack | //MainTrack')
   end
 end

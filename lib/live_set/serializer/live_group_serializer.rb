@@ -1,7 +1,8 @@
+require_relative 'live_audio_tracks_serializer'
 require_relative 'live_device_serializer'
 require_relative 'live_devices_serializer'
-require_relative 'live_track_serializer'
-require_relative 'live_tracks_serializer'
+require_relative 'live_markup'
+require_relative 'live_midi_tracks_serializer'
 
 # Serializes a `LiveGroup` model as markdown by serializing each member track.
 #
@@ -37,7 +38,7 @@ class LiveGroupSerializer
   #
   # @return [String] the line
   def group_line
-    name = LiveTrackSerializer.display_name @group
+    name = LiveMarkup.display_name @group
     "#{@indent}- Group track #{@hierarchical_number}  👥 Group  #{name_markdown(name)}"
   end
 
@@ -49,18 +50,18 @@ class LiveGroupSerializer
   # @return [String] the name of the group
   def name_markdown(name)
     if problem?
-      return LiveTrackSerializer.colored_code LiveTrackSerializer.escape(name),
-                                              background_color: LiveTrackSerializer::DARK_BACKGROUND,
-                                              foreground_color: LiveTrackSerializer::LIGHT_TEXT
+      return LiveMarkup.colored_code LiveMarkup.escape(name),
+                                     background_color: LiveMarkup::DARK_BACKGROUND,
+                                     foreground_color: LiveMarkup::LIGHT_TEXT
     end
 
     color = LivePalette.color_of @group.color
-    return "<code>#{LiveTrackSerializer.escape name}</code>" unless color
+    return "<code>#{LiveMarkup.escape name}</code>" unless color
 
-    LiveTrackSerializer.colored_code LiveTrackSerializer.escape(name),
-                                     color_number:     @group.color,
-                                     background_color: "##{color}",
-                                     foreground_color: LiveTrackSerializer.text_color(color)
+    LiveMarkup.colored_code LiveMarkup.escape(name),
+                            color_number:     @group.color,
+                            background_color: "##{color}",
+                            foreground_color: LiveMarkup.text_color(color)
   end
 
   # Whether the group cannot be transferred to Push 3 Standalone.
@@ -84,8 +85,14 @@ class LiveGroupSerializer
 
   # The lines of the tracks in the group.
   #
+  # The MIDI members of the group come first, and the audio members after them, and the
+  # numbers of the members follow the number of the group.
+  #
   # @return [String] the tracks
   def track_lines
-    LiveTracksSerializer.new(@group.tracks, @hierarchical_number, "#{@indent}  ").to_markdown
+    midi = LiveMidiTracksSerializer.new @group.midi_tracks, @hierarchical_number, 1, "#{@indent}  "
+    audio = LiveAudioTracksSerializer.new @group.audio_tracks, @hierarchical_number,
+                                          @group.midi_tracks.size + 1, "#{@indent}  "
+    [midi.to_markdown, audio.to_markdown].reject(&:empty?).join("\n")
   end
 end

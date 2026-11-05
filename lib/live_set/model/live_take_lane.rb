@@ -1,5 +1,5 @@
 require_relative '../../common/xml'
-require_relative 'live_clip'
+require_relative 'live_midi_clip'
 
 # A take lane of a track.
 #
@@ -18,8 +18,8 @@ class LiveTakeLane
     @element = element
     @index = index
     @name = element.at('Name')&.[]('Value')
-    @clips = element.xpath('./ClipAutomation/Events/AudioClip | ./ClipAutomation/Events/MidiClip')
-                    .map { |clip| LiveClip.new clip, place: 'take lane' }
+    @clips = element.xpath('./ClipAutomation/Events/MidiClip')
+                    .map { |clip| LiveMidiClip.new clip, place: 'take lane' }
   end
 
   # The id Live gave the lane.

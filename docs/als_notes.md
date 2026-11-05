@@ -41,7 +41,7 @@ a fact about the format, and it belongs in this document.
 ## ALS Schemas
 
 TODO: Show the schemas for each version of the Ableton Live ALS format.
-Use `exe/generate_xsd` to generate the schemas and store them in `schemas/`.
+Use `exe/als_to_xsd` to generate the schemas and store them in `schemas/`.
 
 The schema of a version is an *inference* from the XML stored in the sets of
 that version, not a specification of it. A name the schema does not declare is
@@ -341,6 +341,36 @@ because those are the devices that actually run.
 
 See `lib/common/xml.rb`, `Xml#xml_chain_devices`.
 
+
+## The kinds of track
+
+The `<Tracks>` element of a set holds four kinds of track element, and it holds them in the
+order Live wrote them:
+
+```xml
+<LiveSet>
+  <Tracks>
+    <AudioTrack Id="8"> ... </AudioTrack>
+    <MidiTrack Id="9"> ... </MidiTrack>
+    <GroupTrack Id="76"> ... </GroupTrack>
+    <ReturnTrack Id="80"> ... </ReturnTrack>
+  </Tracks>
+  <MasterTrack Id="81"> ... </MasterTrack>
+</LiveSet>
+```
+
+The master track is a child of the set and not of the tracks of the set, and Live 12 writes
+it as `<MainTrack>`.
+
+The members of a group are not inside the group: they are siblings of it, and each of them
+names its group in its `<TrackGroupId>`. The order of the elements of `<Tracks>` is the
+order Live shows the tracks in, and the members of a group are among them.
+
+A MIDI track holds MIDI clips and plays no file. An audio track plays files, and it can
+hold MIDI clips as well. A return track receives the sends of the set and holds no clips.
+
+The model has a class for each of these elements, and no class for "a track", because there
+is no element for one. See [report_design.md](report_design.md), "The classes".
 
 ## The group tracks
 

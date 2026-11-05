@@ -171,5 +171,5 @@ bin/generate_xsds          # rewrites schemas/, which is checked in
 bundle exec rspec spec/validate_asd/demo_sets_spec.rb
 ```
 
-Then by hand: convert a Live 12 demo set with `exe/live_set`, and validate the result with
-`exe/validate_asd` against `schemas/live_11.3d1.xsd`.
+Then by hand: convert a Live 12 demo set with `exe/als_report`, and validate the result with
+`exe/als_validate` against `schemas/live_11.3d1.xsd`.

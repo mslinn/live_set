@@ -85,8 +85,8 @@ RSpec.describe LiveSet, '#show' do
     )
   end
 
-  it 'counts the references to a clip' do
-    expect(report(LiveSets.fascination)).to match(/^\s*\* Clip \d+\.\d+ \(×\d+\)/)
+  it 'counts the copies of a clip' do
+    expect(report(LiveSets.fascination)).to match(/^\s*\* Audio Clip \d+\.\d+ \(×\d+\)/)
   end
 
   it 'gives the settings of a reference on the reference' do

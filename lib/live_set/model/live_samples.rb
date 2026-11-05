@@ -41,11 +41,16 @@ class LiveSamples
 
   # The sample a clip plays.
   #
-  # @param clip [LiveClip] the clip
+  # The path Live wrote is the one that says which pack the file is in: the path of the
+  # file relative to the project says nothing about it. The path of the file on disk is
+  # used when Live wrote none.
+  #
+  # @param clip [LiveAudioClip] the clip
   # @return [LiveSample, nil] the sample, or nil when the clip plays no file
   def sample_of(clip)
-    return nil if clip.absolute_path.nil?
+    path = clip.path || clip.absolute_path
+    return nil if path.nil?
 
-    LiveSample.new clip.absolute_path, clip.file
+    LiveSample.new path, clip.file
   end
 end

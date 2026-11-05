@@ -2,15 +2,15 @@ require 'colorator'
 require 'optparse'
 
 class ValidateAsd
-  # Display help message for validate_asd
+  # Display help message for als_validate
   #
   # @param msg [String, nil] an error message to show above the help
   # @return [String] the help message
   def self.help(msg = nil)
     help = <<~END_HELP
-      Validate_asd checks that an Ableton Live set conforms to an XSD schema.
+      Als_validate checks that an Ableton Live set conforms to an XSD schema.
 
-      Syntax: validate_asd PATH_TO_ALS_FILE SCHEMA.xsd
+      Syntax: als_validate PATH_TO_ALS_FILE SCHEMA.xsd
 
       Environment variables used in PATH_TO_ALS_FILE are expanded.
 
@@ -34,7 +34,7 @@ class ValidateAsd
 
   def self.do_parse
     OptionParser.new do |parser|
-      parser.program_name = 'validate_asd'
+      parser.program_name = 'als_validate'
 
       parser.on_tail('-h', '--help', 'Show this message') do
         abort help

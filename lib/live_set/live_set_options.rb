@@ -11,11 +11,11 @@ class LiveSet
   # @return [String] the help message
   def self.help(msg = nil)
     help = <<~END_HELP
-      Live_set displays information about an Ableton Live set or converts a Live 12 set to Live 11 format.
+      Als_report displays information about an Ableton Live set or converts a Live 12 set to Live 11 format.
       If the special folder called 'Ableton Project Info' is not present in the same folder as the .als file, a warning is generated.
       Similarly, if 'Ableton Project Info' is present in any parent folder, a warning is issued and the user is asked if the directory should be renamed.
 
-      Syntax: live_set OPTIONS PATH_TO_ALS_FILE
+      Syntax: als_report OPTIONS PATH_TO_ALS_FILE
 
       Environment variables used in PATH_TO_ALS_FILE are expanded.
 
@@ -26,13 +26,16 @@ class LiveSet
         -v Show the version of this program.
         -z The time zone the times in the report are written in, e.g. America/Chicago. The
            times are written in the time zone of the computer when it is not given.
+        --show_midi_and_audio_tracks_separately Write the audio tracks and the MIDI tracks
+           of the set in their own lists. By default, every track is written in the order
+           Live saved it in.
         -h Display this help message.
 
       The report of a set is markdown. It is written to stdout, and the log is written to
       stderr, where it is never markdown.
 
       Example:
-        live_set -11 -f $path/to/my_v12_set.als
+        als_report -11 -f $path/to/my_v12_set.als
     END_HELP
 
     msg.nil? ? help : "Error: #{msg}\n\n#{help}"
@@ -69,7 +72,7 @@ class LiveSet
 
   def self.do_parse
     OptionParser.new do |parser|
-      parser.program_name = 'live_set'
+      parser.program_name = 'als_report'
 
       parser.on('-11', '--convert11', 'Make a copy of the set that is compatible with Live 11')
       parser.on('-f', '--force', 'Overwrite the output set if it already exists')
@@ -77,6 +80,8 @@ class LiveSet
       parser.on('-s', '--show', 'Display information about the Ableton Live set')
       parser.on('-v', '--version', 'Show the version of this program')
       parser.on('-z', '--time-zone ZONE', String, 'The time zone the times in the report are written in')
+      parser.on('--show_midi_and_audio_tracks_separately',
+                'Write the audio tracks and the MIDI tracks of the set in their own lists')
 
       parser.on_tail('-h', '--help', 'Show this message') do
         abort help

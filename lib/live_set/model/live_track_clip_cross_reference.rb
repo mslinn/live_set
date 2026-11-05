@@ -1,11 +1,12 @@
-require_relative 'live_track'
+require_relative '../serializer/live_markup'
 
 # The tracks of a set and the clips they hold, and the clips of the set and the tracks that
 # hold them.
 #
-# The clips are the clips of the outline: a clip is the same clip when it has the same name,
-# the same file, the same colour and the same state. A clip that is on more than one track is
-# a clip the set shares, and it is marked as one.
+# The clips are the clips of the outline: the MIDI clips and the clips of the audio side of
+# the tracks. A clip is the same clip when it has the same name, the same file, the same
+# colour and the same state. A clip that is on more than one track is a clip the set shares,
+# and it is marked as one.
 class LiveTrackClipCrossReference
   attr_reader :tracks
 
@@ -28,6 +29,7 @@ class LiveTrackClipCrossReference
     places = Hash.new { |hash, key| hash[key] = Hash.new(0) }
 
     track.clips.each { |clip| places[label_of(clip)][clip.place] += 1 }
+    track.audio_clips.each { |clip| places[label_of(clip)][place_of(clip, number)] += 1 }
     track.take_lanes.each_with_index do |lane, index|
       lane_number = "#{number}.#{index + 1}"
       lane.clips.each { |clip| places[label_of(clip)]["take lane #{lane_number}"] += 1 }
@@ -48,8 +50,9 @@ class LiveTrackClipCrossReference
     tracks.each_numbered_track do |number, track|
       next if track.group?
 
-      name = LiveTrackSerializer.display_name track
+      name = LiveMarkup.display_name track
       track.clips.each { |clip| holds_of uses, label_of(clip), number, name }
+      track.audio_clips.each { |clip| holds_of uses, label_of(clip), number, name, lane_of(clip, number) }
       holds_of_lanes uses, track, number, name
     end
 
@@ -63,10 +66,37 @@ class LiveTrackClipCrossReference
 
   # The name of a clip, as the cross-reference names it.
   #
-  # @param clip [LiveClip] the clip
+  # @param clip [LiveMidiClip, LiveAudioClip] the clip
   # @return [String] the name
   def label_of(clip)
-    clip.file.nil? ? clip.name : File.basename(clip.file, File.extname(clip.file))
+    clip.label
+  end
+
+  # The place a clip is in, as the cross-reference names it.
+  #
+  # The clip of the audio side of a track says which lane of the track it is in, and the
+  # number of the track is added to it here.
+  #
+  # @param clip [LiveMidiClip, LiveAudioClip] the clip
+  # @param number [String] the number of the track
+  # @return [String] the place
+  def place_of(clip, number)
+    place = clip.place
+    return place unless place&.start_with? 'take lane '
+
+    "take lane #{number}.#{place.split.last}"
+  end
+
+  # The number of the lane a clip is in, as the cross-reference names it.
+  #
+  # @param clip [LiveMidiClip, LiveAudioClip] the clip
+  # @param number [String] the number of the track
+  # @return [String, nil] the number of the lane, or nil when the clip is in no lane
+  def lane_of(clip, number)
+    place = clip.place
+    return nil unless place&.start_with? 'take lane '
+
+    "#{number}.#{place.split.last}"
   end
 
   private
@@ -77,9 +107,12 @@ class LiveTrackClipCrossReference
   # @param label [String] the name of the clip
   # @param number [String] the number of the track
   # @param name [String] the name of the track
+  # @param lane [String, nil] the number of the lane the clip is in, or nil
   # @return [Hash] the record of the track
-  def holds_of(uses, label, number, name)
-    uses[label][number] ||= { name: name, lanes: [] }
+  def holds_of(uses, label, number, name, lane = nil)
+    hold = uses[label][number] ||= { name: name, lanes: [] }
+    hold[:lanes] << lane unless lane.nil? || hold[:lanes].include?(lane)
+    hold
   end
 
   # The take lanes of a track, and the clips of them.

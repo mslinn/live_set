@@ -2,10 +2,13 @@ require_relative '../model/live_device_cross_reference'
 require_relative '../model/live_devices'
 require_relative '../model/live_track_clip_cross_reference'
 require_relative 'device_cross_reference_serializer'
+require_relative 'live_audio_tracks_serializer'
 require_relative 'live_group_serializer'
 require_relative 'live_groups_serializer'
+require_relative 'live_master_tracks_serializer'
+require_relative 'live_midi_tracks_serializer'
+require_relative 'live_return_tracks_serializer'
 require_relative 'live_samples_serializer'
-require_relative 'live_track_serializer'
 require_relative 'missing_samples_serializer'
 require_relative 'p3s_compatibility'
 require_relative 'report_header_serializer'
@@ -54,6 +57,10 @@ class AlsModelSerializer
 
   # The groups and the tracks at the top of the set, and the things under them.
   #
+  # The tracks of the set are written in the order Live wrote them. When they are to be
+  # shown separately, the audio tracks and the MIDI tracks are written in their own
+  # sections, and the return tracks and the master track have sections of their own.
+  #
   # @return [String] the outline of the set
   def hierarchy_markdown
     lines = ['## Groups/Tracks/Clips/Devices', '', LEGEND, '']
@@ -66,37 +73,69 @@ class AlsModelSerializer
       lines << ''
     end
 
-    tracks = LiveTracksSerializer.new(@als_model.live_set.tracks_of_the_set).to_markdown
-    unless tracks.empty?
-      lines << '### UnGrouped'
-      lines << ''
-      lines << tracks
-    end
+    lines.concat track_sections
+    lines.concat master_section
 
     lines.join("\n")
   end
 
-  private
-
-  # The clips of the set.
+  # The sections of the tracks of the set.
   #
-  # @return [LiveClips] the clips
-  def clips
-    @clips ||= LiveClips.new(@als_model.live_set)
+  # @return [Array<String>] the lines of the sections
+  def track_sections
+    return [section('### Tracks', @als_model.live_set.to_markdown)] unless separate_tracks?
+
+    [
+      section('### Audio Tracks', @als_model.live_set.audio_tracks.to_markdown),
+      section('### MIDI Tracks', @als_model.live_set.midi_tracks.to_markdown),
+      section('### Return Tracks', @als_model.live_set.return_tracks.to_markdown)
+    ].flatten
   end
+
+  # The section of the master track of the set.
+  #
+  # @return [Array<String>] the lines of the section
+  def master_section
+    master = @als_model.master_tracks.to_a.map do |track|
+      track.to_markdown((@als_model.live_set.top_level_tracks.length + 1).to_s)
+    end.join("\n")
+    section('### Master Track', master)
+  end
+
+  # Whether the two kinds of track are written in their own sections.
+  #
+  # @return [Boolean] true when they are
+  def separate_tracks?
+    @als_model.show_midi_and_audio_tracks_separately
+  end
+
+  # A subsection of the outline: its heading, and the tracks under it.
+  #
+  # @param heading [String] the heading of the subsection
+  # @param tracks [String] the tracks of the subsection
+  # @return [Array<String>] the lines of the subsection
+  def section(heading, tracks)
+    return [] if tracks.empty?
+
+    [heading, '', tracks, '']
+  end
+
+  private
 
   # The samples of the set.
   #
   # @return [LiveSamples] the samples
   def samples
-    @samples ||= LiveSamples.new clips.to_a
+    @samples ||= LiveSamples.new(@als_model.live_set.audio_clips)
   end
 
   # The devices of the set, and the tracks they are on.
   #
   # @return [LiveDeviceCrossReference] the cross-reference
   def devices
-    @devices ||= LiveDeviceCrossReference.new LiveDevices.new(@als_model.live_set.top_level)
+    @devices ||= LiveDeviceCrossReference.new(
+      LiveDevices.new(@als_model.live_set.top_level + @als_model.master_tracks.to_a)
+    )
   end
 
   # The tracks of the set and the clips they hold, and the clips and the tracks that hold

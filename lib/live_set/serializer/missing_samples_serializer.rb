@@ -1,6 +1,6 @@
 require 'markdown-tables'
 require_relative 'live_sample_serializer'
-require_relative 'live_track_serializer'
+require_relative 'live_markup'
 
 # Writes a collection of the samples that are not in the project.
 #
@@ -28,7 +28,7 @@ class MissingSamplesSerializer
     end
 
     rows = @missing.packs.sort.map do |pack, names|
-      [pack, names.map { |name| "`#{LiveTrackSerializer.escape name}`" }.join(', ')]
+      [pack, names.map { |name| "`#{LiveMarkup.escape name}`" }.join(', ')]
     end
     lines << MarkdownTables.make_table(%w[Pack Samples], rows, align: %w[l l], is_rows: true)
     lines.join("\n")

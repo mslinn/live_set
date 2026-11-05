@@ -10,6 +10,7 @@ require_relative 'model/live_clips'
 require_relative 'model/live_device_cross_reference'
 require_relative 'model/live_devices'
 require_relative 'model/live_device'
+require_relative 'model/live_master_tracks'
 require_relative 'model/live_samples'
 require_relative 'model/live_track_clip_cross_reference'
 require_relative 'serializer/als_model_serializer'
@@ -17,7 +18,7 @@ require_relative 'serializer/device_cross_reference_serializer'
 require_relative 'serializer/live_device_serializer'
 require_relative 'serializer/live_group_serializer'
 require_relative 'serializer/live_samples_serializer'
-require_relative 'serializer/live_track_serializer'
+require_relative 'serializer/live_markup'
 require_relative 'serializer/missing_samples_serializer'
 require_relative 'serializer/p3s_compatibility'
 require_relative 'serializer/report_header_serializer'
@@ -97,11 +98,14 @@ class LiveSetReport
   # @param xml_doc [Nokogiri::XML::Document] the set
   # @param tracks [LiveTracks] the tracks that hold clips
   # @param time_zone [String, nil] the time zone the times are written in
-  def initialize(set_name, xml_doc, tracks, time_zone = nil)
+  # @param show_midi_and_audio_tracks_separately [Boolean] whether the audio tracks and the
+  #   MIDI tracks are written in their own lists
+  def initialize(set_name, xml_doc, tracks, time_zone = nil, show_midi_and_audio_tracks_separately: false)
     @set_name = set_name
     @xml_doc = xml_doc
     @tracks = tracks
     @time_zone = time_zone
+    @show_midi_and_audio_tracks_separately = show_midi_and_audio_tracks_separately
     @ableton = xml_doc.at('Ableton')
   end
 
@@ -164,7 +168,8 @@ class LiveSetReport
   def als_model
     @als_model ||= begin
       header = HeaderBlock.new @set_name, @xml_doc, @time_zone
-      AlsModel.new @set_name, @xml_doc, header.set_created_at, header.set_last_modified_at, @time_zone
+      AlsModel.new @set_name, @xml_doc, header,
+                   show_midi_and_audio_tracks_separately: @show_midi_and_audio_tracks_separately
     end
   end
 
@@ -186,14 +191,14 @@ class LiveSetReport
   #
   # @return [LiveSamples] the samples
   def samples
-    @samples ||= LiveSamples.new clips_of_the_set
+    @samples ||= LiveSamples.new audio_clips_of_the_set
   end
 
-  # The clips of the set.
+  # The clips of the audio side of the tracks of the set.
   #
-  # @return [Array<LiveClip>] the clips
-  def clips_of_the_set
-    LiveClips.new(@tracks).to_a
+  # @return [Array<LiveAudioClip>] the clips
+  def audio_clips_of_the_set
+    @tracks.audio_clips
   end
 
   # The devices of the set, and the tracks they are on.
@@ -203,8 +208,20 @@ class LiveSetReport
   #
   # @return [String] the cross-reference
   def devices_markdown
-    devices = LiveDevices.new @tracks.top_level
+    devices = LiveDevices.new(@tracks.top_level + master_tracks.to_a)
     DeviceCrossReferenceSerializer.new(LiveDeviceCrossReference.new(devices)).to_markdown
+  end
+
+  # The master track of the set.
+  #
+  # The master track is a child of the set and not of the tracks of the set.
+  #
+  # @return [LiveMasterTracks] the master tracks
+  def master_tracks
+    @master_tracks ||= LiveMasterTracks.new(
+      File.dirname(File.expand_path(@set_name)),
+      @xml_doc.xpath('//MasterTrack | //MainTrack')
+    )
   end
 
   # The clips of the set, and the tracks that use them.
@@ -339,9 +356,9 @@ class LiveSetReport
     color = LivePalette.color_of color_of(element)
     return plain_name(name) unless color
 
-    LiveTrackSerializer.colored_code escape(name), color_number:     color_of(element),
-                                                   background_color: "##{color}",
-                                                   foreground_color: text_color(color)
+    LiveMarkup.colored_code escape(name), color_number:     color_of(element),
+                                          background_color: "##{color}",
+                                          foreground_color: text_color(color)
   end
 
   # The name of a thing that has no color of its own.
@@ -351,8 +368,8 @@ class LiveSetReport
   # @return [String] the name
   def plain_name(name, dark: false)
     if dark
-      return LiveTrackSerializer.colored_code escape(name), background_color: DARK_BACKGROUND,
-                                                            foreground_color: LIGHT_TEXT
+      return LiveMarkup.colored_code escape(name), background_color: DARK_BACKGROUND,
+                                                   foreground_color: LIGHT_TEXT
     end
 
     "<code>#{escape name}</code>"

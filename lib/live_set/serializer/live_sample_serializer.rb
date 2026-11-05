@@ -1,4 +1,4 @@
-require_relative 'live_track_serializer'
+require_relative 'live_markup'
 
 # Serializes a `LiveSample` model as markdown.
 #
@@ -19,7 +19,7 @@ class LiveSampleSerializer
   #
   # @return [String] the serialized markdown
   def to_markdown
-    name = "`#{LiveTrackSerializer.escape @sample.name}`"
+    name = "`#{LiveMarkup.escape @sample.name}`"
     return name if @sample.collected?
 
     "#{name} (not in the project)"

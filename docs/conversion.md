@@ -20,7 +20,7 @@ validation of the Live 11 conversion) and **N42** (unknown lane `Type` values ma
 
 ## The conversion today
 
-`live_set -11` converts a Live 12 set to the Live 11 format. It used to be six
+`als_report -11` converts a Live 12 set to the Live 11 format. It used to be six
 hand-written edits in `lib/live_set/live_set_class.rb`:
 
 | Line    | What it does                                                                                              |
@@ -51,11 +51,11 @@ The Live 12 demo set was converted with the current code, and the result was
 validated against a freshly generated Live 11 schema:
 
 ```shell
-$ bundle exec exe/live_set -11 -f /tmp/live12_input.als
+$ bundle exec exe/als_report -11 -f /tmp/live12_input.als
 Writing /tmp/live12_input_11.als
 Conversion complete
 
-$ bundle exec exe/generate_xsd -f /tmp/live_11.3d1.xsd <live 11 demo set>
+$ bundle exec exe/als_to_xsd -f /tmp/live_11.3d1.xsd <live 11 demo set>
 $ bundle exec ruby probe_validate.rb      # validates the converted set
 total errors: 539
 ```
