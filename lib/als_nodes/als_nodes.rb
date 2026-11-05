@@ -39,6 +39,7 @@ class AlsNodes
         --max N           print at most N nodes
         --unique          print each distinct result once
         -h                Display this help message.
+        #{log_level_help}
 
       Examples:
         als_nodes set.als '//MidiTrack/IsTuned' --attribute Value
@@ -102,6 +103,7 @@ class AlsNodes
       parser.on('--count', 'Print the number of nodes that were found')
       parser.on('--max N', Integer, 'Print at most N nodes')
       parser.on('--unique', 'Print each distinct result once')
+      add_common_options parser
 
       parser.on_tail('-h', '--help', 'Show this message') do
         abort help

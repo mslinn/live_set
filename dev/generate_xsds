@@ -4,12 +4,13 @@
 #
 # Usage: dev/generate_xsds [ABLETON_HOME]
 #
-# The schemas are written to the schemas/ subdirectory of this project. They are checked in, so
-# that a new contributor and a new machine can work with the latest information without having
-# to install Live first; running this script again regenerates them.
+# The schemas are written to the xsd/ subdirectory of the repository of the reference sets,
+# which is found through the environment variable `live_reference_sets`. They are checked in
+# there, so that a new contributor and a new machine can work with the latest information
+# without having to install Live first; running this script again regenerates them.
 #
 # The name of a schema comes from the Creator attribute of the demo sets, which holds the version
-# of Live that wrote them: sets written by "Ableton Live 12.4d1" produce schemas/live_12.4d1.xsd.
+# of Live that wrote them: sets written by "Ableton Live 12.4d1" produce live_12.4d1.xsd.
 #
 # Every demo set of an installation is used. A schema inferred from a single set constrains the
 # schema more than Live does, and so rejects the other sets of the same version.
@@ -22,7 +23,8 @@
 set -euo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SCHEMA_DIR="$PROJECT_DIR/schemas"
+REFERENCE_SETS_DIR="${live_reference_sets:-$(cd "$PROJECT_DIR/../../../ableton/live_reference_sets" && pwd)}"
+SCHEMA_DIR="$REFERENCE_SETS_DIR/xsd"
 CONVERSIONS_DIR="$PROJECT_DIR/conversions"
 ABLETON_HOME="${1:-${ableton_home:-/mnt/c/ProgramData/Ableton}}"
 

@@ -27,6 +27,25 @@ module LiveVersions
     12 => Live11And12,
   }.freeze
 
+  # The version of a document.
+  #
+  # The version is the minor version of the set, e.g. "12.0_12402". The major version is no
+  # help: Live 10, 11 and 12 all write MajorVersion="5".
+  #
+  # @param document [Nokogiri::XML::Document] the document
+  # @return [String] the version
+  def self.version_of(document)
+    document.at_xpath('/Ableton')&.[]('MinorVersion').to_s
+  end
+
+  # The number of the version of a document, e.g. 12.
+  #
+  # @param document [Nokogiri::XML::Document] the document
+  # @return [Integer] the number of the version
+  def self.version_number_of(document)
+    version_of(document).split('.').first.to_i
+  end
+
   # The bridge that converts a set of a version.
   #
   # @param version [String] the minor version of the set, e.g. "12.0_12402"

@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'live_set/als_file'
-require 'live_set/live_set_transformer'
+require 'live_set/tx/live_versions'
 require 'live_set/demo_sets'
 require 'support/schemas'
 
@@ -14,7 +14,7 @@ require 'support/schemas'
 #
 # The schemas are checked in, so they are generated only when they are missing. See
 # spec/support/schemas.rb.
-RSpec.describe LiveSetTransformer, 'converting a demo set' do # rubocop:disable RSpec/DescribeMethod
+RSpec.describe LiveVersions, 'converting a demo set' do # rubocop:disable RSpec/DescribeMethod
   # The demo set of a Live version.
   let(:live_12_set) { DemoSets.require!('12') }
   let(:live_11_set) { DemoSets.require_edition!('11', 'Suite') }
@@ -25,7 +25,8 @@ RSpec.describe LiveSetTransformer, 'converting a demo set' do # rubocop:disable 
   # @return [Nokogiri::XML::Document] the converted set
   def convert(path)
     document = AlsFile.read(path)
-    described_class.new(document).transform
+    from = LiveVersions.version_number_of document
+    LiveVersions.convert document, from: from, to: (from == 12 ? 11 : 12)
     document
   end
 

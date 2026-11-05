@@ -1,8 +1,7 @@
 require 'colorator'
 require_relative '../common/log'
-require_relative 'als_file'
-require_relative 'live_set_transformer'
-require_relative 'tx/live_versions'
+require_relative '../live_set/als_file'
+require_relative '../live_set/tx/live_versions'
 
 # Converts a Live set to another version of the format.
 #
@@ -84,7 +83,6 @@ class LiveSetConverter
   #
   # @return [Nokogiri::XML::Document] the converted set
   def transform
-    from = LiveSetTransformer.version_of(@xml_doc).split('.').first.to_i
-    LiveVersions.convert(@xml_doc, from: from, to: @version)
+    LiveVersions.convert @xml_doc, from: LiveVersions.version_number_of(@xml_doc), to: @version
   end
 end

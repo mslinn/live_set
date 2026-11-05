@@ -35,6 +35,7 @@ class AlsXsdOrder
 
       Options are:
         -h Display this help message.
+        #{log_level_help}
 
       Example:
         als_xsd_order schemas/live_12.4d1.xsd MidiClip
@@ -73,6 +74,8 @@ class AlsXsdOrder
   def self.parser
     OptionParser.new do |parser|
       parser.program_name = 'als_xsd_order'
+
+      add_common_options parser
 
       parser.on_tail('-h', '--help', 'Show this message') do
         abort help

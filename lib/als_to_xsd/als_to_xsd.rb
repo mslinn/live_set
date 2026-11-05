@@ -38,7 +38,7 @@ class AlsToXsd
 
     check_overwrite(xsd_file, options[:force])
 
-    als_files = als_files.map do |file|
+    als_files = expand_globs(als_files).map do |file|
       expanded_file = file.expand_env
       abort help("ALS file does not exist: #{expanded_file}") unless File.exist?(expanded_file)
       abort help("#{expanded_file} is a directory") if File.directory? expanded_file
@@ -55,6 +55,22 @@ class AlsToXsd
     rescue StandardError => e
       warn e.full_message
       exit 1
+    end
+  end
+
+  # The files the arguments name.
+  #
+  # An argument that holds a glob pattern is expanded by the command, and a pattern that
+  # holds `**` matches the files in the directories below the one that is named. The shell
+  # expands the patterns it is given before the command sees them, so the command expands
+  # only the ones that are left.
+  #
+  # @param files [Array<String>] the arguments
+  # @return [Array<String>] the files
+  def self.expand_globs(files)
+    files.flat_map do |file|
+      path = file.expand_env
+      path.include?('*') ? Dir.glob(path) : [file]
     end
   end
 

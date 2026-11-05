@@ -17,13 +17,16 @@ class AlsToXsd
 
       Environment variables used in XSD_FILE_NAME and PATH_TO_ALS_FILE are expanded by the operating system.
 
+      A PATH_TO_ALS_FILE that holds a glob pattern is expanded by the command, and a pattern
+      that holds ** matches the files in the directories below the one that is named.
+
       OPTIONS may be specified anywhere on the command line:
         -f Overwrite any existing xsd.
         -h Display this help message.
+        #{log_level_help}
 
       Example:
-        TODO command line arguments should be expanded as if `shopt -s globstar nullglob` was active
-        $ generate_xsd -f "$live_reference_sets/xsd/demo11.xsd" \
+        $ als_to_xsd -f "$live_reference_sets/xsd/demo11.xsd" \
           "$live_reference_sets/sets/live_11/projects_and_als"/**/*.als
         Wrote '/mnt/f/work/ableton/live_reference_sets/xsd/demo11.xsd'
     END_HELP
@@ -54,7 +57,7 @@ class AlsToXsd
       parser.program_name = 'als_to_xsd'
 
       parser.on('-f', '--force', 'Overwrite the output xsd if it already exists')
-      parser.on('-l', '--loglevel LOGLEVEL', String, "Logging level (#{LOG_LEVELS.join ', '})")
+      add_common_options parser
 
       parser.on_tail('-h', '--help', 'Show this message') do
         abort help

@@ -1,5 +1,5 @@
 require_relative '../../common/log'
-require_relative '../live_palette'
+require_relative '../model/live_palette'
 
 # The markup the report is written with.
 #

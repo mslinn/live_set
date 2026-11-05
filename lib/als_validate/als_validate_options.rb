@@ -17,9 +17,10 @@ class AlsValidate
 
       OPTIONS may be specified anywhere on the command line:
         -h Display this help message.
+        #{log_level_help}
 
       Example:
-        $ validate_asd \
+        $ als_validate \
           "$live_reference_sets/sets/live_11/projects_and_als/one_midi_track_only_11 Project/factory_default_11.als" \
           "$live_reference_sets/xsd/demo11.xsd"
         /mnt/f/work/ableton/live_reference_sets/sets/live_11/projects_and_als/one_midi_track_only_11 Project/factory_default_11.als is valid
@@ -31,6 +32,8 @@ class AlsValidate
   def self.parser
     OptionParser.new do |parser|
       parser.program_name = 'als_validate'
+
+      add_common_options parser
 
       parser.on_tail('-h', '--help', 'Show this message') do
         abort help

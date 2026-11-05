@@ -154,8 +154,9 @@ class LiveAudioClip
       constructed_path = Pathname.new(set_directory).join(relative_path)
       begin
         constructed_path.realpath.to_s
-      rescue Errno::ENOENT, Errno::ELOOP => e
-        Log.warn "Warning: File path does not exist: #{constructed_path}\n#{e}"
+      rescue Errno::ENOENT, Errno::ELOOP
+        # The file is not on disk. The report says which files are missing, so there is
+        # nothing to say here.
         constructed_path.to_s
       end
     elsif absolute_path_xml && !absolute_path_xml.empty?

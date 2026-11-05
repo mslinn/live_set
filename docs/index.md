@@ -19,7 +19,7 @@ Read this first. It is the map; the documents it points at are the detail.
 | [`live_control_plan.md`](live_control_plan.md) | The plan for proving a conversion by round-tripping it through Ableton Live under program control, using the `gui_harness` gem. |
 | [`ab_test_plan.md`](ab_test_plan.md) | **The PROGRAM.** Nearly-empty Live 11 sets, one thing in each, written by Live 11 and by Live 12 and compared: how a case is made, where the sets live, what the factory-default set holds, and the questions that are still open. |
 | [`report_design.md`](report_design.md) | **The MODEL.** The design of the model the report of a set is written from: the classes for the tracks of a set, group tracks included, for the clips and the references to them, and for the take lanes. |
-| [`serializer_plan.md`](serializer_plan.md) | **The PLAN.** What the TODO comments in `lib/live_set/live_palette.rb` ask for, and what the serializers in `lib/live_set/serializer/` are to take over from it: the helper that owns the formatting, the models the serializers need, and the order the work is done in. |
+| [`serializer_plan.md`](serializer_plan.md) | **The PLAN.** What the TODO comments in `lib/live_set/model/live_palette.rb` ask for, and what the serializers in `lib/live_set/serializer/` are to take over from it: the helper that owns the formatting, the models the serializers need, and the order the work is done in. |
 | [`release_notes/index.md`](release_notes/index.md) | The release notes of Live 8 through Live 12, downloaded from Ableton's web site and kept in `release_notes/`, one HTML file per version. They are the evidence for what each version changed, and where they came from and how they were obtained is written down there. |
 
 **The release notes are not installed with Live.** No version of Live puts a
@@ -100,13 +100,13 @@ The transformations of a version_diff are written by hand, and the process for f
 | The transformations of the Live 11 ↔ Live 12 conversion | `lib/live_set/tx/live_11_and_12.rb` — the lists, the special transformations, and the comment block that describes how the conversion works |
 | The machinery the transformations run on | `lib/live_set/tx/live_version_converter.rb` — knows nothing about any particular version_diff |
 | The registry of the bridges, keyed by the version each one leads to | `lib/live_set/tx/live_versions.rb` — the conversion from one version to another is the composition of the bridges between them |
-| The seam that finds the bridge for a set | `lib/live_set/live_set_transformer.rb` |
-| Reading a set, converting it, writing it out | `lib/live_set/live_set_converter.rb` |
+| The colours of Live, and the markup the report is written with | `lib/live_set/model/live_palette.rb` and `lib/live_set/serializer/live_markup.rb` |
+| Reading a set, converting it, writing it out | `lib/als_to_version/live_set_converter.rb` |
 | One example per transformation, in each direction | `spec/live_set/tx/live_11_and_12_down_spec.rb`, `spec/live_set/tx/live_11_and_12_up_spec.rb` |
 | The end-to-end check | `spec/live_set/tx/live_conversion_spec.rb` — converts the Live 12 demo set and validates the result against the Live 11 schema |
 | The tools for looking inside sets | `exe/als_nodes`, `exe/als_diff`, `exe/als_to_xsd`, `exe/als_xsd_order`, `exe/als_validate` |
 | The release notes of Live, as markdown | `exe/als_release_notes` — the notes of a version, or of a single release, or the lines of them that match a pattern |
-| The schemas | generated into `schemas/` by `dev/generate_xsds`; checked in, so a new contributor and a new machine can use them without installing Live |
+| The schemas | generated into the `xsd/` directory of the repository of the reference sets by `dev/generate_xsds`; checked in, so a new contributor and a new machine can use them without installing Live |
 
 ## The commands
 
@@ -119,6 +119,10 @@ that are the same everywhere: the parsing of the options, the check of the log l
 handling of the errors of the parser. A command that is given an option it does not
 understand, or an option that is missing its argument, says so and prints its help, instead
 of failing with a backtrace.
+
+Every command takes `-l` (or `--log`) with the level of the messages it writes to the
+standard error: `DEBUG`, `INFO`, `WARN`, `ERROR`, `FATAL` or `UNKNOWN`. The help of every
+command names the levels.
 
 | The command | The class | What it does |
 | --- | --- | --- |

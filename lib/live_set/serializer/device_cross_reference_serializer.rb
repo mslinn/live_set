@@ -1,5 +1,5 @@
 require 'markdown-tables'
-require_relative '../live_palette'
+require_relative '../model/live_palette'
 require_relative 'live_markup'
 
 # Writes the section of the report that crosses the devices of the set with the tracks they

@@ -32,6 +32,7 @@ class AlsReport
         -v    Show the version of this program.
         -z    The time zone to use in the report in, e.g. America/Chicago. The time zone
               of the computer the command ran on when this option is not specified.
+        #{log_level_help}
         --show_midi_and_audio_tracks_separately
               Report the audio tracks and the MIDI tracks separately. By default, every
               track is displayed in the order found in the ALS file.
@@ -64,12 +65,12 @@ class AlsReport
     OptionParser.new do |parser|
       parser.program_name = 'als_report'
 
-      parser.on('-l', '--loglevel LOGLEVEL', String, "Logging level (#{LOG_LEVELS.join ', '})")
       parser.on('-s', '--show', 'Display information about the Ableton Live set')
       parser.on('-v', '--version', 'Show the version of this program')
       parser.on('-z', '--time-zone ZONE', String, 'The time zone the times in the report are written in')
       parser.on('--show_midi_and_audio_tracks_separately',
                 'Write the audio tracks and the MIDI tracks of the set in their own lists')
+      add_common_options parser
 
       parser.on_tail('-h', '--help', 'Show this message') do
         abort help

@@ -50,9 +50,6 @@ class AlsReport
   end
 
   def initialize(set_name, **options)
-    # Can set with a string ('WARN') or an int (Logger::WARN is 2)
-    Log.level = options[:loglevel] || Logger::WARN
-
     @set_directory = File.dirname(File.realpath(set_name))
 
     @set_name = set_name

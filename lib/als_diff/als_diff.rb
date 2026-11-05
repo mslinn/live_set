@@ -41,6 +41,7 @@ class AlsDiff
         --max N        print at most N differences
         --skip NAME    do not compare the elements with this name, or anything below
                       them. This option may be given more than once.
+        #{log_level_help}
 
       The exit status is 0 when the documents are the same, and 1 when they are not.
 
@@ -101,6 +102,7 @@ class AlsDiff
       parser.on('--skip NAME', Array, 'Do not compare the elements with this name')
       parser.on('--count', 'Print the number of differences')
       parser.on('--max N', Integer, 'Print at most N differences')
+      add_common_options parser
 
       parser.on_tail('-h', '--help', 'Show this message') do
         abort help

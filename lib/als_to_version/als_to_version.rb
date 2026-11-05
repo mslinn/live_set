@@ -3,8 +3,8 @@ require 'optparse'
 require_relative '../common/command'
 require_relative '../live_set/als_file'
 require_relative '../live_set/demo_sets'
-require_relative '../live_set/live_set_converter'
-require_relative '../live_set/live_set_transformer'
+require_relative '../live_set/tx/live_versions'
+require_relative 'live_set_converter'
 
 # Converts a Live set to another version of the format.
 #
@@ -36,6 +36,7 @@ class AlsToVersion
       OPTIONS can be specified anywhere on the command line:
         -f    Overwrite the destination if it already exists.
         -h    Display this help message.
+        #{log_level_help}
 
       Example:
         als_to_version 11 "$path/to/sample_set.als"  # writes to "$path/to/sample_set_11.als"
@@ -82,7 +83,7 @@ class AlsToVersion
   # @param document [Nokogiri::XML::Document] the set
   # @return [Integer] the version of Live the set is written in
   def self.version_of(document)
-    LiveSetTransformer.version_of(document).split('.').first.to_i
+    LiveVersions.version_number_of document
   end
 
   # Converts a set, and writes the converted set.
@@ -105,6 +106,7 @@ class AlsToVersion
       parser.program_name = 'als_to_version'
 
       parser.on('-f', '--force', 'Overwrite the destination when it already exists')
+      add_common_options parser
 
       parser.on_tail('-h', '--help', 'Show this message') do
         abort help

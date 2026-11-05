@@ -65,6 +65,7 @@ class AlsReleaseNotes
         --find PATTERN  print the lines of the notes that match PATTERN, each with the
                         release it belongs to. The pattern is case-insensitive.
         -h              Display this help message.
+        #{log_level_help}
 
       Examples:
         als_release_notes 12          # output the release notes for all Live 12 versions
@@ -103,6 +104,7 @@ class AlsReleaseNotes
       parser.program_name = 'als_release_notes'
 
       parser.on('--find PATTERN', 'Print the lines of the notes that match PATTERN')
+      add_common_options parser
 
       parser.on_tail('-h', '--help', 'Show this message') do
         abort help

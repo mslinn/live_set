@@ -1,5 +1,5 @@
 require 'markdown-tables'
-require_relative '../live_palette'
+require_relative '../model/live_palette'
 require_relative 'live_midi_clip_groups'
 require_relative 'live_midi_clip_serializer'
 require_relative 'live_clips_serializer'

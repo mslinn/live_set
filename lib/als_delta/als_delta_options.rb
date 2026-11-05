@@ -31,7 +31,7 @@ class AlsDelta
       Options are:
         -k Keep each backup and timestamp it, instead of overwriting the previous backup.
         -h Display this help message.
-        -l LOGLEVEL Set the log level (#{LOG_LEVELS.join ', '})
+        #{log_level_help}
 
       Example (references an environment variable called `path`):
         $ als_delta "$path/to/my_set.als"
@@ -52,7 +52,7 @@ class AlsDelta
       parser.program_name = 'als_delta'
 
       parser.on('-k', '--keep', 'Keep all backups')
-      parser.on('-l', '--loglevel LOGLEVEL', String, "Log level (#{LOG_LEVELS.join ', '})")
+      add_common_options parser
       parser.on_tail('-h', '--help', 'Show this message') do
         abort help
       end

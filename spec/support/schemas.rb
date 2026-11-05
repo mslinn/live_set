@@ -1,17 +1,18 @@
 require 'open3'
 require 'zlib'
 require 'nokogiri'
+require 'reference_sets'
 
 # The schemas of the Live versions, generated from the demo sets of each version.
 #
-# The schemas are checked in, so they are there on a fresh clone. A spec that skips when the
-# schema is missing proves nothing, so the schema is generated when it is not there, and the
-# spec fails when it cannot be generated.
+# The schemas are checked in to the repository of the reference sets, so they are there on a
+# fresh clone. A spec that skips when the schema is missing proves nothing, so the schema is
+# generated when it is not there, and the spec fails when it cannot be generated.
 #
 # See dev/generate_xsds, which generates the schemas of every version at once.
 module Schemas
   # The directory the schemas are written to.
-  DIRECTORY = File.expand_path('../../schemas', __dir__)
+  DIRECTORY = File.join(ReferenceSets.directory, 'xsd').freeze
 
   # The root of the project, which the generator is run from.
   PROJECT_ROOT = File.expand_path('../..', __dir__)

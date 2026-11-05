@@ -1,5 +1,5 @@
 require 'markdown-tables'
-require_relative '../live_palette'
+require_relative '../model/live_palette'
 require_relative 'live_markup'
 
 # Writes the table of the clips of the set, and the tracks that hold them.

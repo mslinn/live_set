@@ -41,7 +41,8 @@ a fact about the format, and it belongs in this document.
 ## ALS Schemas
 
 TODO: Show the schemas for each version of the Ableton Live ALS format.
-Use `exe/als_to_xsd` to generate the schemas and store them in `schemas/`.
+Use `exe/als_to_xsd` to generate the schemas and store them in the `xsd/` directory of the
+repository of the reference sets.
 
 The schema of a version is an *inference* from the XML stored in the sets of
 that version, not a specification of it. A name the schema does not declare is
@@ -203,7 +204,7 @@ and the number is an index into the colour menu of Live:
 
 The palette is the user's: it can be changed in the Preferences of Live, and
 the number means whatever the user's palette says it means. The default
-palette is in `lib/live_set/live_palette.rb`, in the order of the menu.
+palette is in `lib/live_set/model/live_palette.rb`, in the order of the menu.
 
 The tooltip of a name in a report carries the number, so that the colour of a
 thing can be looked up in the palette the reader has.

@@ -240,6 +240,7 @@ OPTIONS can be specified before or after positional parameters:
   --max N        print at most N differences
   --skip NAME    do not compare the elements with this name, or anything below
                  them. This option may be given more than once.
+  -l LOGLEVEL Set the log level (DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
 
 The exit status is 0 when the documents are the same, and 1 when they are not.
 
@@ -276,6 +277,7 @@ Options are:
   --max N           print at most N nodes
   --unique          print each distinct result once
   -h                Display this help message.
+  -l LOGLEVEL Set the log level (DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
 
 Examples:
   als_nodes set.als '//MidiTrack/IsTuned' --attribute Value
@@ -310,6 +312,7 @@ Options are:
   --find PATTERN  print the lines of the notes that match PATTERN, each with the release
                   it belongs to. The pattern is matched without regard to case.
   -h              Display this help message.
+  -l LOGLEVEL Set the log level (DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
 
 Examples:
   als_release_notes 12          # the notes of Live 12
@@ -345,6 +348,7 @@ Options are:
   -z  The time zone to use in the report in, e.g. America/Chicago. The time zone
       of the computer the command ran on when this option is not specified.
   -h Display this help message.
+  -l LOGLEVEL Set the log level (DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
   --show_midi_and_audio_tracks_separately
       Report the audio tracks and the MIDI tracks separately. By default, every
       track is displayed in the order found in the ALS file.
@@ -361,6 +365,10 @@ Als_validate checks that an Ableton Live set conforms to an XSD schema.
 Syntax: als_validate PATH_TO_ALS_FILE SCHEMA.xsd
 
 Environment variables used in PATH_TO_ALS_FILE are expanded.
+
+Options are:
+  -h Display this help message.
+  -l LOGLEVEL Set the log level (DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
 
 Example:
   als_validate $path/to/my_v12_set.als schema.xsd
@@ -383,7 +391,7 @@ a track, a group or a clip can be seen at a glance:
 
 - the name is written in a `<code>` element, and the colors are applied as a
   style attribute;
-- colors are defined in class [`ColorPalette`](../lib/live_set/live_palette.rb);
+- colors are defined in class [`LivePalette`](../lib/live_set/model/live_palette.rb);
 - Every node displayed in the markdown output of an ALS report is colored
   according to the value for the corresponding node in the XML of the ALS. The
   default Live colour palette is assumed.
@@ -477,6 +485,7 @@ that was converted, with the version as a suffix, e.g. set_11.als.
 Options are:
   -f Overwrite the destination when it already exists.
   -h Display this help message.
+  -l LOGLEVEL Set the log level (DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
 
 If SRC is already at the version it is converted to, the program says so and stops.
 
@@ -494,16 +503,20 @@ schema. The sub-version is not configurable. For more infomation, see
 ```text
 Als_to_xsd reads one or more Ableton Live sets and generates an XSD with the given name.
 
-Syntax: als_to_xsd OPTIONS XSD_FILE_NAME PATH_TO_ALS_FILE...
+Syntax: als_to_xsd [OPTIONS] XSD_FILE_NAME PATH_TO_ALS_FILE...
 
 Environment variables used in XSD_FILE_NAME and PATH_TO_ALS_FILE are expanded.
+
+A PATH_TO_ALS_FILE that holds a glob pattern is expanded by the command, and a pattern
+that holds ** matches the files in the directories below the one that is named.
 
 Options are:
   -f Overwrite any existing xsd.
   -h Display this help message.
+  -l LOGLEVEL Set the log level (DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
 
 Example:
-  generate_xsd -f xsd_file_name $path/to/my_v12_set.als
+  als_to_xsd -f xsd_file_name $path/to/my_v12_set.als
 ```
 
 
@@ -512,15 +525,40 @@ Example:
 ```text
 Als_validate checks that an Ableton Live set conforms to an XSD schema.
 
-Syntax: als_validate PATH_TO_ALS_FILE SCHEMA.xsd
+Syntax: als_validate [OPTIONS] PATH_TO_ALS_FILE SCHEMA.xsd
 
 Environment variables used in PATH_TO_ALS_FILE are expanded.
 
 Options are:
   -h Display this help message.
+  -l LOGLEVEL Set the log level (DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
 
 Example:
-  validate_asd $path/to/my_v12_set.als schema.xsd
+  als_validate $path/to/my_v12_set.als schema.xsd
+```
+
+
+### `als_xsd_order`
+
+```text
+Als_xsd_order prints the order of the children of an element in a generated Live schema.
+
+The transformations of a conversion put elements in a particular place, and the schema is
+where that order comes from: it is generated from the demo sets of a Live version, so it
+records the order Live writes the children of an element in.
+
+Syntax: als_xsd_order SCHEMA_FILE ELEMENT_NAME
+
+SCHEMA_FILE is the path of a generated schema, e.g. schemas/live_12.4d1.xsd.
+ELEMENT_NAME is the name of an element of the format, e.g. MidiClip.
+
+Options are:
+  -h Display this help message.
+  -l LOGLEVEL Set the log level (DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
+
+Example:
+  als_xsd_order schemas/live_12.4d1.xsd MidiClip
+  MidiClip: ["LomId", "LomIdView", "CurrentStart", ...]
 ```
 
 

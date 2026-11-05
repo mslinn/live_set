@@ -130,16 +130,16 @@ version into another, and it is the composition of the bridges between them.
 
 ## The Lifecycle of a Conversion
 
-A conversion is made of three classes and one document.
+A conversion is made of two classes and one document.
 
 `LiveSetConverter` reads a set and writes the converted set next to it. It
-does nothing else: it hands the parsed document to `LiveSetTransformer`, and
-writes what comes back.
+does nothing else: it hands the parsed document to the registry of the
+versions, and writes what comes back.
 
-`LiveSetTransformer` finds the bridge for the version the document carries,
-and applies it. The bridges themselves are held in the registry of
-`lib/live_set/tx/live_versions.rb`, which is keyed by the version each bridge
-leads to.
+`LiveVersions`, in `lib/live_set/tx/live_versions.rb`, finds the bridges
+between the version the document carries and the version it is converted to,
+and applies them. The bridges are held in the registry, which is keyed by the
+version each bridge leads to.
 
 The bridge itself is a class that inherits the machinery from
 `LiveVersionConverter` and holds the differences between its two versions.
@@ -147,9 +147,9 @@ It inherits the machinery and nothing else: a bridge never inherits from
 another bridge. `Live11And12` is the bridge between Live 11 and Live 12.
 
 ```ruby
-class LiveSetTransformer
-  def transform
-    LiveVersions.bridge_for(self.class.version_of(@document)).call(@document)
+module LiveVersions
+  def self.convert(document, from:, to:)
+    bridges_between(from: from, to: to).reduce(:>>).call(document)
   end
 end
 ```

@@ -1,5 +1,5 @@
 require 'bytesize'
-require_relative '../live_palette'
+require_relative '../model/live_palette'
 require_relative 'live_markup'
 
 # Serializes a `LiveAudioClip` model as markdown.

@@ -1,5 +1,6 @@
 require 'optparse'
 require_relative 'command_options'
+require_relative 'log'
 
 # The parts of a command that are the same everywhere.
 #
@@ -44,6 +45,8 @@ module Command
     error = CommandOptions.loglevel_error(options)
     abort help(error) if error
 
+    Log.level = options[:loglevel] if options[:loglevel]
+
     [options, remaining]
   rescue OptionParser::ParseError => e
     abort help(e.message)
@@ -79,5 +82,24 @@ module Command
   # @return [void]
   def normalize_options(options)
     options[:time_zone] = options.delete(:'time-zone') if options.key?(:'time-zone')
+    options[:loglevel] = options.delete(:log) if options.key?(:log)
+  end
+
+  # Adds the options that every command has to a parser.
+  #
+  # Every command can be told how much to say: the log level is the level of the messages
+  # that are written to the standard error, and it is one of the levels of the logger.
+  #
+  # @param parser [OptionParser] the parser of the command
+  # @return [void]
+  def add_common_options(parser)
+    parser.on('-l', '--log LOGLEVEL', String, "Log level (#{LOG_LEVELS.join ', '})")
+  end
+
+  # The line of the help that says what the log levels are.
+  #
+  # @return [String] the line
+  def log_level_help
+    "-l LOGLEVEL Set the log level (#{LOG_LEVELS.join ', '})"
   end
 end
