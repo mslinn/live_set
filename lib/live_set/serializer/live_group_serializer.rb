@@ -28,7 +28,7 @@ class LiveGroupSerializer
   #
   # @return [String] the serialized markdown
   def to_markdown
-    parts = [group_line, device_lines, track_lines]
+    parts = [group_line, device_lines, track_details]
     parts.reject(&:empty?).join "\n"
   end
 
@@ -89,7 +89,7 @@ class LiveGroupSerializer
   # numbers of the members follow the number of the group.
   #
   # @return [String] the tracks
-  def track_lines
+  def track_details
     midi = LiveMidiTracksSerializer.new @group.midi_tracks, @hierarchical_number, 1, "#{@indent}  "
     audio = LiveAudioTracksSerializer.new @group.audio_tracks, @hierarchical_number,
                                           @group.midi_tracks.size + 1, "#{@indent}  "

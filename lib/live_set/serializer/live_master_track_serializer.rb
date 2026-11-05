@@ -25,7 +25,7 @@ class LiveMasterTrackSerializer
   #
   # @return [String] the serialized markdown
   def to_markdown
-    parts = [track_line, device_lines]
+    parts = [track_detail, device_lines]
     parts.reject(&:empty?).join "\n"
   end
 
@@ -34,8 +34,8 @@ class LiveMasterTrackSerializer
   # The line of the track: its number, its icon, its kind, its name and its state.
   #
   # @return [String] the line
-  def track_line
-    LiveMarkup.track_line @track, @hierarchical_number, @indent
+  def track_detail
+    LiveMarkup.track_detail @track, @hierarchical_number
   end
 
   # The lines of the devices of the track.

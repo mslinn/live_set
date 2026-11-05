@@ -1,9 +1,13 @@
 require_relative 'live_device_serializer'
+require_relative 'live_markup'
 
 # Writes a collection of devices.
 #
 # The collection is never written by itself: each device is written by the serializer of a
 # device, and the outputs are mapped together.
+#
+# The indentation of a device comes from its number, so that the number of a device and the
+# place of it in the outline always agree.
 #
 # Sample usage:
 # markdown = LiveDevicesSerializer.new(devices, '1.1', slot_label: 'Track Device').to_markdown
@@ -14,13 +18,11 @@ class LiveDevicesSerializer
   # @param hierarchical_number [String] the number of the collection in the report
   # @param slot_label [String] the name of the devices of a kind of track: `Track Device` or
   #   `Group Track Device`
-  # @param indent [String] the indentation of the lines of the collection
   # @param track_frozen [Boolean] true when the track the devices are on is frozen
-  def initialize(devices, hierarchical_number, slot_label:, indent: '', track_frozen: false)
+  def initialize(devices, hierarchical_number, slot_label:, track_frozen: false)
     @devices = devices
     @hierarchical_number = hierarchical_number
     @slot_label = slot_label
-    @indent = indent
     @track_frozen = track_frozen
   end
 
@@ -31,7 +33,7 @@ class LiveDevicesSerializer
     @devices.each_with_index.map do |device, index|
       number = "#{@hierarchical_number}#{letter_of index}"
       serializer = LiveDeviceSerializer.new device, number, track_frozen: @track_frozen
-      "#{@indent}- #{@slot_label} #{number}  #{serializer.to_markdown}"
+      "#{LiveMarkup.indent_for(number)}- #{@slot_label} #{number}  #{serializer.to_markdown}"
     end.join("\n")
   end
 

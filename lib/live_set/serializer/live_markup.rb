@@ -1,24 +1,17 @@
+require 'cgi'
 require_relative '../../common/log'
 require_relative '../model/live_palette'
 
-# The markup the report is written with.
+# This module generates markup for `als_report`.
 #
-# The palette holds the colours of Live and nothing else: the caller says which colour the
-# text is written on, and this module writes what it is given.
-#
-# The module also writes the line of a track, which every kind of track has: the number, the
-# icon of its kind, its name on its colour, and its state.
 module LiveMarkup
-  # The background a thing that Push 3 Standalone cannot use is written on.
+  # The background color for text associated with Push 3 Standalone incompatibility.
   DARK_BACKGROUND = '#212121'.freeze
-
-  # The color the text on a dark background is written in.
-  LIGHT_TEXT = '#FFFFFF'.freeze
+  LIGHT_TEXT      = '#FFFFFF'.freeze
 
   # Hash from track type to track icon.
   #
-  # Live 12 renamed the master track to the main track, and it is the same thing, so it has
-  # the same icon.
+  # Live 12 renamed the master track to the main track, and it is the same thing, so it has the same icon.
   TRACK_TYPE_ICONS = {
     'Audio'  => '🎵',
     'Group'  => '👥',
@@ -29,13 +22,12 @@ module LiveMarkup
   }.freeze
 
   class << self
-    # The icon of a kind of track.
+    # Returns an icon denoting the type of track it was passed.
     #
-    # A kind of track that is not in the map is a kind that a version of Live has written
-    # that this program does not know about, and it is reported.
+    # If a track is not recognized, then this a programming error, and it is reported.
     #
-    # @param track_type [String] the kind of the track
-    # @return [String] the icon, or a bomb for a kind that is not in the map
+    # @param track_type [String] the kind of the track @return [String] the icon, or a bomb for a track type that is not
+    # in the map
     def icon_for(track_type)
       return TRACK_TYPE_ICONS[track_type] if TRACK_TYPE_ICONS.key?(track_type)
 
@@ -43,14 +35,39 @@ module LiveMarkup
       '💣'
     end
 
+    # The indentation of one level of the outline.
+    #
+    # Four spaces, so that the content of a list item is indented far enough for a renderer to
+    # take it for the content of the item and not for a list of its own.
+    INDENT = '    '.freeze
+
+    # The indentation of a thing with the given number in the report.
+    #
+    # The number of a thing says how deep it is: "1" is a track at the top of the set, "1.1"
+    # is a child of it, and "1a" — a device of the track "1" — is a child of it too. The
+    # indent is derived from the number, so that the number of a thing and the place of it in
+    # the outline can never disagree.
+    #
+    # @param number [String] the number of the thing in the report
+    # @return [String] the indentation
+    def indent_for(number)
+      INDENT * (levels_of(number) - 1)
+    end
+
+    # The number of levels of a thing with the given number in the report.
+    #
+    # @param number [String] the number of the thing in the report
+    # @return [Integer] the number of levels
+    def levels_of(number)
+      parts = number.to_s.split('.')
+      parts.last.match?(/[a-z]\z/) ? parts.length + 1 : parts.length
+    end
+
     # The name of a thing, on the colour it is written on.
     #
-    # The style is on the code element and not on a span around it: a renderer that gives
-    # code its own color would otherwise win, and the name would be unreadable on the
-    # colour.
+    # The style is applied to the <code> element and not on a <span around the element>.
     #
-    # The number Live writes for the colour is in the tooltip of the name, when there is
-    # one.
+    # The Live track number is included in the tooltip when possible.
     #
     # @param text [String] the name, already escaped
     # @param color_number [Integer, String, nil] the number Live writes for the colour
@@ -58,11 +75,18 @@ module LiveMarkup
     # @param foreground_color [String, nil] the colour the name is written in
     # @return [String] the name, on its colour
     def colored_code(text, color_number: nil, background_color: nil, foreground_color: nil)
+      text = CGI.escapeHTML(text.to_s)
       return "<code>#{text}</code>" unless background_color
 
-      style = "background-color: #{background_color}; color: #{foreground_color}; vertical-align: middle"
-      title = color_number ? %( title="Live color ##{color_number}") : ''
-      %(<code style="#{style}"#{title}>#{text}</code>)
+      styles = [
+        ("color: #{foreground_color}" if foreground_color),
+        "background-color: #{background_color}",
+        'vertical-align: middle'
+      ].compact
+      style = CGI.escapeHTML("#{styles.join('; ')};")
+      title = %( title="Live color ##{color_number}") if color_number
+
+      "<code style=\"#{style}\"#{title}>#{text}</code>"
     end
 
     # The text, in code type.
@@ -88,11 +112,21 @@ module LiveMarkup
     # @return [String] the cell
     def swatch(value, background_color: nil, foreground_color: nil)
       return '' if value.nil?
-      return value.to_s unless background_color
 
-      style = 'display: inline-block; min-width: 2.5em; padding: 0 .4em; ' \
-              "background-color: #{background_color}; color: #{foreground_color}; text-align: right"
-      %(<code style="#{style}">#{value}</code>)
+      escaped_value = CGI.escapeHTML(value.to_s)
+      return escaped_value unless background_color
+
+      styles = [
+        'display: inline-block',
+        'min-width: 2.5em',
+        'padding: 0 .4em',
+        ("color: #{foreground_color}" if foreground_color),
+        "background-color: #{background_color}",
+        'text-align: right'
+      ].compact
+
+      style = CGI.escapeHTML("#{styles.join('; ')};")
+      "<code style=\"#{style}\">#{escaped_value}</code>"
     end
 
     # The colour the text on a colour is written in.
@@ -135,9 +169,9 @@ module LiveMarkup
     # @param color [String] the colour, as six hex digits
     # @return [Float] the brightness, from 0 to 255
     def brightness(color)
-      red = color[0, 2].to_i(16)
+      red   = color[0, 2].to_i(16)
       green = color[2, 2].to_i(16)
-      blue = color[4, 2].to_i(16)
+      blue  = color[4, 2].to_i(16)
       (0.299 * red) + (0.587 * green) + (0.114 * blue)
     end
 
@@ -149,34 +183,36 @@ module LiveMarkup
     def style_of(background_color: nil, foreground_color: nil)
       return nil unless background_color
 
-      "background-color:#{background_color};color:#{foreground_color}"
+      "background-color: #{background_color}; color: #{foreground_color}"
     end
 
-    # The line of a track: its number, its icon, its kind, its name and its state.
+    # track detail: its number, its icon, its kind, its name and its state.
+    #
+    # The indentation of the line comes from the number of the track, so that the number and
+    # the place of the track in the outline always agree.
     #
     # @param track [LiveMidiTrack, LiveAudioTrack, LiveReturnTrack, LiveMasterTrack] the track
     # @param number [String] the number of the track in the report
-    # @param indent [String] the indentation of the line
     # @return [String] the line
-    def track_line(track, number, indent = '')
-      states = states_of track
-      name = display_name track
-      line = "#{indent}- Track #{number}  #{icon_for track.kind} #{track.kind}  " \
-             "#{track_name_markdown track, name}"
-      line += "  #{states.join(', ')}" unless states.empty?
-      line
+    def track_detail(track, number)
+      states = states_of(track)
+      name = display_name(track)
+      states_suffix = states.empty? ? '' : "  #{states.join(', ')}"
+
+      "#{indent_for(number)}- Track #{number}  #{icon_for(track.kind)} #{track.kind}  " \
+        "#{track_name_markdown(track, name)}#{states_suffix}"
     end
 
-    # The name of a track, on the colour Live gave it.
+    # colored code containing the track name, using the color from the Live set.
     #
-    # A track that Push 3 Standalone cannot use is written on the dark background of those
-    # things, and the name of it is in light text.
+    # A track that is incompatible with the Push 3 Standalone is highlighted.
     #
     # @param track [LiveMidiTrack, LiveAudioTrack, LiveReturnTrack, LiveMasterTrack] the track
     # @param name [String] the name of the track
     # @return [String] the name of the track
     def track_name_markdown(track, name)
       if track.problem?
+        # TODO: surface this to a configurable parameter driven from a default style sheet.
         return colored_code escape(name),
                             background_color: DARK_BACKGROUND,
                             foreground_color: LIGHT_TEXT
@@ -191,14 +227,27 @@ module LiveMarkup
                    foreground_color: text_color(color)
     end
 
-    # The state of a track.
+    # The complete state of a track.
+    #
+    # Ableton Live does not display a small icon to denote a frozen track. Instead, it indicates a frozen track by
+    # turning the frozen clips and devices a light/icy blue colour.
+    #
+    # Ableton Live displays the Solo button for a track by the letter S without a background set.
+    # See `../assets/images/live_*_button*.png`
+    # • When the track is soloed it gets a blue background.
+    # • Half Blue / Half White: A half-blue and half-white S button indicates that a sub-track or a device chain
+    #   inside a group track is soloed rather than the main track itself.
     #
     # @param track [LiveMidiTrack, LiveAudioTrack, LiveReturnTrack, LiveMasterTrack] the track
-    # @return [Array<String>] the track messages
+    # @return [Array<String>] the track states (frozen, solo, armed, off, linked group)
     def states_of(track)
       states = []
       states << "\u{1F976} frozen" if track.frozen?
-      states << "\u{1F142} solo" if track.soloed?
+      if track.soloed?
+        # TODO: this needs a stylesheet in Markdown (preferred, but perhaps not possible) or in Ruby
+        colors = colored_code('solo', background_color: '#0066cc', foreground_color: 'white')
+        states << "\u{1F142} #{colors}"
+      end
       states << '🔴 armed' if track.armed?
       states << "\u{23FD} off" if track.off?
       states << "linked group #{track.linked_group}" if track.linked_group

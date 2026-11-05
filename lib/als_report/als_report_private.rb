@@ -8,9 +8,9 @@ class AlsReport
   def check_ableton_project_info
     set_directory = File.realpath(File.dirname(@set_name))
     Log.debug "Set directory: #{set_directory}"
-    api_path = File.join(set_directory, 'Ableton Project Info')
-    Log.warn "Warning: '#{api_path}' is not present" unless File.exist? api_path
-    Log.warn "Warning: '#{api_path}' is not a directory" unless Dir.exist? api_path
+    # api_path = File.join(set_directory, 'Ableton Project Info')
+    # Log.warn "Warning: '#{api_path}' is not present" unless File.exist? api_path
+    # Log.warn "Warning: '#{api_path}' is not a directory" unless Dir.exist? api_path
 
     Log.debug "Checking parent directories for 'Ableton Project Info'"
     cur_dir = Pathname.new(set_directory).parent

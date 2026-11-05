@@ -12,10 +12,9 @@ class LiveTakeLanesSerializer
   #
   # @param take_lanes [LiveTakeLanes] the take lanes to be serialized
   # @param hierarchical_number [String] the number of the track the lanes are on
-  def initialize(take_lanes, hierarchical_number, indent = '')
+  def initialize(take_lanes, hierarchical_number)
     @take_lanes = take_lanes
     @hierarchical_number = hierarchical_number
-    @indent = indent
   end
 
   # Returns the take lanes as markdown.
@@ -24,7 +23,7 @@ class LiveTakeLanesSerializer
   def to_markdown
     @take_lanes.map do |lane|
       number = "#{@hierarchical_number}.#{lane.index}"
-      LiveTakeLaneSerializer.new(lane, number, @indent).to_markdown
+      LiveTakeLaneSerializer.new(lane, number).to_markdown
     end.join("\n")
   end
 end

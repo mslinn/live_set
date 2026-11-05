@@ -1,4 +1,5 @@
 require_relative 'live_audio_clip_serializer'
+require_relative 'live_markup'
 
 # Writes a collection of the clips of the audio side of a track.
 #
@@ -24,7 +25,7 @@ class LiveAudioClipsSerializer
   #
   # @return [String] the serialized markdown
   def to_markdown
-    groups.flat_map { |group, index| lines_of(group, index) }.join("\n")
+    similar_clips.flat_map { |group, index| lines_of(group, index) }.join("\n")
   end
 
   private
@@ -32,7 +33,7 @@ class LiveAudioClipsSerializer
   # The groups of alike clips, and the number of the first copy of each.
   #
   # @return [Array<Array>] the group of copies, and the number of the first of them
-  def groups
+  def similar_clips
     numbered = @clips.each_with_index.to_a
     numbered.group_by { |(clip, _index)| clip.key }
             .map { |_key, pairs| [pairs.map(&:first), pairs.first[1]] }
@@ -40,15 +41,18 @@ class LiveAudioClipsSerializer
 
   # The lines of one group of alike clips.
   #
+  # The indentation of the clip comes from its number, so that the number of a clip and the
+  # place of it in the outline always agree.
+  #
   # @param group [Array<LiveAudioClip>] the copies
   # @param index [Integer] the number of the first copy among the clips
   # @return [Array<String>] the lines
   def lines_of(group, index)
     number = "#{@hierarchical_number}.#{index + 1}"
-    lines = ["* Audio Clip #{number} (×#{group.length})  " \
-             "#{LiveAudioClipSerializer.new(group.first, number).to_markdown}"]
-    settings_lines(group).each { |line| lines << "  #{line}" }
-    lines
+    indent = LiveMarkup.indent_for number
+    detail = LiveAudioClipSerializer.new(group.first, number).to_markdown
+    header = "#{indent}- Audio Clip #{number} (×#{group.length})  #{detail}"
+    [header, *settings_lines(group).map { |line| "#{indent}#{LiveMarkup::INDENT}#{line}" }]
   end
 
   # The lines of the settings the copies differ in.
@@ -59,10 +63,10 @@ class LiveAudioClipsSerializer
   # @param group [Array<LiveAudioClip>] the copies
   # @return [Array<String>] the lines
   def settings_lines(group)
-    groups = group.group_by { |clip| settings_of clip }
-    groups.map { |settings, copies| [copies.length, settings] }
-          .sort_by { |count, settings| [-count, settings] }
-          .map { |count, settings| "* References (×#{count}): #{settings}" }
+    the_groups = group.group_by { |clip| settings_of clip }
+    the_groups.map { |settings, copies| [copies.length, settings] }
+              .sort_by { |count, settings| [-count, settings] }
+              .map { |count, settings| "- References (×#{count}): #{settings}" }
   end
 
   # The settings of a clip: how it is launched, and how its sample is warped.

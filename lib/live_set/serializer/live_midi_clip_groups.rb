@@ -1,3 +1,4 @@
+require_relative 'live_markup'
 require_relative 'live_midi_clip_serializer'
 
 # The copies of a MIDI clip that are alike, written as one line.
@@ -40,16 +41,20 @@ class LiveMidiClipGroups
 
   # The lines of one group of alike clips.
   #
-  # @param group [Array<LiveMidiClip>] the copies
+  # The indentation of the clip comes from its number, so that the number of a clip and the
+  # place of it in the outline always agree.
+  #
+  # @param group [Array<LiveMidiClip>] copies
   # @param index [Integer] the number of the first copy among the clips
   # @param number [String] the number of the track the clips are on
   # @return [Array<String>] the lines
   def lines_of(group, index, number)
     first = group.first
     clip_number = "#{number}.#{index + 1}"
-    lines = ["* Clip #{clip_number} (#{count_of group.length})  " \
+    indent = LiveMarkup.indent_for clip_number
+    lines = ["#{indent}- Clip #{clip_number} (#{count_of group.length})  " \
              "#{LiveMidiClipSerializer.new(first, clip_number).to_markdown}"]
-    settings_lines(group).each { |line| lines << "  #{line}" }
+    settings_lines(group).each { |line| lines << "#{indent}#{LiveMarkup::INDENT}#{line}" }
     lines
   end
 
@@ -64,7 +69,7 @@ class LiveMidiClipGroups
     groups = group.group_by { |clip| settings_of clip }
     groups.map { |settings, copies| [copies.length, settings] }
           .sort_by { |count, settings| [-count, settings] }
-          .map { |count, settings| "* References (#{count_of count}): #{settings}" }
+          .map { |count, settings| "- References (#{count_of count}): #{settings}" }
   end
 
   # The settings of a clip: how it is launched, and how its sample is warped.

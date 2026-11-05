@@ -1,7 +1,4 @@
-# Writes a collection of tracks.
-#
-# The collection is never written by itself: each track is written by the serializer of a
-# track, and the outputs are mapped together.
+# Base class for writing collections of various types of tracks.
 #
 # The tracks of a group are numbered after the group, as 1.1. The tracks at the top of the
 # set are numbered from one in their own company, and the number of the first of them is
@@ -16,6 +13,10 @@ class LiveTrackCollectionSerializer
   # @param start [Integer] the number of the first track of the collection
   # @param indent [String] the indentation of the lines of the collection
   def initialize(tracks, track_serializer, hierarchical_number = nil, start = 1, indent = '')
+    if instance_of? LiveTrackCollectionSerializer
+      raise NotImplementedError, "#{self.class} is an abstract base class and cannot be instantiated directly."
+    end
+
     @tracks = tracks
     @track_serializer = track_serializer
     @hierarchical_number = hierarchical_number

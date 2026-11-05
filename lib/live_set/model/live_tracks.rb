@@ -179,8 +179,10 @@ class LiveTracks
   # @param indent [String] the indentation of the lines
   # @return [String] the markdown
   def separate_markdown(indent)
-    [audio_tracks.to_markdown(nil, 1, indent), midi_tracks.to_markdown(nil, 1, indent)]
-      .reject(&:empty?).join("\n")
+    [
+      audio_tracks.to_markdown(nil, 1, indent),
+      midi_tracks.to_markdown(nil, 1, indent)
+    ].reject(&:empty?).join("\n")
   end
 
   # The elements of one kind of track.
