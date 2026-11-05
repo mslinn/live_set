@@ -53,11 +53,12 @@ The class is in `lib/live_set/model/als_model.rb`, and its serializer,
 compatibility, the hierarchy of groups, tracks, clips and devices, the missing samples, and
 the two cross-references.
 
-### `LiveSet` — the Live contents of the file
+### `AlsReport` — the command that writes the report
 
-The tracks, the groups, the devices, the clips and the samples of the set. `LiveSet` is the
-name of the command that runs the program — `lib/live_set/live_set_class.rb` — and that is
-the class the command is; the model of the contents of a set is `AlsModel`.
+The report of a set is written by the `als_report` command, and the class that implements it
+is `AlsReport`, in `lib/als_report/als_report.rb`. The model of the contents of a set is
+`AlsModel`, and the report itself is written by `LiveSetReport`, in
+`lib/live_set/live_set_report.rb`.
 
 ### `LiveTracks` — the tracks of the set
 

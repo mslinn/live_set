@@ -372,10 +372,12 @@ should agree.
 ## What the models do not yet know
 
 This project has several executables, and every one of them is named with the `als_`
-prefix: `als_report` writes the report of a set, `als_delta` diffs two sets, `als_to_xsd`
+prefix, and the class that implements a command is named after the command:
+`als_report` writes the report of a set, `als_delta` diffs two sets, `als_to_xsd`
 writes a schema of the format, `als_validate` checks a set against a schema,
-`als_to_version` converts a set between two versions of Live, and `als_nodes`,
-`als_diff` and `als_xsd_order` are the tools for looking inside a set.
+`als_to_version` converts a set to another version of the format, and `als_nodes`,
+`als_diff` and `als_xsd_order` are the tools for looking inside a set. See
+`docs/index.md`, "The commands".
 
 **The converter needs a complete model of the XML.** A set cannot be converted from Live 12
 to Live 11 by a model that has not read what Live 12 wrote: whatever the model does not

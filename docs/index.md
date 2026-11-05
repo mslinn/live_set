@@ -108,6 +108,24 @@ The transformations of a version_diff are written by hand, and the process for f
 | The release notes of Live, as markdown | `exe/als_release_notes` — the notes of a version, or of a single release, or the lines of them that match a pattern |
 | The schemas | generated into `schemas/` by `bin/generate_xsds`; checked in, so a new contributor and a new machine can use them without installing Live |
 
+## The commands
+
+Every command is named with the `als_` prefix, and the class that implements a command is
+named after the command. The class has a `run` method that takes the command line arguments,
+and a `help` method that prints what the command does and what its options mean.
+
+| The command | The class | What it does |
+| --- | --- | --- |
+| `als_report` | `AlsReport` | writes the report of a set in markdown |
+| `als_to_version` | `AlsToVersion` | converts a set to another version of the format |
+| `als_delta` | `AlsDelta` | shows the changes to a set each time Live saves it |
+| `als_to_xsd` | `AlsToXsd` | writes a schema of the format from the demo sets |
+| `als_validate` | `AlsValidate` | checks a set against a schema |
+| `als_nodes` | `AlsNodes` | prints the nodes of a document that an XPath expression finds |
+| `als_diff` | `AlsDiff` | compares two sets element by element |
+| `als_xsd_order` | `AlsXsdOrder` | prints the order of the children of an element in a schema |
+| `als_release_notes` | `AlsReleaseNotes` | prints the release notes of a version of Live as markdown |
+
 ## The superseded documents in `docs/old/`
 
 | Document | What it is for |

@@ -78,39 +78,67 @@ class AlsReleaseNotes
       return 1
     end
 
-    pattern = nil
-    if argv.first == '--find'
-      argv.shift
-      text = argv.shift
-      if text.nil?
-        warn help
-        return 1
-      end
-
-      pattern = Regexp.new(text, Regexp::IGNORECASE)
+    pattern = pattern_of(argv)
+    if pattern == :error
+      warn help
+      return 1
     end
 
     live = version.split('.').first
+    notes = notes_of html_of(live)
+
+    print_notes notes, version, pattern
+    0
+  end
+
+  # The pattern the notes are searched for.
+  #
+  # @param argv [Array<String>] the arguments that are left
+  # @return [Regexp, nil, Symbol] the pattern, or nil when there is none, or :error when the
+  #   pattern is missing
+  def self.pattern_of(argv)
+    return nil unless argv.first == '--find'
+
+    argv.shift
+    text = argv.shift
+    return :error if text.nil?
+
+    Regexp.new(text, Regexp::IGNORECASE)
+  end
+
+  # The HTML of the notes of a version.
+  #
+  # The copy that is kept in docs/release_notes/ is used when it is there, and the notes are
+  # fetched from the page they come from when it is not.
+  #
+  # @param live [String] the version of Live, e.g. "12"
+  # @return [String] the HTML of the notes
+  def self.html_of(live)
     path = File.join(NOTES, "live-#{live}.html")
-    html = File.exist?(path) ? File.read(path) : fetch(format(URL, live))
+    File.exist?(path) ? File.read(path) : fetch(format(URL, live))
+  end
 
-    notes = notes_of html
-
+  # Prints the notes.
+  #
+  # @param notes [Array<Array(String, String)>] the lines of the notes
+  # @param version [String] the version asked for
+  # @param pattern [Regexp, nil] the pattern the notes are searched for
+  # @return [void]
+  def self.print_notes(notes, version, pattern)
     if pattern
       notes.each { |release, line| puts "#{release} | #{line}" if line&.match?(pattern) }
-      return 0
+      return
     end
 
-    puts "# Live #{live} Release Notes"
+    puts "# Live #{version.split('.').first} Release Notes"
     puts
 
     if version.include?('.')
       notes.each { |release, line| puts line if release == version }
-      return 0
+      return
     end
 
-    notes.each { |_release, line| puts line }
-    0
+    notes.map(&:last).each { |line| puts line }
   end
 
   # Fetches the notes of a version from the page they come from.
@@ -187,7 +215,8 @@ class AlsReleaseNotes
     document = Nokogiri::HTML(html)
     release = nil
     previous = nil
-    document.css('main h2, main h3, main h4, main p, main li').each_with_object([]) do |node, lines|
+    lines = []
+    document.css('main h2, main h3, main h4, main p, main li').each do |node|
       text = flat_text(node)
       next if text.empty?
 
@@ -200,25 +229,40 @@ class AlsReleaseNotes
       end
       next if release.nil?
 
-      case node.name
-      when 'h2', 'h3', 'h4'
-        lines << [release, "#{'#' * LEVEL.fetch(node.name)} #{text}"]
-        lines << [release, '']
-        previous = :heading
-      when 'li'
-        indent = '  ' * (node.ancestors('ul').length - 1)
-        lines << [release, "#{indent}- #{collapse(own_text(node))}"]
-        previous = :item
-      when 'p'
-        next if node.ancestors('li').any?
+      previous = add_node node, text, release, previous, lines
+    end
+    lines
+  end
 
-        lines << [release, ''] if previous == :item
-        lines_of_text(node).each_with_index do |line, index|
-          lines << [release, index.zero? ? line : "#{line}  "]
-        end
-        lines << [release, '']
-        previous = :paragraph
+  # Adds the lines of a node to the lines of the notes.
+  #
+  # @param node [Nokogiri::XML::Node] the node
+  # @param text [String] the text of the node
+  # @param release [String] the release the node belongs to
+  # @param previous [Symbol] what the node before it was
+  # @param lines [Array<Array(String, String)>] the lines of the notes
+  # @return [Symbol] what this node was
+  def self.add_node(node, text, release, previous, lines)
+    case node.name
+    when 'h2', 'h3', 'h4'
+      lines << [release, "#{'#' * LEVEL.fetch(node.name)} #{text}"]
+      lines << [release, '']
+      :heading
+    when 'li'
+      indent = '  ' * (node.ancestors('ul').length - 1)
+      lines << [release, "#{indent}- #{collapse(own_text(node))}"]
+      :item
+    when 'p'
+      return previous if node.ancestors('li').any?
+
+      lines << [release, ''] if previous == :item
+      lines_of_text(node).each_with_index do |line, index|
+        lines << [release, index.zero? ? line : "#{line}  "]
       end
+      lines << [release, '']
+      :paragraph
+    else
+      previous
     end
   end
 end

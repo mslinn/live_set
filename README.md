@@ -159,17 +159,23 @@ $ gem upgrade live_set
 
 The following commands are provided:
 
-- `als_report` reports status of a session file, or converts a Live 12 session file to
-  Live 11 format.
+- `als_report` writes a report of a Live set in markdown.
+- `als_to_version` converts a Live set to another version of the format.
 - `als_delta` (used when Live is running) shows changes to a session file each
   time the session is saved.
-- `als_to_version` converts a Live set to the other version of the format.
 - `als_to_xsd` reads one or more Ableton Live sets and generates an XSD.
 - `als_validate` checks that a session file conforms to an XSD schema.
+- `als_nodes` prints the nodes of an XML document that an XPath expression finds.
+- `als_diff` compares two sets element by element, and prints the differences.
+- `als_xsd_order` prints the order of the children of an element in a schema.
+- `als_release_notes` prints the release notes of a version of Live as markdown.
 
 ```text
 $ als_report
-Displays information about a Live set or converts a copy of a Live 12 set in Live 11 format.
+Writes a report of an Ableton Live set in markdown: the tracks of the set and the groups they
+are in, the devices of each of them, the clips and the take lanes, the samples that are not in
+the project, and a cross-reference of the tracks and the clips.
+
 Also verifies that 'Ableton Project Info' is in the same directory as the .als file,
 and there is no parent directory with a directory of that name.
 
@@ -178,9 +184,6 @@ Syntax: als_report OPTIONS PATH_TO_ALS_FILE
 Environment variables used in PATH_TO_ALS_FILE are expanded.
 
 Options are:
-  -11 Convert a copy of the Live 12 set to Live 11 format.
-  -f If -11 is specified, overwrite any existing Live 11 set. Without it, an existing
-     set is left alone.
   -v Show the version of this program.
   -z The time zone the times in the report are written in, e.g. America/Chicago. The
      times are written in the time zone of the computer when it is not given.
@@ -189,8 +192,13 @@ Options are:
      Live saved it in.
   -h Display this help message.
 
+The report of a set is markdown. It is written to stdout, and the log is written to
+stderr, where it is never markdown.
+
+To convert a set to another version of the format, use the als_to_version command.
+
 Example:
-  als_report -11 -f $path/to/my_set.als
+  als_report $path/to/my_set.als
 ```
 
 ```text
@@ -300,10 +308,40 @@ The report says what made it — the version of `live_set`, and where the tool i
 
 ### Convert
 
-Make the Live 12 set compatible with Live 11 and save as `path/to/my_set_11.als`:
+Convert a set to another version of the Live format, and write it out:
 
 ```shell
-$ als_report -11 -f path/to/my_set.als
+$ als_to_version 11 path/to/my_set.als
+```
+
+The set is written as `path/to/my_set_11.als`, next to the set that was converted, unless
+another destination is named. The `-f` option overwrites a destination that is already there.
+
+```text
+$ als_to_version
+Als_to_version converts a Live set to another version of the Live format.
+
+The direction of the conversion is given: the set is converted to the version named on
+the command line. The set is written the way Live writes it, so that the converted set is
+a set of that version and not merely XML that happens to mean the same thing.
+
+Syntax: als_to_version [-f] VERSION SRC [DST]
+
+VERSION is the Ableton Live version to be converted to, e.g. 11.
+SRC is the set to convert: the path of the file, or a selector of a demo set, e.g.
+  demo:11:suite  the Live 11 Suite demo set
+  demo:12        the demo set of Live 12
+DST is where the converted set is written. Without it, the set is written next to the set
+that was converted, with the version as a suffix, e.g. set_11.als.
+
+Options are:
+  -f Overwrite the destination when it already exists.
+  -h Display this help message.
+
+If SRC is already at the version it is converted to, the program says so and stops.
+
+Example:
+  als_to_version 11 $path/to/my_v12_set.als
 ```
 
 The converted set uses the Live 11.3.21 schema. The sub-version is not
@@ -311,13 +349,13 @@ configurable. For more infomation, see
 [docs/live_11_12_diff.md](docs/live_11_12_diff.md#converting-a-set-to-live-11-uses-a-fixed-schema).
 
 
-## Experimental features
+## Live Experimental Features
 
 Ableton Live can be configured to enable experimental and unsupported features through an
 `Options.txt` file in its Preferences folder. For example, `-_GroupTrackFreeze` allows a group
 track to be bounced as though it were a track.
 
-`live_set` does not search for a file called `Options.txt`.
+`als_report` does not search for a file called `Options.txt`.
 
 TODO I am uncomfortable with the following conclusion, depending on the state of
 the XML file. If an ALS file is generated somehow that has a frozen group track, we
@@ -361,6 +399,15 @@ $ bin/als_files "/mnt/c/ProgramData/Ableton/Live 12 Suite/Resources/Core Library
 Ableton documents the location in
 [Location of the default Demo Set](https://help.ableton.com/hc/en-us/articles/209774005-Location-of-the-default-Demo-Set).
 `locate -i "Demo Songs"` finds them.
+
+Examine a file this way:
+
+```shell
+live_home="/mnt/c/ProgramData/Ableton"
+live_12_home="$live_home/Live 12 Suite/Resources/Core Library/Lessons/Demo Songs"
+live_set="$live_12_home/Chuck Sutton - Patience (Live 12 Suite Demo).als"
+zcat "$live_set" | less
+```
 
 One Live 11 set is checked in, because no demo set of Live 11 has a return
 track: `sets/live_11/projects_and_als/Fascination.als`. It comes from

@@ -332,7 +332,7 @@ developed on were:
 | Live 11 | `C:\ProgramData\Ableton\Live 11 Suite\Resources\Core Library\Lessons\Demo Songs\`           | Ableton Live 113d1                                 |
 | Live 10 | `C:\ProgramData\Ableton\Live 10 Suite\Resources\Core Library\Lessons\Demo Songs\`        | Ableton Live 10.1.3d1                              |
 | Live 9  | `C:ProgramData\Ableton\Live 9 Suite\Resources\Core Library\Lessons\Samples\Live 9 Demo\`   |                                                    |
-| Live 8  | `C:ProgramData\Ableton\Live 8 Suite\`                                                         | Not installed by default, but available from Live. |
+| Live 8  | `C:ProgramData\Ableton\Live 8\`                                                             | Not installed by default, but available from Live. |
 
 ### The licences
 
@@ -342,8 +342,13 @@ from Live 8 to Live 12, and the Suite licence of a version is what authorizes it
 
 The licences of Live 8 Suite, Live 9 Suite and Live 10 Suite were missing from the account,
 and Ableton added them on 4 November 2026. Live 9 Standard had been installed in their
-place, and it is Live 9 Suite that the account licenses, so Live 9 Standard is to be
-replaced by Live 9 Suite.
+place, and it is Live 9 Suite that the account licenses, so Live 9 Standard was replaced by
+Live 9 Suite.
+
+The most recent version of Live 8 Suite, Live 9 Suite and Live 10 Suite is installed. Live 9
+Suite and Live 10 Suite authorize, and Live 8 Suite does not: a request to Ableton for help
+authorizing it is open, and an answer is expected in a few days. Every version of Live Suite
+from Live 9 to Live 12 can be tested and experimented with in the meantime.
 
 The versions are downloaded from the
 [download archive](https://www.ableton.com/en/download/archive/), and an offline
@@ -372,8 +377,19 @@ The largest demo files for each Ableton Live version were selected for testing:
 ```bash
 export ableton_home='/mnt/c/ProgramData/Ableton'
 
-export ableton_8_home="${ableton_home}/Live 8 Suite"
-export ableton_8_program="${ableton_8_home}/Program/Ableton Live 8 Suite.exe"
+# The directory the Live versions are installed in. It is the same directory on every
+# machine, and it can be named on the command line:
+#
+#   $ ABLETON_HOME="${1:-${ableton_home:-/mnt/c/ProgramData/Ableton}}"
+#   $ echo $ABLETON_HOME
+#   /mnt/c/ProgramData/Ableton
+#   $ ls $ABLETON_HOME
+#   'Live 10 Suite'/  'Live 12 Suite'/  'Live 9 Suite'/
+#   'Live 11 Suite'/  'Live 8'/
+export ABLETON_HOME="${ableton_home}"
+
+export ableton_8_home="${ableton_home}/Live 8"
+export ableton_8_program="${ableton_8_home}/Program/Ableton Live 8.exe"
 # export ableton_8_demo_home="${ableton_8_home}"
 # export ableton_8_demo_set="${ableton_8_demo_home}"
 
