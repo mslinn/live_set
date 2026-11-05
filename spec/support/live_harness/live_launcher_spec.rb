@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'support/gui_harness'
-require 'demo_sets'
+require 'live_set/demo_sets'
 require 'live_installations'
 
 RSpec.describe GuiHarness::Live::Launcher do

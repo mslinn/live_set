@@ -1,63 +1,13 @@
 #!/usr/bin/env ruby
 
-# TODO make this a library, so it can be called from other code. Then make this file a thin wrapper that calls the
-# library and returns an error code. See LiveSet.run
+# Converts a Live set to another version of the Live format.
 #
-# Converts a Live set to the other version of the format.
-#
-# TODO The following describes a peculiar and unhelpful command line.
-# Unfortunately, this monstrosity was implemented. --start--
-#
-# The direction is not given: the version of the set decides which way the conversion goes, and the set is written in
-# the version it is converted to.
-#
-# A file may be given as a path, or as a selector of a demo set:
-#
-#   demo:11:suite  the Live 11 Suite demo set demo:12        the demo set of Live 12
-#
-# Usage: als_to_version FILE DESTINATION [-f]
-#
-# Options: -f           overwrite the destination when it already exists.
-# --end--
-# This is what we want instead:
-#
-# Syntax: als_to_version [-f] [VERSION] [SRC] [DST]
-#
-# Where:
-#   VERSION is the Ableton Live version to be converted TO.
-#   SRC and DST are valid file specification paths for the shell the command runs on.
-#   DST will be written with version VERSION; if SRC is already at that version the program prints a warning and stops.
-#
-# Options: -f           overwrite the destination when it already exists.
-# Example:
-#   als_to_version
-lib = File.expand_path('../lib', __dir__)
-$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-dev = File.expand_path('../dev', __dir__)
-$LOAD_PATH.unshift(dev) unless $LOAD_PATH.include?(dev)
+# The implementation is in the AlsToVersion class, in lib/als_to_version/als_to_version.rb.
 
-require 'live_set/als_file'
-require 'live_set/live_set_transformer'
-require 'demo_sets'
-
-argv = ARGV.dup
-force = argv.delete('-f')
-
-if argv.length != 2
-  warn 'Usage: als_to_version FILE DESTINATION [-f]'
-  exit 1
+if ENV['VO_DEBUGGING']
+  require_relative '../lib/live_set'
+else
+  require 'live_set'
 end
 
-out = argv[1]
-
-path = DemoSets.path_of(argv.first)
-abort "No such file: #{path}" unless File.exist?(path)
-
-document = AlsFile.read(path)
-LiveSetTransformer.new(document).transform
-
-abort "#{out} already exists: use -f to overwrite" if File.exist?(out) && !force
-
-AlsFile.write(out, document, File.mtime(path))
-
-puts out
+exit AlsToVersion.run(ARGV)

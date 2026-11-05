@@ -3,6 +3,7 @@ require 'fileutils'
 require 'nokogiri'
 require 'tmpdir'
 require 'zlib'
+require 'als_to_version/als_to_version'
 
 # Helpers for converting a Live set to the Live 11 format, and for reading the result.
 #
@@ -53,7 +54,7 @@ module Conversions
       @in_process ||= {}
       @in_process[source] ||= begin
         set = set_path source, 'in-process'
-        silence_output { LiveSet.new(set).modify_als }
+        silence_output { AlsToVersion.convert(set, to: 11) }
         read_set output_path(set)
       end
     end

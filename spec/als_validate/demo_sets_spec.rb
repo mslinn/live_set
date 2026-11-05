@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'demo_sets'
+require 'live_set/demo_sets'
 
 # Every demo set of a Live version has to validate against the schema generated from the demo
 # sets of that version. A schema generated from a single set is stricter than Live is, and
@@ -10,7 +10,7 @@ require 'demo_sets'
 #
 # The schemas are checked in, so the examples run on a fresh clone. A version whose schema is
 # not there has no example, and the examples are skipped. See docs/als_work.md, "XSD Schemas".
-RSpec.describe ValidateAsd, 'the demo sets of each Live version' do # rubocop:disable RSpec/DescribeMethod
+RSpec.describe AlsValidate, 'the demo sets of each Live version' do # rubocop:disable RSpec/DescribeMethod
   # The directory the schemas are written to.
   let(:schema_dir) { File.expand_path('../../schemas', __dir__) }
 

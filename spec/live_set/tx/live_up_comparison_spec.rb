@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'live_set/als_file'
 require 'live_set/tx/live_11_and_12'
-require 'demo_sets'
+require 'live_set/demo_sets'
 
 # The elements that hold the devices of a chain.
 #

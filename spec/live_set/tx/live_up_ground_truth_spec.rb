@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'live_set/als_file'
 require 'live_set/tx/live_11_and_12'
-require 'demo_sets'
+require 'live_set/demo_sets'
 require 'support/schemas'
 
 # The elements Live 12 adds that the transformations add, and not the list of the additions.
@@ -214,7 +214,7 @@ RSpec.describe Live11And12, 'the Live 12 conversion of a Live 11 set' do # ruboc
   described_class.lists[:child_order][:up].each do |path, order|
     it "writes the children of #{path} in this order" do
       children = child_names(live_12_set, path)
-      children = SchemaOrder.of_file(Schemas.path('12'), path.split('/').last) if children.empty?
+      children = AlsXsdOrder.of_file(Schemas.path('12'), path.split('/').last) if children.empty?
 
       expect(children).to eq order
     end
@@ -229,7 +229,7 @@ RSpec.describe Live11And12, 'the Live 12 conversion of a Live 11 set' do # ruboc
 
       # The set has no element of this kind, so the schema of Live 12 says what Live writes.
       if element.nil?
-        order = SchemaOrder.of_file(Schemas.path('12'), parent.split('/').last)
+        order = AlsXsdOrder.of_file(Schemas.path('12'), parent.split('/').last)
         additions.each { |addition| expect(order).to include(addition[:name]) }
         next
       end

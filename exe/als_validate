@@ -9,4 +9,4 @@ else
   require 'live_set'
 end
 
-ValidateAsd.run(ARGV)
+AlsValidate.run(ARGV)

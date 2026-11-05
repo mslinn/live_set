@@ -4,14 +4,17 @@ require 'optparse'
 require_relative '../common/command_options'
 require_relative '../common/log'
 
-class LiveSet
-  # Display help message for live_set
+class AlsReport
+  # Display help message for als_report
   #
   # @param msg [String, nil] an error message to show above the help
   # @return [String] the help message
   def self.help(msg = nil)
     help = <<~END_HELP
-      Als_report displays information about an Ableton Live set or converts a Live 12 set to Live 11 format.
+      Als_report writes a report of an Ableton Live set in markdown: the tracks of the set and
+      the groups they are in, the devices of each of them, the clips and the take lanes, the
+      samples that are not in the project, and a cross-reference of the tracks and the clips.
+
       If the special folder called 'Ableton Project Info' is not present in the same folder as the .als file, a warning is generated.
       Similarly, if 'Ableton Project Info' is present in any parent folder, a warning is issued and the user is asked if the directory should be renamed.
 
@@ -20,9 +23,6 @@ class LiveSet
       Environment variables used in PATH_TO_ALS_FILE are expanded.
 
       Options are:
-        -11 Convert the Live 12 set to Live 11 format.
-        -f If -11 is specified, overwrite any existing Live 11 set. Without it, an existing
-           set is left alone.
         -v Show the version of this program.
         -z The time zone the times in the report are written in, e.g. America/Chicago. The
            times are written in the time zone of the computer when it is not given.
@@ -34,14 +34,16 @@ class LiveSet
       The report of a set is markdown. It is written to stdout, and the log is written to
       stderr, where it is never markdown.
 
+      To convert a set to another version of the format, use the als_to_version command.
+
       Example:
-        als_report -11 -f $path/to/my_v12_set.als
+        als_report $path/to/my_set.als
     END_HELP
 
     msg.nil? ? help : "Error: #{msg}\n\n#{help}"
   end
 
-  # Parse options for live_set executable
+  # Parse options for the als_report command
   #
   # @param args [Array<String>] the command line arguments
   # @return [Array(Hash, Array<String>)] the options and the remaining arguments
@@ -74,8 +76,6 @@ class LiveSet
     OptionParser.new do |parser|
       parser.program_name = 'als_report'
 
-      parser.on('-11', '--convert11', 'Make a copy of the set that is compatible with Live 11')
-      parser.on('-f', '--force', 'Overwrite the output set if it already exists')
       parser.on('-l', '--loglevel LOGLEVEL', String, "Logging level (#{LOG_LEVELS.join ', '})")
       parser.on('-s', '--show', 'Display information about the Ableton Live set')
       parser.on('-v', '--version', 'Show the version of this program')

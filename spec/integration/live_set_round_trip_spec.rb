@@ -2,7 +2,8 @@ require 'spec_helper'
 require 'stringio'
 require 'zlib'
 require 'conversions'
-require 'demo_sets'
+require 'als_to_version/als_to_version'
+require 'live_set/demo_sets'
 require 'live_installations'
 require 'support/gui_harness'
 
@@ -42,7 +43,7 @@ module RoundTrip
     #
     # @return [LiveSetConverter::Result] what the conversion did
     def conversion
-      @conversion ||= silence_output { LiveSet.new(set).modify_als }
+      @conversion ||= silence_output { AlsToVersion.convert(set, to: 11) }
     end
 
     # The converted set, read back as XML.
@@ -80,7 +81,7 @@ end
 # so the spec runs it when the installation is present and the live log is available.
 #
 # See TODO.md N42 and docs/live_11_12_diff.md, "The lane types Live 11 does not have".
-RSpec.describe LiveSet, 'the round trip through Live 11' do # rubocop:disable RSpec/DescribeMethod
+RSpec.describe AlsToVersion, 'the round trip through Live 11' do # rubocop:disable RSpec/DescribeMethod
   # The official Live 11 demo set supplied with Live 11. This is the source of truth for the
   # round trip.
   let(:live11_path) { DemoSets.edition '11', 'Suite' }

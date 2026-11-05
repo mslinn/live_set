@@ -10,7 +10,7 @@ require 'support/live_sets'
 #
 # The other examples of the conversion are in live_11_and_12_down_spec.rb. Those walk the
 # transformations one at a time; this one walks the whole set.
-RSpec.describe LiveSet, 'converting a Live 12 set down to Live 11' do # rubocop:disable RSpec/DescribeMethod
+RSpec.describe LiveSetTransformer, 'converting a Live 12 set down to Live 11' do # rubocop:disable RSpec/DescribeMethod
   # The Live 12 set.
   let(:live12_path) { LiveSets.fascination12 }
 

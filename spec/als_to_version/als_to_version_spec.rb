@@ -3,8 +3,8 @@ require 'fileutils'
 require 'stringio'
 require 'tmpdir'
 require 'conversions'
-require 'demo_sets'
-require 'live_set/live_set_class'
+require 'live_set/demo_sets'
+require 'als_to_version/als_to_version'
 
 # The -11 conversion rewrites the version strings, removes the elements that Live 11 does not
 # have, and copies everything else through unchanged.
@@ -19,7 +19,7 @@ require 'live_set/live_set_class'
 #
 # See docs/live_11_12_diff.md, "The elements the two versions name differently", and
 # "The values the two versions write differently".
-RSpec.describe LiveSet, '#modify_als' do
+RSpec.describe AlsToVersion, '.convert' do
   # The Live 12 demo set that Ableton ships.
   def live12_path
     DemoSets.path '12'
@@ -142,18 +142,16 @@ RSpec.describe LiveSet, '#modify_als' do
 
     it 'is not converted, because it is already in the Live 11 format' do
       set = Conversions.set_path suite_path, 'live11'
-      live_set = described_class.new set
 
-      result = live_set.modify_als
+      result = described_class.convert set, to: 11
 
       expect(result.status).to eq(:already_compatible)
     end
 
     it 'writes no set, because there is nothing to convert' do
       set = Conversions.set_path suite_path, 'live11'
-      live_set = described_class.new set
 
-      live_set.modify_als
+      described_class.convert set, to: 11
 
       expect(File.exist?(Conversions.output_path(set))).to be false
     end
@@ -184,7 +182,7 @@ RSpec.describe LiveSet, '#modify_als' do
     before { require_fixture 'the Live 12 demo set', live12_path }
 
     it 'writes the converted set next to the set it was given' do
-      described_class.new(set).modify_als
+      described_class.convert(set, to: 11)
 
       expect(File.dirname(converted)).to eq File.dirname(set)
     end
@@ -192,24 +190,24 @@ RSpec.describe LiveSet, '#modify_als' do
     it 'leaves the set it was given alone' do
       before = File.read set
 
-      described_class.new(set).modify_als
+      described_class.convert(set, to: 11)
 
       expect(File.read(set)).to eq before
     end
 
     it 'refuses to write over the converted set' do
-      described_class.new(set).modify_als
+      described_class.convert(set, to: 11)
 
-      expect { described_class.new(set).modify_als }
+      expect { described_class.convert(set, to: 11) }
         .to raise_error(LiveSetConverter::AlreadyExists)
     end
 
     it 'leaves the converted set alone when it refuses' do
-      described_class.new(set).modify_als
+      described_class.convert(set, to: 11)
       before = File.read converted
 
       begin
-        described_class.new(set).modify_als
+        described_class.convert(set, to: 11)
       rescue LiveSetConverter::AlreadyExists # rubocop:disable Lint/SuppressedException
       end
 
@@ -217,9 +215,9 @@ RSpec.describe LiveSet, '#modify_als' do
     end
 
     it 'writes over the converted set when it is asked to' do
-      described_class.new(set).modify_als
+      described_class.convert(set, to: 11)
 
-      result = described_class.new(set, force: true).modify_als
+      result = described_class.convert(set, to: 11, overwrite: true)
 
       expect(result.overwritten).to be true
     end

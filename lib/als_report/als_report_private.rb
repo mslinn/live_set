@@ -1,7 +1,7 @@
 require 'colorator'
 require 'highline'
 
-class LiveSet
+class AlsReport
   private
 
   # Verify that the Ableton Live project is valid

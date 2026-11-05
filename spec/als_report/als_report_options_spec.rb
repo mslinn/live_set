@@ -1,7 +1,7 @@
 require 'spec_helper'
-require 'live_set/live_set_options'
+require 'als_report/als_report_options'
 
-RSpec.describe LiveSet, '.parse_options' do
+RSpec.describe AlsReport, '.parse_options' do
   it 'returns the default log level when no options are given' do
     options, = described_class.parse_options(['/music/set.als'])
 
@@ -12,18 +12,6 @@ RSpec.describe LiveSet, '.parse_options' do
     _, remaining = described_class.parse_options(['/music/set.als'])
 
     expect(remaining).to eq(['/music/set.als'])
-  end
-
-  it 'parses the convert11 option' do
-    options, = described_class.parse_options(['-11', '/music/set.als'])
-
-    expect(options[:convert11]).not_to be_nil
-  end
-
-  it 'parses the force option' do
-    options, = described_class.parse_options(['-f', '/music/set.als'])
-
-    expect(options[:force]).to be true
   end
 
   it 'parses the version option' do

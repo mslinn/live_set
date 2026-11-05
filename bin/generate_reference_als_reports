@@ -70,7 +70,7 @@ def analyse(sets_dir, reports_dir, label)
       next
     end
 
-    File.write report, LiveSet.new(set, loglevel: 'ERROR').show
+    File.write report, AlsReport.new(set, loglevel: 'ERROR').show
     puts "#{label}/#{File.basename report}: written"
   end
 end

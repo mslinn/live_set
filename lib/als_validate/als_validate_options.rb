@@ -1,7 +1,7 @@
 require 'colorator'
 require 'optparse'
 
-class ValidateAsd
+class AlsValidate
   # Display help message for als_validate
   #
   # @param msg [String, nil] an error message to show above the help

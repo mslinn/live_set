@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'live_set/live_set_class'
+require 'als_report/als_report'
 require 'support/live_sets'
 
 # The report of a set.
@@ -9,7 +9,7 @@ require 'support/live_sets'
 # under the track.
 #
 # See docs/ab_test_plan.md for the program, and analysis/ for the reports themselves.
-RSpec.describe LiveSet, '#show' do
+RSpec.describe AlsReport, '#show' do
   # The report of a set.
   #
   # @param path [String] the path of the set

@@ -6,7 +6,7 @@ require_relative '../common/run'
 # Validates an Ableton Live set against an XSD schema.
 #
 # The .als file is gzip compressed XML, and the schema is read with Nokogiri, so no temporary file is needed.
-class ValidateAsd
+class AlsValidate
   # The error raised when one of the two files is not what it was said to be.
   class InvalidInput < StandardError; end
 

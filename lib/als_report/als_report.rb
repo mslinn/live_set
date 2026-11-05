@@ -6,18 +6,21 @@ require 'pathname'
 require 'time'
 require 'zlib'
 require_relative '../common/log'
-require_relative 'als_file'
-require_relative 'live_set_converter'
-require_relative 'live_set_report'
-require_relative 'model/live_scene'
-require_relative 'model/live_tracks'
+require_relative '../live_set/als_file'
+require_relative '../live_set/live_set_report'
+require_relative '../live_set/model/live_scene'
+require_relative '../live_set/model/live_tracks'
 
 # See https://www.ionos.ca/digitalguide/websites/web-development/xpath-tutorial/
 # See https://www.scrapingbee.com/webscraping-questions/selenium/how-to-find-elements-by-xpath-selenium
 # See https://nokogiri.org/tutorials/searching_a_xml_html_document.html#slop-1
 
-class LiveSet
-  # Report on a Live set, or convert it to the Live 11 format.
+# Reports a Live set.
+#
+# The conversion of a set to another version of the format is the work of the
+# `als_to_version` command, and this command does not do it.
+class AlsReport
+  # Report on a Live set.
   #
   # @param args [Array<String>] the command line arguments
   # @return [Integer] the exit status of the command
@@ -37,35 +40,8 @@ class LiveSet
     abort help("#{set_name} does not exist") unless File.exist? set_name
     abort help("#{set_name} is a directory") if File.directory? set_name
 
-    live_set = new set_name, **options
-
-    if options[:convert11]
-      report_conversion live_set.modify_als
-    else
-      puts live_set.show
-    end
+    puts new(set_name, **options).show
     0
-  rescue LiveSetConverter::AlreadyExists => e
-    puts e.message.red
-    1
-  end
-
-  # Says what a conversion did.
-  #
-  # @param result [LiveSetConverter::Result] what the conversion did
-  # @return [void]
-  def self.report_conversion(result)
-    case result.status
-    when :already_compatible
-      puts 'The Live set is already compatible with Live 11.'.yellow
-    when :converted
-      if result.overwritten
-        puts "Overwriting existing #{result.path}".green
-      else
-        puts "Writing #{result.path}".green
-      end
-      puts 'Conversion complete'.green
-    end
   end
 
   def initialize(set_name, **options)
@@ -74,7 +50,6 @@ class LiveSet
 
     @set_directory = File.dirname(File.realpath(set_name))
 
-    @overwrite = options[:force]
     @set_name = set_name
 
     @contents = AlsFile.read_text(set_name)
@@ -82,7 +57,6 @@ class LiveSet
     @xml_doc = Nokogiri::Slop @contents
 
     @ableton = @xml_doc.Ableton
-    @minor_version = @ableton['MinorVersion']
 
     @live_set = @ableton.LiveSet
 
@@ -112,16 +86,5 @@ class LiveSet
     check_ableton_project_info
     LiveSetReport.new(@set_name, @xml_doc, @tracks, @time_zone,
                       show_midi_and_audio_tracks_separately: @show_midi_and_audio_tracks_separately).to_markdown
-  end
-
-  # Writes out a Live 11 session
-  #
-  # The conversion itself is done by LiveSetConverter.
-  #
-  # @return [LiveSetConverter::Result] what the conversion did
-  def modify_als
-    return LiveSetConverter::Result.new status: :already_compatible if @minor_version.start_with? '11.'
-
-    LiveSetConverter.new(@set_name, @xml_doc, overwrite: @overwrite).convert
   end
 end

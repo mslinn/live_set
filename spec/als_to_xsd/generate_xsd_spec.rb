@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'tmpdir'
 require 'zlib'
 
-RSpec.describe XsdFromXml do
+RSpec.describe AlsToXsd do
   # A minimal Ableton Live set. The schema this generates is described in xsd_builder_spec.rb.
   #
   # @return [String] the XML of the set

@@ -1,8 +1,10 @@
 #!/usr/bin/env ruby
 
-# TODO The -11 option converts the set to Live 11; that functionality is now
-# provided by `als_to_version` and does not need to be provided from this
-# command.
+# Writes a report of a Live set.
+#
+# The implementation is in the AlsReport class, in lib/als_report/als_report.rb.
+#
+# To convert a set to another version of the format, use the als_to_version command.
 
 if ENV['VO_DEBUGGING']
   require_relative '../lib/live_set'
@@ -10,4 +12,4 @@ else
   require 'live_set'
 end
 
-exit LiveSet.run(ARGV)
+exit AlsReport.run(ARGV)

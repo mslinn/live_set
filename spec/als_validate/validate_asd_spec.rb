@@ -10,7 +10,7 @@ require 'zlib'
 # The files the examples use are real files: a real gzipped set, and a real schema. A file that
 # is not what it was said to be raises, because that is a different kind of failure from a set
 # that does not conform to the schema.
-RSpec.describe ValidateAsd do
+RSpec.describe AlsValidate do
   # A minimal Ableton Live set.
   #
   # @return [String] the XML of the set
@@ -116,7 +116,7 @@ RSpec.describe ValidateAsd do
           File.write(not_a_schema, 'this is not a schema')
 
           expect { described_class.new(set_path, not_a_schema).validate }
-            .to raise_error(ValidateAsd::InvalidInput, /is not an XSD file/)
+            .to raise_error(AlsValidate::InvalidInput, /is not an XSD file/)
         end
       end
     end
@@ -130,7 +130,7 @@ RSpec.describe ValidateAsd do
           File.write(schema_path, simple_schema)
 
           expect { described_class.new(set_path, schema_path).validate }
-            .to raise_error(ValidateAsd::InvalidInput, /is not an ALS file/)
+            .to raise_error(AlsValidate::InvalidInput, /is not an ALS file/)
         end
       end
     end
@@ -143,7 +143,7 @@ RSpec.describe ValidateAsd do
           File.write(schema_path, simple_schema)
 
           expect { described_class.new(set_path, schema_path).validate }
-            .to raise_error(ValidateAsd::InvalidInput, /is not an ALS file/)
+            .to raise_error(AlsValidate::InvalidInput, /is not an ALS file/)
         end
       end
     end
@@ -156,7 +156,7 @@ RSpec.describe ValidateAsd do
           File.write(schema_path, simple_schema)
 
           expect { described_class.new(set_path, schema_path).validate }
-            .to raise_error(ValidateAsd::InvalidInput, /NotAbleton/)
+            .to raise_error(AlsValidate::InvalidInput, /NotAbleton/)
         end
       end
     end

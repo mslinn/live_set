@@ -35,7 +35,8 @@ Gem::Specification.new do |spec|
   # If it is needed at run time, add 'baselines/**/*' to this list.
   # The specs and the dev/ scripts are not packaged: they are for developing the gem, and
   # they are what makes the build slow.
-  spec.files                 = Dir['.rubocop.yml', 'LICENSE.*', 'Rakefile', 'lib/**/*', '*.gemspec', '*.md']
+  spec.files                 = Dir['.rubocop.yml', 'LICENSE.*', 'Rakefile', 'lib/**/*', '*.gemspec', '*.md',
+                                   'docs/release_notes/*.html']
   spec.homepage              = 'https://mslinn.com/av_studio/553-live_set.html'
   spec.license               = 'Source-available, noncommercial license.'
   spec.metadata = {

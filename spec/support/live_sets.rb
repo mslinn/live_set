@@ -1,6 +1,6 @@
 require 'nokogiri'
 require 'zlib'
-require 'demo_sets'
+require 'live_set/demo_sets'
 require 'reference_sets'
 
 # Real Live sets, and the elements in them.

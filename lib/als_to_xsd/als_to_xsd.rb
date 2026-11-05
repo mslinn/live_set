@@ -2,12 +2,12 @@ require 'colorator'
 require 'nokogiri'
 require 'zlib'
 require_relative '../live_set/als_file'
-require_relative 'generate_xsd_options'
+require_relative 'als_to_xsd_options'
 require_relative 'xsd_builder'
 
-# TODO: rename this command to `als_to_xsd` and make it a library, so it can be
-# called from other code. Then make this file a thin wrapper that calls the
-# library and returns an error code. See LiveSet.run
+# TODO: make this a library, so it can be called from other code. Then make
+# this file a thin wrapper that calls the library and returns an error code.
+# See AlsReport.run
 #
 # Generates an XML Schema (XSD) from one or more Ableton Live sets.
 #
@@ -23,7 +23,7 @@ require_relative 'xsd_builder'
 # just the demo sets.
 #
 # Usage: generate_xsd OPTIONS XSD_FILE_NAME PATH_TO_ALS_FILE...
-class XsdFromXml
+class AlsToXsd
   # Generate an XSD from one or more Live sets, and write it to a file.
   #
   # @param args [Array<String>] the command line arguments

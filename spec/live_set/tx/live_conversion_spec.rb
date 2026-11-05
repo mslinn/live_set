@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'live_set/als_file'
 require 'live_set/live_set_transformer'
-require 'demo_sets'
+require 'live_set/demo_sets'
 require 'support/schemas'
 
 # Converts a demo set of one Live version to the other, and validates the result against the

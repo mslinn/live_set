@@ -154,7 +154,7 @@ module DemoSets
   # The converted sets are reference material, not part of the repository: the file Live 12
   # wrote is a few hundred kilobytes of test data, and it is not checked in. The directory is
   # in .gitignore.
-  CONVERSIONS_DIRECTORY = File.expand_path('../conversions', __dir__).freeze
+  CONVERSIONS_DIRECTORY = File.expand_path('../../conversions', __dir__).freeze
 
   # The Live 12 version of a Live 11 demo set, made by opening it in Live 12 and saving it.
   #

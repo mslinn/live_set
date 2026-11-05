@@ -7,5 +7,5 @@ else
 end
 
 # TODO AlsDelta.run should return an error code instead of calling exit, so this
-# can be called from other code without exiting the process. See LiveSet.run
+# can be called from other code without exiting the process. See AlsReport.run
 AlsDelta.run(ARGV)

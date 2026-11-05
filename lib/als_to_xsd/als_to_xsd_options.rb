@@ -4,7 +4,7 @@ require 'optparse'
 require_relative '../common/command_options'
 require_relative '../common/log'
 
-class XsdFromXml
+class AlsToXsd
   # Display help message for als_to_xsd
   #
   # @param msg [String, nil] an error message to show above the help

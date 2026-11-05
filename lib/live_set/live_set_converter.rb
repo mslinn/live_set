@@ -2,12 +2,12 @@ require 'colorator'
 require_relative '../common/log'
 require_relative 'als_file'
 require_relative 'live_set_transformer'
+require_relative 'tx/live_versions'
 
-# Converts a Live set to the Live 11 format.
+# Converts a Live set to another version of the format.
 #
-# The conversion itself is done by LiveSetTransformer, which finds the bridge for the version of
-# the set and applies it. This class reads the set, hands the document to the transformer, and
-# writes the result.
+# The conversion itself is done by the bridges of the versions, which the registry of them
+# composes. This class reads the set, hands the document to the registry, and writes the result.
 #
 # See docs/live_11_12_diff.md for the differences between the versions, and docs/cpfir.md,
 # "The Lifecycle of a Conversion", for the architecture.
@@ -37,10 +37,14 @@ class LiveSetConverter
 
   # @param set_name [String] the path of the set to convert
   # @param xml_doc [Nokogiri::XML::Document] the set to convert
+  # @param version [Integer] the version of Live to convert the set to
+  # @param destination [String, nil] where the converted set is written
   # @param overwrite [Boolean] whether an existing converted set may be overwritten
-  def initialize(set_name, xml_doc, overwrite: false)
+  def initialize(set_name, xml_doc, version: 11, destination: nil, overwrite: false)
     @set_name = set_name
     @xml_doc = xml_doc
+    @version = version
+    @destination = destination
     @overwrite = overwrite
   end
 
@@ -54,21 +58,24 @@ class LiveSetConverter
     overwritten = File.exist? path
     raise AlreadyExists, path if overwritten && !@overwrite
 
-    # The set is written the way Live writes it, so that the converted set is a Live 11 set and
-    # not merely XML that happens to mean the same thing.
+    # The set is written the way Live writes it, so that the converted set is a set of the
+    # version it was converted to, and not merely XML that happens to mean the same thing.
     AlsFile.write(path, document, File.mtime(@set_name))
     Result.new status: :converted, path: path, overwritten: overwritten
   end
 
   # The path of the set the conversion writes.
   #
-  # The converted set is written next to the set that was converted.
+  # The converted set is written where it was asked for, and otherwise next to the set that was
+  # converted.
   #
   # @return [String] the path of the converted set
   def converted_path
+    return @destination unless @destination.nil?
+
     set_path = File.dirname @set_name
     new_set_name = File.basename @set_name, '.als'
-    File.join set_path, "#{new_set_name}_11.als"
+    File.join set_path, "#{new_set_name}_#{@version}.als"
   end
 
   private
@@ -77,6 +84,7 @@ class LiveSetConverter
   #
   # @return [Nokogiri::XML::Document] the converted set
   def transform
-    LiveSetTransformer.new(@xml_doc).transform
+    from = LiveSetTransformer.version_of(@xml_doc).split('.').first.to_i
+    LiveVersions.convert(@xml_doc, from: from, to: @version)
   end
 end

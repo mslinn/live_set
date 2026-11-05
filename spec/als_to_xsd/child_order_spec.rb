@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'generate_xsd/child_order'
+require 'als_to_xsd/child_order'
 
 RSpec.describe ChildOrder do
   # The child names of the instances of an element.
