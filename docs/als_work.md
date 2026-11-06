@@ -1461,7 +1461,9 @@ Windows: `%AppData%\Ableton\Live X.Y.Z\Preferences\Options.txt`
 
 The file consists of flags formatted line-by-line (e.g., `-FlagName` or
 `-FlagName=Value`). The experimental and unsupported flags for Live 12.4.16 are
-shown in the following subsections.
+shown in the following subsections. The Ableton Live harness is responsible for
+creating `Options.txt` and its contents for each run, and restoring it to its
+previous state after each run.
 
 #### Tweaks that Affect ALS XML processing
 

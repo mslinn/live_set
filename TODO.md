@@ -143,34 +143,26 @@ the sets that were checked in.
 `show_track` says whether a track is frozen, and a group track cannot be frozen, so the two have
 to be told apart. The demo sets have both.
 
-#### N52. The Live 12 version of the Live 11 demo set is not checked in
+#### N52. Successful Round-Trip from Live 11, to Live 12, and back to Live 11
 
-The round trip needs three files: a set Live 11 wrote, the same set as Live 12 wrote it, and
-the set this gem writes when it converts the second one back to the Live 11 format. The second
-file has to be made by opening the first in Live 12 and saving it, and it has to be checked in,
-so that anyone can run the round trip without opening Live 12.
+The round trip needs three files:
 
-The conversions directory holds the Live 12 version of the Live 11 Suite demo set, and the
-directory is in `.gitignore`. The file is therefore not checked in, and a fresh clone has no
-Live 12 set to convert back. The round trip examples cannot run at all.
+1. A Live 11 set
+   (`$live_reference_sets/<wbr>sets/<wbr>live_11/<wbr>projects_and_als/<wbr>Fascination.als`);
+   this set was created by a Live user and is not an official Live demo set.
 
-The file is also not the one the round trip wants. The Live 11 Suite demo set is the largest
-of the Live 11 demo sets by content — 14 tracks, a group track, 255 clips, 219 of them in the
-arrangement, 6 `Oversampling` elements — but the Live 11 Intro demo set is larger as a file,
-and it has clips in take lanes, which the Suite demo set does not have.
+2. The same set upgraded by Live 12 and saved to
+   `$live_reference_sets/<wbr>sets/<wbr>live_12/projects_and_als/<wbr>Fascination_12_converted_by_live
+   Project/`. The conversion was automated by
+   `$live_set/<wbr>dev/<wbr>make_reference_set`.
 
-The work is to open the Live 11 demo set in Live 12, save it, and check the result in.
+3. The set this gem writes when it converts the upgrade set back to the Live 11
+   format. The `als_convert` command can perform this conversion.
 
-The reference sets for Live 11 and Live 12 are both checked in:
-`sets/live_11/projects_and_als/Fascination.als` and the Live 12 version of it,
-`sets/live_12/projects_and_als/Fascination_12_converted_by_live Project/Fascination_12_converted_by_live.als`.
-The Live 12 version was made by `dev/make_reference_set`, which opens the Live 11 set in
-Live 12, waits for Live to say that it has loaded it, and saves it under a name of its own.
-The conversion of the second down to the Live 11 format is proved in
-`spec/live_set/tx/live_12_fascination_down_spec.rb`. It
-is a set by a user of Live rather than a demo set, so the demo set is still wanted: the demo set
-is the one whose structure the schema was inferred from, and the Live 12 version of it is what
-the round trip opens in Live 11.
+The work is to convert of the Live 12 version back to the Live 11 format and
+verify that the XML is well-formed and Ableton Live 11 can read the set back.
+There is a spec for this:
+`$live_set/<wbr>spec/<wbr>live_set/<wbr>tx/<wbr>live_12_fascination_down_spec.rb`.
 
 #### N54. Live 8, Live 9 and Live 10 cannot be authorized
 
