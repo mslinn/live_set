@@ -437,9 +437,9 @@ of the set that was read:
 | The size | What it is | How it was computed |
 | --- | --- | --- |
 | The set file | the size of the `.als` | the file on disk |
-| The expected size of the project | what the project should be, according to the `.als`: the set file, and every sample the set refers to that is in the project, counted once | the sizes Live recorded, and the size on disk where Live recorded zero |
-| The actual size of the project | what the project is, on disk | the files in the project folder |
-| The fully resolved size | everything the set draws on: the project, and the assets outside it | the expected size, with the assets outside the project added |
+| Expected Project Size | what the project should be, according to the `.als`: the set file, and every sample the set refers to that is in the project, counted once | the sizes Live recorded, and the size on disk where Live recorded zero |
+| Actual Project Size | what the project is, on disk | the files in the project folder |
+| Fully Resolved Size | everything the set draws on: the project, and the assets outside it | the expected size, with the assets outside the project added |
 
 A size that could not be computed says so: a project folder that is not there has no actual
 size, and the report says that instead of the expected one.

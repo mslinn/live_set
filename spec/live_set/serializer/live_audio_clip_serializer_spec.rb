@@ -24,7 +24,7 @@ RSpec.describe LiveAudioClipSerializer, '#to_markdown' do
 
   it 'writes the name of the clip, on the colour Live gave it' do
     expect(described_class.new(clip, '11.1').to_markdown).to include(
-      '<code style="background-color: #F6F57C; color: #000000; vertical-align: middle" ' \
+      '<code style="color: #000000; background-color: #F6F57C; vertical-align: middle;" ' \
       'title="Live color #3">Vocal Main</code>'
     )
   end
@@ -37,7 +37,8 @@ RSpec.describe LiveAudioClipSerializer, '#to_markdown' do
 
   it 'writes the warning for a clip whose sample is not in the project, on a dark red background' do
     expect(described_class.new(clip, '11.1').to_markdown).to include(
-      '<code style="background-color:#8B0000; color:#FFFFFF; vertical-align:middle">⚠ not in project</code>'
+      '<code style="background-color:#8B0000; color:#FFFFFF; vertical-align:middle">' \
+      '⚠ missing from project</code>'
     )
   end
 

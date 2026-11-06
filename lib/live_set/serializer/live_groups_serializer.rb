@@ -11,10 +11,8 @@ class LiveGroupsSerializer
   # Creates a serializer for a collection of groups.
   #
   # @param groups [LiveGroups] the groups of the collection
-  # @param indent [String] the indentation of the lines of the collection
-  def initialize(groups, indent = '')
+  def initialize(groups)
     @groups = groups
-    @indent = indent
   end
 
   # Returns the collection as markdown.
@@ -22,7 +20,7 @@ class LiveGroupsSerializer
   # @return [String] the serialized markdown
   def to_markdown
     @groups.each_with_index.map do |group, index|
-      LiveGroupSerializer.new(group, (index + 1).to_s, @indent).to_markdown
+      LiveGroupSerializer.new(group, (index + 1).to_s).to_markdown
     end.join("\n")
   end
 end

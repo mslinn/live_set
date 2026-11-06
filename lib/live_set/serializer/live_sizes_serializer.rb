@@ -1,6 +1,6 @@
-require 'bytesize'
 require 'markdown-tables'
 require_relative '../model/live_sizes'
+require_relative 'live_markup'
 
 # Writes the sizes of a set.
 #
@@ -18,14 +18,14 @@ class LiveSizesSerializer
     { name: 'The set file',              key: :set_file_size,
       what: 'the size of the .als',
       how:  'the file on disk' },
-    { name: 'The expected size of the project', key: :expected_project_size,
+    { name: 'Expected Project Size', key: :expected_project_size,
       what: 'what the project should be, according to the .als: the set file, and every ' \
             'sample the set refers to that is in the project, counted once',
       how:  'the sizes Live recorded, and the size on disk where Live recorded zero' },
-    { name: 'The actual size of the project', key: :actual_project_size,
+    { name: 'Actual Project Size', key: :actual_project_size,
       what: 'what the project is, on disk',
       how:  'the files in the project folder' },
-    { name: 'The fully resolved size', key: :resolved_size,
+    { name: 'Fully Resolved Size', key: :resolved_size,
       what: 'everything the set draws on: the project, and the assets outside it',
       how:  'the expected size, with the assets outside the project added' }
   ].freeze
@@ -45,8 +45,8 @@ class LiveSizesSerializer
       [size[:name], value_of(size[:key]), size[:what], size[:how]]
     end
 
-    lines = ['## The Size of the Set', '']
-    lines << MarkdownTables.make_table(['The size', 'The size in bytes', 'What it is', 'How it was computed'],
+    lines = ['### Set Sizes', '']
+    lines << MarkdownTables.make_table(['', 'Bytes', 'Describes', 'How Computed'],
                                        rows, align: %w[l r l l], is_rows: true)
     lines.join("\n")
   end
@@ -61,6 +61,6 @@ class LiveSizesSerializer
     value = @sizes.public_send key
     return 'not computed' if value.nil?
 
-    "#{value} (#{ByteSize.new value})"
+    "#{LiveMarkup.number value} bytes"
   end
 end

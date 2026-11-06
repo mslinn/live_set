@@ -22,8 +22,8 @@ RSpec.describe LiveMasterTrackSerializer, '#to_markdown' do
     markdown = described_class.new(track, '7').to_markdown
 
     expect(markdown.lines.first.chomp).to eq(
-      '- Track 7  🎚️ Master  <code style="background-color: #F6F57C; color: #000000; ' \
-      'vertical-align: middle" title="Live color #3">Master</code>'
+      '- Track 7  🎚️ Master  <code style="color: #000000; background-color: #F6F57C; ' \
+      'vertical-align: middle;" title="Live color #3">Master</code>'
     )
   end
 end

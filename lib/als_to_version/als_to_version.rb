@@ -20,7 +20,7 @@ class AlsToVersion
   # @return [String] the help message
   def self.help(msg = nil)
     help = <<~END_HELP
-      Als_to_version converts a Live set to another version of the Live format.
+      als_to_version converts a Live set to another version of the Live format.
       If SRC is already at the version it is converted to, the program says so and stops.
 
       Syntax: als_to_version [OPTIONS] VERSION SRC [DST]

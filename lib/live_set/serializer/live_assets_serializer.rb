@@ -1,16 +1,24 @@
 require 'bytesize'
-require 'markdown-tables'
 require_relative '../model/live_assets'
+require_relative 'live_markup'
 
-# Writes the assets of a set: every file it refers to.
+# Writes the assets of a set: the samples it plays that it owns.
 #
-# The table says what the sizes of the set are made of: each file, the path as the set writes
-# it, how the path was resolved, the size Live recorded for it, the size on disk, where it is,
-# and when it was last changed. The reader can add the columns up.
+# The section is a list, and not a table: a reader wants to know what the set needs, and the
+# order of the needs does not matter. The devices of Ableton are not in it: they have no
+# location, and they come with Live.
+#
+# A sample that is in the set is compatible with Push 3 Standalone when it is there. A sample
+# that is outside the set is not compatible with it, whether it is there or not: the file has
+# to be in the set for the Push to play it.
 #
 # Sample usage:
 # markdown = LiveAssetsSerializer.new(assets).to_markdown
 class LiveAssetsSerializer
+  # The markers of a sample.
+  NOT_COMPATIBLE = '❌ not P3s compatible'.freeze
+  MISSING = '❌ missing from project'.freeze
+
   # Creates a serializer for the assets of a set.
   #
   # @param assets [LiveAssets] the assets of the set
@@ -22,74 +30,80 @@ class LiveAssetsSerializer
   #
   # @return [String] the serialized markdown
   def to_markdown
-    lines = ['## The Assets of the Set', '']
-    if @assets.empty?
-      lines << 'The set refers to no files.'
+    lines = ['## Set Assets', '']
+    samples = @assets.samples_of_the_set
+    if samples.empty?
+      lines << 'The set has no samples of its own.'
       return lines.join("\n")
     end
 
-    rows = @assets.map do |asset|
-      [path_cell(asset.path), path_cell(asset.resolved_path), location_of(asset),
-       size_of(asset.recorded_size), size_on_disk_of(asset), changed_of(asset)]
+    samples.each_with_index do |asset, index|
+      lines << "#{index + 1}. #{entry_of asset}"
     end
-
-    lines << MarkdownTables.make_table(
-      ['The path', 'How it was resolved', 'Where it is', 'The size Live recorded',
-       'The size on disk', 'Last changed'],
-      rows, align: %w[l l l r r l], is_rows: true
-    )
     lines.join("\n")
   end
 
   private
 
-  # A path, as a cell that can be broken where it has to be.
+  # One sample of the set, as a line of the list.
   #
-  # @param path [String] the path
-  # @return [String] the cell
-  def path_cell(path)
-    "<code>#{path.gsub('/', '/<wbr/>')}</code>"
+  # The information that is not known is not written: a sample that is not on disk has no
+  # date, and a sample whose size Live did not record has no size.
+  #
+  # @param asset [LiveAsset] the sample
+  # @return [String] the line
+  def entry_of(asset)
+    parts = ["<code>#{path_of asset}</code>"]
+    size = size_of asset
+    parts << "(#{ByteSize.new size})" unless size.nil?
+    marker = marker_of asset
+    parts << marker unless marker.nil?
+    date = date_of asset
+    parts << date unless date.nil?
+    parts.join(' ')
   end
 
-  # Where an asset is.
+  # The path of the sample, as the set writes it.
   #
-  # @param asset [LiveAsset] the asset
-  # @return [String] the place
-  def location_of(asset)
-    return 'not there' unless asset.there?
-
-    LiveAsset::LOCATIONS.fetch asset.location
+  # @param asset [LiveAsset] the sample
+  # @return [String] the path
+  def path_of(asset)
+    LiveMarkup.escape(asset.path).gsub('/', '/<wbr/>')
   end
 
-  # A size, as the report writes it.
+  # The size of the sample.
   #
-  # @param size [Integer] the size in bytes
-  # @return [String] the size
-  def size_of(size)
-    return 'not recorded' if size.zero?
-
-    "#{size} (#{ByteSize.new size})"
-  end
-
-  # The size of a file on disk.
+  # The size on disk is the size of the file. When the file is not there, the size Live
+  # recorded for it is the size of the file as Live saw it.
   #
-  # @param asset [LiveAsset] the asset
-  # @return [String] the size
-  def size_on_disk_of(asset)
+  # @param asset [LiveAsset] the sample
+  # @return [Integer, nil] the size in bytes, or nil when it is not known
+  def size_of(asset)
     size = asset.size_on_disk
-    return 'not there' if size.nil?
+    return size unless size.nil?
 
-    "#{size} (#{ByteSize.new size})"
+    recorded = asset.recorded_size
+    recorded.zero? ? nil : recorded
   end
 
-  # When a file was last changed.
+  # What is said about the sample.
   #
-  # @param asset [LiveAsset] the asset
-  # @return [String] the time
-  def changed_of(asset)
-    time = asset.last_modified_on_disk || asset.last_modified
-    return 'not known' if time.nil?
+  # @param asset [LiveAsset] the sample
+  # @return [String, nil] the marker, or nil when the sample is in the set and is there
+  def marker_of(asset)
+    return asset.there? ? nil : MISSING if asset.in_project?
 
-    time.strftime '%Y-%m-%d %H:%M:%S'
+    asset.there? ? NOT_COMPATIBLE : MISSING
+  end
+
+  # When the file was last changed.
+  #
+  # @param asset [LiveAsset] the sample
+  # @return [String, nil] the date, or nil when it is not known
+  def date_of(asset)
+    time = asset.last_modified_on_disk
+    return nil if time.nil?
+
+    time.strftime '%Y-%m-%d'
   end
 end

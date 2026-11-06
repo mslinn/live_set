@@ -111,7 +111,7 @@ module LiveSets
 
     # A copy of a track that is frozen, and whose clips are in its FreezeSequencer.
     #
-    # No set in the corpus holds a frozen track. Every track of every set is unfrozen, and every
+    # No set in the corpus holds a frozen track. No track in any set is frozen, and every
     # FreezeSequencer of every track is empty, so the case of a track whose clips are only in the
     # FreezeSequencer is made by moving the clips of a real track from one sequencer to the
     # other. The track is real, the clips are real, and the only thing that differs is the

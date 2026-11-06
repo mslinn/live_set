@@ -21,6 +21,12 @@ module LiveMarkup
     'Return' => '↩️',
   }.freeze
 
+  # The indentation of one level of the outline.
+  #
+  # Four spaces, so that the content of a list item is indented far enough for a renderer to
+  # take it for the content of the item and not for a list of its own.
+  INDENT = '    '.freeze
+
   class << self
     # Returns an icon denoting the type of track it was passed.
     #
@@ -34,12 +40,6 @@ module LiveMarkup
       Log.warn("Unexpected track type: #{track_type.inspect}")
       '💣'
     end
-
-    # The indentation of one level of the outline.
-    #
-    # Four spaces, so that the content of a list item is indented far enough for a renderer to
-    # take it for the content of the item and not for a list of its own.
-    INDENT = '    '.freeze
 
     # The indentation of a thing with the given number in the report.
     #
@@ -75,7 +75,6 @@ module LiveMarkup
     # @param foreground_color [String, nil] the colour the name is written in
     # @return [String] the name, on its colour
     def colored_code(text, color_number: nil, background_color: nil, foreground_color: nil)
-      text = CGI.escapeHTML(text.to_s)
       return "<code>#{text}</code>" unless background_color
 
       styles = [
@@ -153,12 +152,26 @@ module LiveMarkup
       thing.name.sub(/\A\d+[- ]/, '')
     end
 
-    # The characters of a name that would break a table.
+    # A number, as the default locale writes it.
+    #
+    # Ruby does not format numbers by locale, so the grouping of the default locale is
+    # written here: the thousands separator of US English.
+    #
+    # @param value [Integer] the number
+    # @return [String] the number, with its thousands separated
+    def number(value)
+      value.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\1,').reverse
+    end
+
+    # The characters of a name that would break a table, or the markup around it.
+    #
+    # The text is escaped for HTML, and the pipe is escaped as well, because a pipe in a
+    # name would break the table the name is written in.
     #
     # @param text [String] the text
     # @return [String] the text, escaped
     def escape(text)
-      text.to_s.gsub('|', '&#124;')
+      CGI.escapeHTML(text.to_s).gsub('|', '&#124;')
     end
 
     # How bright a colour looks.

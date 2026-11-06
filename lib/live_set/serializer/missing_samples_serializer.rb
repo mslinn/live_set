@@ -1,11 +1,11 @@
 require 'markdown-tables'
-require_relative 'live_sample_serializer'
 require_relative 'live_markup'
+require_relative 'live_sample_serializer'
 
-# Writes a collection of the samples that are not in the project.
+# Writes the samples of a set that are not in the project.
 #
-# The collection is never written by itself: each sample is written by the serializer of a
-# sample, and the outputs are mapped together, under the pack each sample is in.
+# A sample that comes from a pack or from the Core Library of Live is not missing from the
+# set: the pack holds it, and the packs of the set are reported on their own.
 #
 # Sample usage:
 # markdown = MissingSamplesSerializer.new(missing_samples).to_markdown
@@ -27,10 +27,10 @@ class MissingSamplesSerializer
       return lines.join("\n")
     end
 
-    rows = @missing.packs.sort.map do |pack, names|
-      [pack, names.map { |name| "`#{LiveMarkup.escape name}`" }.join(', ')]
+    rows = @missing.sources.sort.map do |source, names|
+      [source, names.map { |name| "`#{LiveMarkup.escape name}`" }.join(', ')]
     end
-    lines << MarkdownTables.make_table(%w[Pack Samples], rows, align: %w[l l], is_rows: true)
+    lines << MarkdownTables.make_table(%w[Source Samples], rows, align: %w[l l], is_rows: true)
     lines.join("\n")
   end
 end

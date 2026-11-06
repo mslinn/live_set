@@ -16,33 +16,38 @@ RSpec.describe LiveAssetsSerializer, '#to_markdown' do
   end
 
   it 'writes the heading of the section' do
-    expect(described_class.new(assets).to_markdown).to start_with "## The Assets of the Set\n"
+    expect(described_class.new(assets).to_markdown).to start_with "## Set Assets\n"
   end
 
-  it 'writes the columns of the table' do
+  it 'writes the samples of the set as a numbered list' do
     markdown = described_class.new(assets).to_markdown
 
-    expect(markdown).to include(
-      '|The path|How it was resolved|Where it is|The size Live recorded|The size on disk|Last changed|'
-    )
+    expect(markdown).to include('1. <code>Samples/<wbr/>Pink Noise - EDMtips.com.wav</code>')
+    expect(markdown).to include('3. <code>../<wbr/>../<wbr/>../<wbr/>Plugins/')
   end
 
-  it 'writes a row for each asset' do
+  it 'writes no device, and no preset of one' do
     markdown = described_class.new(assets).to_markdown
-    samples = assets.in_project.count { |asset| asset.relative_path.start_with? 'Samples' }
 
-    expect(markdown.scan('<code>Samples').length).to eq samples
+    expect(markdown).not_to include 'Devices/'
+    expect(markdown).not_to include 'Presets/'
   end
 
   it 'writes the size Live recorded for a file' do
     markdown = described_class.new(assets).to_markdown
 
-    expect(markdown).to include('4130387 (4.13 MB)')
+    expect(markdown).to include('(4.13 MB)')
   end
 
-  it 'says that a file that is not on disk is not there' do
+  it 'says that a file that is not in the project is missing from it' do
     markdown = described_class.new(assets).to_markdown
 
-    expect(markdown).to include('not there')
+    expect(markdown).to include('❌ missing from project')
+  end
+
+  it 'writes no date for a file that is not on disk' do
+    markdown = described_class.new(assets).to_markdown
+
+    expect(markdown).not_to match(/\d{4}-\d{2}-\d{2}/)
   end
 end

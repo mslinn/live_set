@@ -1,4 +1,5 @@
 require_relative '../../common/xml'
+require_relative 'live_origin'
 
 # An external asset of a set: a file the set refers to.
 #
@@ -95,6 +96,44 @@ class LiveAsset
   # @return [Boolean] true when the reference names a folder
   def folder?
     File.directory? resolved_path
+  end
+
+  # Whether the reference is of a sample.
+  #
+  # A sample is referred to by the `SampleRef` of a clip, and a device or a preset is
+  # referred to by its own element.
+  #
+  # @return [Boolean] true when the reference is of a sample
+  def sample?
+    !@file_ref.parent.nil? && @file_ref.parent.name == 'SampleRef'
+  end
+
+  # The pack the file came from.
+  #
+  # @return [String, nil] the name of the pack, or nil when the file is not in one
+  def pack
+    LiveOrigin.pack @absolute_path, @set_directory
+  end
+
+  # The library the file came from.
+  #
+  # @return [String, nil] the name of the library, or nil when the file is not in one
+  def library
+    LiveOrigin.library @absolute_path
+  end
+
+  # Whether the file came from a pack.
+  #
+  # @return [Boolean] true when the file is in a pack
+  def from_pack?
+    !pack.nil?
+  end
+
+  # Whether the file came from the Core Library of Live.
+  #
+  # @return [Boolean] true when the file is in the Core Library
+  def from_core_library?
+    library == LiveOrigin::CORE_LIBRARY
   end
 
   # The size of the file on disk.

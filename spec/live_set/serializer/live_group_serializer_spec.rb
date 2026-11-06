@@ -24,8 +24,8 @@ RSpec.describe LiveGroupSerializer, '#to_markdown' do
     markdown = described_class.new(group('Drums'), '1').to_markdown
 
     expect(markdown.lines.first.chomp).to eq(
-      '- Group track 1  👥 Group  <code style="background-color: #212121; color: #FFFFFF; ' \
-      'vertical-align: middle"># Drums</code>'
+      '- Group track 1  👥 Group  <code style="color: #FFFFFF; background-color: #212121; ' \
+      'vertical-align: middle;"># Drums</code>'
     )
   end
 
@@ -33,8 +33,8 @@ RSpec.describe LiveGroupSerializer, '#to_markdown' do
     markdown = described_class.new(group('Drums'), '1').to_markdown
 
     expect(markdown).to include(
-      '  - Group Track Device 1a  <code style="background-color: #212121; color: #FFFFFF; ' \
-      'vertical-align: middle">Filter</code>  Max for Live  ⚠ not usable on Push 3'
+      '    - Group Track Device 1a  <code style="color: #FFFFFF; background-color: #212121; ' \
+      'vertical-align: middle;">Filter</code>  Max for Live  ⚠ not usable on Push 3'
     )
   end
 

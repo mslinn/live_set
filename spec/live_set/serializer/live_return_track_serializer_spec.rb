@@ -23,8 +23,8 @@ RSpec.describe LiveReturnTrackSerializer, '#to_markdown' do
     markdown = described_class.new(track('B-Echo | EQ Eight'), '2').to_markdown
 
     expect(markdown.lines.first.chomp).to eq(
-      '- Track 2  ↩️ Return  <code style="background-color: #FF94A6; color: #000000; ' \
-      'vertical-align: middle" title="Live color #0">B-Echo &#124; EQ Eight</code>'
+      '- Track 2  ↩️ Return  <code style="color: #000000; background-color: #FF94A6; ' \
+      'vertical-align: middle;" title="Live color #0">B-Echo &#124; EQ Eight</code>'
     )
   end
 

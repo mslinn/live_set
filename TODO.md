@@ -73,8 +73,8 @@ in this gem.
 
 Test ALS files must be created that contain:
 
-- a frozen track, and a track whose clips are only in its `FreezeSequencer`.
-  Every track of every set in the corpus is unfrozen, and every
+- a frozen track, and a track whose clips are only in its `FreezeSequencer`.  At
+  present, no track of any set in the corpus is frozen, and every
   `FreezeSequencer` of every track is empty.
 - a plug-in nested in a group branch. The corpus holds one group branch, and
   the devices in it are native ones.

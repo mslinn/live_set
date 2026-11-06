@@ -22,7 +22,7 @@ class LiveTakeLanesSerializer
   # @return [String] the serialized markdown
   def to_markdown
     @take_lanes.map do |lane|
-      number = "#{@hierarchical_number}.#{lane.index}"
+      number = "#{@hierarchical_number}.#{lane.index}" # Causes children to be indented
       LiveTakeLaneSerializer.new(lane, number).to_markdown
     end.join("\n")
   end

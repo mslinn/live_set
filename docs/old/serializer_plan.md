@@ -142,10 +142,10 @@ ALS_Model
   Group Track Device 1b DrumBuss Live
   Track 1.1 🎹 MIDI Kontakt 7
     Track Device 1.1a Kontakt 7 VST3 ⚠ not usable on Push 3
-    Clip 1.1.1 (×5) Kontakt 7 1 ⚠ not in project
+    Clip 1.1.1 (×5) Kontakt 7 1 ⚠ missing from project
       References (×5): launch: trigger, warp: none
     Take lane 1.1.1 3-Kontakt 7 1
-      Clip 1.1.1.1 (×3) Kontakt 7 1 ⚠ not in project
+      Clip 1.1.1.1 (×3) Kontakt 7 1 ⚠ missing from project
         References (×3): launch: trigger, warp: none
 ```
 
@@ -591,11 +591,11 @@ als_report -s path/to/my_set.als -i notes
 
 and the default is `notes`.
 
-**What it changes in the report.** The grouping of the clips of a track is by identity, so
-the clips that are alike are one line with the number of them. In the Live 11 reference set
-the nine copies of `3-Kontakt 7 1` are one line today, because the key is the name, the
-colour and the marks — and eight of them hold forty-seven notes while one holds nineteen.
-Under `notes` they are two lines.
+**What it changes in the report.** The grouping of the clips of a track is by
+identity, so the clips that are alike are presented as one line with a count. In
+the Live 11 reference set the nine copies of `3-Kontakt 7 1` are one line today,
+because the key is the name, the colour and the marks — and eight of them hold
+forty-seven notes while one holds nineteen.  Under `notes` they are two lines.
 
 **And a section that crosses the tracks of the set.** A new section, `## Identical MIDI
 Clips`, lists every group of MIDI clips of the set that hold the same notes, and where each
@@ -618,7 +618,7 @@ The report carries two checksums of the set, both SHA-256:
   in the file, including the compression.
 - **the hash of the content**, of the XML the `.als` holds when it is inflated. A set is a
   gzip file, and two files with the same content need not have the same bytes: a set that was
-  recompressed has the same content and a different file. The hash of the content says the
+  recompressed has the same content and a different file. XML hash says the
   material did not change; the hash of the file says the file did not change.
 
 Both are of the set that was read, and the report says which is which.
@@ -631,9 +631,9 @@ computed:
 | The size | What it is | How it is computed | What it needs |
 | --- | --- | --- | --- |
 | The set file | the size of the `.als` | the file on disk | the set |
-| The expected size of the project | what the project should be, according to the `.als`: the set file, and every sample the set refers to that is in the project, counted once | the sizes Live recorded in `OriginalFileSize`, and the size on disk where Live recorded zero | the set |
-| The actual size of the project | what the project is, on disk | the files in the project folder | the project folder |
-| The fully resolved size | everything the set draws on: the project, and the assets outside it — the samples in the user library, the Live Packs, the Racks, the Live Clips | the expected size, with the assets outside the project added | the set, and the files outside the project |
+| Expected Project Size | what the project should be, according to the `.als`: the set file, and every sample the set refers to that is in the project, counted once | the sizes Live recorded in `OriginalFileSize`, and the size on disk where Live recorded zero | the set |
+| Actual Project Size | what the project is, on disk | the files in the project folder | the project folder |
+| Fully Resolved Size | everything the set draws on: the project, and the assets outside it — the samples in the user library, the Live Packs, the Racks, the Live Clips | the expected size, with the assets outside the project added | the set, and the files outside the project |
 
 A sample that is not on disk has no size on disk, and the report says so rather than
 guessing at one. A project folder that is not there has no actual size, and the report says
@@ -793,8 +793,8 @@ Each step leaves the program working, and the reports unchanged.
    | `LiveSizes` | the four sizes of the set | `LiveSizesSerializer` |
    | `LiveChecksums` | the hash of the file, and the hash of the content | `LiveChecksumsSerializer` |
 
-   The sections are `## The Size of the Set` and `## The Checksums of the Set`,
-   after the header block, and `## The Assets of the Set` at the end of the
+   The sections are `## Set Sizes` and `## Set Checksums`,
+   after the header block, and `## Set Assets` at the end of the
    report.
 
    A size that could not be computed says so: a project folder that is not there

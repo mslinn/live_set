@@ -15,17 +15,19 @@ RSpec.describe LiveMidiClipSerializer, '#to_markdown' do
     element = LiveSets.nodes(LiveSets.fascination, '//MidiClip').find do |candidate|
       candidate.at('Name')&.[]('Value') == name
     end
-    LiveMidiClip.new element, place: 'session view'
+    LiveMidiClip.new element, place: 'session view' # TODO: Why are we only testing clips in session view?
   end
 
-  it 'writes the name of the clip, on the colour Live gave it' do
-    expect(described_class.new(clip('3-Kontakt 7 1'), '1.1.1').to_markdown).to eq(
-      '<code style="background-color: #FFA428; color: #000000; vertical-align: middle" ' \
+  it 'writes the name of the clip, using the colours stored in the ALS XML' do
+    expected = described_class.new(clip('3-Kontakt 7 1'), '1.1.1').to_markdown
+    expect(expected).to eq(
+      '<code style="color: #000000; background-color: #FFA428; vertical-align: middle;" ' \
       'title="Live color #1">Kontakt 7 1</code>'
     )
   end
 
   it 'writes no file, because a MIDI clip plays no file' do
-    expect(described_class.new(clip('3-Kontakt 7 1'), '1.1.1').to_markdown).not_to include('<br>')
+    expected = described_class.new(clip('3-Kontakt 7 1'), '1.1.1').to_markdown
+    expect(expected).not_to include('<br>') # TODO: this test makes no sense. how does this relate to midi clips?
   end
 end

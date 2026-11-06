@@ -17,11 +17,9 @@ class LiveGroupSerializer
   #
   # @param group [LiveGroup] the group to be serialized
   # @param hierarchical_number [String] the number of the group in the report
-  # @param indent [String] the indentation of the lines of the group
-  def initialize(group, hierarchical_number, indent = '')
+  def initialize(group, hierarchical_number)
     @group = group
     @hierarchical_number = hierarchical_number
-    @indent = indent
   end
 
   # Returns the group and its member tracks as markdown.
@@ -36,10 +34,14 @@ class LiveGroupSerializer
 
   # The line of the group: its number, its icon, its kind and its name.
   #
+  # The indentation of the line comes from the number of the group, so that the number and the
+  # place of the group in the outline always agree.
+  #
   # @return [String] the line
   def group_line
     name = LiveMarkup.display_name @group
-    "#{@indent}- Group track #{@hierarchical_number}  👥 Group  #{name_markdown(name)}"
+    "#{LiveMarkup.indent_for(@hierarchical_number)}- Group track #{@hierarchical_number}  " \
+      "👥 Group  #{name_markdown(name)}"
   end
 
   # The name of the group, on the colour Live gave it.
@@ -79,8 +81,7 @@ class LiveGroupSerializer
   # @return [String] the devices
   def device_lines
     LiveDevicesSerializer.new(@group.devices, @hierarchical_number,
-                              slot_label: 'Group Track Device',
-                              indent:     "#{@indent}  ").to_markdown
+                              slot_label: 'Group Track Device').to_markdown
   end
 
   # The lines of the tracks in the group.
@@ -90,9 +91,9 @@ class LiveGroupSerializer
   #
   # @return [String] the tracks
   def track_details
-    midi = LiveMidiTracksSerializer.new @group.midi_tracks, @hierarchical_number, 1, "#{@indent}  "
+    midi = LiveMidiTracksSerializer.new @group.midi_tracks, @hierarchical_number, 1
     audio = LiveAudioTracksSerializer.new @group.audio_tracks, @hierarchical_number,
-                                          @group.midi_tracks.size + 1, "#{@indent}  "
+                                          @group.midi_tracks.size + 1
     [midi.to_markdown, audio.to_markdown].reject(&:empty?).join("\n")
   end
 end

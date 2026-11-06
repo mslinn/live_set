@@ -166,9 +166,8 @@ class LiveAudioTrack
   # number the track has in the report.
   #
   # @param number [String] the number of the track in the report
-  # @param indent [String] the indentation of the lines of the track
   # @return [String] the markdown
-  def to_markdown(number, indent = '')
-    LiveAudioTrackSerializer.new(self, number, indent).to_markdown
+  def to_markdown(number)
+    LiveAudioTrackSerializer.new(self, number).to_markdown
   end
 end

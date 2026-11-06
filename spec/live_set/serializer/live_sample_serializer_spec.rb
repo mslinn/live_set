@@ -14,12 +14,10 @@ RSpec.describe LiveSampleSerializer, '#to_markdown' do
     expect(described_class.new(sample).to_markdown).to eq '`Pink Noise - EDMtips.com.wav`'
   end
 
-  it 'says that a sample that is not in the project is not in the project' do
+  it 'writes the name of a sample that is not in the project, and says nothing more' do
     sample = LiveSample.new '/Users/owen/Music/Ableton/User Library/Samples/Pink Noise - EDMtips.com.wav'
 
-    expect(described_class.new(sample).to_markdown).to eq(
-      '`Pink Noise - EDMtips.com.wav` (not in the project)'
-    )
+    expect(described_class.new(sample).to_markdown).to eq '`Pink Noise - EDMtips.com.wav`'
   end
 
   it 'writes the name of a sample that is in the project, and says nothing more' do

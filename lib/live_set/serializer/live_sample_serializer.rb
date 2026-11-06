@@ -2,8 +2,7 @@ require_relative 'live_markup'
 
 # Serializes a `LiveSample` model as markdown.
 #
-# A sample is a file the set plays. The name of it is written in code type, and a sample
-# that is not in the project is marked as one that is not.
+# A sample is a file the set plays. The name of it is written in code type.
 #
 # Sample usage:
 # markdown = LiveSampleSerializer.new(sample).to_markdown
@@ -19,9 +18,6 @@ class LiveSampleSerializer
   #
   # @return [String] the serialized markdown
   def to_markdown
-    name = "`#{LiveMarkup.escape @sample.name}`"
-    return name if @sample.collected?
-
-    "#{name} (not in the project)"
+    "`#{LiveMarkup.escape @sample.name}`"
   end
 end

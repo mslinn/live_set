@@ -326,6 +326,12 @@ macOS:    /Applications/Live [Version].app/Contents/App Resources/Core Library/L
 The versions installed on Mike Slinn&apos;s Bear computer, where this was
 developed on were:
 
+```shell
+$ ls "${ABLETON_HOME:-/mnt/c/ProgramData/Ableton}"
+'Live 10 Suite'/  'Live 12 Suite'/  'Live 9 Suite'/
+'Live 11 Suite'/  'Live 8'/
+```
+
 | Version | Path                                                                                        | `Creator`                                          |
 | ------- | ------------------------------------------------------------------------------------------  | -------------------------------------------------- |
 | Live 12 | `C:\ProgramData\Ableton\Live 12 Suite\Resources\Core Library\Lessons\Demo Songs\`           | Ableton Live 12.4d1                                |

@@ -53,8 +53,8 @@ RSpec.describe AlsReport, '#show' do
   it 'numbers the devices of a track, and of a group' do
     markdown = report(LiveSets.fascination)
 
-    expect(markdown).to match(/^ {2}- Group Track Device 1a  .*Max for Live  ⚠ not usable on Push 3$/)
-    expect(markdown).to match(%r{^ {2}- Group Track Device 1b  <code>DrumBuss</code>  Live$})
+    expect(markdown).to match(/^ {4}- Group Track Device 1a  .*Max for Live  ⚠ not usable on Push 3$/)
+    expect(markdown).to match(%r{^ {4}- Group Track Device 1b  <code>DrumBuss</code>  Live$})
   end
 
   it 'says nothing about devices a track does not have' do
@@ -64,33 +64,33 @@ RSpec.describe AlsReport, '#show' do
   it 'numbers the tracks in a group, and their clips' do
     markdown = report(LiveSets.fascination)
 
-    expect(markdown).to match(%r{^ {2}- Track 1\.1  🎹 MIDI  .*<code[^>]*>Kontakt 7</code>})
-    expect(markdown).to match(%r{^ {2}- Track 1\.2  🎵 Audio  .*<code[^>]*>Tambo and Timbales Loop 90bpm</code>})
-    expect(markdown).to match(%r{^\s*\* Clip 1\.1\.\d+ \(×\d+\)  .*<code[^>]*>Kontakt 7 1</code>})
+    expect(markdown).to match(%r{^ {4}- Track 1\.1  🎹 MIDI  .*<code[^>]*>Kontakt 7</code>})
+    expect(markdown).to match(%r{^ {4}- Track 1\.2  🎵 Audio  .*<code[^>]*>Tambo and Timbales Loop 90bpm</code>})
+    expect(markdown).to match(%r{^\s*- Clip 1\.1\.\d+ \(×\d+\)  .*<code[^>]*>Kontakt 7 1</code>})
   end
 
   it 'puts the take lanes of a track under the track' do
     markdown = report(LiveSets.fascination)
 
-    expect(markdown).to match(/^ {2}- Take lane 1\.\d+  /)
+    expect(markdown).to match(/^ {4}- Take lane 1\.\d+  /)
   end
 
   it 'puts the clips of a take lane under the lane' do
-    expect(report(LiveSets.fascination)).to match(/^ {4}\* Clip 1\.\d+\.\d+ \(×\d+\)/)
+    expect(report(LiveSets.fascination)).to match(/^ {8}- Clip 1\.\d+\.\d+ \(×\d+\)/)
   end
 
   it 'gives the color of each track, on the name of the track' do
     expect(report(LiveSets.fascination)).to match(
-      /background-color:\s*#[0-9A-F]{6};\s*color:\s*#[0-9A-F]{6};\s*vertical-align:\s*middle" title="Live color #\d+">/
+      /color:\s*#[0-9A-F]{6};\s*background-color:\s*#[0-9A-F]{6};\s*vertical-align:\s*middle;" title="Live color #\d+">/
     )
   end
 
   it 'counts the copies of a clip' do
-    expect(report(LiveSets.fascination)).to match(/^\s*\* Audio Clip \d+\.\d+ \(×\d+\)/)
+    expect(report(LiveSets.fascination)).to match(/^\s*- Audio Clip \d+\.\d+ \(×\d+\)/)
   end
 
   it 'gives the settings of a reference on the reference' do
-    expect(report(LiveSets.fascination)).to match(/^\s*\* References \(×\d+\): launch: /)
+    expect(report(LiveSets.fascination)).to match(/^\s*- References \(×\d+\): launch: /)
   end
 
   it 'gives the file of a clip' do
@@ -98,15 +98,22 @@ RSpec.describe AlsReport, '#show' do
   end
 
   it 'says that a sample is not in the project' do
-    expect(report(LiveSets.fascination)).to include('⚠ not in project')
+    expect(report(LiveSets.fascination)).to include('⚠ missing from project')
   end
 
-  it 'summarizes the samples that are not in the project, by the pack they are in' do
+  it 'summarizes the samples that are not in the project, and the ones that are' do
     markdown = report(LiveSets.fascination)
 
     expect(markdown).to include('## Missing Samples')
-    expect(markdown).to include('|Drive and Glow|`Tambourine 16th 84 bpm.aif`|')
     expect(markdown).to include('|User Library|`Pink Noise - EDMtips.com.wav`|')
+    expect(markdown).to include('## Located Samples')
+    expect(markdown).to include('|Drive and Glow|`Tambourine 16th 84 bpm.aif`|')
+  end
+
+  it 'writes a sample in only one of the two sections' do
+    markdown = report(LiveSets.fascination)
+
+    expect(markdown.scan('`Pink Noise - EDMtips.com.wav`').length).to eq 1
   end
 
   it 'links the clips that are not collected to the missing samples' do
@@ -123,7 +130,7 @@ RSpec.describe AlsReport, '#show' do
 
   it 'marks the devices that Push 3 cannot use with a dark background' do
     expect(report(LiveSets.fascination)).to include(
-      'background-color: #212121; color: #FFFFFF; vertical-align: middle">Filter</code>'
+      'color: #FFFFFF; background-color: #212121; vertical-align: middle;">Filter</code>'
     )
   end
 
@@ -149,13 +156,13 @@ RSpec.describe AlsReport, '#show' do
     markdown = report(LiveSets.fascination)
 
     # TODO: use project-wide constants for color values
-    expect(markdown).to include('background-color: #212121; color: #FFFFFF; vertical-align: middle"># Drums</code>')
-    expect(markdown).to include('background-color: #212121; color: #FFFFFF; vertical-align: middle">Kontakt 7</code>')
+    expect(markdown).to include('color: #FFFFFF; background-color: #212121; vertical-align: middle;"># Drums</code>')
+    expect(markdown).to include('color: #FFFFFF; background-color: #212121; vertical-align: middle;">Kontakt 7</code>')
   end
 
   it 'explains the messages for a clip' do
     expect(report(LiveSets.fascination)).to include(
-      '`⚠ not in project` means the sample is not within the project directory tree'
+      '`⚠ missing from project` means the sample is not within the project directory tree'
     )
   end
 
@@ -175,5 +182,34 @@ RSpec.describe AlsReport, '#show' do
 
   it 'writes the errors of the verdict as a list' do
     expect(report(LiveSets.fascination)).to match(/^- Group '2 Drums' uses Filter/)
+  end
+
+  it 'writes the sizes and the checksums of the set under the metadata' do
+    markdown = report(LiveSets.fascination)
+
+    expect(markdown).to include('## Metadata')
+    expect(markdown).to include('### Set Sizes')
+    expect(markdown).to include('### Set Checksums')
+    expect(markdown).to include('#### File Hash')
+    expect(markdown).to include('#### XML hash')
+  end
+
+  it 'writes the assets of the set as a numbered list' do
+    markdown = report(LiveSets.fascination)
+
+    expect(markdown).to include('## Set Assets')
+    expect(markdown).to match(%r{^1\. <code>Samples/})
+  end
+
+  it 'writes the state of the machine the report was made on at the bottom' do
+    markdown = report(LiveSets.fascination)
+
+    expect(markdown).to include('## Test Environment')
+    expect(markdown).to include('### The Ableton Project Info Folder')
+    expect(markdown).to include('### Referenced Packs')
+  end
+
+  it 'names the pack of the set that is not on this machine' do
+    expect(report(LiveSets.fascination)).to include('- **Drive and Glow**')
   end
 end

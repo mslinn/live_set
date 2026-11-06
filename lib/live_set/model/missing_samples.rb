@@ -1,6 +1,6 @@
 require_relative 'live_sample'
 
-# The samples of a set that are not in the project, by the pack they are in.
+# The samples of a set that are not in the project.
 #
 # The clips that are not collected are counted and not named in the verdict: a demo set holds
 # dozens of them, and the list of them says nothing that the count does not.
@@ -14,12 +14,12 @@ class MissingSamples
     @samples = samples
   end
 
-  # The samples, by the pack they are in.
+  # The samples, by the source they come from.
   #
-  # @return [Hash] each pack, and the names of the samples in it
-  def packs
-    @packs ||= samples.group_by(&:pack).transform_values do |in_pack|
-      in_pack.map(&:name).uniq.sort
+  # @return [Hash] each source, and the names of the samples in it
+  def sources
+    @sources ||= samples.group_by(&:source).transform_values do |in_source|
+      in_source.map(&:name).uniq.sort
     end
   end
 

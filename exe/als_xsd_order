@@ -4,6 +4,10 @@
 #
 # The implementation is in the AlsXsdOrder class, in lib/als_to_xsd/als_xsd_order.rb.
 
+# TODO why was this command written? There was no requirement for it. The functionality of AlsXsdOrder is only needed
+# for one spec, spec/live_set/tx/live_up_ground_truth_spec.rb, and that does not need a command line.
+# This command should be deleted, and all references to it deleted as well.
+
 if ENV['VO_DEBUGGING']
   require_relative '../lib/live_set'
 else

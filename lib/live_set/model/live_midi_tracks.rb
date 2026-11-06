@@ -48,11 +48,10 @@ class LiveMidiTracks
   # @param hierarchical_number [String, nil] the number of the collection in the report, or
   #   nil when the tracks are at the top of the set
   # @param start [Integer] the number of the first track of the collection
-  # @param indent [String] the indentation of the lines
   # @return [String] the markdown
-  def to_markdown(hierarchical_number = nil, start = 1, indent = '')
+  def to_markdown(hierarchical_number = nil, start = 1)
     tracks.each_with_index.map do |track, index|
-      track.to_markdown number_of(hierarchical_number, start + index), indent
+      track.to_markdown number_of(hierarchical_number, start + index)
     end.join("\n")
   end
 

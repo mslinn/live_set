@@ -15,8 +15,7 @@ class LiveAudioTracksSerializer < LiveTrackCollectionSerializer
   # @param hierarchical_number [String, nil] the number of the collection in the report, or
   #   nil when the tracks are at the top of the set
   # @param start [Integer] the number of the first track of the collection
-  # @param indent [String] the indentation of the lines of the collection
-  def initialize(tracks, hierarchical_number = nil, start = 1, indent = '')
-    super(tracks, LiveAudioTrackSerializer, hierarchical_number, start, indent)
+  def initialize(tracks, hierarchical_number = nil, start = 1)
+    super(tracks, LiveAudioTrackSerializer, hierarchical_number, start)
   end
 end

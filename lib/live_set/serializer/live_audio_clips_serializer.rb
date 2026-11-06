@@ -57,11 +57,10 @@ class LiveAudioClipsSerializer
 
   # The lines of the settings the copies differ in.
   #
-  # The copies that have the same settings are one line, with the number of them, and the
-  # lines are ordered by the number of copies, so that the ones with the most come first.
+  # The copies that have the same settings are presented once, with a count, and the lines are ordered by the count, so
+  # that the most common copies are shown first.
   #
-  # @param group [Array<LiveAudioClip>] the copies
-  # @return [Array<String>] the lines
+  # @param group [Array<LiveAudioClip>] the copies @return [Array<String>] the lines
   def settings_lines(group)
     the_groups = group.group_by { |clip| settings_of clip }
     the_groups.map { |settings, copies| [copies.length, settings] }

@@ -4,10 +4,14 @@ require 'live_set/tx/live_11_and_12'
 require 'live_set/demo_sets'
 require 'support/schemas'
 
+# TODO: this spec was written before exe/als_to_version was written and might not be testing production code; it might
+# be testing dead code. If this spec, or a portion of it is useful, the useful parts should be moved next to the other
+# specs for als_to_version.
+#
 # The elements Live 12 adds that the transformations add, and not the list of the additions.
 #
-# The tuning of a MIDI track depends on the device chain of the track — the notes of a drum
-# rack are not pitches — so it cannot be written in the list.
+# The tuning of a MIDI track depends on the device chain of the track — the notes of a drum rack are not pitches — so it
+# cannot be written in the list.
 ADDED_BY_TRANSFORMATIONS = { 'MidiTrack' => %w[IsTuned] }.freeze
 
 # The elements of a set that hold a track.

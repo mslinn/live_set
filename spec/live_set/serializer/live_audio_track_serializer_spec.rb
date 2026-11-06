@@ -25,15 +25,15 @@ RSpec.describe LiveAudioTrackSerializer, '#to_markdown' do
     markdown = described_class.new(track('Tambo and Timbales Loop 90bpm'), '1.2').to_markdown
 
     expect(markdown.lines.first.chomp).to eq(
-      '- Track 1.2  🎵 Audio  <code style="background-color: #18E9FE; color: #000000; ' \
-      'vertical-align: middle" title="Live color #21">Tambo and Timbales Loop 90bpm</code>'
+      '    - Track 1.2  🎵 Audio  <code style="color: #000000; background-color: #18E9FE; ' \
+      'vertical-align: middle;" title="Live color #21">Tambo and Timbales Loop 90bpm</code>'
     )
   end
 
   it 'writes the clips of the audio side of the track under it' do
     markdown = described_class.new(track('Tambo and Timbales Loop 90bpm'), '1.2').to_markdown
 
-    expect(markdown).to include('  * Audio Clip 1.2.1 (×11) ')
+    expect(markdown).to include('    - Audio Clip 1.2.1 (×11) ')
   end
 
   it 'writes the file the clip plays, and the size of it' do
@@ -47,6 +47,6 @@ RSpec.describe LiveAudioTrackSerializer, '#to_markdown' do
   it 'writes the take lanes of the track under it' do
     markdown = described_class.new(track('Tambo and Timbales Loop 90bpm'), '1.2').to_markdown
 
-    expect(markdown).to include('  - Take lane 1.2.1  Tambourine 16th 84 bpm')
+    expect(markdown).to include('    - Take lane 1.2.1  Tambourine 16th 84 bpm')
   end
 end

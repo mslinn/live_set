@@ -18,23 +18,29 @@ RSpec.describe LiveSizesSerializer, '#to_markdown' do
   end
 
   it 'writes the heading of the section' do
-    expect(described_class.new(sizes).to_markdown).to start_with "## The Size of the Set\n"
+    expect(described_class.new(sizes).to_markdown).to start_with "### Set Sizes\n"
   end
 
   it 'writes the four sizes' do
     markdown = described_class.new(sizes).to_markdown
 
-    expect(markdown).to include('|The size|The size in bytes|What it is|How it was computed|')
+    expect(markdown).to include('|Bytes|Describes|How Computed|')
     expect(markdown).to include('|The set file|')
-    expect(markdown).to include('|The expected size of the project|')
-    expect(markdown).to include('|The actual size of the project|')
-    expect(markdown).to include('|The fully resolved size|')
+    expect(markdown).to include('|Expected Project Size|')
+    expect(markdown).to include('|Actual Project Size|')
+    expect(markdown).to include('|Fully Resolved Size|')
   end
 
-  it 'writes the size of the set file, in bytes and in a size a reader can see' do
+  it 'writes the size of the set file, as the default locale writes it' do
     markdown = described_class.new(sizes).to_markdown
 
-    expect(markdown).to include("|#{sizes.set_file_size} (")
+    expect(markdown).to include("|#{sizes.set_file_size.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\1,').reverse} bytes|")
+  end
+
+  it 'writes no size a reader has to convert, and no size in parentheses' do
+    markdown = described_class.new(sizes).to_markdown
+
+    expect(markdown).not_to include '(938.69 kB)'
   end
 
   it 'says what each size was computed from' do

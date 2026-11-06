@@ -27,6 +27,7 @@ class LiveMidiTrack
 
   attr_reader :clips
 
+  # TODO: if set_directory is not required, delete it and correct all call sites
   # @param set_directory [String] the directory of the set
   # @param element [Nokogiri::XML::Element] the `<MidiTrack>` element
   def initialize(_set_directory, element)
@@ -57,9 +58,8 @@ class LiveMidiTrack
   # number the track has in the report.
   #
   # @param number [String] the number of the track in the report
-  # @param indent [String] the indentation of the lines of the track
   # @return [String] the markdown
-  def to_markdown(number, indent = '')
-    LiveMidiTrackSerializer.new(self, number, indent).to_markdown
+  def to_markdown(number)
+    LiveMidiTrackSerializer.new(self, number).to_markdown
   end
 end

@@ -42,6 +42,13 @@ by the serializer of the model.
   has a `to_markdown` of its own only delegates to the serializer that writes it.
 - **Every collection is a class of its own**, named for the things it holds, and it has a
   serializer of its own.
+- **The indent of a thing comes from its number.** The number of a thing in the report says
+  how deep it is: `1` is a track at the top of the set, `1.1` is a child of it, and `1a` — a
+  device of the track `1` — is a child of it too. The indent is derived from the number, so
+  that the number of a thing and the place of it in the outline can never disagree.
+- **The outline is one list.** Every line of the outline is a list item of the same kind, so
+  that a renderer takes the children of a thing for its content and not for a list of their
+  own.
 
 ## The classes
 
@@ -174,7 +181,7 @@ whether it is in the project.
 | `absolute_path` | where the file is, resolved against the directory of the set |
 | `file_size` | the size of the file, as Live recorded it, and as it is on disk |
 | `color` | the number Live writes for the colour of the clip |
-| `marks` | what is said about the clip: `⚠ not in project`, and the state of it |
+| `marks` | what is said about the clip: `⚠ missing from project`, and the state of it |
 | `launch_mode` | how the clip is launched |
 | `warp_mode` | how the clip's sample is warped, and whether it is warped at all |
 | `place` | where the clip is: `session view`, `arrangement`, `take lane 1.1` |
@@ -193,6 +200,35 @@ the clips that are heard.
 
 The file on disk, and the pack it is in. Several clips can point at the same file, and each
 can play it differently — reversed, warped differently, trimmed — without touching the file.
+
+| | |
+| --- | --- |
+| `path` | the path Live wrote for the file, which says which pack it came from |
+| `relative_path` | the path of the file relative to the project folder |
+| `in_set?` | true when the relative path resolves within the set |
+| `found?` | true when the file is on disk |
+| `pack`, `pack_path` | the pack the file came from, and the path of it |
+| `library` | the library of Live the file came from: the user library, or the Core Library |
+| `collected?` | true when the file was copied into the project's `Samples/Imported/` folder |
+
+### `LiveOrigin` — where a file comes from
+
+The path Live wrote for a file says where the file was when the set was saved: in the
+project, in the user library, in the Core Library of Live, or in a pack. The content of a
+pack is under a folder of its own — `Samples`, `Sounds`, `IRs`, `Devices`, `Racks`,
+`Presets` — and the pack is the folder above it. The libraries of Live are not packs.
+
+See [als_notes.md](als_notes.md), "Where a file comes from".
+
+### `LivePack` — a pack the set refers to
+
+The name of the pack, the path of the folder of it, and whether the pack is on this machine.
+
+### `LivePacks` — the packs of the set
+
+The packs the set refers to, the ones that are on this machine, and the ones that are not. A
+pack that is not installed is not a fault of the set: the set names the file, and the pack
+holds it.
 
 ### `MissingSamples`
 
@@ -213,7 +249,15 @@ size that could not be computed says so.
 
 ### `LiveChecksums` — the checksums of the set
 
-The hash of the file, and the hash of the content the file holds when it is inflated.
+File hash, and the hash of the content the file holds when it is inflated.
+
+### `LiveProjectInfo` — the 'Ableton Project Info' folders around the set
+
+The folders of that name in the directory of the set and in its parent directories, and what
+is wrong with them. The folders are a fact about the machine the report is made on, and not
+about the set, so the report says what it found and what it means: Live gets confused by a
+folder of that name in a parent folder of the folder of the project. See
+[als_notes.md](als_notes.md), "The 'Ableton Project Info' folder".
 
 ### `HeaderBlock` — the facts about the set
 

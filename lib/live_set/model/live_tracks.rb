@@ -85,12 +85,11 @@ class LiveTracks
   #
   # @param separately [Boolean] whether the two kinds of track are written in their own
   #   lists
-  # @param indent [String] the indentation of the lines
   # @return [String] the markdown
-  def to_markdown(separately: false, indent: '')
-    return separate_markdown(indent) if separately
+  def to_markdown(separately: false)
+    return separate_markdown if separately
 
-    ordered_markdown(indent)
+    ordered_markdown
   end
 
   # Every track of the set, with the number it has in the report.
@@ -157,7 +156,7 @@ class LiveTracks
     audio_tracks.each do |track|
       next if track.frozen? || track.distinct_clips.empty? || track.device_summary.empty?
 
-      advice << "Track '#{track.name}' is unfrozen; devices: #{track.device_summary}"
+      advice << "Track '#{track.name}' is not frozen; incompatible devices: #{track.device_summary}"
     end
     advice
   end
@@ -166,22 +165,20 @@ class LiveTracks
 
   # The tracks of the set, in the order Live wrote them.
   #
-  # @param indent [String] the indentation of the lines
   # @return [String] the markdown
-  def ordered_markdown(indent)
+  def ordered_markdown
     numbered_tracks_of_the_set.map do |number, track|
-      track.to_markdown number, indent
+      track.to_markdown number
     end.join("\n")
   end
 
   # The audio tracks and the MIDI tracks of the set, in their own lists.
   #
-  # @param indent [String] the indentation of the lines
   # @return [String] the markdown
-  def separate_markdown(indent)
+  def separate_markdown
     [
-      audio_tracks.to_markdown(nil, 1, indent),
-      midi_tracks.to_markdown(nil, 1, indent)
+      audio_tracks.to_markdown(nil, 1),
+      midi_tracks.to_markdown(nil, 1)
     ].reject(&:empty?).join("\n")
   end
 
@@ -200,7 +197,7 @@ class LiveTracks
   # @return [Array<String>] the errors
   def track_errors(track)
     track.blocking_devices.map do |device|
-      " - Track '#{track.name}' is unfrozen and uses #{device.label}, " \
+      " - Track '#{track.name}' is not frozen and uses device #{device.label}, " \
         'which Push 3 Standalone cannot run. Freeze or render this track.'
     end
   end

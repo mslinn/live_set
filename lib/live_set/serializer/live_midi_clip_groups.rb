@@ -60,11 +60,10 @@ class LiveMidiClipGroups
 
   # The lines of the settings the copies differ in.
   #
-  # The copies that have the same settings are one line, with the number of them, and the
-  # lines are ordered by the number of copies, so that the ones with the most come first.
+  # The copies that have the same settings are displayed once, with a count, sortedso that the most common copies appear
+  # first.
   #
-  # @param group [Array<LiveMidiClip>] the copies
-  # @return [Array<String>] the lines
+  # @param group [Array<LiveMidiClip>] the copies @return [Array<String>] the lines
   def settings_lines(group)
     groups = group.group_by { |clip| settings_of clip }
     groups.map { |settings, copies| [copies.length, settings] }

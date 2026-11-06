@@ -12,28 +12,28 @@ RSpec.describe LiveMidiClipGroups, '#to_markdown' do
   #
   # @param name [String] the name Live wrote
   # @return [Array<LiveMidiClip>] the clips
-  def clips(name)
+  def clips_called(name)
     element = LiveSets.nodes(LiveSets.fascination, '//MidiTrack').find do |candidate|
       candidate.at('Name/EffectiveName')&.[]('Value')&.sub(/\A\d+[- ]/, '') == name
     end
+    # TODO: the first parameter below is ignored so delete it:
     LiveMidiTrack.new(LiveSets.directory(LiveSets.fascination), element).clips
   end
 
-  it 'writes the copies of a clip that are alike as one line, with the number of them' do
-    groups = described_class.new clips('Kontakt 7')
+  let(:groups) { described_class.new clips_called('Kontakt 7') }
 
-    expect(groups.to_markdown('1')).to include(a_string_matching(/^\* Clip 1\.1 \(×5\) /))
+  it 'writes the copies of a clip that are alike are presented once, with a count' do
+    expected = groups.to_markdown('1')
+    expect(expected).to include(a_string_matching(/- Clip 1\.1 \(×5\) /))
   end
 
-  it 'writes the settings the copies differ in, under the line' do
-    groups = described_class.new clips('Kontakt 7')
-
-    expect(groups.to_markdown('1')).to include('  * References (×5): launch: trigger, warp: none')
+  it 'writes the settings the copies differ in, on the next line' do
+    expected = groups.to_markdown('1')
+    expect(expected).to include('        - References (×5): launch: trigger, warp: none')
   end
 
-  it 'numbers the clips of the track they are on' do
-    groups = described_class.new clips('Kontakt 7')
-
-    expect(groups.to_markdown('1.1').first).to start_with '* Clip 1.1.1 (×5) '
+  it 'hierarchically numbers the clips of the track they are on' do
+    expected = groups.to_markdown('1.1').first
+    expect(expected).to start_with '        - Clip 1.1.1 (×5) '
   end
 end

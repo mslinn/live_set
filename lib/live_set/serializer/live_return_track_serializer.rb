@@ -14,11 +14,9 @@ class LiveReturnTrackSerializer
   #
   # @param track [LiveReturnTrack] the track to be serialized
   # @param hierarchical_number [String] the number of the track in the report
-  # @param indent [String] the indentation of the lines of the track
-  def initialize(track, hierarchical_number, indent = '')
+  def initialize(track, hierarchical_number)
     @track = track
     @hierarchical_number = hierarchical_number
-    @indent = indent
   end
 
   # Returns the track as markdown.
@@ -43,7 +41,6 @@ class LiveReturnTrackSerializer
   # @return [String] the devices
   def device_lines
     LiveDevicesSerializer.new(@track.devices, @hierarchical_number, slot_label:   'Track Device',
-                                                                    indent:       "#{@indent}  ",
                                                                     track_frozen: @track.frozen?).to_markdown
   end
 end

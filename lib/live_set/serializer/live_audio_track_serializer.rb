@@ -18,11 +18,9 @@ class LiveAudioTrackSerializer
   #
   # @param track [LiveAudioTrack] the track to be serialized
   # @param hierarchical_number [String] the number of the track in the report
-  # @param indent [String] the indentation of the lines of the track
-  def initialize(track, hierarchical_number, indent = '')
+  def initialize(track, hierarchical_number)
     @track = track
     @hierarchical_number = hierarchical_number
-    @indent = indent
   end
 
   # Returns the track as markdown.
@@ -47,7 +45,6 @@ class LiveAudioTrackSerializer
   # @return [String] the devices
   def device_lines
     LiveDevicesSerializer.new(@track.devices, @hierarchical_number, slot_label:   'Track Device',
-                                                                    indent:       "#{@indent}  ",
                                                                     track_frozen: @track.frozen?).to_markdown
   end
 
@@ -59,7 +56,7 @@ class LiveAudioTrackSerializer
   def clip_lines
     lines = LiveMidiClipGroups.new(@track.clips).to_markdown(@hierarchical_number)
     lines += audio_clip_lines
-    lines.map { |line| "#{@indent}  #{line}" }
+    lines
   end
 
   # The lines of the clips of the audio side of the track.
@@ -77,7 +74,7 @@ class LiveAudioTrackSerializer
   def take_lane_lines
     return [] if @track.take_lanes.empty?
 
-    serializer = LiveTakeLanesSerializer.new @track.take_lanes, @hierarchical_number, "#{@indent}  "
+    serializer = LiveTakeLanesSerializer.new @track.take_lanes, @hierarchical_number
     serializer.to_markdown.split("\n")
   end
 end

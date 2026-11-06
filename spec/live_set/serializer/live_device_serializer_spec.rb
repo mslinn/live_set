@@ -33,7 +33,7 @@ RSpec.describe LiveDeviceSerializer, '#to_markdown' do
 
   it 'writes the name of a device Push 3 cannot run on the dark background, and warns of it' do
     expect(described_class.new(device('Kontakt 7'), '1.1a').to_markdown).to eq(
-      '<code style="background-color: #212121; color: #FFFFFF; vertical-align: middle">Kontakt 7</code>  ' \
+      '<code style="color: #FFFFFF; background-color: #212121; vertical-align: middle;">Kontakt 7</code>  ' \
       'VST3  ⚠ not usable on Push 3'
     )
   end

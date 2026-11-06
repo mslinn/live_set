@@ -241,6 +241,36 @@ clips.
 See `lib/live_set/model/live_audio_clip.rb`.
 
 
+## Where a file comes from
+
+Two paths name a file of a set, and they say different things.
+
+The **relative path** says where the file is in the project. A relative path
+that does not begin with `..` resolves within the set, and every other path
+points outside it.
+
+The **absolute path** says where the file was when the set was saved, and it
+says which pack the file came from. The content of a pack is under a folder of
+its own — `Samples`, `Sounds`, `IRs`, `Devices`, `Racks`, `Presets` — and the
+pack is the folder above it:
+
+| The absolute path | What it is |
+| --- | --- |
+| `.../Drive and Glow/Samples/Loops/...` | a file of the pack `Drive and Glow` |
+| `.../User Library/Samples/...` | a file of the user library of Live |
+| `.../Core Library/Samples/...` | a file of the Core Library of Live |
+
+The libraries of Live are not packs: they come with Live, and they are there
+for every set. A pack is sold separately, and it has to be installed for the
+files of it to be found.
+
+The absolute path can be stale. A set made by Ableton holds the paths of the
+machine it was built on — `/Volumes/data/tmp/trunk/Core Library/...` — and the
+relative path is the one that says where the file is now.
+
+See `lib/live_set/model/live_origin.rb`.
+
+
 ## The set file is a gzip file
 
 A set is a gzipped XML document, and the gzip header holds the time the file
@@ -248,8 +278,8 @@ was compressed. Two files with the same content can therefore have different
 bytes: a set that was recompressed has the same content and a different file.
 
 So a hash of the file and a hash of the content are different things, and a
-report that is evidence carries both. The hash of the file says that nothing in
-the file has changed. The hash of the content says that the material of the
+report that is evidence carries both. File hash says that nothing in
+the file has changed. XML hash says that the material of the
 set has not changed, however it was compressed.
 
 
@@ -341,6 +371,25 @@ devices that do — so they are not reported. But the devices they hold are,
 because those are the devices that actually run.
 
 See `lib/common/xml.rb`, `Xml#xml_chain_devices`.
+
+
+## The 'Ableton Project Info' folder
+
+Live writes a folder of that name in the folder of the project, and the folder of a set is
+usually the folder of the project. Live gets confused when it finds one in a parent folder of
+the folder of the project: it may load the project from the wrong place.
+
+The folders are a fact about the machine the report is made on, and not about the set, so the
+report says what it found and what it means, and the warnings are logged as well. The report
+has a section, `## The Ableton Project Info Folder`, that lists the warnings.
+
+This matters in a test environment, where a project is run from wherever it was unpacked: a
+project that was downloaded into a working directory tree can have an 'Ableton Project Info'
+folder above it, and Live may not operate as expected when it loads the project from there.
+It does not change the content of the report.
+
+See `lib/live_set/model/live_project_info.rb`, and the section of the report with the same
+name.
 
 
 ## The kinds of track

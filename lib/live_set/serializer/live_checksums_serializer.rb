@@ -1,4 +1,3 @@
-require 'markdown-tables'
 require_relative '../model/live_checksums'
 
 # Writes the checksums of a set.
@@ -20,14 +19,18 @@ class LiveChecksumsSerializer
   #
   # @return [String] the serialized markdown
   def to_markdown
-    rows = [
-      ['The hash of the file', 'the .als as it is on disk', @checksums.file_hash],
-      ['The hash of the content', 'the XML the .als holds when it is inflated', @checksums.content_hash]
-    ]
-
-    lines = ['## The Checksums of the Set', '']
-    lines << MarkdownTables.make_table(['The checksum', 'Of what', 'The SHA-256'], rows,
-                                       align: %w[l l l], is_rows: true)
-    lines.join("\n")
+    [
+      '### Set Checksums',
+      '',
+      '#### File Hash',
+      '',
+      'Checksum of the .als file on disk:<br>',
+      "`#{@checksums.file_hash}`",
+      '',
+      '#### XML hash',
+      '',
+      'Checksum of the XML within the .als file:<br>',
+      "`#{@checksums.content_hash}`"
+    ].join("\n")
   end
 end

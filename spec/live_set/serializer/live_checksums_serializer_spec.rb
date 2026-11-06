@@ -15,15 +15,16 @@ RSpec.describe LiveChecksumsSerializer, '#to_markdown' do
   end
 
   it 'writes the heading of the section' do
-    expect(described_class.new(checksums).to_markdown).to start_with "## The Checksums of the Set\n"
+    expect(described_class.new(checksums).to_markdown).to start_with "### Set Checksums\n"
   end
 
-  it 'writes the two checksums, and says which is which' do
+  it 'writes the two checksums in their own subsections, and says which is which' do
     markdown = described_class.new(checksums).to_markdown
 
-    expect(markdown).to include('|The checksum|Of what|The SHA-256|')
-    expect(markdown).to include('|The hash of the file|the .als as it is on disk|')
-    expect(markdown).to include('|The hash of the content|the XML the .als holds when it is inflated|')
+    expect(markdown).to include('#### File Hash')
+    expect(markdown).to include('#### XML hash')
+    expect(markdown).to include('Checksum of the .als file on disk:<br>')
+    expect(markdown).to include('Checksum of the XML within the .als file:<br>')
   end
 
   it 'writes the hash of the file' do

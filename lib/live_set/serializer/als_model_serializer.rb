@@ -9,6 +9,8 @@ require_relative 'live_group_serializer'
 require_relative 'live_groups_serializer'
 require_relative 'live_master_tracks_serializer'
 require_relative 'live_midi_tracks_serializer'
+require_relative 'live_packs_serializer'
+require_relative 'live_project_info_serializer'
 require_relative 'live_return_tracks_serializer'
 require_relative 'live_samples_serializer'
 require_relative 'live_sizes_serializer'
@@ -25,7 +27,7 @@ class AlsModelSerializer
     Clip references are found in session view slots, the arrangement, and a take lanes.
     Reference properties include launch method and warp mode.
     The take lanes of a track are under the track.
-    The string `⚠ not in project` means the sample is not within the project directory tree,
+    The string `⚠ missing from project` means the sample is not within the project directory tree,
     so the set is not self-contained.
   TEXT
 
@@ -39,35 +41,23 @@ class AlsModelSerializer
   # Returns the complete ALS model as markdown.
   #
   # The model of a set is the report of the set: the title, the facts about the file, the
-  # verdict for a transfer to Push 3 Standalone, the outline of the tracks and the things
-  # under them, the samples that are not in the project, the samples of the set, and the two
-  # cross-references.
+  # metadata of the set, the verdict for a transfer to Push 3 Standalone, the outline of the
+  # tracks and the things under them, the samples that are not in the project, the samples of
+  # the set, the two cross-references, the assets of the set, and the state of the machine
+  # the report was made on.
   #
   # @return [String] the serialized markdown for the entire ALS model
   def to_markdown
-    header_block_section      = LiveHeaderSerializer.new(@als_model.header_block).to_markdown
-    p3s_compatibility_section = P3SCompatibility.new(@als_model.live_set).to_markdown
-    hierarchical_entities     = hierarchy_markdown
-    missing_samples           = MissingSamplesSerializer.new(samples.missing).to_markdown
-    samples_section           = LiveSamplesSerializer.new(samples).to_markdown
-    device_track_xref         = DeviceCrossReferenceSerializer.new(devices).to_markdown
-    track_clip_xref           = TrackClipCrossReferenceSerializer.new(cross_reference).to_markdown
-    sizes_section             = LiveSizesSerializer.new(@als_model.sizes).to_markdown
-    checksums_section         = LiveChecksumsSerializer.new(@als_model.checksums).to_markdown
-    assets_section            = LiveAssetsSerializer.new(@als_model.assets).to_markdown
-
     <<~REPORT_END
       # `#{File.basename @als_model.path}`
 
       #{header_block_section}
 
-      #{sizes_section}
-
-      #{checksums_section}
+      #{metadata_section}
 
       #{p3s_compatibility_section}
 
-      #{hierarchical_entities}
+      #{hierarchy_markdown}
 
       #{missing_samples}
 
@@ -78,7 +68,102 @@ class AlsModelSerializer
       #{track_clip_xref}
 
       #{assets_section}
+
+      #{test_environment_section}
     REPORT_END
+  end
+
+  # The facts about the file.
+  #
+  # @return [String] the section
+  def header_block_section
+    LiveHeaderSerializer.new(@als_model.header_block).to_markdown
+  end
+
+  # The metadata of the set: its sizes and its checksums.
+  #
+  # @return [String] the section
+  def metadata_section
+    ['## Metadata', '', sizes_section, '', checksums_section].join("\n")
+  end
+
+  # The state of the machine the report was made on.
+  #
+  # The 'Ableton Project Info' folders around the set, and the packs the set refers to.
+  #
+  # @return [String] the section
+  def test_environment_section
+    ['## Test Environment', '', project_info_section, '', packs_section].join("\n")
+  end
+
+  # The 'Ableton Project Info' folders around the set.
+  #
+  # @return [String] the section
+  def project_info_section
+    LiveProjectInfoSerializer.new(@als_model.project_info).to_markdown
+  end
+
+  # The packs the set refers to.
+  #
+  # @return [String] the section
+  def packs_section
+    LivePacksSerializer.new(samples.packs).to_markdown
+  end
+
+  # The sizes of the set.
+  #
+  # @return [String] the section
+  def sizes_section
+    LiveSizesSerializer.new(@als_model.sizes).to_markdown
+  end
+
+  # The checksums of the set.
+  #
+  # @return [String] the section
+  def checksums_section
+    LiveChecksumsSerializer.new(@als_model.checksums).to_markdown
+  end
+
+  # The verdict for a transfer to Push 3 Standalone.
+  #
+  # @return [String] the section
+  def p3s_compatibility_section
+    P3SCompatibility.new(@als_model.live_set).to_markdown
+  end
+
+  # The samples of the set that are not in the project.
+  #
+  # @return [String] the section
+  def missing_samples
+    MissingSamplesSerializer.new(samples.missing).to_markdown
+  end
+
+  # The samples of the set.
+  #
+  # @return [String] the section
+  def samples_section
+    LiveSamplesSerializer.new(samples).to_markdown
+  end
+
+  # The devices of the set, and the tracks they are on.
+  #
+  # @return [String] the section
+  def device_track_xref
+    DeviceCrossReferenceSerializer.new(devices).to_markdown
+  end
+
+  # The clips of the set, and the tracks that hold them.
+  #
+  # @return [String] the section
+  def track_clip_xref
+    TrackClipCrossReferenceSerializer.new(cross_reference).to_markdown
+  end
+
+  # The assets of the set.
+  #
+  # @return [String] the section
+  def assets_section
+    LiveAssetsSerializer.new(@als_model.assets).to_markdown
   end
 
   # The groups and the tracks at the top of the set, and the things under them.
@@ -152,7 +237,7 @@ class AlsModelSerializer
   #
   # @return [LiveSamples] the samples
   def samples
-    @samples ||= LiveSamples.new(@als_model.live_set.audio_clips)
+    @samples ||= LiveSamples.new(@als_model.live_set.audio_clips, @als_model.directory)
   end
 
   # The devices of the set, and the tracks they are on.

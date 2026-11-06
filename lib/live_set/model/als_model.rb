@@ -2,6 +2,7 @@ require_relative 'header_block'
 require_relative 'live_assets'
 require_relative 'live_checksums'
 require_relative 'live_master_tracks'
+require_relative 'live_project_info'
 require_relative 'live_sizes'
 require_relative 'live_tracks'
 
@@ -76,6 +77,13 @@ class AlsModel
   # @return [LiveChecksums] the checksums
   def checksums
     @checksums ||= LiveChecksums.new path
+  end
+
+  # The 'Ableton Project Info' folders around the set.
+  #
+  # @return [LiveProjectInfo] the folders
+  def project_info
+    @project_info ||= LiveProjectInfo.new directory
   end
 
   # The directory the file is in.
