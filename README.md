@@ -379,7 +379,8 @@ Example:
 
 `als_report` writes a report of a set in markdown: the tracks of the set and the groups they
 are in, the devices of each of them, the clips and the take lanes, the samples that are not
-in the project, and a cross-reference of the tracks and the clips.
+in the project and the samples that are, the metadata of the set, the assets the set ships,
+the packs it refers to, and a cross-reference of the tracks and the clips.
 
 Every track of the set is written in the order Live saved it in. The
 `--show_midi_and_audio_tracks_separately` option writes the audio tracks and the MIDI
@@ -444,10 +445,16 @@ of the set that was read:
 A size that could not be computed says so: a project folder that is not there has no actual
 size, and the report says that instead of the expected one.
 
-The report contains a table of the assets of the set — every file it refers to — that explains
-the sizes: the path as the set writes it, how the path was resolved, the size Live recorded
-for it, the size on disk, where it is, and when it was last changed. A file that is not on
-disk has no size on disk, and the report says so.
+The report contains a list of the assets of the set — the samples it ships — that explains
+the sizes: the path as the set writes it, the size of the file, and when it was last
+changed. A sample that is outside the set is marked as one that Push 3 Standalone cannot
+play, and a sample that is not on disk is marked as one that is missing from the project.
+The devices of Ableton are not in the list: they have no location, and they come with Live.
+
+The report ends with the state of the machine the report was made on: the
+'Ableton Project Info' folders around the set, and the packs the set refers to. A pack
+that is not installed is not a fault of the set — the set names the file, and the pack holds
+it — so the packs that are missing are reported on their own.
 
 The report says what made it — the version of `live_set`, and where the tool is
 documented: <https://www.mslinn.com/av_studio/ableton_live_set.html>.

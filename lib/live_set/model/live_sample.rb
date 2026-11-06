@@ -7,8 +7,7 @@ require_relative 'live_origin'
 #
 # Two paths name a sample. The path Live wrote is where the file was when the set was saved,
 # and it says which pack the file came from. The relative path is where the file is in the
-# project, and it says whether the file is in the set at all: a relative path that does not
-# begin with `..` is in the set, and every other path is outside it.
+# project.
 #
 # See docs/als_notes.md, "Where a file comes from".
 class LiveSample
@@ -28,36 +27,6 @@ class LiveSample
   # @return [String] the name
   def name
     File.basename(@path || @relative_path).to_s
-  end
-
-  # Whether the file is in the set.
-  #
-  # A relative path that does not begin with `..` resolves within the set, and every other
-  # path points outside it.
-  #
-  # @return [Boolean] true when the file is in the set
-  def in_set?
-    !@relative_path.nil? && !@relative_path.empty? && !@relative_path.start_with?('..')
-  end
-
-  # The path of the file on disk.
-  #
-  # The relative path is resolved against the directory of the project. A file outside the
-  # set is where Live wrote it.
-  #
-  # @return [String, nil] the path, or nil when the file is nowhere
-  def resolved_path
-    return File.expand_path(@relative_path, @project_directory) if in_set? && @project_directory
-
-    @path
-  end
-
-  # Whether the file is on disk.
-  #
-  # @return [Boolean] true when the file is there
-  def found?
-    path = resolved_path
-    !path.nil? && File.file?(path)
   end
 
   # The pack the file came from.

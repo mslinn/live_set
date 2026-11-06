@@ -20,16 +20,10 @@ RSpec.describe LiveSample do
     )
   end
 
-  it 'says that a file with a relative path that does not begin with .. is in the set' do
-    expect(sample('/Users/owen/Pink Noise.wav', 'Samples/Pink Noise.wav')).to be_in_set
-  end
-
-  it 'says that a file with a relative path that begins with .. is outside the set' do
-    expect(sample('/Users/owen/Pink Noise.wav', '../elsewhere/Pink Noise.wav')).not_to be_in_set
-  end
-
-  it 'says that a file with no relative path is outside the set' do
-    expect(sample('/Users/owen/Pink Noise.wav')).not_to be_in_set
+  it 'holds the path of the file relative to the project' do
+    expect(sample('/Users/owen/Pink Noise.wav', 'Samples/Pink Noise.wav').relative_path).to eq(
+      'Samples/Pink Noise.wav'
+    )
   end
 
   it 'holds the pack the file came from' do

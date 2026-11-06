@@ -46,6 +46,10 @@ class LiveGroup
     midi_tracks.to_a + audio_tracks.to_a
   end
 
+  # TODO: methods should not return a constant. This method has not been properly implemented. This module method might
+  # be redefined by the class it is mixed into. This is a poor design. Instead, this methods should examine the track
+  # type and return the appropriate value.
+  #
   # Whether the group is a group track.
   #
   # @return [Boolean] true, always: a group is a group track

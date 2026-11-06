@@ -1410,51 +1410,216 @@ error naming the group and the tracks whose audio it affects.
 
 Across the corpus, 151 group tracks have a `PluginDevice` in their chain.
 
-#### Freezing a member does not get the group's device out of the way
 
-A group track cannot be frozen, so the device cannot be rendered away by
-freezing the group. Nor does freezing a member help: a frozen member stays
-routed into its group, so the group's device is still in the signal path. All 21
-frozen members in the corpus are still routed to `AudioOut/GroupTrack`.
+### Freezing Group Tracks
 
-The remedy is to remove the device from the group's chain, or to bounce the
-group.
+TODO This modified section affects how the code should be structured. Prior to
+this change, frozen group tracks were not allowed. Now they are.
 
-> Note that while Group Tracks cannot be frozen, they can be bounced to audio,
-> which can help reduce their CPU load.
-
-— Live 12 manual, section 38.1.4. Bouncing a group is a different operation from
-bouncing an individual track: the manual notes that "Group Tracks are bounced
-post-mixer", so the bounced audio includes the group's mixer settings and its
-effects, whereas an individual track is bounced pre-mixer.
-
-
-### A group track cannot be frozen
+The Ableton Live manual provides guidance on how to use Ableton Live, but not
+how to this project processes ALS XML. Sometimes the this project's processing
+is very different from Live's behavior. For example, the Live 12 manual, section
+38.1.4 "Track Freeze" and the Live 11 manual (section 33.1.4) say:
 
 > Note that you can only freeze tracks that hold clips, so it is not possible to
 > freeze a Group Track, a return track, or the Main track.
 
-— Live 12 manual, section 38.1.4 "Track Freeze". The Live 11 manual (section
-33.1.4) says the same.
+If a frozen group track is encounted in ALS XML, it that setting should be
+honored while processing the tracks contained within the group. This means that
+for the purposes of this project, freezing a group track also freezes all tracks
+within it. Freezing a group track causes all devices for that track to be
+ignored, and a new child track is created that contains a rendering of the
+group track, and the devices for the child tracks must also be ignored.
 
-A group track holds no clips, so it cannot be frozen. The corpus agrees: **0 of
-1603** group tracks have `Freeze="true"`, and 195 of 195 in a 60-set sample have
-`Freeze="false"`.
+Frozen group tracks shall be denoted as such in the serialized markdown.
 
-This answers the question of whether freezing a group track also freezes the
-tracks inside it: **the question does not arise**, because a group track cannot
-be frozen at all.
+#### Non-Standard Live Features
 
-#### The `Options.txt` hidden option
+Ableton Live's `Options.txt` file enables experimental and unsupported features
+that might affect the content of ALS XML. This configuration file can be used to
+unlock hidden experimental features, developer options, and system-level
+troubleshooting overrides. There is no complete public list of options;
+Ableton’s Help Center documents some Options.txt flags, and support staff can
+supply others.
 
-Ableton's `Options.txt` file can enable "a few experimental and unsupported
-features".
+TODO Correct the code so it implements the following:
 
-**`live_set` does not support experimental features.** It ignores `Options.txt`
-entirely, and treats every setting that `Options.txt` can control as having its
-standard behaviour, as though the experimental option had not been specified. A
-set that uses `GroupTrackFreeze` is therefore read as though the group were not
-frozen, and the group's members are read as unfrozen.
+**`live_set` only examines ALS XML, and honors it.** Most of the experimental
+and unsupported options do not affect the contents of an ALS XML file. This
+project processes Live sets as they are stored, without looking at
+`Options.txt`. If a set contains XML that is enabled by experimental setting
+(for example, the `<GroupTrackFreeze/>` XML element), that XML is processed in
+the normal way: a model class is required for the XML element, and a
+corresponding serializer class and a specs should be created to test the model
+behavior and the serializer's output.
+
+The `Options.txt` configuration file resides in Live's user preferences directory:
+
+macOS: `~/Library/Preferences/Ableton/Live X.Y.Z/Options.txt`
+
+Windows: `%AppData%\Ableton\Live X.Y.Z\Preferences\Options.txt`
+
+The file consists of flags formatted line-by-line (e.g., `-FlagName` or
+`-FlagName=Value`). The experimental and unsupported flags for Live 12.4.16 are
+shown in the following subsections.
+
+#### Tweaks that Affect ALS XML processing
+
+These are the only non-standard options that affect the XML that this project
+must parse.
+
+* **-_GroupTrackFreeze** is one of the most notable overrides because it
+  bypasses Live's hardcoded restriction against freezing Group Tracks, Return
+  Tracks, and the Master track. This flag was introduced in Live 12.1.
+
+#### Tweaks Useful For This Project
+
+This project runs Ableton Live many times in a harness
+([`gui_harness`](https://github.com/mslinn/gui_harness)). It is important to
+minimize startup times and eliminate potential problems when running in the
+harness. The options described in this section should be used with caution, and
+may not apply to all versions of Live.
+
+Normally Live is a singleton (only one instance can run at a time), however
+tests would complete more quickly if tests that require a harness could be
+performed in parallel.
+
+* **`-AsioDisableMultiClient`** *(Windows)*: Prevents ASIO driver multi-client
+  binding conflicts.
+* **`-AsioNoSampleRateCheck`**: Bypasses the initial sample rate handshake
+  validation against audio hardware, which can prevent startup hangups with
+  certain multichannel audio interfaces or mismatched driver clocks.
+* **`-AllowMultipleInstances`**: Removes Live's hardcoded single-instance
+  restriction, allowing you to run two or more independent instances of Ableton
+  simultaneously on the same machine. Useful for comparing project assets or
+  routing audio via loopback.
+* **`-NoBackgroundNetwork`**: Disables background network polling and Ableton
+  Link service discovery. This can resolve random micro-stutters or startup
+  stalls on networks with aggressive firewall restrictions or heavy multicast
+  traffic.
+* **`-DisableAllPlugins`**: A troubleshooting flag that temporarily disables all
+  third-party VST, VST3, and Audio Unit plugins on startup—useful for isolating
+  crashing plugins without having to manually move them out of the plugin
+  folders.
+* **`-DisableCoreAudio` (macOS) / `-DisableDirectSound` (Windows)**: Bypasses
+  native audio driver probing during startup. This is helpful for launching Live
+  in a safe diagnostic state when an audio interface driver hangs or crashes the
+  application before the GUI even loads.
+* **`-DisableVideoWindow`**: Completely disables Ableton's video playback engine
+  on startup. This frees up system resources and eliminates background overhead
+  if you never score video.
+* **`-DisableVst2Scanning`**: Skips scanning legacy VST2 plugin directories on
+  startup, forcing Live to exclusively load VST3 and Audio Unit plugins.
+* **`-EnableWritingLogFile`**: Enables verbosity in the internal `Log.txt` file
+  to capture crash dumps, VST load sequences, and Python control surface errors.
+* **`-NoAudioDrive`**: Disables the physical audio engine output (useful for
+  headless analysis or command-line scripting).
+* **`-NoCoreAudioMidi`** *(macOS)*: Bypasses the CoreMIDI driver initialization
+  routine on startup to prevent MIDI interface driver hangs from locking up the
+  application.
+* **`-NoVstRedirection`**: Disables automatic plugin architecture
+  bridging/redirection, ensuring Live interacts strictly with
+  native-architecture plugins without legacy wrapper overhead.
+* **`-NoVstStartupScan`**: Bypasses the automatic VST plugin scan on cold boot,
+  speeding up application launch times when your plugin directory is massive.
+* **`-SelectNoAudioAsDefault`**: Changes the default driver allocation routine
+  to initialize projects with "No Audio" selected as the active input/output
+  driver.
+* **`-SoundcardNoCheck=1`**: Prevents Live from probing or auditing audio
+  hardware drivers on startup.
+* **`-StackTraces`**: Forces the internal error handler to print comprehensive
+  stack trace dumps into the application console when an exception occurs.
+
+
+#### Other Tweaks
+
+* **`-AbsoluteMouseMode`**: Forces absolute tracking for mouse movement across
+  knobs and parameters instead of relative movement.
+* **`-AlwaysShowPluginInterface`**: Forces plug-in windows to override host
+  embedding rules in certain multi-monitor or window-manager configurations.
+* **`-AsioBufferPreferredSize=X`**: Forces a preferred hardware buffer size
+  override (e.g., `256` or `512`) during the initial ASIO driver handshake.
+* **`-AsioForceChannelNames`**: Overrides default channel label reporting from
+  audio interface ASIO drivers to fix misnamed input/output routing channels in
+  the I/O chooser.
+* **`-AutoAdjustMacroMappingRange`**: Automatically scales and adapts the value
+  ranges when mapping parameters to macro knobs.
+* **`-CoresToUse=N`**: Explicitly forces Live to restrict its CPU core usage to
+  a specific integer (`N`), which can help diagnose performance bottlenecks or
+  prevent resource contention when running alongside other audio daemons.
+* **`-DisableGraphicsHardwareAcceleration`**: Disables Metal (macOS) or GPU
+  acceleration (Windows) for the main Live UI window rendering.
+* **`-DisableVst3MultiProcessing`**: Forces VST3 plugins to run within the main
+  audio thread rather than utilizing separate worker processes, which can
+  stabilize problematic third-party plugins prone to inter-process communication
+  deadlocks.
+* **`-DontCombineAPCs`**: Prevents multiple connected APC controllers from
+  automatically syncing their Session View control rings together.
+* **`-DontLimitPan`**: Removes the 50/50 restriction on certain panning
+  behaviors, allowing more specialized multi-channel or binaural panning
+  configurations.
+* **`-DontScaleSubPluginWindows`**: Stops Ableton from automatically scaling
+  legacy VST2 or VST3 GUI windows on high-density displays.
+* **`-EnableAutoQuantizeRecording=1`**: Automatically forces input quantization
+  on MIDI clips during recording without needing to manually toggle it in the
+  browser menu.
+* **`-EnableArmOnSelection`**: Automatically record-arms any track as soon as
+  you select/click it.
+* **`-EnableCoreAudioMultithreading`** *(macOS)*: Enables experimental
+  multi-threading optimizations for CoreAudio driver I/O streams.
+* **`-EnableEngineIndex=1`**: Enables multi-core CPU threading for complex
+  routing setups or specific device sub-chains where Live might default to
+  single-thread execution.
+* **`-EnableMapToSiblings`**: Unlocks a context menu option enabling you to map
+  a single macro control to multiple sibling parameters simultaneously with
+  offset scaling.
+* **`-EnableMpeDebug`**: Dumps real-time MIDI Polyphonic Expression (MPE)
+  controller data streams and zone assignments into the system log for hardware
+  controller troubleshooting.
+* **`-_EnsureKeyMessagesForPlugins`** *(Windows only)*: Fixes an issue where
+  keypresses/keyboard input would not register inside complex VST plugins like
+  Native Instruments Reaktor.
+* **`-ForceDisplayScale=1`**: Useful for fine-tuning UI scaling percentages on
+  mixed-resolution multi-display setups (especially helpful when dealing with
+  VST plugin GUIs that misbehave on high-DPI monitors).
+* **`-HighDpiMode=1` / `-HighDpiMode=0**`: Enables or disables high-DPI scaling
+  overrides for HiDPI/Retina monitors and non-dpi-aware VST plugins.
+* **`-LogTimeConversionVariation`**: Dumps clock delta telemetry into the
+  `Log.txt` file to monitor audio-to-MIDI timestamp conversion drift.
+* **`-LogVstPluginPerformance`**: Directs Live to log detailed CPU usage metrics
+  for individual third-party plugins into the `Log.txt` file, helping pinpoint
+  rogue plugins causing latency spikes or memory leaks.
+* **`-MaxAudioFileCacheSizeMegabytes=X`**: Sets the upper memory limit (in MB)
+  allocated for caching decoded audio sample waveforms in RAM.
+* **`-MaxAudioFileInfoCacheSize=Value`**: Expands the maximum memory allocation
+  for caching `.asd` clip metadata and audio preview waveforms.
+* **`-MaxNumberOfUndoSteps=X`**: Lets you manually configure the maximum undo
+  history capacity beyond the default UI limits.
+* **`-NoVst3Multithreading`**: Disables internal multithreading within VST3
+  plugins. This is a critical troubleshooting flag for stabilizing specific
+  third-party plugins that crash when Live tries to manage their thread pools.
+* **`-NoZoomFont`**: Disables font scaling or anti-aliasing smoothing on certain
+  text elements, which can improve text sharpness or performance on specific
+  high-DPI displays or custom themes.
+* **`-_PluginAutoPopulateThreshold=X`**: Sets the number threshold (e.g., `64`
+  or `128`) for automatically populating a plugin's parameter list in the device
+  strip when instantiated.
+* **`-SharedMemStoragePath=path`**: Directs Live to a custom directory path for
+  inter-process shared memory buffers.
+* **`-ShowBackToArrangementOnMasterTrack`**: Toggles visibility rules for the
+  "Back to Arrangement" button specifically positioned relative to the Master
+  track channel strip layout.
+* **`-ShowChunkLoadTime`**: Displays the precise load time in milliseconds for
+  each set component in the Info View.
+* **`-ShowDeviceSlots`**: Displays loaded plugin device slots directly in the
+  Session View mixer channels.
+* **`-ShowFullVersionInTitle`**: Appends the minor patch build and compilation
+  metadata directly to the main application window title bar.
+* **`-UseFileSystemCacheForReading` / `-UseFileSystemCacheForWriting**`: Toggles
+  alternative OS file-system caching behavior for disk streaming and asset
+  writes.
+* **`-VstNoScanSkip`**: Forces Live to perform a full rescan of all installed
+  VST plugins on every launch, ignoring cached plugin state.
 
 
 ## Booleans

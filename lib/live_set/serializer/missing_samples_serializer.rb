@@ -23,10 +23,15 @@ class MissingSamplesSerializer
   def to_markdown
     lines = ['## Missing Samples', '']
     if @missing.empty?
-      lines << 'Every sample of the set is in the project.'
+      lines << 'Every sample of the set is in the project, or comes with a pack or with the ' \
+               'Core Library of Live.'
       return lines.join("\n")
     end
 
+    lines << 'The samples of the set that are not in the project, and that do not come from a ' \
+             'pack or from the Core Library of Live. A set with such a sample is not ' \
+             'self-contained: the file has to be found again.'
+    lines << ''
     rows = @missing.sources.sort.map do |source, names|
       [source, names.map { |name| "`#{LiveMarkup.escape name}`" }.join(', ')]
     end

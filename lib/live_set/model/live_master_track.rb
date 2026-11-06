@@ -33,13 +33,15 @@ class LiveMasterTrack
     KINDS.fetch(@element.name, @element.name)
   end
 
+  # TODO: Model classes should not contain a `to_markdown` method. This class and its parent class should have a
+  # corresponding serializer, which should contain this method. See docs/report_design.md
+  #
   # The markdown of the track.
   #
-  # The track is written by the serializer of a track, which is given the track and the
-  # number the track has in the report.
+  # The track is written by the serializer of a track, which is given the track and the number the track has in the
+  # report.
   #
-  # @param number [String] the number of the track in the report
-  # @return [String] the markdown
+  # @param number [String] the number of the track in the report @return [String] the markdown
   def to_markdown(number)
     LiveMasterTrackSerializer.new(self, number).to_markdown
   end

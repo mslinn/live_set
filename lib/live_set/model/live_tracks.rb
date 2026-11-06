@@ -4,17 +4,35 @@ require_relative 'live_groups'
 require_relative 'live_midi_tracks'
 require_relative 'live_return_tracks'
 
-# The tracks of a set: the `<Tracks>` element of the XML.
+# The tracks of a set, defined in the `<Tracks>` element of ALS XML.
 #
-# The element holds the MIDI tracks, the audio tracks, the return tracks and the group
-# tracks of the set, and each of them is a collection of its own.
+# The element holds the MIDI tracks, the audio tracks, the return tracks and the group tracks of the set, and each of
+# them is a collection of its own.  This class also holds the ids of the tracks, in the order Live wrote them, so that
+# the tracks can be serialized in the same order by the associated serializer class.
 #
-# The class deviates from the usual pattern in that it has two kinds of child: the MIDI
-# tracks and the audio tracks. It also holds the ids of the tracks, in the order Live wrote
-# them, so that the tracks can be written in that order.
+# This class deviates from the usual pattern in that it has three kinds of children, each of which is a collection:
 #
-# The master track of the set is a child of the set and not of the tracks of the set, so it
-# is not here.
+# 1. MIDI tracks
+# 2. Audio tracks
+# 3. Group tracks and nested group tracks
+#
+# The master track of the set is a special entity and is not considered to be one of the tracks of the set because it is
+# a child of the set. The master track is therefore not part of this class.
+#
+# In an ALS XML structure, the <GroupTrack/> element represents is a submixer that contains a collection of child tracks
+# (such as Audio, MIDI, and nested Group Tracks). Its functionality includes:
+#
+# - Submixer Routing Hub: It houses its own mixer section (volume, pan, sends, track activator/mutes) that aggregates
+#   the audio or MIDI output of all member tracks nested beneath or assigned to it before passing the signal down to the
+#   Master or a parent group.
+# - Hierarchical Container: It maintains the structural hierarchy of the Live Set, holding a collection of member tracks
+#   and determining how tracks are visually collapsed or expanded in the user interface.
+# - Device Chain Hosting: Like standard audio or MIDI tracks, a GroupTrack contains a DeviceChain element, allowing
+#   users to load native or VST/Audio Unit effect plugins (like compressors, EQs, or saturation) to process the entire
+#   grouped bus collectively.
+# - Automation Target: It stores global envelope and automation data (AutomationTarget, clip envelopes, etc.) that
+#   affect parameters belonging to the group container as a whole, such as group-level volume fades or device
+#   parameters.
 class LiveTracks
   attr_reader :audio_tracks, :groups, :midi_tracks, :return_tracks, :track_ids
 
@@ -77,6 +95,9 @@ class LiveTracks
     end
   end
 
+  # TODO: Model classes should not contain a `to_markdown` method. This class and its parent class should have a
+  # corresponding serializer, which should contain this method. See docs/report_design.md
+  #
   # The markdown of the tracks of the set.
   #
   # The tracks are written in the order Live wrote them. When they are to be shown
@@ -92,16 +113,17 @@ class LiveTracks
     ordered_markdown
   end
 
+  # TODO: Model classes should not contain methods for serialization. This class and its parent class should have a
+  # corresponding serializer, which should contain this method. See docs/report_design.md
+  #
   # Every track of the set, with the number it has in the report.
   #
-  # The tracks at the top of the set are numbered from one, and the tracks of a group are
-  # numbered after the group, as 1.1.
+  # The tracks at the top of the set are numbered from one, and the tracks of a group are numbered after the group, as
+  # 1.1.
   #
-  # The XML has no notion of a track number, so the number is made here, and it is not held
-  # by the model.
+  # The XML has no notion of a track number, so the number is made here, and it is not held by the model.
   #
-  # @yieldparam number [String] the number of the track
-  # @yieldparam track [LiveMidiTrack, LiveAudioTrack] the track
+  # @yieldparam number [String] the number of the track @yieldparam track [LiveMidiTrack, LiveAudioTrack] the track
   # @return [void]
   def each_numbered_track(&)
     numbered_tracks_of_the_set.each(&)
@@ -163,6 +185,9 @@ class LiveTracks
 
   private
 
+  # TODO: Model classes should not contain methods for serialization. This class and its parent class should have a
+  # corresponding serializer, which should contain this method. See docs/report_design.md
+  #
   # The tracks of the set, in the order Live wrote them.
   #
   # @return [String] the markdown
@@ -172,6 +197,9 @@ class LiveTracks
     end.join("\n")
   end
 
+  # TODO: Model classes should not contain methods for serialization. This class and its parent class should have a
+  # corresponding serializer, which should contain this method. See docs/report_design.md
+  #
   # The audio tracks and the MIDI tracks of the set, in their own lists.
   #
   # @return [String] the markdown
@@ -202,19 +230,17 @@ class LiveTracks
     end
   end
 
-  # The errors caused by the devices in the groups' chains.
+  # Return the errors relating to the devices in the groups' chains.
   #
-  # A group track's members are routed to the group, so the group's devices process the members'
-  # audio. A plug-in in a group's chain therefore blocks a transfer to Push 3 Standalone just as
-  # much as one on a track.
+  # The output of a group track's members are routed to the group, so the group's devices process the members' audio. If
+  # a group's device chain contains a non-native device (like VST2 or VST3), the set is incompatible with the Push 3
+  # Standalone.
   #
-  # A group track cannot be frozen — only tracks that hold clips can be — so the device cannot be
-  # rendered away by freezing the group. Freezing a member does not help either: a frozen member
-  # stays routed into its group, so the group's device is still in the signal path. The remedy is
-  # to remove the device from the group's chain.
+  # Normally, only tracks capable of holding clips can frozen, so normally a group track cannot be frozen. This means a
+  # non-native device on a group track cannot be rendered away by freezing the group. However, an Ableton Live option
+  # permits the creation of frozen group tracks. See [Options.txt](docs/als_work.md).
   #
-  # The error names the tracks whose audio the device affects, so the user knows which ones are
-  # involved.
+  # The error names the tracks whose audio the device affects, so the user knows which ones are involved.
   #
   # See docs/als_notes.md, "The device chain of a group".
   #

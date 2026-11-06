@@ -4,15 +4,15 @@ require_relative 'live_take_lanes'
 
 # The facts that every track element of a set holds.
 #
-# A set holds four kinds of track element: a `<MidiTrack>`, an `<AudioTrack>`, a
-# `<ReturnTrack>` and the `<MasterTrack>` (the `<MainTrack>` in Live 12). Each of them has a
-# model class of its own, and each of them reads the facts below from its own element.
+# A set can contain four kinds of track element: a `<MidiTrack>`, an `<AudioTrack>`, a `<ReturnTrack>` and the
+# `<MasterTrack>` (renamed to `<MainTrack>` in Live 12). Each of them has a model class of its own, and each of them
+# reads the facts below from its own element.
 #
-# The module holds no state of its own and is never instantiated: the class that includes
-# it holds the element, and these methods read that element.
+# This module holds no state of its own and is never instantiated: the class that includes it holds the element, and
+# these methods read that element.
 #
-# What is left to the classes themselves is what makes the kinds different: the kind of the
-# track, and the clips it holds.
+# What is left to the classes themselves is what makes the kinds different: the kind of the track, and the clips it
+# holds.
 module LiveTrackFacts
   # The id Live gave the track.
   #
@@ -21,9 +21,13 @@ module LiveTrackFacts
     @element['Id']
   end
 
+  # TODO: methods should not return a constant. This method has not been properly implemented. This module method might
+  # be redefined by the class it is mixed into. This is a poor design. Instead, this methods should examine the track
+  # type and return the appropriate value.
+  #
   # Whether the track is a group track.
   #
-  # A group track is `LiveGroup`, and it is the only kind of track that is one.
+  # A group track has type `LiveGroup`.
   #
   # @return [Boolean] false, always
   def group?

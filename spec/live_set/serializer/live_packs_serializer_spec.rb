@@ -1,5 +1,8 @@
 require 'spec_helper'
+require 'fileutils'
+require 'tmpdir'
 require 'live_set/model/live_packs'
+require 'live_set/model/live_sample'
 require 'live_set/model/live_samples'
 require 'live_set/model/live_tracks'
 require 'live_set/serializer/live_packs_serializer'
@@ -40,5 +43,18 @@ RSpec.describe LivePacksSerializer, '#to_markdown' do
     expect(described_class.new(packs).to_markdown).to include(
       'No pack of the set is on this machine.'
     )
+  end
+
+  it 'names the pack that is on this machine, and where it is' do
+    Dir.mktmpdir 'live_set_spec_' do |directory|
+      pack = File.join directory, 'Drive and Glow'
+      FileUtils.mkdir_p File.join(pack, 'Samples')
+      sample = LiveSample.new File.join(pack, 'Samples', 'Tambourine.aif')
+
+      markdown = described_class.new(LivePacks.new([sample])).to_markdown
+
+      expect(markdown).to include("- **Drive and Glow**: `#{pack.gsub('/', '/<wbr/>')}`")
+      expect(markdown).to include('Every pack the set refers to is on this machine.')
+    end
   end
 end

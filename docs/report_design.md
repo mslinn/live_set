@@ -1,47 +1,28 @@
-# The model behind the report of a set
+# Model Of ALS
 
-The report of a set — `als_report -s <set>` — is written from a model of what the set holds.
-The model is built once, from the XML of the set; the report asks the model questions and
-writes markdown.
+Ableton Live stores sets in `.als` files, which contain XML that describes the
+set.  The `als_report` command builds a model from the XML and converts the
+model to markdown.
 
-This document is the design of that model. The plan of the work is in
-[serializer_plan.md](serializer_plan.md), which is the plan of record.
+This document describes the model.
 
-## Why the model exists
 
-The report was written as one class, `LiveSetReport`, that read the XML itself and kept the
-set in arrays and hashes:
+## Rules
 
-```ruby
-# what a track was
-[kind, name, element, members]
-
-# what a clip was
-{ clip: element, file: path, references: [{ clip: element, index: 3, place: 'session view' }] }
-```
-
-Everything the report says is computed from those, in the report: the outline of the set,
-the places the clips of a track are in, the tracks that hold a clip, the devices of the set
-and the tracks they are on. The same set was read twice as well — once by `LiveSetReport` and
-once by `LiveTrack`, `LiveGroup` and `LiveTracks`, which know about the audio of the set and
-its verdict for a transfer to Push 3 Standalone.
-
-The model replaces both: one reading of the set, and one place where the facts about it live.
-`LiveSetReport` is retired with them: the report is the model of the set written as markdown
-by the serializer of the model.
-
-## The rules
-
-- **A model represents the XML entity.** It holds what the XML holds and nothing else.
-- **A model holds no numbers.** The XML has no notion of a track number or a clip number, so
-  no model has one. The serializer generates the numbers, and passes them to the serializers
-  of the things under it.
-- **A model does not write markdown.** A serializer is an object, initialized with a model
-  instance, and it writes the markdown of the model it was given. The serializers mirror the
-  model hierarchy: each model class has a small serializer class of its own. A model that
-  has a `to_markdown` of its own only delegates to the serializer that writes it.
-- **Every collection is a class of its own**, named for the things it holds, and it has a
-  serializer of its own.
+- **A model class represents one XML entity.** It holds what the XML element holds and
+  nothing else. Most XML elements have corresponding model classes.
+- **Every collection is a class of its own**, named for the model class
+  instances it holds.
+- **A model does not write markdown.** A serializer class is initialized with a
+  model instance, and it writes the markdown representation. The hierarchy of
+  serializer classes mirror the model class hierarchy, which mirror the XML
+  structure. This means each model class has a small serializer class of its
+  own. Model classes should not have methods called `to_markdown` or `to_number`
+  because that functionality belongs to the corresponding serializer class.
+- **Numbering is added by model serializers.** The ALS XML has no notion of a
+  track number or a clip number, so no model has one. Model serializers that
+  process collections generate numbered lists and pass them to the child
+  serializers.
 - **The indent of a thing comes from its number.** The number of a thing in the report says
   how deep it is: `1` is a track at the top of the set, `1.1` is a child of it, and `1a` — a
   device of the track `1` — is a child of it too. The indent is derived from the number, so
@@ -58,9 +39,8 @@ The complete model of the contents of an ALS file: its path, its XML, the times 
 and the Live contents of the file, which it holds as `live_set`.
 
 The class is in `lib/live_set/model/als_model.rb`, and its serializer,
-`AlsModelSerializer`, writes the report of the whole model: the header block, the Push 3
-compatibility, the hierarchy of groups, tracks, clips and devices, the missing samples, and
-the two cross-references.
+`AlsModelSerializer`, writes the report of the whole model. The sections of the report are
+the ones of [The sections of the report](#the-sections-of-the-report).
 
 ### `AlsReport` — the command that writes the report
 
@@ -205,8 +185,6 @@ can play it differently — reversed, warped differently, trimmed — without to
 | --- | --- |
 | `path` | the path Live wrote for the file, which says which pack it came from |
 | `relative_path` | the path of the file relative to the project folder |
-| `in_set?` | true when the relative path resolves within the set |
-| `found?` | true when the file is on disk |
 | `pack`, `pack_path` | the pack the file came from, and the path of it |
 | `library` | the library of Live the file came from: the user library, or the Core Library |
 | `collected?` | true when the file was copied into the project's `Samples/Imported/` folder |
@@ -232,14 +210,17 @@ holds it.
 
 ### `MissingSamples`
 
-The samples of the set that are not in the project, by the pack they are in. It is the part
-of the samples that is missing, so it is a view of that collection and not a collection of
-its own.
+The samples of the set that are not in the project, by the source they come from. It is the
+part of the samples that is missing, so it is a view of that collection and not a collection
+of its own.
 
 ### `LiveAsset` — a file the set refers to
 
 One `FileRef` of the set: the path as the set writes it, how the path was resolved, the
 size Live recorded for it, the size on disk, where it is, and when it was last changed.
+
+It also says whether the reference is of a sample — the `FileRef` of a `SampleRef` is — and
+which pack or library the file came from.
 
 ### `LiveSizes` — the sizes of the set
 
@@ -264,6 +245,28 @@ folder of that name in a parent folder of the folder of the project. See
 The version of Live that wrote the set, the computer it is on, the times of the set and of
 the project it is in, and the time zone the times are written in.
 
+## The sections of the report
+
+The report is a document, and its sections are in a fixed order:
+
+| The section | What it holds |
+| --- | --- |
+| the header block | the facts about the file: the version of Live that wrote it, the computer, the times |
+| `## Metadata` | the sizes of the set, and the checksums of it |
+| `## Push 3 Standalone` | the verdict for a transfer to Push 3 Standalone |
+| `## Groups/Tracks/Clips/Devices` | the outline of the set: the groups, the tracks, the clips, the take lanes and the devices |
+| `## Missing Samples` | the samples that are not in the project |
+| `## Located Samples` | the samples that are: the ones that are collected, and the ones that come from a pack or from the Core Library |
+| `## Device/Track Cross-Reference` | the devices of the set, and the tracks they are on |
+| `## Track / Clip Cross Reference` | the clips of the set, and the tracks that hold them |
+| `## Set Assets` | the samples the set ships, as a numbered list |
+| `## Test Environment` | the state of the machine the report was made on: the 'Ableton Project Info' folders, and the packs the set refers to |
+
+A sample is written in one of the two sample sections and in no other: the ones that are
+not in the project are in `## Missing Samples`, and the others are in `## Located Samples`.
+A sample that comes from a pack or from the Core Library of Live is never missing: the pack
+holds it, and the packs the set refers to are under `### Referenced Packs`.
+
 ## The collections
 
 | The collection | It holds |
@@ -278,22 +281,6 @@ the project it is in, and the time zone the times are written in.
 | `LiveTakeLanes` | the take lanes of a track |
 | `LiveClips` | the MIDI clips of the set, and the MIDI clips of a track |
 | `LiveSamples` | the samples of the set |
+| `LivePacks` | the packs the set refers to |
 | `LiveAudioClips` | the clips of the audio side of a track |
 | `LiveAssets` | the files the set refers to |
-
-## What the model replaces
-
-In `LiveSetReport`, which is retired:
-
-- `track_tree` and `build_track_tree` — the tree of tracks
-- `each_track` and `each_numbered_track` — the tracks
-- `clips_of_track`, `clip_group_lines`, `grouped_clips`, `identity_of`, `clip_key` — the
-  clips of a track, and what makes two clips alike
-- `clip_places_of_track` — the places the clips of a track are in, and how many in each
-- `tracks_of_clips` and `holds_of` — the tracks that hold each clip
-- `device_uses` — the devices of the set, and the tracks they are on
-- `problem_for?`, `frozen?`, `soloed?`, `armed?`, `off?` — the state of a track, and whether
-  it is a problem
-
-And the reading of the XML that `LiveTrack`, `LiveGroup` and `LiveTracks` did for the
-verdict: the same set, read twice.

@@ -27,6 +27,10 @@ class LiveSamplesSerializer
       return lines.join("\n")
     end
 
+    lines << 'The samples of the set that are in the project, and the ones that come from a ' \
+             'pack or from the Core Library of Live.'
+    lines << ''
+
     rows = located.group_by(&:source).sort.map do |source, in_source|
       names = in_source.uniq(&:name).sort_by(&:name).map do |sample|
         LiveSampleSerializer.new(sample).to_markdown

@@ -52,6 +52,9 @@ class LiveMidiTrack
     end
   end
 
+  # TODO: Model classes should not contain a `to_markdown` method. This class and its parent class should have a
+  # corresponding serializer, which should contain this method. See docs/report_design.md
+  #
   # The markdown of the track.
   #
   # The track is written by the serializer of a track, which is given the track and the
