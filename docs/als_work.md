@@ -294,7 +294,7 @@ This corpus spans these versions:
 | 11.3.21 – 11.3.22 |   32 |
 | 12.0.1 – 12.4.6   |  407 |
 
-**Caution:** 29 of the 32 Live 11 sets in `$songs` were written by `als_report -11` itself, which hard-codes certain
+**Caution:** 29 of the 32 Live 11 sets in `$songs` were written by `als_to_version 11` itself, which hard-codes certain
 attributes:
 
 * Filename ends with `_11.als`
@@ -525,7 +525,7 @@ See `spec/support/schemas.rb`, which finds the sets and generates the schemas, a
 The `live_set` test in `spec/demo_sets.rb` works with the test corpuses, instead
 of XML fragments.
 
-When testing the `-11` option, the sets are converted only once, and
+When testing the `als_to_version` command, the sets are converted only once, and
 `spec/conversions.rb` provides the result for multiple assertions.
 
 The examples in `spec/live_set/live_set_modify_als_spec.rb` call the method
@@ -534,195 +534,24 @@ the command as a subprocess, three times per set, so that the second and third
 runs can examine what happens when the set the command writes already exists.
 
 
-## ALS Files Are XML, Probably GZipped
+## The version_diff documents
 
-An `.als` file is an XML document. Most are gzip-compressed, but uncompressed
-`.als` files are sometimes used for testing purposes. Read gzip-compressed
-versions with:
+Each version_diff document holds the differences between two adjacent versions
+of Live. It opens with the release notes of the newer version, because every
+difference is something the newer version changed, and then it holds the format
+differences that follow from them.
 
-```ruby
-Zlib::GzipReader.open(path, &:read)
-```
+| Document | The versions |
+| --- | --- |
+| [`live_8_9_diff.md`](live_8_9_diff.md) | Live 8 and Live 9 |
+| [`live_9_10_diff.md`](live_9_10_diff.md) | Live 9 and Live 10 |
+| [`live_10_11_diff.md`](live_10_11_diff.md) | Live 10 and Live 11 |
+| [`live_11_12_diff.md`](live_11_12_diff.md) | Live 11 and Live 12 |
 
-Here is a method that reads both compressed and uncompressed als files:
-
-```ruby
-require 'zlib'
-
-def read_als(filepath)
-  File.open(filepath, 'rb') do |file|
-    Zlib::GzipReader.new(file).read # Attempt to read as Gzip
-  rescue Zlib::GzipFile::Error
-    file.rewind # If it's not a valid gzip file, rewind and read as plain text
-    file.read
-  end
-end
-```
-
-Usage:
-
-```ruby
-content = read_als('test.als')
-```
-
-
-## XML Elements
-
-### XML Root Element
-
-The root element is `<Ableton>`, and the document is a single `<LiveSet>` under it.
-
-
-#### The `Creator` Attribute
-
-The `<Ableton>` element has `MajorVersion` and `MinorVersion` attributes, but those are Ableton's internal set-format
-numbers, not the Live version a user sees. A set written by Live 12.2.1 reports `MajorVersion="5"
-MinorVersion="12.0_12203"`.
-
-The real Live version is stored in the `Creator` attribute:
-
-```xml
-<Ableton MajorVersion="5"
-         MinorVersion="12.0_12203"
-         SchemaChangeCount="3"
-         Creator="Ableton Live 12.2.1"
-         Revision="c0d59beb...">
-```
-
-
-### Converting a Live 12 Set to Live 11
-
-The transformations for converting Live 12 back to Live 11 were figured out by opening a
-Live 11 demo set in Live 12, saving it, and comparing the two versions of the
-Live set.
-
-See [`conversion.md`](conversion.md) for what the conversion has to become, what
-the component that does it looks like, and how the differences between two
-versions are worked out.
-
-
-#### Unique v11 Schema
-
-`als_report -11` writes a set in the Live 11 format, and the version strings it
-writes are fixed so the Live set can be recognized as being the result of a
-conversion by `live_set` instead of being saved by Ableton Live:
-
-```ruby
-@ableton['Creator'] = 'Ableton Live 11.3.21'
-@ableton['MajorVersion'] = '5'
-@ableton['MinorVersion'] = '11.0_11300'
-@ableton['Revision'] = '5ac24cad7c51ea0671d49e6b4885371f15b57c1e'
-@ableton['SchemaChangeCount'] = '3'
-```
-
-`MajorVersion` with value `5` indicates that this ALS file contains a Live 11 set.
-
-Note that `MinorVersion` here is `11.0_11300` while `Creator` says `11.3.21`.
-The two are different numbering schemes: `Creator` is the version of Live that
-wrote the set, and `MinorVersion` identifies the set format that the specified
-version of Live 11 reads.
-
-
-#### What the Conversion Removes, and What it Keeps
-
-The following command converts a Live 12 set (`$path/to/my_v12_set.als`) to Live
-11 format and saves the result as `$path/to/my_v12_set_11.als`. The
-output file is overwritten if it already exists:
-
-```shell
-$ als_report -11 -f $path/to/my_v12_set.als
-```
-
-The conversion from Live 12 to 11 renames some well-known elements and removes
-all elements that Live 11 does not have:
-
-| Element          | In Live 11? | In Live 12?                      |
-| ---------------- | ----------- | -------------------------------- |
-| `InstrumentMeld` | no          | yes — 2 in the Live 12 demo set  |
-| `MxPatchRef`     | no          | yes — 5 in the Live 12 demo set  |
-| `Roar`           | no          | yes — 10 in the Live 12 demo set |
-
-The first version of `live_set` copied all other elements unchanged. The
-conversion was a selective removal, not a rewrite. It edited the version strings
-on the `Ableton` element, removes those three elements, translated the two that
-Live 11 spells differently, and wrote the rest of the document back out.
-
-* Group tracks are kept, because Live 11 has them as well as Live 12. See
-  [als_notes.md](als_notes.md), "The group tracks".
-
-* Elements the conversion is unaware of are kept. A `FakeGroup` element, a
-  `TrackWrapperType` element, or anything else that a future version of Live
-  writes is copied to the output verbatim, with its attributes intact. The
-  conversion does not need to know what an element means in order to preserve
-  it.
-
-This is worth knowing if a set contains something the format reference does not
-document. Nothing is silently dropped.
-
-The conversion writes `<name>_11.als` next to the set it was given. If that file
-is already there, the command stops and says so, unless the force option is
-given:
-
-```shell
-$ als_report -11 my_set.als
-Writing ./my_set_11.als
-Conversion complete
-
-$ als_report -11 my_set.als
-Error: ./my_set_11.als already exists. Use -f to overwrite it.
-
-$ als_report -11 -f my_set.als
-Overwriting existing ./my_set_11.als
-Conversion complete
-```
-
-#### Translating Renamed Elements
-
-Some elements were renamed between Live 11 and 12.
-
-The lane element was renamed. A lane is an `ExpressionLane` in Live 11 and a
-`MidiEditorLaneModel` in Live 12. Apart from the name they are the same: the
-same `Id` attribute, and they have the same `Type`, `Size` and `IsMinimized`
-children.
-
-```xml
-<!-- Live 11 -->
-<ContentLanes>
-  <ExpressionLane Id="0">
-    <Type Value="4"/>
-    <Size Value="25"/>
-    <IsMinimized Value="false"/>
-  </ExpressionLane>
-</ContentLanes>
-```
-
-```xml
-<!-- Live 12 -->
-<ContentLanes>
-  <MidiEditorLaneModel Id="0">
-    <Type Value="4"/>
-    <Size Value="25"/>
-    <IsMinimized Value="false"/>
-  </MidiEditorLaneModel>
-</ContentLanes>
-```
-
-The conversion renames `MidiEditorLaneModel` elements to `ExpressionLane` elements.
-
-The `Oversampling` attribute values for `Saturator` and `Pedal` elments are
-translated between boolean values and 0 & 1 (truthy integer) values.
-
-| Parent      | Live 11.3d1           | Live 12.4d1           |
-| ----------- | --------------------- | --------------------- |
-| `Saturator` | `"1"` or `"0"`        | `"true"` or `"false"` |
-| `Pedal`     | `"true"` or `"false"` | `"true"` or `"false"` |
-
-The conversion reads a `Saturator`'s boolean value and rewrites the value as
-`"1"` or `"0"`. `Pedal` values are not modified.
-
-In the demo set, track 132 "Plastic Toy" has a `Saturator` with
-`Oversampling="0"` in Live 11 and `Oversampling="false"` in Live 12; the other
-five `Saturator`s have values `"1"` in Live 11 and `"true"` in Live 12.
+A difference belongs to the version that introduced it, so a difference between
+Live 11 and Live 12 is in the Live 12 document, and not in the Live 10 and
+Live 11 one. A fact that both versions share is not a difference at all: it is
+a fact about the format, and it belongs in this document.
 
 
 ### The lanes are a fixed set, and it changed
@@ -823,34 +652,6 @@ lanes Live 11 has never seen, and has lost one that it has:
 The file is a well-formed Live 11 file, but it contains lanes Live 11 has never seen, and Live
 11 crashes on it rather than opening it. See TODO.md N42 and "The lanes are a fixed set, and it
 changed", above.
-
-
-## Every value is in a `Value` attribute
-
-This important fact about the format is easy to get wrong.
-
-Every value in every `.als` file is stored in a `Value` attribute, in every Live
-version from 8.2 through 12.4:
-
-```xml
-<EffectiveName Value="My Track"/>
-<RelativePath Value="Samples/Imported/song1.mp3"/>
-<Freeze Value="true"/>
-```
-
-There is no text-only shape in practice. Do not read values with `element.text`
-because that will return `""` and silently produce empty results.
-
-`lib/common/xml.rb` provides two readers:
-
-```ruby
-xml_value(element)   # the Value attribute, or nil
-xml_bool?(element)   # true or false, never nil
-```
-
-`xml_bool?` treats a missing element as `false` — an `<AudioTrack>` with no `<Freeze>` element is
-not frozen. A value that is neither `"true"` nor `"false"` is also `false`, but it is logged, so
-malformed data does not pass unnoticed.
 
 
 ## Track names
@@ -1221,7 +1022,7 @@ Live 12 (section 18.3):
 
 Group tracks exist in Live 11 as well as Live 12. Live 11 sets in the corpus
 rarely have them, and 29 of the 32 Live 11 sets in `$songs` were written by
-`als_report -11` itself, so the corpus is a poor guide to how common they are. The
+`als_to_version 11` itself, so the corpus is a poor guide to how common they are. The
 repo's own `after_real_pain.xsd` includes `GroupTrack` and `GroupTrackSlot`
 elements.
 
@@ -1433,7 +1234,7 @@ group track, and the devices for the child tracks must also be ignored.
 
 Frozen group tracks shall be denoted as such in the serialized markdown.
 
-#### Non-Standard Live Features
+### Non-Standard Live Features
 
 Ableton Live's `Options.txt` file enables experimental and unsupported features
 that might affect the content of ALS XML. This configuration file can be used to
@@ -1444,13 +1245,16 @@ supply others.
 
 TODO Correct the code so it implements the following:
 
-**`live_set` only examines ALS XML, and honors it.** Most of the experimental
-and unsupported options do not affect the contents of an ALS XML file. This
-project processes Live sets as they are stored, without looking at
-`Options.txt`. If a set contains XML that is enabled by experimental setting
-(for example, the `<GroupTrackFreeze/>` XML element), that XML is processed in
-the normal way: a model class is required for the XML element, and a
-corresponding serializer class and a specs should be created to test the model
+**`live_set` only examines ALS XML, and honors what it finds.** This project
+does not attempt to define what is legal in an ALS file, it merely processes
+whatever it finds.
+
+Most of the experimental and unsupported options do not affect the contents of
+an ALS XML file. This project processes Live sets as they are stored, without
+looking at `Options.txt`. If a set contains XML that is enabled by experimental
+setting (for example, the `<GroupTrackFreeze/>` XML element), that XML is
+processed in the normal way: a model class is required for the XML element, and
+a corresponding serializer class and a specs should be created to test the model
 behavior and the serializer's output.
 
 The `Options.txt` configuration file resides in Live's user preferences directory:

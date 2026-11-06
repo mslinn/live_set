@@ -1,14 +1,12 @@
 # TODO
 
-The outstanding work of the `live_set` gem, and nothing else.
+The scope of this document is restricted to the outstanding work of the `live_set` gem.
 
-Every item has an identifier, and the identifiers are stable: the code, the
-specs and the documents cite them, so an identifier is never reused, and it
-never changes what it means. When an item is completed its entry is deleted,
-and anything worth keeping is written up in another Markdown file in `docs/`
-and/or the code itself.
-
-This file holds the outstanding work of the gem as a whole.
+Every TODO item has an identifier, and the identifiers are stable: the code, the
+specs and the documents cite them, so an identifier is never reused, and its
+meaning never changes. When an item is completed
+anything worth keeping is written up in another Markdown file in `docs/` and/or
+the code itself, then the entry is deleted from this file.
 
 This project was developed for WSL, which implies Windows 10 or 11.
 
@@ -30,19 +28,22 @@ At a high level, the GUI harness does the following:
 
 ### Outstanding work
 
-The commands in `exe/` have just started to be usable, and bugs are expected,
-and the bugs musts of course be fixed. The documentation likely has errors,
-omissions and inconsistencies; these must also be fixed. See TODO and FIXME
-comments throughout the project. Ignore the contents of `docs/old/` unless
-historical information is required.
+The commands in `exe/` are now usable, however minor bugs are expected, and all
+bugs musts of course be logged in this file and fixed.
+
+The documentation (mostly in top-level markdown files and the `docs/` directory
+tree) likely has errors, omissions and inconsistencies; these must also be
+logged and fixed. See TODO and FIXME comments throughout the project.
+
+Ignore the contents of `docs/old/` unless historical information is required.
+
+The TODO itens are listed in the suggested order of completion:
 
 
-#### GH1. Round-trip Equivalence
+#### T5. Tighten conversion check names and scope
 
-For each reference set, the round-trip test should assert more than just `no
-error` and `End ExchangeDocument`; it should also confirm the converted set
-preserves XML structure, and opens cleanly in the appropriate version of Ableton
-Live without triggering a crash.
+The existing specs should be organized around the exact contract they prove:
+conversion output, Live compatibility, or harness parsing.
 
 #### T1. XML-level validation of the Live 11 conversion
 
@@ -50,10 +51,12 @@ The conversion contract should be made explicit by asserting the supported lane
 types, the expected `ContentLanes` and `ExpressionLanes` structure, and the
 required absence of unsupported Live 12-only nodes.
 
-#### T5. Tighten conversion check names and scope
+#### GH1. Round-trip Equivalence
 
-The existing specs should be organized around the exact contract they prove:
-conversion output, Live compatibility, or harness parsing.
+For each reference set, the round-trip test should assert more than just `no
+error` and `End ExchangeDocument`; it should also confirm the converted set
+preserves XML structure, and opens cleanly in the appropriate version of Ableton
+Live without triggering a crash.
 
 #### M11. Use `LiveScene`
 
@@ -96,52 +99,63 @@ Also, Live 8 and Live 9 demo sets have been installed but are not in
 
 #### N36. `als_delta` compares against a backup, not the previous version
 
-The first comparison is effectively against itself because the backup logic does not compare against the prior version in the first run.
+The first comparison is effectively against itself because the backup logic does
+not compare against the prior version in the first run. Use `gui_harness` to run
+als_delta and summarize changes in the ALS XML when the harness performs the
+following automated tasks ()
+
+See [OSC](docs/osc.md) for information about how to automate Ableton Live from
+Ruby using OSC.
+
 
 #### N10. `LiveTracks#ready_for_p3s?` dead code
 
-This helper is defined but not used; the inline `p3s_tx_msg` logic already covers the relevant behavior.
+This helper is defined but not used; the inline `p3s_tx_msg` logic already
+covers the relevant behavior.
+
 
 #### N37. Frozen-track clip reporting is confusing
 
-The same clip can be encountered through both sequencers and reported more than once. The distinction between source and distinct files should be clarified.
+The same clip can be encountered through both sequencers and reported more than
+once. The distinction between source and distinct files should be clarified.
 
 #### N40. Group device chain reporting is incomplete
 
-A group-level device blocking condition is reported on the group, but not on the member tracks that inherit the same signal path.
+A group-level device blocking condition is reported on the group, but not on the
+member tracks that inherit the same signal path.
 
 #### N41. Blocking device on group member is counted twice
 
-A device on both a track and its group results in duplicated reporting for the same underlying problem.
+A device on both a track and its group results in duplicated reporting for the
+same underlying problem.
 
 #### N42. Unknown lane `Type` values may crash Live 11
 
-The Live 12 lane numbering is not portable to Live 11, and the round-tripped set keeps lane `Type` values that Live 11 does not understand. This is the main unresolved compatibility risk.
+The Live 12 lane numbering is not portable to Live 11, and the round-tripped set
+keeps lane `Type` values that Live 11 does not understand. This is the main
+unresolved compatibility risk.
 
 #### N43. `FakeGroup` remains unverified
 
-The claim that a `FakeGroup` routing wrapper exists has not been confirmed from the corpus examined so far.
+The claim that a `FakeGroup` routing wrapper exists has not been confirmed from
+the corpus examined so far.
 
 #### N50. Known crash path missing as a failing regression
 
-The current Live 11 crash behavior should be captured as a compact failing regression fixture before treating a fix as complete.
+The current Live 11 crash behavior should be captured as a compact failing
+regression fixture before treating a fix as complete.
 
 #### N51. The Push 3 transfer message and the frozen marker have no coverage
 
-The examples that covered `LiveTracks#p3s_tx_msg` and `LiveTrack#show_track` were built out of
-stand-ins for `LiveTrack`, `LiveGroup`, `LiveDevice` and `LiveAudioClip`, and out of objects whose
-instance variables were set by hand. They were deleted: a stand-in is not the thing it stands in
-for, and an object assembled out of parts does not test the constructor.
+There are no unit tests that covere `LiveTracks#p3s_tx_msg` and `LiveTrack#show_track`
 
-Neither method is covered now.
+`p3s_tx_msg` has to be tested against a real set that has the three things it
+reports: a clip that has not been collected, a third-party device on a track
+that is not frozen, and a third-party device in the chain of a group. The demo
+sets for Live 11 and 12 should be examined for such a set.
 
-`p3s_tx_msg` has to be tested against a real set that has the three things it reports: a clip that
-has not been collected, a third-party device on a track that is not frozen, and a third-party
-device in the chain of a group. The demo sets are the source of those, and `sets/live_11/` holds
-the sets that were checked in.
-
-`show_track` says whether a track is frozen, and a group track cannot be frozen, so the two have
-to be told apart. The demo sets have both.
+`show_track` says whether a track is frozen, and a group track cannot be frozen,
+so the two have to be told apart. The demo sets have both.
 
 #### N52. Successful Round-Trip from Live 11, to Live 12, and back to Live 11
 
@@ -157,7 +171,7 @@ The round trip needs three files:
    `$live_set/<wbr>dev/<wbr>make_reference_set`.
 
 3. The set this gem writes when it converts the upgrade set back to the Live 11
-   format. The `als_convert` command can perform this conversion.
+   format. The `als_to_version` command can perform this conversion.
 
 The work is to convert of the Live 12 version back to the Live 11 format and
 verify that the XML is well-formed and Ableton Live 11 can read the set back.

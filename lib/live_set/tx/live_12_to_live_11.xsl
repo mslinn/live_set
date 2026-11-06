@@ -2,6 +2,8 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
 <!--
+  TODO This should be dead code. Verify this is true, and if so, delete it.
+
   Converts a Live 12 set to the Live 11 format.
 
   Each transformation below is one of the differences between the two versions of the format. The transformations  were found by opening a Live 11 demo set in Live 12, saving it, and comparing the two files.

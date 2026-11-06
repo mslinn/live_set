@@ -69,37 +69,39 @@ important source of information.
 
 ## Push 3 Standalone (P3S)
 
-**This section was updated in anticipation of work actually getting done at some
-point, so it is aspirational**
-
 Importing Ableton Live project files to the P3S is a painful process. Debugging
 can be frustrating. You sometimes feel like you are spending more time
 struggling with the technology than you are getting useful work done.
 
-Live_set reports on the status of an Ableton Live set and gives a go/no go
-signal for transmission to a P3S.
+The `als_report` command from `Live_set` reports on the status of an Ableton
+Live set and gives a go/no go signal for transmission to a P3S.
+
+Push 3 Standalone runs an embedded version of Live internally. The earliest
+compatible version of a Live set that can be transferred to a Push 3 Standalone
+is Live 11. Live 12 sets can also be transferred; the latest supported version
+is Live 12.4.
 
 ### Reported Problems
 
 1. Third-Party Plugins (VST / AU)
 
-    An unfrozen track will cause a error (or fail to produce sound) on a P3S if and
-    only if it relies on software or routing that the P3S does not support.
+    An unfrozen track will cause a error (or fail to produce sound) on a P3S if
+    it relies on an unsupported device or routing that the P3S does not support.
 
-    The Push 3 Standalone runs a customized version of Ableton Live that does not
-    support third-party VST3, Audio Units (AU), or CLAP plugins.
+    The P3S runs a customized version of Ableton Live that does not support
+    non-Ableton devices, such as VST2, VST3, Audio Units (AU), or CLAP plugins.
 
-    If an unfrozen track uses a plugin like Serum, Kontakt, FabFilter, or Valhalla,
-    the Push 3 will throw a "Missing Plugin" or "Plugin not available" error when
-    loading the set. The track will either be completely silent or replaced by a
-    blank placeholder device.
+    If an unfrozen track uses any of these non-Ableton plugins, the P3S will
+    throw a "Missing Plugin" or "Plugin not available" error when loading the
+    set. The track will either be completely silent or replaced by a blank
+    placeholder device.
 
-    Freezing renders the track to a temporary audio file, baking the plugin's sound
-    into the waveform. The P3S only needs to play back the audio file, completely
-    bypassing the need for the missing plugin.
+    Freezing a track renders the it to an audio file, making a permanent
+    recording of the plugin's sound processing. Frozen tracks are easily played
+    back by the P3S, so the plugin can be ignored while the track is frozen.
 
-    If any non-Ableton plugin is not on a frozen track then live_set reports the
-    problem in great detail.
+    If any non-Ableton plugin is not on a frozen track then the `als_report`
+    command includes a clear explanation of the problem in its generated report.
 
 2. Desktop-Specific External Audio Routing
 
@@ -110,19 +112,21 @@ signal for transmission to a P3S.
     The track will load, but it will be silent because the expected input hardware
     isn't there.
 
-    If the external audio was already recorded into a clip, freezing the track
-    converts that external input dependency into a self-contained audio clip.
+    Once again, freezing the track makes the Live set compatible with the P3S.
+    Recording the external audio into a clip, then freezing the track converts
+    an external input dependency into a self-contained audio clip and makes the
+    Live set compatible with the P3S.
 
 3. Incompatible or Overloaded Max for Live (M4L) Devices
 
-    While the P3S does support Max for Live, it has less CPU headroom than a modern desktop computer.
+    While the P3S does support Max for Live, the P3S has less CPU headroom than a
+    modern desktop computer.
 
     Complex M4L devices might fail to load, throw DSP overload errors, or cause the
     entire set to crash on the standalone unit.
 
     Freezing an M4L device renders its output to audio, removing the CPU load and
-    the need for the Max runtime to process it in real-time.  What is perfectly safe
-    to leave unfrozen?
+    the need for the Max runtime to process it in real-time.
 
     You do not need to freeze tracks that only use:
 
@@ -170,8 +174,8 @@ The following commands are provided:
 - `als_validate` checks that a session file conforms to an XSD schema.
 - `als_xsd_order` prints the order of the children of an element in a schema.
 
-The examples of how to use each command assume $live_set points to an ALS file,
-for example:
+The examples of how to use each command assume the `$live_set` environment
+variable points to an ALS file, for example:
 
 ```shell
 live_12_demos="$live_reference_sets/sets/live_12/projects_and_als/"
@@ -358,23 +362,6 @@ Example:
   als_report $path/to/my_set.als
 ```
 
-```text
-$ als_validate
-Als_validate checks that an Ableton Live set conforms to an XSD schema.
-
-Syntax: als_validate PATH_TO_ALS_FILE SCHEMA.xsd
-
-Environment variables used in PATH_TO_ALS_FILE are expanded.
-
-Options are:
-  -h Display this help message.
-  -l LOGLEVEL Set the log level (DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
-
-Example:
-  als_validate $path/to/my_v12_set.als schema.xsd
-```
-
-
 #### The Report
 
 `als_report` writes a report of a set in markdown: the tracks of the set and the groups they
@@ -458,6 +445,26 @@ it — so the packs that are missing are reported on their own.
 
 The report says what made it — the version of `live_set`, and where the tool is
 documented: <https://www.mslinn.com/av_studio/ableton_live_set.html>.
+
+
+
+### `als_validate`
+
+```text
+$ als_validate
+Als_validate checks that an Ableton Live set conforms to an XSD schema.
+
+Syntax: als_validate PATH_TO_ALS_FILE SCHEMA.xsd
+
+Environment variables used in PATH_TO_ALS_FILE are expanded.
+
+Options are:
+  -h Display this help message.
+  -l LOGLEVEL Set the log level (DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
+
+Example:
+  als_validate $path/to/my_v12_set.als schema.xsd
+```
 
 
 ### `als_to_version`

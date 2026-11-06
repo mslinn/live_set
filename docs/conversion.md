@@ -1,4 +1,4 @@
-# Converting and Comparing Live Sets
+# Converting Live 12 Sets to Live 11
 
 This document says:
 
@@ -18,32 +18,175 @@ Open questions live in [`TODO.md`](../TODO.md). The ones this document touches a
 validation of the Live 11 conversion) and **N42** (unknown lane `Type` values may crash Live 11).
 
 
-## The conversion today
+## XML Transformation
 
-`als_report -11` converts a Live 12 set to the Live 11 format. It used to be six
-hand-written edits in `lib/live_set/live_set_class.rb`:
+`als_to_version 11` converts a Live 12 set to the Live 11 format by transforming
+the XML contained within the ALS file:
 
-| Line    | What it does                                                                                              |
-| ------- | --------------------------------------------------------------------------------------------------------- |
-| 101–105 | Writes five Live 11 version strings onto the `<Ableton>` element, including a hard-coded `Revision` hash. |
-| 113–117 | Deletes every `//InstrumentMeld`, `//Roar` and `//MxPatchRef`.                                            |
-| 121     | Replaces the text `AudioOut/Main` with `AudioOut/Master` in the serialized XML.                           |
-| 172–176 | Renames `MidiEditorLaneModel` to `ExpressionLane` inside `ContentLanes` and `ExpressionLanes`.            |
-| 181–189 | Rewrites a `Saturator`'s `Oversampling` from `"true"`/`"false"` to `"1"`/`"0"`.                           |
-| 47      | Parses the document with `Nokogiri::Slop`.                                                                |
+- Writes five Live 11 version strings onto the `<Ableton>` element, including a
+  hard-coded `Revision` hash.
 
-The transform now exists, and it is Ruby rather than XSLT: the base class is
-`lib/live_set/tx/live_version_converter.rb`, the transformations of the 11↔12 version_diff are
-`lib/live_set/tx/live_11_and_12.rb`, and `docs/fix_plan2.md` says why the
-stylesheet was replaced. The line numbers above are those of the code that is
-gone; the table describes what the conversion did, not where it lives now.
+- Deletes every `//InstrumentMeld`, `//Roar` and `//MxPatchRef`.
+
+- Replaces the text `AudioOut/Main` with `AudioOut/Master` in the serialized XML.
+
+- Renames `MidiEditorLaneModel` to `ExpressionLane` inside `ContentLanes` and `ExpressionLanes`.
+
+- Rewrites a `Saturator`'s `Oversampling` from `"true"`/`"false"` to `"1"`/`"0"`.
+
+- Parses the document with `Nokogiri::Slop`.
+
+TODO The following is old information and should be replaced with a short
+high-level description of the [`als_to_version` command](../exe/als_to_version).
+
+The transform now exists, and it peformed in Ruby rather than via XSLT. The base
+class is `lib/live_set/tx/live_version_converter.rb`, the transformations of the
+11↔12 version_diff are `lib/live_set/tx/live_11_and_12.rb`, and
+`docs/fix_plan2.md` says why the stylesheet was replaced. The line numbers above
+are those of the code that is gone; the table describes what the conversion did,
+not where it lives now.
 
 A transform takes its direction from the document it is given. A rename matches either
 spelling and emits the other, so one set of transformations carries both directions of a
 version_diff. See `docs/cpfir.md`, "The Lifecycle of a Conversion".
 
 
-## What is wrong with it
+### Determining the Conversion Process
+
+The transformations for converting Live 12 back to Live 11 were figured out by
+opening a Live 11 demo set in Live 12, saving it, and comparing the two versions
+of the Live set.
+
+See [`conversion.md`](conversion.md) for details.
+
+
+#### Unique Live 11 Schema
+
+`als_to_version 11 input_set output_set` writes `output_set` in the Live 11 format
+regardless of the version of `input_st`. The version strings it writes are fixed
+so the Live set can be recognized as being the result of a conversion by
+`live_set` instead of being saved by Ableton Live:
+
+```ruby
+@ableton['Creator'] = 'Ableton Live 11.3.21'
+@ableton['MajorVersion'] = '5'
+@ableton['MinorVersion'] = '11.0_11300'
+@ableton['Revision'] = '5ac24cad7c51ea0671d49e6b4885371f15b57c1e'
+@ableton['SchemaChangeCount'] = '3'
+```
+
+`MajorVersion` with value `5` indicates that this ALS file contains a Live 11 set.
+
+Note that `MinorVersion` here is `11.0_11300` while `Creator` says `11.3.21`.
+The two are different numbering schemes: `Creator` is the version of Live that
+wrote the set, and `MinorVersion` identifies the set format that the specified
+version of Live 11 reads.
+
+
+#### What the Conversion Removes, and What it Keeps
+
+Unexpected XML entities are passes through unchanged.
+
+TODO setting log level WARN displays unrecognized XML entities on STDERR.
+
+The following command converts a Live 12 set (`$path/to/my_v12_set.als`) to Live
+11 format and saves the result as `$path/to/my_v12_set_11.als`. The
+output file is overwritten if it already exists:
+
+```shell
+$ als_to_version 11 -f "$path/to/my_v12_set.als"
+```
+
+The conversion from Live 12 to 11 renames some well-known elements and removes
+all elements that Live 11 does not have:
+
+| Element          | In Live 11? | In Live 12?                      |
+| ---------------- | ----------- | -------------------------------- |
+| `InstrumentMeld` | no          | yes — 2 in the Live 12 demo set  |
+| `MxPatchRef`     | no          | yes — 5 in the Live 12 demo set  |
+| `Roar`           | no          | yes — 10 in the Live 12 demo set |
+
+The first version of `live_set` copied all other elements unchanged. The
+conversion was a selective removal, not a rewrite. It edited the version strings
+on the `Ableton` element, removes those three elements, translated the two that
+Live 11 spells differently, and wrote the rest of the document back out.
+
+- Group tracks are kept, because Live 11 has them as well as Live 12. See
+  [als_notes.md](als_notes.md), "The group tracks".
+
+- Elements the conversion is unaware of are kept. A `FakeGroup` element, a
+  `TrackWrapperType` element, or anything else that a future version of Live
+  writes is copied to the output verbatim, with its attributes intact. The
+  conversion does not need to know what an element means in order to preserve
+  it.
+
+The conversion writes `<name>_11.als` next to the set it was given. If that file
+is already there, the command stops and says so, unless the force option is
+given:
+
+```shell
+$ als_to_version 11 my_set.als
+Writing ./my_set_11.als
+Conversion complete
+
+$ als_to_version 11 my_set.als
+Error: ./my_set_11.als already exists. Use -f to overwrite it.
+
+$ als_to_version 11 -f my_set.als
+Overwriting existing ./my_set_11.als
+Conversion complete
+```
+
+#### Translating Renamed Elements
+
+Some elements were renamed between Live 11 and 12.
+
+The lane element was renamed. A lane is an `ExpressionLane` in Live 11 and a
+`MidiEditorLaneModel` in Live 12. Apart from the name they are the same: the
+same `Id` attribute, and they have the same `Type`, `Size` and `IsMinimized`
+children.
+
+```xml
+<!-- Live 11 -->
+<ContentLanes>
+  <ExpressionLane Id="0">
+    <Type Value="4"/>
+    <Size Value="25"/>
+    <IsMinimized Value="false"/>
+  </ExpressionLane>
+</ContentLanes>
+```
+
+```xml
+<!-- Live 12 -->
+<ContentLanes>
+  <MidiEditorLaneModel Id="0">
+    <Type Value="4"/>
+    <Size Value="25"/>
+    <IsMinimized Value="false"/>
+  </MidiEditorLaneModel>
+</ContentLanes>
+```
+
+The conversion renames `MidiEditorLaneModel` elements to `ExpressionLane` elements.
+
+The `Oversampling` attribute values for `Saturator` and `Pedal` elments are
+translated between boolean values and 0 & 1 (truthy integer) values.
+
+| Parent      | Live 11.3d1           | Live 12.4d1           |
+| ----------- | --------------------- | --------------------- |
+| `Saturator` | `"1"` or `"0"`        | `"true"` or `"false"` |
+| `Pedal`     | `"true"` or `"false"` | `"true"` or `"false"` |
+
+The conversion reads a `Saturator`'s boolean value and rewrites the value as
+`"1"` or `"0"`. `Pedal` values are not modified.
+
+In the demo set, track 132 "Plastic Toy" has a `Saturator` with
+`Oversampling="0"` in Live 11 and `Oversampling="false"` in Live 12; the other
+five `Saturator`s have values `"1"` in Live 11 and `"true"` in Live 12.
+
+
+## Conversion Issues
 
 ### The measurement
 
@@ -51,7 +194,7 @@ The Live 12 demo set was converted with the current code, and the result was
 validated against a freshly generated Live 11 schema:
 
 ```shell
-$ bundle exec exe/als_report -11 -f /tmp/live12_input.als
+$ bundle exec exe/als_to_version 11 -f /tmp/live12_input.als
 Writing /tmp/live12_input_11.als
 Conversion complete
 

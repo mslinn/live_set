@@ -17,25 +17,18 @@ The headings are what the code cites. This document was written as
 and a version_diff document (the differences between two versions); the section
 numbers the old document carried are gone, and the headings are cited instead.
 
+## ALS Files Are XML, Probably GZipped
 
-## The version_diff documents
+An `.als` file is an XML document. Most are gzip-compressed, but uncompressed
+`.als` files are sometimes used for testing purposes. Clas `AlsFile` in
+`lib/live_set/als_file.rb` contains the following methods:
 
-Each version_diff document holds the differences between two adjacent versions
-of Live. It opens with the release notes of the newer version, because every
-difference is something the newer version changed, and then it holds the format
-differences that follow from them.
-
-| Document | The versions |
-| --- | --- |
-| [`live_8_9_diff.md`](live_8_9_diff.md) | Live 8 and Live 9 |
-| [`live_9_10_diff.md`](live_9_10_diff.md) | Live 9 and Live 10 |
-| [`live_10_11_diff.md`](live_10_11_diff.md) | Live 10 and Live 11 |
-| [`live_11_12_diff.md`](live_11_12_diff.md) | Live 11 and Live 12 |
-
-A difference belongs to the version that introduced it, so a difference between
-Live 11 and Live 12 is in the Live 12 document, and not in the Live 10 and
-Live 11 one. A fact that both versions share is not a difference at all: it is
-a fact about the format, and it belongs in this document.
+| Method           | Description                                                      |
+|------------------|------------------------------------------------------------------|
+| `read`           | Reads the XML document of a live set.                            |
+| `read_text`      | Reads the XML of a live set, as text.                            |
+| `read_gzip_text` | Reads the XML of a live set as text; the set must be compressed. |
+| `write`          | Writes a live set.                                               |
 
 
 ## ALS Schemas
@@ -136,7 +129,43 @@ element is not frozen. `Xml#xml_bool?` follows that convention for every
 boolean it reads, and warns about a value that is neither `"true"` nor
 `"false"` so that malformed data does not pass unnoticed.
 
-See `lib/common/xml.rb`.
+There is no text-only shape in practice. Do not read values with `element.text`
+because that will return `""` and silently produce empty results.
+
+`lib/common/xml.rb` provides two readers:
+
+```ruby
+xml_value(element)   # the Value attribute, or nil
+xml_bool?(element)   # true or false, never nil
+```
+
+`xml_bool?` treats a missing element as `false` — an `<AudioTrack>` with no `<Freeze>` element is
+not frozen. A value that is neither `"true"` nor `"false"` is also `false`, but it is logged, so
+malformed data does not pass unnoticed.
+
+
+## XML Elements
+
+### XML Root Element
+
+The root element is `<Ableton>`, and the document is a single `<LiveSet>` under it.
+
+
+#### The `Creator` Attribute
+
+The `<Ableton>` element has `MajorVersion` and `MinorVersion` attributes, but those are Ableton's internal set-format
+numbers, not the Live version a user sees. A set written by Live 12.2.1 reports `MajorVersion="5"
+MinorVersion="12.0_12203"`.
+
+The real Live version is stored in the `Creator` attribute:
+
+```xml
+<Ableton MajorVersion="5"
+         MinorVersion="12.0_12203"
+         SchemaChangeCount="3"
+         Creator="Ableton Live 12.2.1"
+         Revision="c0d59beb...">
+```
 
 
 ## Where a track's audio is

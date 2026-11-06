@@ -1,7 +1,5 @@
 require_relative 'live_version_converter'
 
-# The differences between the Live 11 format and the Live 12 format.
-#
 # This class is the bridge between Live 11 and Live 12. It inherits the machinery of the base
 # class and nothing else: a bridge never inherits from another bridge, and a conversion across
 # several versions is the composition of the bridges between them.
