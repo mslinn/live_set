@@ -55,6 +55,5 @@ finding them is written down:
 
 ## Reference Sets and Reports
 
-The reference sets and their reports are stored in the [reference set
-repository](https://github.com/mslinn/live_reference_sets/), present on developer computers at the location that the
-environment variable `live_reference_sets` points to.
+Reference sets and their reports are stored in the [reference set repository](https://github.com/mslinn/live_reference_sets/), present on developer
+computers at the location that the environment variable `live_reference_sets` points to.

@@ -318,13 +318,13 @@ thing can be looked up in the palette the reader has.
 
 A clip that plays a file refers to it through `SampleRef/FileRef`:
 
-| Element | What it holds |
-| --- | --- |
-| `RelativePath` | The path of the file relative to the set's directory |
-| `Path` | The absolute path of the file |
-| `Type` | How the file is referenced |
+| Element            | What it holds                                                    |
+| ------------------ | ---------------------------------------------------------------- |
+| `RelativePath`     | The path of the file relative to the set's directory             |
+| `Path`             | The absolute path of the file                                    |
+| `Type`             | How the file is referenced                                       |
 | `OriginalFileSize` | The size of the file, in bytes. Live 8 wrote `FileSize` instead. |
-| `LastModDate` | When the file was last modified, as a Unix timestamp |
+| `LastModDate`      | When the file was last modified, as a Unix timestamp             |
 
 Either path may be empty, meaning the file is not in the project folder. The
 relative path is the one to use: the absolute path is a fallback for a clip
@@ -358,11 +358,11 @@ says which pack the file came from. The content of a pack is under a folder of
 its own — `Samples`, `Sounds`, `IRs`, `Devices`, `Racks`, `Presets` — and the
 pack is the folder above it:
 
-| The absolute path | What it is |
-| --- | --- |
+| The absolute path                      | What it is                          |
+| -------------------------------------- | ----------------------------------- |
 | `.../Drive and Glow/Samples/Loops/...` | a file of the pack `Drive and Glow` |
-| `.../User Library/Samples/...` | a file of the user library of Live |
-| `.../Core Library/Samples/...` | a file of the Core Library of Live |
+| `.../User Library/Samples/...`         | a file of the user library of Live  |
+| `.../Core Library/Samples/...`         | a file of the Core Library of Live  |
 
 The libraries of Live are not packs: they come with Live, and they are there
 for every set. A pack is sold separately, and it has to be installed for the
@@ -404,14 +404,14 @@ A clip that plays a file has a `WarpMode` element, and the number in it says
 which algorithm Live applies to the clip. The numbers are the numbers of the
 modes in the manual of Live, section 9.3, "Warp Modes":
 
-| `WarpMode` | Warp mode | What it is for |
-| --- | --- | --- |
-| 0 | Beats | Slicing rhythmic material at its transients, such as drums and loops |
-| 1 | Tones | Granular processing for clear, sustained monophonic pitch, such as vocals and basslines |
-| 2 | Texture | Granular processing for polyphonic, ambient or noisy textures, such as pads and soundscapes |
-| 3 | Re-Pitch | Speed changes alter both the pitch and the tempo at once, as a turntable or a tape stretch does |
-| 4 | Complex | A composite algorithm, for whole mixed tracks, dense layers or polyphonic samples |
-| 5 | Complex Pro | The advanced composite algorithm, with the formant and envelope controls |
+| `WarpMode` | Warp mode   | What it is for                                                                                  |
+| ---------- | ----------- | ----------------------------------------------------------------------------------------------- |
+| 0          | Beats       | Slicing rhythmic material at its transients, such as drums and loops                            |
+| 1          | Tones       | Granular processing for clear, sustained monophonic pitch, such as vocals and basslines         |
+| 2          | Texture     | Granular processing for polyphonic, ambient or noisy textures, such as pads and soundscapes     |
+| 3          | Re-Pitch    | Speed changes alter both the pitch and the tempo at once, as a turntable or a tape stretch does |
+| 4          | Complex     | A composite algorithm, for whole mixed tracks, dense layers or polyphonic samples               |
+| 5          | Complex Pro | The advanced composite algorithm, with the formant and envelope controls                        |
 
 The manual is at
 https://www.ableton.com/en/live-manual/12/audio-clips-tempo-and-warping/#warp-modes
@@ -445,10 +445,10 @@ anywhere.
 
 A plug-in's name is in a different place depending on the plug-in format:
 
-| Format | Where the name is |
-| --- | --- |
-| VST2 | `PluginDesc/VstPluginInfo/PlugName` |
-| VST3 | `PluginDesc/Vst3PluginInfo/Name` |
+| Format | Where the name is                   |
+| ------ | ----------------------------------- |
+| VST2   | `PluginDesc/VstPluginInfo/PlugName` |
+| VST3   | `PluginDesc/Vst3PluginInfo/Name`    |
 
 Both shapes are in real sets, and the VST3 shape has no `PlugName` at all.
 

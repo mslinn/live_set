@@ -40,6 +40,24 @@ Ignore the contents of `docs/old/` unless historical information is required.
 The TODO itens are listed in the suggested order of completion:
 
 
+#### D1. Required Model Classes, Serializers, and Specs
+
+Implement models, serializers, and specs for the following:
+
+- Track mixer: volume, pan, and sends
+- Device parameters
+- Scenes and the scene grid
+- Sample warp markers
+- Automation envelopes of a track
+- Arrangement markers
+- Set templates?
+- User presets?
+- Racks
+- State of the Live window, including the selected track, browser unfolded
+  state, the arrangment zoom. This model class might not be included when
+  computing equivalence between sets.
+
+
 #### T5. Tighten conversion check names and scope
 
 The existing specs should be organized around the exact contract they prove:

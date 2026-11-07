@@ -4,8 +4,8 @@ require 'support/live_sets'
 
 # A group of a set.
 #
-# The expected values are the lines of the report of the Live 11 reference set, which is
-# checked in.
+# The expected values are the lines of the report of the desired Live reference set, which is
+# checked in to [Live Reference Sets](https://github.com/mslinn/live_reference_sets).
 RSpec.describe LiveGroupSerializer, '#to_markdown' do
   # The group with the given name.
   #

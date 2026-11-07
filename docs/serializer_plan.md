@@ -2,138 +2,8 @@
 
 This is the plan for preparing the next major version of `live_set`.
 
-## Target Architecture
-
-- Ableton Live sets are stored in ALS files, containing XML.
-- This project has (or will have) a model class for every node type in the XML.
-  - The ALS XML hierarchy of nodes will be mirrored by the hierarchy of Ruby classes
-  defined in this project's `lib/live_set/model` directory.
-  - Just as some ALS XML nodes have child collections, the Ruby model classes
-    have mirror collections of child models (e.g. LiveTrack contains an
-  array of LiveClip.)
-- Every model class has an associated serializer class. Another way of saying
-  this is: a parallel hierarchy of serializers mirrors the model hierarchy,
-  which mirrors the XML structure. The serializer class is responsible for
-  generating a markdown representation, and includes methods for escaping
-  characters and namespace support. Serializers are initialized from a model
-  class instance.
-- [Class AlsModel](lib/live_set/model/als_model.rb) holds everything stored in
-  an ALS file. We can call this singleton instance "the ALS model."
-- Where several serializers have common behaviour, that behaviour shall be
-  extracted into a helper of some sort.
-
-
-## Testing
-
-Standard operating procedure is:
-
-1. For each ALS version that we support (Live 8.4 to 12.x):
-
-   1. Maintain one complete test of the best ALS file we know of that exercises
-    each feature. At present we just extract an XML file from the largest Live
-    12 demo and save it as test fixture data. Later we will find (or create)
-    better test data, and an ALS file for every Live version we support.
-
-   2. Unit tests that fully exercise every leaf node of the serializer class
-    tree. (Notify the user of any missing tests)
-
-       1. Inflate test ALS models from the text fixture data
-
-       2. We require unit tests that fully exercise each serializer.
-
-       3. Compare results against literal strings. These strings should be reviewed by a human familiar with CSS.
-
 
 ## TODOs
-
-TODO update this list by removing items that have been completed.
-
-<!-- markdownlint-disable MD013 MD060 -->
-| The TODO, in `live_palette.rb`                                                                                                                                              | What is to be done                                                     | Where it goes                           |
-|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|-----------------------------------------|
-| `LIGHT` — "TODO: delete this stupid idea"                                                                                                                                   | The constant is deleted, and the text on a dark background is white    | `LiveTrackSerializer` writes it         |
-| `ICONS` — "TODO Move to a new LiveTrackSerializer class" and "TODO rename to TRACK_TYPE_ICONS"                                                                              | The map of icons moves, and is renamed                                 | `LiveTrackSerializer::TRACK_TYPE_ICONS` |
-| `icon_of` — "TODO: rename to icon_for"                                                                                                                                      | The method is renamed                                                  | `LiveTrackSerializer.icon_for`          |
-| `icon_of` — "TODO Move to LiveTrackSerializer class. a serializer object initialized with a model instance…"                                                                | The whole of the method moves, with the architecture of the long TODO  | `LiveTrackSerializer`                   |
-| `name_span` — "TODO: rename to colored_code"                                                                                                                                | The method is renamed                                                  | `LiveTrackSerializer.colored_code`      |
-| `name_span` — "TODO Move to LiveTrackSerializer class"                                                                                                                      | The method moves                                                       | `LiveTrackSerializer`                   |
-| `name_span` — "Tries and fails to select a background color based on a foreground color. TODO: add a new parameter for background_color so proper colors can be specified." | The method takes a background colour, and does not try to work one out | `LiveTrackSerializer.colored_code`      |
-| `code_span` — "TODO: Move to LiveTrackSerializer class"                                                                                                                     | The method moves                                                       | `LiveTrackSerializer.code_span`         |
-| `swatch` — "TODO Move to LiveTrackSerializer class"                                                                                                                         | The method moves                                                       | `LiveTrackSerializer.swatch`            |
-| `swatch` — "TODO add another parameter for background color instead of attempting to compute it"                                                                            | The method takes a background colour                                   | `LiveTrackSerializer.swatch`            |
-| `text_color` — "TODO: Delete this stupid idea"                                                                                                                              | The method is deleted                                                  | —                                       |
-| `brightness` — "TODO: Delete this stupid idea"                                                                                                                              | The method is deleted                                                  | —                                       |
-<!-- markdownlint-enable MD013 MD060 -->
-
-
-
-
-## Colors
-
-With `text_color`, `brightness` and `LIGHT` deleted, nothing in the palette works out the colour of the text on a
-colour, and the caller says what the background colour is. The one thing the TODOs do not say is who chooses the colour
-of the text.
-
-Answer: The default color is the default markdown color. Look at the existing reports in
-`$live_reference_sets/sets/live_12/reports` and use those colors for now. We will optimize them later.
-
-The caller passes the foreground and background colours.  The serializer only writes what it is given:
-
-```ruby
-LiveTrackSerializer.colored_code text, color_number: 21, background_color: '#18E9FE',
-                                           foreground_color: '#000000'
-LiveTrackSerializer.swatch 21, background_color: '#18E9FE', foreground_color: '#000000'
-```
-
-## Hierarchical Numnbering System
-
-In a hierarchical numbering system, `1.1.2a` represents a specific sub-item nested deep within a structured list or
-document outline.
-
-Here is how this specific number breaks down from the top level down to the most specific point:
-
-• 1. — The first main section or chapter.
-• 1.1. — The first subsection under main section 1.
-• 1.1.2. — The second sub-subsection under subsection 1.1.
-• 1.1.2a — The first individual clause, paragraph, or item (denoted by 'a') within sub-subsection 1.1.2.
-
-### Visual Example
-
-To see how this looks in a legal document, technical manual, or project outline:
-• 1. Main Heading
- • 1.1 Subheading
-  • 1.1.1 Sub-subheading
-  • 1.1.2 Sub-subheading
-   • 1.1.2a This is the exact item you are looking at.
-   • 1.1.2b The next item at this same level.
-
-### Usage in This Project
-
-The hierarchical relationships between the ALS model classes and their corresponding serializer classes is reflected in
-the markdown generated for the ALS report. Nested XML items stored in the ALS file are reported using a hierarchical
-numbering system.
-
-TODO: the following was taken from the `Fascination.md` reference report
-($live_reference_sets/sets/live_11/reports/Fascination.md). Notice how it shows references, which we recently learned do
-not exist for MIDI. Audio files live in separate files, so ALS XML elements can only point to the audio files. in that
-sense audio samples are always references.
-
-```text
-ALS_Model
-  Group track 1 👥 Group # Drums
-  Group Track Device 1a Filter Max for Live ⚠ not usable on Push 3
-  Group Track Device 1b DrumBuss Live
-  Track 1.1 🎹 MIDI Kontakt 7
-    Track Device 1.1a Kontakt 7 VST3 ⚠ not usable on Push 3
-    Clip 1.1.1 (×5) Kontakt 7 1 ⚠ not in project
-      References (×5): launch: trigger, warp: none
-    Take lane 1.1.1 3-Kontakt 7 1
-      Clip 1.1.1.1 (×3) Kontakt 7 1 ⚠ not in project
-        References (×3): launch: trigger, warp: none
-```
-
-Notice how Track 1.1 appears beneath Group track 1; That means the track is a member of the group. The hierarchical
-numbering (1.1) is consistent with the indentation.
 
 ## Serializer Classes
 
@@ -153,7 +23,7 @@ as the long TODO asks.
 | `LiveTracksSerializer`              | the tracks of the set, and of a group                                                | `LiveTracks`        |
 | `LiveDeviceSerializer`              | a device                                                                             | `LiveDevice`        |
 | `LiveDevicesSerializer`             | the devices of a track, or of a group                                                | `LiveDevices`       |
-| `LiveClipSerializer`                | a clip: its line, its file, and its settings                                          | `LiveClip`          |
+| `LiveClipSerializer`                | a clip: its line, its file, and its settings                                         | `LiveClip`          |
 | `LiveTakeLanesSerializer`           | the take lanes of a track                                                            | `LiveTakeLanes`     |
 | `LiveTakeLaneSerializer`            | a take lane                                                                          | `LiveTakeLane`      |
 | `LiveClipsSerializer`               | the clips of the set                                                                 | `LiveClips`         |
@@ -174,72 +44,73 @@ The serializers have the following responsibilities:
 
 1. **The numbering is generated by the serializer.** The XML has no notion of a
    track number, or a clip number, etc, so model classes do not contain any
-   sequence information. The top-level serializer
-   (lib/live_set/serializer/als_model_serializer.rb) iterates through its child
-   serializers. Each child serializer is passed a hierachical number (e.g.  "1.2.3")
-   and responsible for incrementing the counters for its children. Examples:
+   numbering information. The top-level serializer
+   (`lib/live_set/serializer/als_model_serializer.rb`) iterates through its child
+   serializers. Each child serializer is passed a hierachical number (e.g.
+   "1.2.3") and is responsible for incrementing the counters for its children.
+   Examples:
 
-   a. The serializer for the first group track numbers its devices from the
-   group track number: "1a", "1b".
+   a. The serializer for the group track numbers each group: "1", "2", etc.
 
-   b. A clip serializer for track 1.2 would be passed "1.2.1" for the first clip
-   of tha track, "1.2.2" for the second clip of that track, etc.
+   b. The group track serializer for the each track withing the group would be
+      passed the hierarchical number for the group, and would append ".1" for the
+      first track, ".2" for the second track, etc.. Thus the tracks of the group
+      would be numbered "1.1", "1.2", ...
 
-2. **Every serializer indents its own lines.** It is given the indentation to write with,
-   and it passes its own indentation, two spaces more, to the serializers it calls.
-3. **A track serializer writes the line of its track** — the number, the icon, the kind, the
-   name on its colour, and the states — and then the devices, the clips and the take lanes
-   under it.
+   c. The clips serializer for each track would append the clip counter and pass
+      the resulting hierarchical numbers "1.2.1", "1.2.2", etc. to each clip
+      serializer.
 
-**The track serializer writes the name and the hierarchical number of a device;
-the device serializer writes the device.** The report writes a device of a track
-as `Track Device 1.1a`, and a device of a group as `Group Track Device 1a`: the
-name depends on the kind of the track, which only the track serializer knows,
-and the hierarchical number is the number the track serializer gives it. The
-device serializer writes the device itself — its name on the background of the
-thing Push 3 cannot use, the kind of device it is, and the warning.
+**The devices serializer (a collection serialier) writes the name and the
+hierarchical number of a device; the device serializer writes the device.** The
+report writes a device of a track as `Track Device 1.1a`, and a device of a
+group as `Group Track Device 1a`: the name depends on the kind of the track,
+which only the track serializer knows, and the hierarchical number is the number
+the tracks serializer (the collection serializer) gives it.
 
-The outline is written by AlsModelSerializer, which iterates through the groups and the
-top-level tracks, and passes each of them along with a hierarchical base number to the
-serializer.
 
-## Serializer Report Their Model Instance
+## Serializers Report Their Model Instance
 
 A model class mirrors the content of an XML element and its children. There is
-more a model class for each type of XML element.
+a model class for most XML element types.
 
 A model class represents an XML entity, and the associated serializer writes
 it as markdown.
 
-Collections of a model class are also defined as model classes, named for the
-things it holds, and of course every model class has a serializer of its own:
+Collections of a model class are also defined as discrete model classes, named
+for the things it holds, and of course every model class has a serializer of its
+own:
 
 For example:
 
-- `LiveTrack` models the `Track` XML element, and has serializer `LiveTrackSerializer`
+- `LiveAudioTrack` models the `AudioTrack` XML element, and has serializer `LiveAudioTrackSerializer`.
 
-- `LiveTracks` holds collections of `LiveTrack` from XML element `Tracks` and has serializer `LiveTracksSerializer`
+- `LiveMidiTrack` models the `MidiTrack` XML element, and has serializer `LiveMidiTrackSerializer`.
+
+- `LiveTracks` holds collections of `LiveAudioTrack` and `LiveMidiTrack` from
+  XML element `Tracks` and has serializer `LiveMidiTracksSerializer`.
 
 - `LiveGroups` holds collections of `LiveGroup` from XML element `GroupTracks` and has serializer
-  `LiveGroupsSerializer` (TODO is this correct?)
+  `LiveGroupsSerializer` (TODO is this correct?).
 
 - `LiveDevices` holds collections of `Device` from XML elements `Devices` and
   has serializer `LiveDevicesSerializer` (TODO the reality is more complex than
-  this, involving device ids.)
+  this, involving device ids.).
 
 - TODO Model XML element `DeviceChain`
 
 - `LiveTakeLanes` holds collections of `TakeLane` from XML elements `TakeLanes`
-  and has serializer `LiveTakeLanesSerializer`
+  and has serializer `LiveTakeLanesSerializer`.
 
 - `LiveClips` holds collections of `LiveClip` from XML element `???` and has serializer
-  `LiveClipsSerializer`
+  `LiveClipsSerializer`.
 
 - TODO handle XML elements `ClipSlot`, `ClipSlotList` and `ClipSlotsListWrapper`
 
-- `LiveSamples` holds collections of `` from XML elements `` and has serializer `LiveSamplesSerializer`
+- `LiveSamples` holds collections of `` from XML elements `` and has serializer `LiveSamplesSerializer`.
 
-- `LiveAudioClips` holds collections of `AudioClip` from XML element `AudioClip` and has serializer `LiveAudioClipsSerializer`
+- `LiveAudioClips` holds collections of `AudioClip` from XML element `AudioClip`
+  and has serializer `LiveAudioClipsSerializer`.
 
 Note: `MissingSamples` is a view of of `LiveSamples` and is not a discrete collection.
 
@@ -289,45 +160,7 @@ Track / clip cross reference
 `docs/report_design.md` describes the same design in more detail, and the two documents
 should agree.
 
-## What the models do not yet know
-
-This project has several executables: `live_set` writes the report of a set, `als_delta`
-diffs two sets, `generate_xsd` writes a schema of the format, `validate_asd` checks a set
-against a schema, and one of them converts a set between two versions of Live.
-
-**The converter needs a complete model of the XML.** A set cannot be converted from Live 12
-to Live 11 by a model that has not read what Live 12 wrote: whatever the model does not
-parse is whatever the conversion loses. So the model of the XML, taken as a whole, has to
-be complete for that work, and "the model" means that, not any one class.
-
-**That is not what the reporting task needs.** A report needs the tracks, the groups, the
-clips, the references, the take lanes, the devices, the samples and the states of a set,
-and nothing else. The present work is the report, and the models are written for it.
-
-**Where the reporting models do not parse something, the code says so.** The note is left
-where the parsing would have been:
-
-```ruby
-# not implemented: parsing of elements AutomationEnvelopes and MidiClip, and attributes
-# Clip.Type and Track.TrackGroupId
-```
-
-Every such note is a statement of what the model does not know, and the notes together are
-the work list of the converter. They are written as the models are written, and they are
-the first thing the converter asks for.
-
-The parts of a set that the report does not read today, and that the notes will name as
-they are written:
-
-- the automation envelopes of a track, and the parameters of its devices
-- the mixer of a track: its volume, its pan, and its sends
-- the scenes of a set, and the scene grid
-- the markers of the arrangement, and the warp markers of a sample
-- the templates, the user presets, and the Racks of a set
-- the parts of the XML that hold the state of the Live window itself, rather than of the
-  set: the selected track, the unfolded state of the browser, the zoom of the arrangement
-
-## The icon of Live 12's master track
+## Live 12 Master/Main Track Icon
 
 Live 12 writes a `MainTrack`, the report calls its kind `Main`, and `ICONS` has no `Main`,
 so `icon_of` logs a warning and writes the bomb. Live 11's `MasterTrack` is in the map and
@@ -338,64 +171,29 @@ calls it — `Master` in Live 11, `Main` in Live 12 — so the report says what 
 the icon says what the thing is. The map is written in step 2, with the rest of the
 formatting.
 
-## The unit tests for the serializers
+## Leaf Serializers Require A Spec
 
-Every serializer gets a spec, and the expected values in the specs are the markdown the
-program writes today.
+We do not write specs for model collection classes, just leaf classes.  Every
+leaf serializer requires a spec, defined in `spec/live_set/serializer/`. The
+expected values in the specs are determined by parsing the reference set
+reports in [Live Reference Sets](https://github.com/mslinn/live_reference_sets).
 
-**The expected values are the output as it is.** The report of every set of the reference
-sets is generated as the work goes, and the lines of those reports are copied into the
-specs, whole and literal. A spec is not a pattern and not a fragment: the line the
-serializer is to write is there in full, in a heredoc, so that it can be read.
-
-**The styles are in the expected values.** A coloured name carries its CSS inline, so the
-expected markdown carries it too. The colours of a name, the tooltip that holds the number
-Live writes for the colour, and the alignment of the chip are all visible in the spec.
-
-**Why they are written this way.** The specs are how the markdown is to be looked at. The
-expected value in a spec is the markdown, so a change to the markdown is a change to the
-spec, and the diff of the spec is the change to the report. The specs are where the
-markdown is tuned.
-
-**One spec per serializer**, in `spec/live_set/serializer/`:
-
-| The spec | It asserts |
-| --- | --- |
-| `als_model_serializer_spec.rb` | the whole report |
-| `live_header_serializer_spec.rb` | the facts about the set |
-| `p3s_compatibility_spec.rb` | the verdict, and the errors and the advice that go with it |
-| `live_group_serializer_spec.rb` | the line of a group, its devices, and the tracks in it |
-| `live_groups_serializer_spec.rb` | the groups of the set |
-| `live_track_serializer_spec.rb` | the line of a track, and its devices, its clips and its take lanes under it |
-| `live_tracks_serializer_spec.rb` | the tracks of a group, under the group |
-| `live_device_serializer_spec.rb` | the line of a device, and the two ways a device is written: one that Push 3 can run, and one that it cannot |
-| `live_devices_serializer_spec.rb` | the devices of a track, under the track |
-| `live_clip_serializer_spec.rb` | the line of a clip, and the settings of it |
-| `live_take_lane_serializer_spec.rb` | the line of a take lane, and its clips under it |
-| `live_take_lanes_serializer_spec.rb` | the lanes of a track, under the track |
-| `live_clips_serializer_spec.rb` | the clips of the set |
-| `live_samples_serializer_spec.rb` | the samples of the set |
-| `missing_samples_serializer_spec.rb` | the samples that are not in the project, by pack |
-| `device_cross_reference_serializer_spec.rb` | the devices of the set, and the tracks they are on |
-| `track_clip_cross_reference_serializer_spec.rb` | the tracks and their clips, and the clips and their tracks |
-
-The audio clips have no spec, because no serializer writes them: nothing in the report
-writes the clips of the audio side of a track, and the clips of the report are the clip
-references.
-
-**The models in the specs come from a real set.** The specs build their models from sets of
-the reference sets — the Live 11 demo set, the Live 12 one, and the factory default set —
-so that the expected values are the values of a real set and not of a hand-made one. The
-specs use the same code the report uses to build the models; nothing is mocked.
-
-The spec of a serializer is written with its model, in step 3 and step 4: the model of
-`LiveClipReference`, `LiveTakeLane`, `LiveTakeLanes`, `LiveGroupTrack` and `LiveTrack` is
-written before the serializer that writes it.
-
-**The report as a whole has a spec of its own.** One spec asserts that the report of a set
-is the report that is checked in, so that a change to any part of it cannot slip through
-the specs of the parts. The checked-in reports are the ones `bin/generate_reference_als_reports`
-writes, and the spec reads them from the repository of the reference sets.
+| The spec                                  | It asserts                                                                                                                  |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `als_model_serializer_spec.rb`            | the whole report                                                                                                            |
+| `als_device_xref_serializer_spec.rb.rb`   | the devices of the set, and the tracks they are on                                                                          |
+| `als_p3s_compatibility_spec.rb`           | the verdict, and the errors and the advice that go with it                                                                  |
+| `als_track_clip_xref_serializer_spec.rb`  | the tracks and their clips, and the clips and their tracks                                                                  |
+| `live_audio_clip_serializer_spec.rb`      | the audio clips of the set                                                                                                  |
+| `live_audio_track_serializer_spec.rb`     | the markdown generated from a track, its devices, clips, and take lanes under it                                            |
+| `live_device_serializer_spec.rb`          | the markdown generated from a device, and the two ways a device is written: one that Push 3 can run, and one that it cannot |
+| `live_group_serializer_spec.rb`           | the markdown generated from a group track, its devices, and the tracks in it                                                |
+| `live_header_serializer_spec.rb`          | the facts about the set                                                                                                     |
+| `live_midi_clip_serializer_spec.rb`       | the markdown generated from a MIDI clip                                                                                     |
+| `live_midi_track_serializer_spec.rb`      | the markdown generated from a track, and its devices, its clips and its take lanes under it                                 |
+| `live_missing_samples_serializer_spec.rb` | TODO write me. Samples that are not in the project, by pack                                                                 |
+| `live_samples_serializer_spec.rb`         | the samples of the set                                                                                                      |
+| `live_take_lane_serializer_spec.rb`       | the markdown generated from a take lane, and its clips under it                                                             |
 
 **The fixture.** The model of a set is inflated from the XML of a real set, and the XML of
 the largest Live 12 demo is the fixture: it is saved under `spec/fixtures/`, gzipped,
@@ -485,11 +283,11 @@ it: two clips that hold the same notes under different names are the same materi
 
 There are three definitions of "the same", and the report can be asked for any of them:
 
-| The definition | Two MIDI clips are the same when |
-| --- | --- |
-| `notes` | they hold the same note events: pitch, time, duration, velocity, probability, and whether the note is enabled. The note ids are left out, since they are ids. |
-| `keys` | they hold the same note events and the same key tracks |
-| `loop` | they hold the same note events, the same key tracks, and the same loop markers |
+| The definition | Two MIDI clips are the same when                                                                                                                              |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `notes`        | they hold the same note events: pitch, time, duration, velocity, probability, and whether the note is enabled. The note ids are left out, since they are ids. |
+| `keys`         | they hold the same note events and the same key tracks                                                                                                        |
+| `loop`         | they hold the same note events, the same key tracks, and the same loop markers                                                                                |
 
 The choice is an option of the program:
 
@@ -497,7 +295,7 @@ The choice is an option of the program:
 live_set -s path/to/my_set.als -i notes
 ```
 
-and the default is `notes`.
+... and the default is `notes`.
 
 **What it changes in the report.** The grouping of the clips of a track is by identity, so
 the clips that are alike are one line with the number of them. In the Live 11 reference set
@@ -536,12 +334,12 @@ Both are of the set that was read, and the report says which is which.
 Four sizes, and the report says what each one was computed from, and what could not be
 computed:
 
-| The size | What it is | How it is computed | What it needs |
-| --- | --- | --- | --- |
-| The set file | the size of the `.als` | the file on disk | the set |
-| The expected size of the project | what the project should be, according to the `.als`: the set file, and every sample the set refers to that is in the project, counted once | the sizes Live recorded in `OriginalFileSize`, and the size on disk where Live recorded zero | the set |
-| The actual size of the project | what the project is, on disk | the files in the project folder | the project folder |
-| The fully resolved size | everything the set draws on: the project, and the assets outside it — the samples in the user library, the Live Packs, the Racks, the Live Clips | the expected size, with the assets outside the project added | the set, and the files outside the project |
+| The size                         | What it is                                                                                                                                       | How it is computed                                                                           | What it needs                              |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| The set file                     | the size of the `.als`                                                                                                                           | the file on disk                                                                             | the set                                    |
+| The expected size of the project | what the project should be, according to the `.als`: the set file, and every sample the set refers to that is in the project, counted once       | the sizes Live recorded in `OriginalFileSize`, and the size on disk where Live recorded zero | the set                                    |
+| The actual size of the project   | what the project is, on disk                                                                                                                     | the files in the project folder                                                              | the project folder                         |
+| The fully resolved size          | everything the set draws on: the project, and the assets outside it — the samples in the user library, the Live Packs, the Racks, the Live Clips | the expected size, with the assets outside the project added                                 | the set, and the files outside the project |
 
 A sample that is not on disk has no size on disk, and the report says so rather than
 guessing at one. A project folder that is not there has no actual size, and the report says
@@ -553,12 +351,12 @@ Every external asset of a set is named by a `FileRef` — the same element a sam
 referenced by, whether the asset is a sample or a device preset. The Live 11 reference set
 has 124 of them, and the paths they name take four shapes:
 
-| The path | What it is |
-| --- | --- |
-| relative to the set | an asset in the project folder |
-| absolute | an asset in the user library, or in the Core Library of the Live installation |
-| relative, with `..` in it | an asset outside the project folder, in the folder the set was made in |
-| a folder | a folder rather than a file, and not an asset at all |
+| The path                  | What it is                                                                    |
+| ------------------------- | ----------------------------------------------------------------------------- |
+| relative to the set       | an asset in the project folder                                                |
+| absolute                  | an asset in the user library, or in the Core Library of the Live installation |
+| relative, with `..` in it | an asset outside the project folder, in the folder the set was made in        |
+| a folder                  | a folder rather than a file, and not an asset at all                          |
 
 A table of the assets says what the sizes are made of: each one, the path as it is written,
 how the path was resolved, the size Live recorded for it, the size on disk, where it is — in
@@ -583,14 +381,14 @@ Each step leaves the program working, and the reports unchanged.
    proof; it needs no tests of its own. It comes first, because everything after it then
    happens in the layout the project ends up with.
 
-   | From | To | Class |
-   | --- | --- | --- |
-   | `lib/live_set/live_device.rb` | `lib/live_set/model/live_device.rb` | `LiveDevice` |
+   | From                                  | To                                      | Class           |
+   | ------------------------------------- | --------------------------------------- | --------------- |
+   | `lib/live_set/live_device.rb`         | `lib/live_set/model/live_device.rb`     | `LiveDevice`    |
    | `lib/live_set/live_set_audio_clip.rb` | `lib/live_set/model/live_audio_clip.rb` | `LiveAudioClip` |
-   | `lib/live_set/live_set_group.rb` | `lib/live_set/model/live_group.rb` | `LiveGroup` |
-   | `lib/live_set/live_set_scene.rb` | `lib/live_set/model/live_scene.rb` | `LiveScene` |
-   | `lib/live_set/live_set_track.rb` | `lib/live_set/model/live_track.rb` | `LiveTrack` |
-   | `lib/live_set/live_tracks.rb` | `lib/live_set/model/live_tracks.rb` | `LiveTracks` |
+   | `lib/live_set/live_set_group.rb`      | `lib/live_set/model/live_group.rb`      | `LiveGroup`     |
+   | `lib/live_set/live_set_scene.rb`      | `lib/live_set/model/live_scene.rb`      | `LiveScene`     |
+   | `lib/live_set/live_set_track.rb`      | `lib/live_set/model/live_track.rb`      | `LiveTrack`     |
+   | `lib/live_set/live_tracks.rb`         | `lib/live_set/model/live_tracks.rb`     | `LiveTracks`    |
 
    and their nine specs move with them into `spec/live_set/model/`, renamed the same way:
    `spec/live_set/live_set_track_audio_clips_spec.rb` becomes
@@ -684,14 +482,14 @@ Each step leaves the program working, and the reports unchanged.
 These are not in `live_palette.rb`, and are not part of this plan, but they are
 the same work and are listed here so that they are not lost:
 
-| Where | The TODO |
-| --- | --- |
-| `live_set_report.rb:17` | create the classes: `HeaderBlock`, `P3SCompatible`, `LiveClip`, `LiveClipReference`, `LiveClipSettings`, `LiveDevice`, `LiveSample`, `MissingSamples` |
-| `live_set_report.rb:708` | `states_of` should take a `LiveTrack` instead of an XML element, and move to the `LiveTrack` class |
-| `live_set_report.rb:714` | `frozen?` is a built-in method of `Object` in Ruby; the method should be part of the `LiveTrack` class |
-| `live_set_report.rb:716-719` | `frozen?`, `soloed?`, `armed?` and `off?` should be methods of the track |
-| `live_set_report.rb:801` | `missing_samples_markdown` should move to a `MissingSamples` class |
-| `live_set_report.rb:838`, `:862` | the device methods should move to a `LiveDevices` class, and be renamed to `markdown` |
-| `live_set_report.rb:1095` | `track_tree` should move to a `LiveTracks` class, and be renamed to `tree`; `LiveTracks` would be a collection of `LiveTrack` objects, and `LiveTrack` a wrapper around a track element |
-| `live_set_report.rb:1113` | `build_track_tree` should move to a `LiveGroup` class, and be renamed |
-| `live_set_report.rb:1356` | `mark` should be renamed to `checkmark` |
+| Where                            | The TODO                                                                                                                                                                                |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `live_set_report.rb:17`          | create the classes: `HeaderBlock`, `P3SCompatible`, `LiveClip`, `LiveClipReference`, `LiveClipSettings`, `LiveDevice`, `LiveSample`, `MissingSamples`                                   |
+| `live_set_report.rb:708`         | `states_of` should take a `LiveTrack` instead of an XML element, and move to the `LiveTrack` class                                                                                      |
+| `live_set_report.rb:714`         | `frozen?` is a built-in method of `Object` in Ruby; the method should be part of the `LiveTrack` class                                                                                  |
+| `live_set_report.rb:716-719`     | `frozen?`, `soloed?`, `armed?` and `off?` should be methods of the track                                                                                                                |
+| `live_set_report.rb:801`         | `missing_samples_markdown` should move to a `MissingSamples` class                                                                                                                      |
+| `live_set_report.rb:838`, `:862` | the device methods should move to a `LiveDevices` class, and be renamed to `markdown`                                                                                                   |
+| `live_set_report.rb:1095`        | `track_tree` should move to a `LiveTracks` class, and be renamed to `tree`; `LiveTracks` would be a collection of `LiveTrack` objects, and `LiveTrack` a wrapper around a track element |
+| `live_set_report.rb:1113`        | `build_track_tree` should move to a `LiveGroup` class, and be renamed                                                                                                                   |
+| `live_set_report.rb:1356`        | `mark` should be renamed to `checkmark`                                                                                                                                                 |

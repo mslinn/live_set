@@ -525,6 +525,11 @@ See `spec/support/schemas.rb`, which finds the sets and generates the schemas, a
 The `live_set` test in `spec/demo_sets.rb` works with the test corpuses, instead
 of XML fragments.
 
+`dev/generate_reference_als_reports` runs `als_report` on every reference set in
+the [Live Reference Sets
+repository](https://github.com/mslinn/live_reference_sets) and saves the result
+in that repository.
+
 When testing the `als_to_version` command, the sets are converted only once, and
 `spec/conversions.rb` provides the result for multiple assertions.
 
