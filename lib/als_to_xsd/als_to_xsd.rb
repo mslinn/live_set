@@ -13,7 +13,7 @@ require_relative 'xsd_builder'
 # Generates an XML Schema (XSD) from one or more Ableton Live sets.
 #
 # The sets are read and their structure is handed to XsdBuilder, which turns it
-# into the schema. See `lib/generate_xsd/xsd_builder.rb`` for what the schema
+# into the schema. See `lib/generate_xsd/xsd_builder.rb` for what the schema
 # describes, and what the generator infers from the sample.
 #
 # The schema is inferred from the XML stored in the sets it is given, so it

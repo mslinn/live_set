@@ -167,7 +167,7 @@ class LiveAudioClip
     end
   end
 
-  # A clip is considered to be "collected" if its audio file was copied into the project's `Samples/Imported/`` folder.
+  # A clip is considered to be "collected" if its audio file was copied into the project's `Samples/Imported/` folder.
   # If a clip doesn't have a relative path (meaning it's either a MIDI clip or linked via an absolute path), it is by
   # definition not collected into the project folder. Therefore, returning false is the correct behavior.
   def collected?

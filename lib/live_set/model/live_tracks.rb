@@ -178,12 +178,35 @@ class LiveTracks
     audio_tracks.each do |track|
       next if track.frozen? || track.distinct_clips.empty? || track.device_summary.empty?
 
-      advice << "Track `#{track.name}` is not frozen; incompatible devices: #{track.device_summary}"
+      advice << "Track #{track_label track} is not frozen; incompatible devices: #{track.device_summary}"
     end
     advice
   end
 
   private
+
+  # TODO: This code is identical to track_label in track_clip_cross_reference_serializer.rb. Consolidate this and be DRY.
+  # The name of a track, on the colour Live gave it.
+  #
+  # @param track [LiveTrack, LiveGroup] the track
+  # @return [String] the name of the track
+  def track_label(track)
+    name = LiveMarkup.display_name track
+    if track.problem?
+      return LiveMarkup.colored_code LiveMarkup.escape(name),
+                                     background_color: LiveMarkup::DARK_BACKGROUND,
+                                     foreground_color: LiveMarkup::LIGHT_TEXT
+    end
+
+    color = LivePalette.color_of track.color
+    return "<code>#{LiveMarkup.escape name}</code>" unless color
+
+    label = LiveMarkup.colored_code LiveMarkup.escape(name),
+                                    color_number:     track.color,
+                                    background_color: "##{color}",
+                                    foreground_color: LiveMarkup.text_color(color)
+    "<nobr>#{label}</nobr>"
+  end
 
   # TODO: Model classes should not contain methods for serialization. This class and its parent class should have a
   # corresponding serializer, which should contain this method. See docs/report_design.md
@@ -225,7 +248,7 @@ class LiveTracks
   # @return [Array<String>] the errors
   def track_errors(track)
     track.blocking_devices.map do |device|
-      " - Track `#{track.name}` is not frozen and uses device #{device.label}, " \
+      " - Track #{track_label track} is not frozen and uses device #{device.label}, " \
         'which Push 3 Standalone cannot run. Freeze or render this track.'
     end
   end
