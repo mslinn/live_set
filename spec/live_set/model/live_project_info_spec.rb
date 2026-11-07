@@ -27,7 +27,7 @@ RSpec.describe LiveProjectInfo do
 
     expect(project_info).not_to be_present
     # expect(project_info.warnings).to include(
-    #   "The 'Ableton Project Info' folder is not present in #{directory}"
+    #   "The `Ableton Project Info` folder is not present in #{directory}"
     # )
   end
 

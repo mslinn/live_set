@@ -59,8 +59,8 @@ class LiveProjectInfo
     # TODO: return [] # if running als_report (so these warnings are not logged when generating a report)
 
     messages = []
-    messages << "The '#{FOLDER}' folder is not present in #{directory}" unless present?
-    messages << "The '#{FOLDER}' folder in #{directory} is not a directory" if present? && !a_directory?
+    messages << "The `#{FOLDER}` folder is not present in `#{directory.gsub('/', '/<wbr>')}`" unless present?
+    messages << "The `#{FOLDER}` folder in `#{directory}` is not a directory" if present? && !a_directory?
     in_parents.each { |parent| messages << "A '#{FOLDER}' folder is present in the parent directory #{parent}" }
     messages
   end

@@ -178,7 +178,7 @@ class LiveTracks
     audio_tracks.each do |track|
       next if track.frozen? || track.distinct_clips.empty? || track.device_summary.empty?
 
-      advice << "Track '#{track.name}' is not frozen; incompatible devices: #{track.device_summary}"
+      advice << "Track `#{track.name}` is not frozen; incompatible devices: #{track.device_summary}"
     end
     advice
   end
@@ -225,7 +225,7 @@ class LiveTracks
   # @return [Array<String>] the errors
   def track_errors(track)
     track.blocking_devices.map do |device|
-      " - Track '#{track.name}' is not frozen and uses device #{device.label}, " \
+      " - Track `#{track.name}` is not frozen and uses device #{device.label}, " \
         'which Push 3 Standalone cannot run. Freeze or render this track.'
     end
   end
