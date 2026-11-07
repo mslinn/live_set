@@ -186,7 +186,7 @@ module LiveTrackFacts
   #
   # @return [String] a comma-separated list
   def device_summary
-    chain_devices.map(&:label).uniq.join(', ')
+    chain_devices.uniq.map { |label| "`#{label}`" }.sort.join(', ')
   end
 
   # The value of an element of the track.

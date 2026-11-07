@@ -178,7 +178,7 @@ class LiveTracks
     audio_tracks.each do |track|
       next if track.frozen? || track.distinct_clips.empty? || track.device_summary.empty?
 
-      advice << "Track #{track_label track} is not frozen; incompatible devices: #{track.device_summary}"
+      advice << "Track #{track_label track} is not frozen but has incompatible devices: #{track.device_summary}"
     end
     advice
   end
