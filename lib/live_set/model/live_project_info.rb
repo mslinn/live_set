@@ -1,13 +1,17 @@
 require 'pathname'
 
-# The 'Ableton Project Info' folders around a set.
+# Detects `Ableton Project Info` folders around a set.
 #
-# Live writes a folder of that name in the folder of the project, and the folder of a set is
-# usually the folder of the project. Live gets confused when it finds one in a parent folder
-# of the folder of the project: it may load the project from the wrong place.
+# The Ableton Live file system icon is intended to make you think that a Live set is just one file. In actuality, the
+# icon is a attached to a directory. Inside this directory is the `.als` file (Ableton Live Set) and project assets.
 #
-# The folders are a fact about the machine the report is made on, and not about the set, so
-# the report says what it found, and what it means.
+# Live writes a folder called `Ableton Project Info` next to the `.als` file in the directory.
+#
+# This is all very confusing for users, and apparently for Live as well.  Live gets confused when it finds a directory
+# called `Ableton Project Info` above or below a project folder. Live does not provide users with any notice that this
+# might be a problem. `als_report` gives a clear indication if extra`Ableton Project Info` directories are a problem.
+#
+# The `Ableton Project Info` folders are a fact about the machine the report is made on, and not about the set itself.
 #
 # See docs/als_notes.md, "The 'Ableton Project Info' folder".
 class LiveProjectInfo
