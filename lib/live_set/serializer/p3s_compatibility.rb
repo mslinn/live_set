@@ -32,7 +32,11 @@ class P3SCompatibility
     lines << if errors.empty? && uncollected.zero?
                '✅ Ready for transfer to Push 3 Standalone'
              else
-               '❌ Warning: This set should not be transferred to Push 3 Standalone.'
+               <<~END_MSG
+                 ❌ Warning: This set should not be transferred to Push 3 Standalone.
+
+                 ### Reasons Why
+               END_MSG
              end
     unless uncollected.zero?
       lines << "- [#{uncollected} #{uncollected == 1 ? 'clip has' : 'clips have'} " \

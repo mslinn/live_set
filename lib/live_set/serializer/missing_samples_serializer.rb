@@ -23,8 +23,11 @@ class MissingSamplesSerializer
   def to_markdown
     lines = ['## Missing Samples', '']
     if @missing.empty?
-      lines << 'Every sample of the set is in the project, or comes with a pack or with the ' \
-               'Core Library of Live.'
+      lines << <<~END_MSG
+        Every sample referenced in this set is either present in the project,
+        or was installed from a pack,
+        or came from the Live Core Library.
+      END_MSG
       return lines.join("\n")
     end
 

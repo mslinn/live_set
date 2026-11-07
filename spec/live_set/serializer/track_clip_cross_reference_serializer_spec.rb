@@ -25,8 +25,8 @@ RSpec.describe TrackClipCrossReferenceSerializer, '#to_markdown' do
     markdown = described_class.new(cross_reference).to_markdown
 
     expect(markdown).to include("## Track / Clip Cross Reference\n")
-    expect(markdown).to include('### Tracks and their clips')
-    expect(markdown).to include('### Clips and their tracks')
+    expect(markdown).to include('### Tracks And Their Clips')
+    expect(markdown).to include('### Clips And Their Tracks')
   end
 
   it 'writes the tracks of the set, and the places the clips of each are in' do

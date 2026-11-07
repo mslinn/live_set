@@ -27,7 +27,7 @@ class AlsModelSerializer
     Clip references are found in session view slots, the arrangement, and a take lanes.
     Reference properties include launch method and warp mode.
     The take lanes of a track are under the track.
-    The string `⚠ missing from project` means the sample is not within the project directory tree,
+    The string `⚠ missing` means the sample is not within the project directory tree,
     so the set is not self-contained.
   TEXT
 

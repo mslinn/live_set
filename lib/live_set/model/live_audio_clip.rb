@@ -39,7 +39,7 @@ class LiveAudioClip
   include Xml
 
   # Warning string for clips whose samples are not stored in the project.
-  NOT_COLLECTED = '⚠ missing from project'.freeze
+  NOT_COLLECTED = '⚠ missing'.freeze
 
   attr_reader :absolute_path, :color, :file_size, :last_modified, :name, :path, :place, :relative_path,
               :settings

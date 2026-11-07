@@ -21,19 +21,19 @@ class LiveHeaderSerializer
   #
   # @return [String] the serialized markdown
   def to_markdown
-    rows = [
-      ['Written by', @header.creator],
-      ['Format', @header.format],
-      ['SchemaChangeCount', @header.schema_change_count],
-      ['Revision', @header.revision],
-      ['On computer', @header.computer],
-      ['Directory', @header.path_cell(@header.directory)],
-      ['Time zone', @header.time_zone],
-      ['Set created', @header.set_created],
-      ['Set last modified', @header.set_last_modified],
-      ['Project created', @header.project_created],
+    rows = [ # Automatically sorted by key
+      ['Directory',             @header.path_cell(@header.directory)],
+      ['Format',                @header.format],
+      ['On computer',           "<code>#{@header.computer}</code>"],
+      ['Project created',       @header.project_created],
       ['Project last modified', @header.project_last_modified],
-      ['Report generated', @header.report_generated]
+      ['Report generated',      @header.report_generated],
+      ['Revision',              @header.revision],
+      ['SchemaChangeCount',     @header.schema_change_count],
+      ['Set created',           @header.set_created],
+      ['Set last modified',     @header.set_last_modified],
+      ['Time zone',             @header.time_zone],
+      ['Written by',            @header.creator]
     ].sort_by { |row| row.first.downcase }
 
     MarkdownTables.make_table ['', ''], rows, align: %w[l r], is_rows: true

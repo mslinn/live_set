@@ -98,7 +98,7 @@ RSpec.describe AlsReport, '#show' do
   end
 
   it 'says that a sample is not in the project' do
-    expect(report(LiveSets.fascination)).to include('⚠ missing from project')
+    expect(report(LiveSets.fascination)).to include('⚠ missing')
   end
 
   it 'summarizes the samples that are not in the project, and the ones that are' do
@@ -162,7 +162,7 @@ RSpec.describe AlsReport, '#show' do
 
   it 'explains the messages for a clip' do
     expect(report(LiveSets.fascination)).to include(
-      '`⚠ missing from project` means the sample is not within the project directory tree'
+      '`⚠ missing` means the sample is not within the project directory tree'
     )
   end
 

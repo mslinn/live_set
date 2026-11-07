@@ -142,10 +142,10 @@ ALS_Model
   Group Track Device 1b DrumBuss Live
   Track 1.1 🎹 MIDI Kontakt 7
     Track Device 1.1a Kontakt 7 VST3 ⚠ not usable on Push 3
-    Clip 1.1.1 (×5) Kontakt 7 1 ⚠ missing from project
+    Clip 1.1.1 (×5) Kontakt 7 1 ⚠ missing
       References (×5): launch: trigger, warp: none
     Take lane 1.1.1 3-Kontakt 7 1
-      Clip 1.1.1.1 (×3) Kontakt 7 1 ⚠ missing from project
+      Clip 1.1.1.1 (×3) Kontakt 7 1 ⚠ missing
         References (×3): launch: trigger, warp: none
 ```
 

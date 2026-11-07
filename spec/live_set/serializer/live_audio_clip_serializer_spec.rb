@@ -38,7 +38,7 @@ RSpec.describe LiveAudioClipSerializer, '#to_markdown' do
   it 'writes the warning for a clip whose sample is not in the project, on a dark red background' do
     expect(described_class.new(clip, '11.1').to_markdown).to include(
       '<code style="background-color:#8B0000; color:#FFFFFF; vertical-align:middle">' \
-      '⚠ missing from project</code>'
+      '⚠ missing</code>'
     )
   end
 

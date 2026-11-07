@@ -42,7 +42,7 @@ RSpec.describe LiveAssetsSerializer, '#to_markdown' do
   it 'says that a file that is not in the project is missing from it' do
     markdown = described_class.new(assets).to_markdown
 
-    expect(markdown).to include('❌ missing from project')
+    expect(markdown).to include('❌ missing')
   end
 
   it 'writes no date for a file that is not on disk' do

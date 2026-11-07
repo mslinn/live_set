@@ -23,11 +23,11 @@ class TrackClipCrossReferenceSerializer
   # @return [String] the serialized markdown
   def to_markdown
     lines = ['## Track / Clip Cross Reference', '']
-    lines << '### Tracks and their clips'
+    lines << '### Tracks And Their Clips'
     lines << ''
     lines << tracks_and_clips_table
     lines << ''
-    lines << '### Clips and their tracks'
+    lines << '### Clips And Their Tracks'
     lines << ''
     lines << clips_and_tracks_table
     lines.join("\n")
@@ -77,6 +77,7 @@ class TrackClipCrossReferenceSerializer
     LiveMarkup.display_name track
   end
 
+  # TODO: This code is identical to track_label in device_cross_reference_serializer.rb. Consolidate this and be DRY.
   # The name of a track, on the colour Live gave it.
   #
   # @param track [LiveTrack, LiveGroup] the track
@@ -92,9 +93,10 @@ class TrackClipCrossReferenceSerializer
     color = LivePalette.color_of track.color
     return "<code>#{LiveMarkup.escape name}</code>" unless color
 
-    LiveMarkup.colored_code LiveMarkup.escape(name),
-                            color_number:     track.color,
-                            background_color: "##{color}",
-                            foreground_color: LiveMarkup.text_color(color)
+    label = LiveMarkup.colored_code LiveMarkup.escape(name),
+                                    color_number:     track.color,
+                                    background_color: "##{color}",
+                                    foreground_color: LiveMarkup.text_color(color)
+    "<nobr>#{label}</nobr>"
   end
 end

@@ -161,7 +161,7 @@ whether it is in the project.
 | `absolute_path` | where the file is, resolved against the directory of the set |
 | `file_size` | the size of the file, as Live recorded it, and as it is on disk |
 | `color` | the number Live writes for the colour of the clip |
-| `marks` | what is said about the clip: `⚠ missing from project`, and the state of it |
+| `marks` | what is said about the clip: `⚠ missing`, and the state of it |
 | `launch_mode` | how the clip is launched |
 | `warp_mode` | how the clip's sample is warped, and whether it is warped at all |
 | `place` | where the clip is: `session view`, `arrangement`, `take lane 1.1` |

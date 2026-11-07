@@ -56,6 +56,8 @@ class LiveProjectInfo
   #
   # @return [Array<String>] the warnings
   def warnings
+    # TODO: return [] # if running als_report (so these warnings are not logged when generating a report)
+
     messages = []
     messages << "The '#{FOLDER}' folder is not present in #{directory}" unless present?
     messages << "The '#{FOLDER}' folder in #{directory} is not a directory" if present? && !a_directory?

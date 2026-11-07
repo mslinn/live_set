@@ -17,7 +17,7 @@ require_relative 'live_markup'
 class LiveAssetsSerializer
   # The markers of a sample.
   NOT_COMPATIBLE = '❌ not P3s compatible'.freeze
-  MISSING = '❌ missing from project'.freeze
+  MISSING = '❌ missing'.freeze
 
   # Creates a serializer for the assets of a set.
   #
