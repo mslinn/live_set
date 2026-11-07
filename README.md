@@ -585,13 +585,14 @@ track to be bounced as though it were a track.
 `als_report` does not search for a file called `Options.txt`.
 
 TODO I am uncomfortable with the following conclusion, depending on the state of
-the XML file. If an ALS file is generated somehow that has a frozen group track, we
-should respect the XML file. We need to follow through and look for docs and
-code that have a different goal, and fix them.
+the XML file. If an ALS file is generated somehow that has a frozen group track,
+we should respect the XML file. We need to follow through and look in this
+project for contradictory docs and code, and fix them.
 
 TODO One of the experimental options that might be in effect when saving a Live
-set is the ability to save a frozen group track. The group data should be
-converted to maintain the integrity of the data. Also see
+set is the ability to save a frozen group track. The all of the group-related
+data should be converted when upgrading between versions to maintain the
+integrity of the data, unless we learn about a problem from doing that. Also see
 [docs/als_notes.md](docs/als_notes.md#the-optionstxt-hidden-option).
 
 

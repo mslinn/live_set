@@ -577,30 +577,32 @@ the group to another track and then disable it.
 
 ### Freezing a group track
 
-A group track is frozen only when Live is configured to allow it. See "The
-`Options.txt` hidden option", below.
+A group track is frozen only when Live is configured to allow it. See
+`Options.txt, below.
 
-### The `Options.txt` hidden option
+### `Options.txt`
 
 Ableton Live can be configured to enable experimental and unsupported features
 through an `Options.txt` file in its Preferences folder. For example,
 `-_GroupTrackFreeze` allows a group track to be bounced as though it were a
 track.
 
-`live_set` does not search for a file called `Options.txt`, so it always reads a
-group track as unfrozen.
+TODO This might not be implemented properly:
+
+`live_set` does not search for a file called `Options.txt`, and it just passes
+unknown entities and attributes through when converting between ALS versions.
 
 See `lib/live_set/model/live_group.rb`.
 
 
-## The take lanes of a track
+## Track TakeLlanes
 
-A take lane holds the takes of a recording. The track holds the clips that are
-heard — the composite that the takes were comped into — and the lanes hold the
-takes themselves, so the lanes are subordinate to the track.
+Take lanes are subordinate to the track they belong to. Takes lane are in
+`TakeLanes` elements, which hold the clips for each take of a track. The track
+holds the composite clips which are the normal output of the track.
 
-The lanes of a track are in a `TakeLanes` element of the track, and the
-element is a container of `TakeLane` elements:
+`TakeLane` elements are wrapped in
+`<TakeLanes><TakeLanes></TakeLanes></TakeLanes>` elements:
 
 ```text
 <TakeLanes>
@@ -623,13 +625,13 @@ element is a container of `TakeLane` elements:
 </TakeLanes>
 ```
 
-| Element | What it holds |
-| --- | --- |
-| `TakeLane` | A take. Its `Id` numbers it, `Name` names it, and `Audition` says whether it is the take being auditioned. |
-| `ClipAutomation` | The clips of the take. They play into the chain of the track. |
-| `AreTakeLanesFolded` | Whether the lanes are shown expanded in the arrangement. |
+* `TakeLane`: A take. Its `Id` numbers it, `Name` names it, and `Audition` says whether it is the take being auditioned.
 
-A lane of Live 12 also has an `ArrangementClipsListWrapper` element, which is
+* `ClipAutomation`: The clips of the take. They play into the chain of the track.
+
+* `AreTakeLanesFolded`: Whether the lanes are shown expanded in the arrangement.
+
+Live 12 take lanes also have an `ArrangementClipsListWrapper` element, which is
 empty in the sets of the corpus.
 
 **The clip of a lane and the clip of the track are different clips.** When a
@@ -663,35 +665,37 @@ See `lib/live_set/live_set_report.rb`, which reports the lanes of a track under
 the track.
 
 
-## The two sequencers of a track, and the frozen track that keeps both
+## Two Track Sequencers
 
-A track that is frozen keeps both sequencers:
+A track that is frozen keeps two sequencers:
 
-| Sequencer | What it holds |
-| --- | --- |
-| `MainSequencer` | The editable material |
-| `FreezeSequencer` | The rendered audio cache that replaces it during playback |
+* `MainSequencer`: The editable material
+* `FreezeSequencer`: The rendered audio cache that replaces it during playback
 
 A frozen track's clips can be in either sequencer, and some are only in the
 `FreezeSequencer`, so a reader that looks only at the `MainSequencer` finds
-nothing. Both have to be searched.
+nothing. Both sequencers must be searched.
 
-The freeze state of a track is its `<Freeze Value="true"/>` element.
+The freeze state of a track is its `<Freeze Value="true"/>` subelement.
 
 See `lib/live_set/model/live_track.rb`.
 
 
-## The lane types
+## Lane Types
 
 Every set of a given Live version has the same lane types, but Live 11 and Live
-12 do not have the same ones. A converted set therefore has to be given the lane
-types of the version it is converted to. See
+12 do not have the same values.
+
+TODO We have not figured this out yet. See
 [live_11_12_diff.md](live_11_12_diff.md), "The lane types".
 
 
-## The schema a converted set is written to
+## Fixed Outpu Schemas
 
 A converted set is written to a fixed schema of the target version, not to a
-schema inferred from the XML stored in the sets of that version. The two are not
-the same thing. See [live_11_12_diff.md](live_11_12_diff.md), "Converting a set
-to Live 11 uses a fixed schema".
+schema inferred from the XML stored in the sets of that version.
+
+Ableton Live has a constantly changing XML structure. `als_to_version` outputs a
+well-defined constant set of metadata  in the `Ableton` element.  See
+[live_11_12_diff.md](live_11_12_diff.md), "Converting a set to Live 11 uses a
+fixed schema".
