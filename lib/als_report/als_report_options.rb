@@ -67,7 +67,7 @@ class AlsReport
 
       parser.on('-s', '--show', 'Display information about the Ableton Live set')
       parser.on('-v', '--version', 'Show the version of this program')
-      parser.on('-z', '--time-zone ZONE', String, 'The time zone the times in the report are written in')
+      parser.on('-z', '--time_zone ZONE', String, 'The time zone the times in the report are written in')
       parser.on('--show_midi_and_audio_tracks_separately',
                 'Write the audio tracks and the MIDI tracks of the set in their own lists')
       add_common_options parser

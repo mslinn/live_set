@@ -2,15 +2,15 @@
 
 This document contains details of the Ableton Live Set (ALS) file format. This
 is a WHAT document that discusses XML fragments and how they morph between Live
-versions. The HOW-TO document (discussing how the work is performed) is
-[als_work.md](als_work.md). The differences between two Live versions are in a
+versions. See [ALS Architecture](als_architecture.md) for information about how
+this project models the XML, transforms it, and serializes it to markdown.
+
+The workflow is described in [als_work.md](als_work.md).
+
+The differences between two Live versions are in a
 version_diff document; the one for Live 11 and Live 12 is
 [live_11_12_diff.md](live_11_12_diff.md). The terms these documents use are
 defined in [glossary.md](glossary.md).
-
-The ALS format changes with every Ableton Live release. The `live_set` project
-is designed to handle structural differences in ALS files, such as an element
-name that was renamed, or elements that exist in one version but not in another.
 
 The headings are what the code cites. This document was written as
 `docs/als_format.md`, which was split into this document (the format itself)

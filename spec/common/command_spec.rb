@@ -27,7 +27,7 @@ class ExampleCommand
       parser.program_name = 'example_command'
 
       parser.on('-v', '--version', 'Show the version of this program')
-      parser.on('-z', '--time-zone ZONE', String, 'The time zone to use')
+      parser.on('-z', '--time_zone ZONE', String, 'The time zone to use')
 
       parser.on_tail('-h', '--help', 'Show this message') do
         abort help

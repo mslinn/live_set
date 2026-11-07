@@ -8,150 +8,53 @@ Read this first. It is the map; the documents it points at are the detail.
 
 | Document | What it is for |
 | --- | --- |
-| [`glossary.md`](glossary.md) | **The TERMS.** The words the other documents use, and what each of them means here. |
-| [`als_notes.md`](als_notes.md) | **The WHAT.** The ALS file format itself: what the XML looks like, and the shapes it takes. Its headings are what the code cites. |
-| [`live_11_12_diff.md`](live_11_12_diff.md) | **The differences between two versions.** A summary of them; the transformations that follow from them are in `lib/live_set/tx/live_11_and_12.rb`, and the headings are what the code cites. |
-| [`live_schemas.md`](live_schemas.md) | **The schemas Live ships.** Every installation carries a description of the format, one file per format version; these are Live's own, and more complete than the XSDs this repository infers. The open questions are tracked as **TODO L1**. |
-| [`als_work.md`](als_work.md) | **The HOW-TO.** How the format is reverse engineered: the XML tools, the two corpora (the Ableton demo sets and the 460-set corpus), how the schemas are generated, and how the test suite is arranged. It was written before the code was rewritten, and it is being reconciled with the code — the open items are in `fix_plan2.md`, Phase 3. |
-| [`fix_plan2.md`](fix_plan2.md) | The plan for the Live 12 → Live 11 conversion in Ruby: why the XSLT stylesheet was replaced by Ruby code, the architecture (a base class and one bridge per version_diff), and the open items in Phase 3. The outstanding work of the gem is in [`../TODO.md`](../TODO.md), whose identifiers this plan cites. |
+| [`TODO.md`](TODO.md) | The outstanding work, with stable identifiers (`T1`, `N42`, `GH1`, `L1`, …) that the code and the other documents cite. |
+| [`glossary.md`](glossary.md) | Defines the terms used in this project. |
+| [`als_notes.md`](als_notes.md) | Notes on the ALS file format: what the XML looks like, and the shapes it takes. |
+| [`als_architecture.md`](als_architecture.md) | Describes how this project models the XML, transforms it, and serializes it to markdown. |
+| [`als_work.md`](als_work.md) | How the format is reverse engineered: the XML tools, the corpora (the Ableton demo sets and the other sets in the reference corpus), and how the test suite is arranged. |
+| [`serializer_plan.md`](serializer_plan.md) | Remaining work on the serializers in `lib/live_set/serializer/`. |
 | [`cpfir.md`](cpfir.md) | The architectural guide to composing bidirectional transformations in Ruby: pure function composition, the version-keyed registry, the composition of the bridges between two versions, the classes of a conversion, and how two sets are compared. |
 | [`conversion.md`](conversion.md) | What the conversion has to become: the kinds of difference between two Live versions, the pieces of the component, the traps of XSLT 1.0, and the problem of value domains. It is a design document, written before the transform was written in Ruby. |
-| [`live_control_plan.md`](live_control_plan.md) | The plan for proving a conversion by round-tripping it through Ableton Live under program control, using the `gui_harness` gem. |
+| [`live_11_12_diff.md`](live_11_12_diff.md) | **The differences between two versions.** A summary of them; the transformations that follow from them are in `lib/live_set/tx/live_11_and_12.rb`, and the headings are what the code cites. |
+| [`live_schemas.md`](live_schemas.md) | TODO: this is not true: **The schemas Live ships.** Every installation carries a description of the format, one file per format version; these are Live's own, and more complete than the XSDs this repository infers. The open questions are tracked as **TODO L1**. |
 | [`ab_test_plan.md`](ab_test_plan.md) | **The PROGRAM.** Nearly-empty Live 11 sets, one thing in each, written by Live 11 and by Live 12 and compared: how a case is made, where the sets live, what the factory-default set holds, and the questions that are still open. |
-| [`report_design.md`](report_design.md) | **The MODEL.** The design of the model the report of a set is written from: the classes for the tracks of a set, group tracks included, for the clips and the references to them, and for the take lanes. |
-| [`serializer_plan.md`](serializer_plan.md) | **The PLAN.** What the TODO comments in `lib/live_set/model/live_palette.rb` ask for, and what the serializers in `lib/live_set/serializer/` are to take over from it: the helper that owns the formatting, the models the serializers need, and the order the work is done in. |
+| [`report_design.md`](report_design.md) | How a set report is written from. |
 | [`release_notes/index.md`](release_notes/index.md) | The release notes of Live 8 through Live 12, downloaded from Ableton's web site and kept in `release_notes/`, one HTML file per version. They are the evidence for what each version changed, and where they came from and how they were obtained is written down there. |
 
-**The release notes are not installed with Live.** No version of Live puts a
-copy of its release notes on the computer; they are published on Ableton's web
-site only.
+## Transformations
 
-**When two documents disagree:** `fix_plan2.md` settles what it has settled.
-`als_notes.md` and the version_diff documents describe the format and the
-differences between two versions, and the code follows them. `conversion.md` and
-`als_work.md` are design documents, written before the transform was written in
-Ruby, so where they disagree with the code they are describing what was
-planned.
-
-## The terms the documents use
-
-The words used throughout the documents are defined in
-[`glossary.md`](glossary.md). A reader who meets one of them and does not know
-which sense it is used in should go there first.
-
-## The headings the code cites
-
-The code cites the headings of four documents. The headings used to carry section
-numbers, which were the ones `docs/als_format.md` had; that document is not in
-this repository, and it was split into `als_notes.md` and a version_diff
-document. The numbers are gone, and the headings are cited instead.
-
-| Heading | Lives in |
-| --- | --- |
-| Converting a set to Live 11 uses a fixed schema | `live_11_12_diff.md` |
-| The elements the two versions name differently | `live_11_12_diff.md` |
-| The values the two versions write differently | `live_11_12_diff.md` |
-| The lane types | `live_11_12_diff.md` |
-| The lane types Live 11 does not have | `live_11_12_diff.md` |
-| Every value is stored in a `Value` attribute | `als_notes.md` |
-| Where a track's audio is | `als_notes.md` |
-| Every place holds its own clip | `als_notes.md` |
-| The colour of a track or a clip | `als_notes.md` |
-| The sample references of a clip | `als_notes.md` |
-| Whether a sample has been collected | `als_notes.md` |
-| The warp mode of a sample | `als_notes.md` |
-| The take lanes of a track | `als_notes.md` |
-| The devices of a chain, and the plug-ins among them | `als_notes.md` |
-| The device chain, and the chains nested inside it | `als_notes.md` |
-| The group tracks | `als_notes.md` |
-| A group track holds no clips | `als_notes.md` |
-| A member track names its group | `als_notes.md` |
-| The device chain of a group | `als_notes.md` |
-| Freezing a group track | `als_notes.md` |
-| The `Options.txt` hidden option | `als_notes.md` |
-| The two sequencers of a track, and the frozen track that keeps both | `als_notes.md` |
-| The Lifecycle of a Conversion | `cpfir.md` |
-| Comparing Two Live Sets | `cpfir.md` |
-| Defining a Single Source of Truth: The Target End-State | `cpfir.md` |
-| Dynamically Slicing the Pipeline Intervals | `cpfir.md` |
-| The kinds of difference | `conversion.md` |
-| The differences must be sorted by kind, and the non-obvious ones hand-written | `conversion.md` |
-| Attributes have to be part of the difference list | `conversion.md` |
-| Why the baselines are what to compare | `conversion.md` |
-
-## How a transformation is found
-
-The transformations of a version_diff are written by hand, and the process for finding them is written down:
+The transformations of a version_diff are written by hand, and the process for
+finding them is written down:
 
 | Question | Where it is answered |
 | --- | --- |
-| What kinds of difference there are, and what each one is | [`conversion.md`](conversion.md), "The kinds of difference" |
-| How a transform takes its direction from the document, and how it composes | [`cpfir.md`](cpfir.md), "The Lifecycle of a Conversion" |
-| How a bridge stands on its own, and how a conversion across several versions is the composition of the bridges between them | [`cpfir.md`](cpfir.md), "Dynamically Slicing the Pipeline Intervals" |
-| How a transformation is written, and why nothing writes it for you | [`conversion.md`](conversion.md), "The differences must be sorted by kind, and the non-obvious ones hand-written" |
-| Which elements and attributes a version has | [`als_work.md`](als_work.md), "Mapping XSD to Ruby Classes" — the schema is the index of the format, and two schemas are diffed to find the differences. Live ships schemas of its own, which are more complete; they are in [`live_schemas.md`](live_schemas.md) |
-| The differences between Live 11 and Live 12 in particular | [`live_11_12_diff.md`](live_11_12_diff.md) |
-| The transformations themselves | `lib/live_set/tx/live_11_and_12.rb` — the lists, the special transformations, and the comment block that describes how the conversion works |
+| Kinds of differences | [`conversion.md`](conversion.md), "The kinds of difference" |
+| How a transforms compose | [`cpfir.md`](cpfir.md), "The Lifecycle of a Conversion" |
+| How a bridge stands on its own, and how a conversion composes the bridges between them | [`cpfir.md`](cpfir.md), "Dynamically Slicing the Pipeline Intervals" |
+| How a transformation is written | [`conversion.md`](conversion.md), "The differences must be sorted by kind, and the non-obvious ones hand-written" |
+| Elements and attributes for a Live version | [`als_work.md`](als_work.md), "Mapping XSD to Ruby Classes" — the schema is the index of the format, and two schemas are diffed to find the differences. Live ships schemas of its own, which are more complete; they are in [`live_schemas.md`](live_schemas.md) |
+| The differences between Live 11 and Live 12 XML | [`live_11_12_diff.md`](live_11_12_diff.md) |
+| Transformation between 11 and 12 | `lib/live_set/tx/live_11_and_12.rb` — the lists, the special transformations, and the comment block that describes how the conversion works |
 
-## Where the code is
+## Code Map
 
-| Thing | Where it lives |
+| Function | Source Code File |
 | --- | --- |
-| The transformations of the Live 11 ↔ Live 12 conversion | `lib/live_set/tx/live_11_and_12.rb` — the lists, the special transformations, and the comment block that describes how the conversion works |
+| Reading a set, converting it, writing it out | `lib/als_to_version/live_set_converter.rb` |
+| The tools for looking inside sets | `exe/als_nodes`, `exe/als_diff`, `exe/als_to_xsd`, `exe/als_xsd_order`, `exe/als_validate` |
+| The colours of Live, and the markup the report is written with | `lib/live_set/model/live_palette.rb` and `lib/live_set/serializer/live_markup.rb` |
 | The machinery the transformations run on | `lib/live_set/tx/live_version_converter.rb` — knows nothing about any particular version_diff |
 | The registry of the bridges, keyed by the version each one leads to | `lib/live_set/tx/live_versions.rb` — the conversion from one version to another is the composition of the bridges between them |
-| The colours of Live, and the markup the report is written with | `lib/live_set/model/live_palette.rb` and `lib/live_set/serializer/live_markup.rb` |
-| Reading a set, converting it, writing it out | `lib/als_to_version/live_set_converter.rb` |
+| The transformations of the Live 11 ↔ Live 12 conversion | `lib/live_set/tx/live_11_and_12.rb` — the lists, the special transformations, and the comment block that describes how the conversion works |
 | One example per transformation, in each direction | `spec/live_set/tx/live_11_and_12_down_spec.rb`, `spec/live_set/tx/live_11_and_12_up_spec.rb` |
 | The end-to-end check | `spec/live_set/tx/live_conversion_spec.rb` — converts the Live 12 demo set and validates the result against the Live 11 schema |
-| The tools for looking inside sets | `exe/als_nodes`, `exe/als_diff`, `exe/als_to_xsd`, `exe/als_xsd_order`, `exe/als_validate` |
-| The release notes of Live, as markdown | `exe/als_release_notes` — the notes of a version, or of a single release, or the lines of them that match a pattern |
-| The schemas | generated into the `xsd/` directory of the repository of the reference sets by `dev/generate_xsds`; checked in, so a new contributor and a new machine can use them without installing Live |
+| Live release notes | `exe/als_release_notes` — Live release notes of for each supported version. |
+| ALS XML schemas | generated into the `xsd/` directory of the repository of the reference sets by `dev/generate_xsds`; checked in, so a new contributor and a new machine can use them without installing Live |
 
-## The commands
 
-Every command is named with the `als_` prefix, and the class that implements a command is
-named after the command. The class has a `run` method that takes the command line arguments,
-and a `help` method that prints what the command does and what its options mean.
+## Reference Sets and Reports
 
-Every command extends the `Command` module, in `lib/common/command.rb`, which holds the parts
-that are the same everywhere: the parsing of the options, the check of the log level, and the
-handling of the errors of the parser. A command that is given an option it does not
-understand, or an option that is missing its argument, says so and prints its help, instead
-of failing with a backtrace.
-
-Every command takes `-l` (or `--log`) with the level of the messages it writes to the
-standard error: `DEBUG`, `INFO`, `WARN`, `ERROR`, `FATAL` or `UNKNOWN`. The help of every
-command names the levels.
-
-| The command | The class | What it does |
-| --- | --- | --- |
-| `als_report` | `AlsReport` | writes the report of a set in markdown |
-| `als_to_version` | `AlsToVersion` | converts a set to another version of the format |
-| `als_delta` | `AlsDelta` | shows the changes to a set each time Live saves it |
-| `als_to_xsd` | `AlsToXsd` | writes a schema of the format from the demo sets |
-| `als_validate` | `AlsValidate` | checks a set against a schema |
-| `als_nodes` | `AlsNodes` | prints the nodes of a document that an XPath expression finds |
-| `als_diff` | `AlsDiff` | compares two sets element by element |
-| `als_xsd_order` | `AlsXsdOrder` | prints the order of the children of an element in a schema |
-| `als_release_notes` | `AlsReleaseNotes` | prints the release notes of a version of Live as markdown |
-
-## The superseded documents in `docs/old/`
-
-| Document | What it is for |
-| --- | --- |
-| [`old/fix_plan.md`](old/fix_plan.md) | The earlier plan, written when the transform was to be an XSLT stylesheet. Superseded by [`fix_plan2.md`](fix_plan2.md). |
-| [`old/composing_pure_functions_in_ruby.md`](old/composing_pure_functions_in_ruby.md) | The long form of the architecture guide. Superseded by [`cpfir.md`](cpfir.md). |
-
-## Documents outside `docs/`
-
-| Document | What it is for |
-| --- | --- |
-| [`../README.md`](../README.md) | What the program does, how to install and use it, and the sample report. |
-| [`../TODO.md`](../TODO.md) | The outstanding work of the gem, with the stable identifiers (`T1`, `N42`, `GH1`, `L1`, …) that the code and the other documents cite. The plan the conversion is measured against is in [`fix_plan2.md`](fix_plan2.md). |
-| [`../analysis/README.md`](../analysis/README.md) | **The ANALYSES.** What each set holds, written down: the tracks of the set, the state of each one, the effects on it, and the clips of it. Made by `dev/generate_reference_als_reports`. The analyses are in the repository of the reference sets, in the reports directory of the version of each set. |
-
-The reference sets themselves, and the reports of them, are in the repository of the reference
-sets, which is found through the environment variable `live_reference_sets`. The sets are in
-`sets/live_<version>/projects_and_als/` and the reports of them in
-`sets/live_<version>/reports/`.
+The reference sets and their reports are stored in the [reference set
+repository](https://github.com/mslinn/live_reference_sets/), present on developer computers at the location that the
+environment variable `live_reference_sets` points to.
