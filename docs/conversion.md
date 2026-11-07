@@ -23,18 +23,19 @@ validation of the Live 11 conversion) and **N42** (unknown lane `Type` values ma
 `als_to_version 11` converts a Live 12 set to the Live 11 format by transforming
 the XML contained within the ALS file:
 
-- Writes five Live 11 version strings onto the `<Ableton>` element, including a
-  hard-coded `Revision` hash.
+The transformations for converting Live 12 back to Live 11 were figured out by:
 
-- Deletes every `//InstrumentMeld`, `//Roar` and `//MxPatchRef`.
+1. Reading the Ableton Live [release notes](release_notes/index.md).
 
-- Replaces the text `AudioOut/Main` with `AudioOut/Master` in the serialized XML.
+2. Opening a Live 11 demo set in Live 12, saving it, and comparing the two
+   versions of the Live set.
 
-- Renames `MidiEditorLaneModel` to `ExpressionLane` inside `ContentLanes` and `ExpressionLanes`.
+### Upgrading and Downgrading
 
-- Rewrites a `Saturator`'s `Oversampling` from `"true"`/`"false"` to `"1"`/`"0"`.
-
-- Parses the document with `Nokogiri::Slop`.
+`als_to_version` upgrades and downgrades betwen versions 8.4 through 12.4.
+Upgrades are performed in stages; 8 to 9, 9 to 10, 10 to 11, 11 to 12.
+Similarly, downgrades are performed in reverse stages: 12 to 11, 11 to 10, 10 to
+9, 9 to 8.4.
 
 TODO The following is old information and should be replaced with a short
 high-level description of the [`als_to_version` command](../exe/als_to_version).
@@ -51,21 +52,10 @@ spelling and emits the other, so one set of transformations carries both directi
 version_diff. See `docs/cpfir.md`, "The Lifecycle of a Conversion".
 
 
-### Determining the Conversion Process
-
-The transformations for converting Live 12 back to Live 11 were figured out by
-opening a Live 11 demo set in Live 12, saving it, and comparing the two versions
-of the Live set.
-
-See [`conversion.md`](conversion.md) for details.
-
-
 #### Unique Live 11 Schema
 
 `als_to_version 11 input_set output_set` writes `output_set` in the Live 11 format
-regardless of the version of `input_st`. The version strings it writes are fixed
-so the Live set can be recognized as being the result of a conversion by
-`live_set` instead of being saved by Ableton Live:
+regardless of the version of `input_st`. The version strings it writes are fixed:
 
 ```ruby
 @ableton['Creator'] = 'Ableton Live 11.3.21'
@@ -75,12 +65,21 @@ so the Live set can be recognized as being the result of a conversion by
 @ableton['SchemaChangeCount'] = '3'
 ```
 
-`MajorVersion` with value `5` indicates that this ALS file contains a Live 11 set.
+- `MajorVersion` with value `5` indicates that this ALS file contains a Live 11
+set.
 
-Note that `MinorVersion` here is `11.0_11300` while `Creator` says `11.3.21`.
-The two are different numbering schemes: `Creator` is the version of Live that
-wrote the set, and `MinorVersion` identifies the set format that the specified
-version of Live 11 reads.
+- SchemaChangeCount tracks structural modifications made to the XML layout
+  across patch updates or beta builds without incrementing the primary engine
+  schema version
+
+- Note that `MinorVersion` here is `11.0_11300` while `Creator` says `11.3.21`.
+  The two are different numbering schemes: `Creator` is the version of Live that
+  wrote the set, and `MinorVersion` identifies the set format that the specified
+  version of Live 11 reads.
+
+TODO Attributes for an arbitrary version of Live might be misleading. Can we
+change `Creator` to have value `live_set vX.Y?` Is there any harm in continuing
+to use value '11.0_11300' for `MinorVersion`? Is SchemaChangeCount
 
 
 #### What the Conversion Removes, and What it Keeps
