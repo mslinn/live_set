@@ -2,12 +2,15 @@ require 'markdown-tables'
 require_relative '../model/live_palette'
 require_relative 'live_markup'
 
+# TODO: this class violates the principles of how serializers are supposed to work. Instead of defining `class
+# LiveClipSerializer` and delegating serialization of each clip to it, this class serializes the entire collection. Note
+# that there are several subtypes of clips, and `LiveClips` contains a collection of all subtypes.
+#
 # Writes the table of the clips of the set, and the tracks that hold them.
 #
 # A clip of a take lane is marked with the lane it is in.
 #
-# Sample usage:
-# markdown = LiveClipsSerializer.new(clips).to_markdown
+# Sample usage: markdown = LiveClipsSerializer.new(clips).to_markdown
 class LiveClipsSerializer
   # Creates a serializer for the clips of the set.
   #
@@ -30,6 +33,9 @@ class LiveClipsSerializer
 
   private
 
+  # TODO: rename this method to something more descriptive. This method builds a collection of hashes instead of a
+  # collection of class instances of each subtype of clip.
+  #
   # The tracks that hold each clip of the set.
   #
   # A track that holds a clip in its take lanes as well as in itself is one entry, and the
@@ -37,11 +43,12 @@ class LiveClipsSerializer
   #
   # @return [Hash] each clip, and the tracks that hold it
   def holds
-    uses = Hash.new { |hash, key| hash[key] = {} }
+    uses = Hash.new { |hash, key| hash[key] = {} } # this should not be required
 
+    # This should be delegated to `live_clip_serializer`
     @clips.each_with_its_track do |clip, number, track, lane|
       name = LiveMarkup.display_name track
-      hold = uses[label_of(clip)][number] ||= { name: name, lanes: [] }
+      hold = uses[clip.label][number] ||= { name: name, lanes: [] }
       hold[:lanes] << lane unless lane.nil? || hold[:lanes].include?(lane)
     end
 
@@ -51,13 +58,5 @@ class LiveClipsSerializer
         "#{number} #{hold[:name]}#{lanes}"
       end
     end
-  end
-
-  # The name of a clip, as the cross-reference names it.
-  #
-  # @param clip [LiveMidiClip, LiveAudioClip] the clip
-  # @return [String] the name
-  def label_of(clip)
-    clip.label
   end
 end
