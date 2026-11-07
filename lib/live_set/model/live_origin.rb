@@ -1,7 +1,7 @@
 # Where a file of a set comes from.
 #
 # The path Live wrote for a file says where the file was when the set was saved: in the
-# project, in the user library, in the Core Library of Live, or in a pack. The content of a
+# project, in the user library, in the Live core library, or in a pack. The content of a
 # pack is under a folder of its own — Samples, Sounds, IRs, Devices, Racks, Presets — and
 # the pack is the folder above it.
 #

@@ -129,7 +129,7 @@ class LiveAsset
     !pack.nil?
   end
 
-  # Whether the file came from the Core Library of Live.
+  # Whether the file came from the Live core library.
   #
   # @return [Boolean] true when the file is in the Core Library
   def from_core_library?

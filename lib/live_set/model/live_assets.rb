@@ -51,7 +51,7 @@ class LiveAssets
   #
   # A sample that the set refers to by a path within the project is one of them, even when it
   # came from a pack: the set has the file, and the file travels with the set. A sample that
-  # comes from a pack or from the Core Library of Live, and that the set does not hold, is not
+  # comes from a pack or from the Live core library, and that the set does not hold, is not
   # one of them: the pack holds it, and it travels with the pack.
   #
   # @return [Array<LiveAsset>] the assets

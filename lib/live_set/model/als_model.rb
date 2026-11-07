@@ -44,13 +44,13 @@ class AlsModel
     @live_set ||= LiveTracks.new directory, track_elements
   end
 
-  # The master track of the set.
+  # The one and only master track in the set.
   #
-  # The master track is a child of the set and not of the tracks of the set.
+  # The master track is a child of the set and not one of the tracks of the set.
   #
-  # @return [LiveMasterTracks] the master tracks
-  def master_tracks
-    @master_tracks ||= LiveMasterTracks.new directory, master_track_elements
+  # @return [LiveMasterTrack] the master track
+  def master_track
+    @master_track ||= LiveMasterTrack.new directory, master_track_elements
   end
 
   # The facts about the file.

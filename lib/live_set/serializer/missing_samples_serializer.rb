@@ -4,7 +4,7 @@ require_relative 'live_sample_serializer'
 
 # Writes the samples of a set that are not in the project.
 #
-# A sample that comes from a pack or from the Core Library of Live is not missing from the
+# A sample that comes from a pack or from the Live core library is not missing from the
 # set: the pack holds it, and the packs of the set are reported on their own.
 #
 # Sample usage:
@@ -32,7 +32,7 @@ class MissingSamplesSerializer
     end
 
     lines << 'The samples of the set that are not in the project, and that do not come from a ' \
-             'pack or from the Core Library of Live. A set with such a sample is not ' \
+             'pack or from the Live core library. A set with such a sample is not ' \
              'self-contained: the file has to be found again.'
     lines << ''
     rows = @missing.sources.sort.map do |source, names|

@@ -176,6 +176,8 @@ class AlsModelSerializer
   def hierarchy_markdown
     lines = ['## Groups/Tracks/Clips/Devices', '', LEGEND, '']
 
+    lines.concat master_section
+
     groups = LiveGroupsSerializer.new(@als_model.live_set.groups_of_the_set).to_markdown
     unless groups.empty?
       lines << '### Groups'
@@ -185,7 +187,6 @@ class AlsModelSerializer
     end
 
     lines.concat track_sections
-    lines.concat master_section
 
     lines.join("\n")
   end
@@ -194,7 +195,7 @@ class AlsModelSerializer
   #
   # @return [Array<String>] the lines of the sections
   def track_sections
-    return [section('### Tracks', @als_model.live_set.to_markdown)] unless separate_tracks?
+    return [section('### Ungrouped Tracks', @als_model.live_set.to_markdown)] unless separate_tracks?
 
     [
       section('### Audio Tracks', @als_model.live_set.audio_tracks.to_markdown),

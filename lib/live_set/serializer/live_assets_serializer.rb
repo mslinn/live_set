@@ -16,7 +16,7 @@ require_relative 'live_markup'
 # markdown = LiveAssetsSerializer.new(assets).to_markdown
 class LiveAssetsSerializer
   # The markers of a sample.
-  NOT_COMPATIBLE = '❌ not P3s compatible'.freeze
+  NOT_COMPATIBLE = '❌ not P3S compatible'.freeze
   MISSING = '❌ missing'.freeze
 
   # Creates a serializer for the assets of a set.
@@ -91,6 +91,8 @@ class LiveAssetsSerializer
   # @param asset [LiveAsset] the sample
   # @return [String, nil] the marker, or nil when the sample is in the set and is there
   def marker_of(asset)
+    # TODO: Extract the text decorator functionality from LiveAudioClipSerializer#warning_markdown in
+    # lib/live_set/serializer/live_audio_clip_serializer.rb and use that value in place of MISSING below
     return asset.there? ? nil : MISSING if asset.in_project?
 
     asset.there? ? NOT_COMPATIBLE : MISSING

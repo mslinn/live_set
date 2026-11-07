@@ -43,7 +43,7 @@ class DeviceCrossReferenceSerializer
                                        background_color: LiveMarkup::DARK_BACKGROUND,
                                        foreground_color: LiveMarkup::LIGHT_TEXT
              else
-               "<code>#{LiveMarkup.escape label}</code>"
+               "<nobr><code>#{LiveMarkup.escape label}</code></nobr>"
              end
       [name, kind, tracks.map { |track| track_label track }.uniq.join(', ')]
     end

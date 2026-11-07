@@ -28,7 +28,7 @@ class LiveSamplesSerializer
     end
 
     lines << 'The samples of the set that are in the project, and the ones that come from a ' \
-             'pack or from the Core Library of Live.'
+             'pack or from the Live core library.'
     lines << ''
 
     rows = located.group_by(&:source).sort.map do |source, in_source|

@@ -27,7 +27,7 @@ class LiveSamples
   # The samples that are not missing.
   #
   # A sample is not missing when it is collected into the project, or when it comes from a
-  # pack or from the Core Library of Live: a pack that is not installed is a missing pack,
+  # pack or from the Live core library: a pack that is not installed is a missing pack,
   # and not a missing sample.
   #
   # @return [Array<LiveSample>] the samples
@@ -37,7 +37,7 @@ class LiveSamples
 
   # The samples of the set that are not in the project.
   #
-  # The samples that come from a pack or from the Core Library of Live are not among them:
+  # The samples that come from a pack or from the Live core library are not among them:
   # they are not missing from the set, and the packs of the set are reported on their own.
   #
   # @return [MissingSamples] the samples that are not in the project
@@ -66,7 +66,7 @@ class LiveSamples
   # Whether the sample is missing from the set.
   #
   # A sample that has not been collected into the project is missing from it, unless it comes
-  # from a pack or from the Core Library of Live: those come with Live and with the pack.
+  # from a pack or from the Live core library: those come with Live and with the pack.
   #
   # @param sample [LiveSample] the sample
   # @return [Boolean] true when the sample is missing

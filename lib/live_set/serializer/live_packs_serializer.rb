@@ -9,6 +9,10 @@ require_relative 'live_markup'
 #
 # Sample usage:
 # markdown = LivePacksSerializer.new(packs).to_markdown
+
+LOST_PACK_REFERENCES = 'None'.freeze
+NO_PACK_REFERENCES   = 'This set does not reference any packs.'.freeze
+
 class LivePacksSerializer
   # Creates a serializer for the packs of a set.
   #
@@ -23,7 +27,7 @@ class LivePacksSerializer
   def to_markdown
     lines = ['### Referenced Packs', '']
     if @packs.empty?
-      lines << 'The set refers to no pack.'
+      lines << NO_PACK_REFERENCES
       return lines.join("\n")
     end
 
@@ -41,7 +45,7 @@ class LivePacksSerializer
     lines = ['#### Located Packs', '']
     packs = @packs.located
     if packs.empty?
-      lines << 'No pack of the set is on this machine.'
+      lines << LOST_PACK_REFERENCES
     else
       packs.each { |pack| lines << "- **#{pack.name}**: `#{path_of pack}`" }
     end
