@@ -2,21 +2,19 @@ require_relative '../../common/xml'
 
 # One device from an Ableton track's device chain.
 #
-# The devices in a chain are the children of DeviceChain/DeviceChain/Devices. Each device is its
-# own element: Eq8, GlueCompressor, Limiter, Saturator, and so on. A plug-in is a PluginDevice.
+# The devices in a chain are the children of DeviceChain/DeviceChain/Devices. Each device is its own element: Eq8,
+# GlueCompressor, Limiter, Saturator, and so on. A plug-in is a PluginDevice.
 #
-# A native Ableton device is never a PluginDevice — it is its own element, and the Push 3
-# Standalone has all of them. Every plug-in in the corpus is third-party, though the file does not
-# say so: there is no Manufacturer element anywhere. See docs/als_notes.md, "The devices of a
-# chain, and the plug-ins among them".
+# A native Ableton device is never a PluginDevice — it is its own element, and the P3S has all of them. Every plug-in in
+# the corpus is third-party, though the file does not say so: there is no Manufacturer element anywhere. See
+# docs/als_notes.md, "The devices of a chain, and the plug-ins among them".
 #
 # A plug-in's name is in a different place depending on the plug-in format:
 #
-#   PluginDesc/VstPluginInfo/PlugName    for a VST2 plug-in
-#   PluginDesc/Vst3PluginInfo/Name        for a VST3 plug-in
+#   PluginDesc/VstPluginInfo/PlugName    for a VST2 plug-in PluginDesc/Vst3PluginInfo/Name        for a VST3 plug-in
 #
-# Both shapes are in real sets, and the VST3 shape has no PlugName at all. See
-# docs/als_notes.md, "The devices of a chain, and the plug-ins among them".
+# Both shapes are in real sets, and the VST3 shape has no PlugName at all. See docs/als_notes.md, "The devices of a
+# chain, and the plug-ins among them".
 class LiveDevice
   include Xml
 
@@ -25,7 +23,7 @@ class LiveDevice
   # The element names that mean "this device is a plug-in".
   #
   # A PluginDevice is a plug-in. A Max for Live device is an MxDeviceAudioEffect, and Max for Live
-  # is supported on the Push 3 but with less headroom, so it is treated separately.
+  # devices are supported on the P3S if they are not CPU intensive, so it is treated separately.
   PLUGIN_ELEMENTS = %w[PluginDevice].freeze
 
   # The element names that mean "this device is a Max for Live device".
@@ -108,7 +106,7 @@ class LiveDevice
   #
   # @return [String] the kind of the device
   def kind
-    return 'Max for Live' if max_for_live?
+    return 'M4L' if max_for_live?
     return plugin_format if plug_in?
 
     'Live'

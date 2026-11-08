@@ -5,7 +5,7 @@ require_relative '../model/live_palette'
 # This module generates markup for `als_report`.
 #
 module LiveMarkup
-  # The background color for text associated with Push 3 Standalone incompatibility.
+  # The background color for text associated with P3S Standalone incompatibility.
   DARK_BACKGROUND = '#212121'.freeze
   LIGHT_TEXT      = '#FFFFFF'.freeze
 
@@ -218,7 +218,7 @@ module LiveMarkup
 
     # colored code containing the track name, using the color from the Live set.
     #
-    # A track that is incompatible with the Push 3 Standalone is highlighted.
+    # A track that is incompatible with the P3S Standalone is highlighted.
     #
     # @param track [LiveMidiTrack, LiveAudioTrack, LiveReturnTrack, LiveMasterTrack] the track
     # @param name [String] the name of the track

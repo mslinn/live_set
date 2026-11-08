@@ -90,6 +90,34 @@ Nokogiri document.
 The fix: The class should read its values with `at(...)`, like every other class
 in this gem.
 
+
+#### X1. New Command to Copy
+
+[Ableton Live stores MIDI mapping per
+set.](https://help.ableton.com/hc/en-us/articles/360000038859-Making-custom-MIDI-Mappings)
+Yes, it can be defined in the default set.  However, Live does not provide a way
+to copy MIDI mappings between sets.
+
+In the ALS XML, the per-set mappings are under `<MidiMappings>`. Each assignment
+is a `<MidiMapping>` child. We should check the reference sets for each version
+to verify that `<MidiMappings>` and its children did not change from version to
+version.
+
+If no change, or if the ALS file versions are the same, we just need to copy
+some or all of the `<MidiMappings>` element structure from one set to another.
+
+The new `als_copy_midi_mapping` command syntax:
+
+```text
+als_copy_midi_mapping [OPTIONS] src_als dst_als
+
+Where OPTIONS is:
+
+-h/--help   Display this message
+-c/--copy   TODO figure out how to specify one mapping or a subset of all mappings
+-l/--list   Display the complete MIDI maps for both files
+```
+
 #### N53. Corpus Lacks Complete Test Data
 
 Test ALS files must be created that contain:

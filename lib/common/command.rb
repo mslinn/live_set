@@ -33,11 +33,15 @@ require_relative 'log'
 module Command
   # Parses command options.
   #
+  # The parser names an option after its long switch, so the log level is parsed as `:log`
+  # and held as `:loglevel`, which is the name the commands use.
+  #
   # @param args [Array<String>] the command line arguments
   # @return [Array(Hash, Array<String>)] the options and the remaining arguments
   def parse_options(args)
     options = default_options
     remaining = parser.permute!(args, into: options)
+    options[:loglevel] = options.delete(:log) if options.key? :log
     error = CommandOptions.loglevel_error(options)
     abort help(error) if error
 

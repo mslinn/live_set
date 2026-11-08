@@ -1,7 +1,7 @@
 require_relative 'header_block'
 require_relative 'live_assets'
 require_relative 'live_checksums'
-require_relative 'live_master_tracks'
+require_relative 'live_master_track'
 require_relative 'live_project_info'
 require_relative 'live_sizes'
 require_relative 'live_tracks'
@@ -46,11 +46,12 @@ class AlsModel
 
   # The one and only master track in the set.
   #
-  # The master track is a child of the set and not one of the tracks of the set.
+  # The master track is a child of the set and not one of the tracks of the set. Live has
+  # one master track, and a set has one element for it.
   #
   # @return [LiveMasterTrack] the master track
   def master_track
-    @master_track ||= LiveMasterTrack.new directory, master_track_elements
+    @master_track ||= LiveMasterTrack.new directory, master_track_element
   end
 
   # The facts about the file.
@@ -102,10 +103,13 @@ class AlsModel
     xml.xpath('//MidiTrack | //AudioTrack | //GroupTrack | //Tracks/ReturnTrack')
   end
 
-  # The elements of the master track of the set.
+  # The element of the master track of the set.
   #
-  # @return [Array<Nokogiri::XML::Element>] the elements
-  def master_track_elements
-    xml.xpath('//MasterTrack | //MainTrack')
+  # Live 12 writes the master track as a `<MainTrack>`, and the earlier versions write it
+  # as a `<MasterTrack>`.
+  #
+  # @return [Nokogiri::XML::Element, nil] the element
+  def master_track_element
+    xml.at_xpath('//MasterTrack | //MainTrack')
   end
 end

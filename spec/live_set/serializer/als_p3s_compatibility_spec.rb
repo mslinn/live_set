@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'live_set/serializer/p3s_compatibility'
 require 'support/live_sets'
 
-# The verdict for a transfer of a set to Push 3 Standalone.
+# The verdict for a transfer of a set to P3S Standalone.
 #
 # The expected value is the section of the report of the set as it is written now:
 #
@@ -22,12 +22,15 @@ RSpec.describe P3SCompatibility, '#to_markdown' do
 
   it 'says that a set that cannot be transferred is not ready, and what stops it' do
     expect(described_class.new(set(LiveSets.fascination)).to_markdown).to eq(<<~END_MARKDOWN.chomp)
-      ## Push 3 Standalone
+      ## P3S Standalone
 
-      ❌ Warning: This set should not be transferred to Push 3 Standalone.
+      ❌ Warning: This set should not be transferred to P3S Standalone.
+
+      ### Reasons Why
+
       - [2 clips have not been collected.](#missing-samples)
-      - Group '2 Drums' uses Filter, which Push 3 Standalone cannot run. Remove it from the group's device chain, or bounce the group. It affects 3-Kontakt 7, 4-Tambo and Timbales Loop 90bpm.
-      - Group '5 Main' uses Filter, which Push 3 Standalone cannot run. Remove it from the group's device chain, or bounce the group. It affects 6-DBM_TC2_124_Erhu_Loop_A_Heroes_Tale_C#min, 7-Beat That Bass, 8-Clav Mellow, 9-Reggae Chords Guitar, 10-Intrepid Roads.
+      - Group '2 Drums' uses Filter, which P3S Standalone cannot run. Remove it from the group's device chain, or bounce the group. It affects 3-Kontakt 7, 4-Tambo and Timbales Loop 90bpm.
+      - Group '5 Main' uses Filter, which P3S Standalone cannot run. Remove it from the group's device chain, or bounce the group. It affects 6-DBM_TC2_124_Erhu_Loop_A_Heroes_Tale_C#min, 7-Beat That Bass, 8-Clav Mellow, 9-Reggae Chords Guitar, 10-Intrepid Roads.
     END_MARKDOWN
   end
 end

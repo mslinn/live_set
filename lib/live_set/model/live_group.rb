@@ -11,7 +11,7 @@ require_relative 'live_midi_tracks'
 #
 # It does have a mixer and a device chain, and its members' audio is routed through that chain: a
 # member track's output is routed to AudioOut/GroupTrack. A third-party plugin in a group's chain
-# therefore blocks a transfer to Push 3 Standalone just as much as one on a track.
+# therefore blocks a transfer to P3S just as much as one on a track.
 #
 # A group track cannot be frozen, because only tracks that hold clips can be frozen, and a group
 # track holds no clips. See docs/als_notes.md, "The group tracks".
@@ -92,9 +92,9 @@ class LiveGroup
     @group_track.at('Name/UserName')&.[]('Value')
   end
 
-  # Whether the group cannot be transferred to Push 3 Standalone.
+  # Whether the group cannot be transferred to P3S.
   #
-  # A group cannot be frozen, so a device in its chain that Push 3 cannot run cannot be
+  # A group cannot be frozen, so a device in its chain that P3S cannot run cannot be
   # rendered away.
   #
   # @return [Boolean] true when the group is a problem
@@ -112,7 +112,7 @@ class LiveGroup
     @devices ||= LiveDevice.chain_devices(@group_track).map { |node| LiveDevice.new node }
   end
 
-  # The group's devices that Push 3 Standalone cannot run.
+  # The group's devices that P3S cannot run.
   #
   # A group track cannot be frozen, so a blocking device in a group's chain cannot be rendered
   # away by freezing the group. The tracks inside the group have to be frozen individually.

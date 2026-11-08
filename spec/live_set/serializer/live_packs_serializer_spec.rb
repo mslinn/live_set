@@ -40,7 +40,9 @@ RSpec.describe LivePacksSerializer, '#to_markdown' do
   end
 
   it 'says that This set does not reference any packs' do
-    expect(described_class.new(packs).to_markdown).to include(described_class.NO_PACK_REFERENCES)
+    markdown = described_class.new(LivePacks.new([])).to_markdown
+
+    expect(markdown).to include(described_class::NO_PACK_REFERENCES)
   end
 
   it 'names the pack that is on this machine, and where it is' do

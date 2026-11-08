@@ -10,7 +10,10 @@ require 'support/live_sets'
 #
 # The groups are real ones. The Live 11 Suite demo set holds a group of four tracks whose chain
 # holds native devices only, and the checked-in set with return tracks holds a group whose chain
-# holds a Max for Live device, which blocks a transfer to Push 3 Standalone.
+# holds a Max for Live device, which blocks a transfer to P3S Standalone.
+
+# FIXME: Max for Live devices **are** supported on the P3S standalone. This report is WRONG!
+
 RSpec.describe LiveGroup do
   # The group of the Live 11 Suite demo set.
   def suite_group

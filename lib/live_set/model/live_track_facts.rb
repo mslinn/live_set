@@ -161,9 +161,9 @@ module LiveTrackFacts
     value == '-1' ? nil : value
   end
 
-  # Whether the track cannot be transferred to Push 3 Standalone.
+  # Whether the track cannot be transferred to P3S.
   #
-  # A track that is not frozen and that has a device Push 3 cannot run cannot be transferred:
+  # A track that is not frozen and that has a device P3S cannot run cannot be transferred:
   # the device has to be rendered away by freezing the track.
   #
   # @return [Boolean] true when the track is a problem
@@ -171,7 +171,7 @@ module LiveTrackFacts
     !frozen? && devices.any?(&:blocking?)
   end
 
-  # The group's devices that Push 3 Standalone cannot run.
+  # The group's devices that P3S Standalone cannot run.
   #
   # Only unfrozen tracks can be blocked by their devices. The devices of the chain of the
   # track are the devices of the group the track is in, and they are counted here as well:

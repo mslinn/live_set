@@ -22,6 +22,21 @@ class LiveMasterTrackSerializer
   # Returns the track as markdown.
   #
   # @return [String] the serialized markdown
+  #
+  # FIXME the current output is:
+  #   ```html
+  #   <h3 id="master-track"><a class="mdr-anchor" href="#master-track" id="9" aria-hidden="true"></a>Master Track</h3>
+  #   <ul>
+  #     <li>Track 7  🎚️ Master  <code style="color: #000000; background-color: #F6F57C; vertical-align: middle;" title="Live color #3">Master</code></li>
+  #   </ul>
+  #   ```
+  #   The word Master appears in the heading, and this section will always only consist of just the heading and one detail
+  #   line. notice that the word Master appears twice on the detail line. Both of these are redundant. the entire section
+  #   output should be simplified to:
+  #   ```html
+  #   <h3 id="master-track">🎚️ <a class="mdr-anchor" href="#master-track" id="9" aria-hidden="true"></a>Master Track</h3>
+  #   <p>Track 7</p>
+  #   ```
   def to_markdown
     parts = [track_detail, device_lines]
     parts.reject(&:empty?).join "\n"

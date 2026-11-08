@@ -32,9 +32,11 @@ RSpec.describe LiveGroupSerializer, '#to_markdown' do
   it 'writes the devices of the group under it' do
     markdown = described_class.new(group('Drums'), '1').to_markdown
 
+    # FIXME: Max for Live devices **are** supported on the P3S. This report is WRONG!
+
     expect(markdown).to include(
       '    - Group Track Device 1a  <code style="color: #FFFFFF; background-color: #212121; ' \
-      'vertical-align: middle;">Filter</code>  Max for Live  ⚠ not usable on Push 3'
+      'vertical-align: middle;">Filter</code>  M4L  ⚠ not usable on P3S'
     )
   end
 

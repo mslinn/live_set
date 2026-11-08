@@ -29,7 +29,7 @@ RSpec.describe AlsReport, '#show' do
   it 'gives the computer the set is on, and where it is' do
     markdown = report(LiveSets.fascination)
 
-    expect(markdown).to match(/^\|On computer\|\w+ \([0-9A-Fa-f-]+\)\|$/)
+    expect(markdown).to match(%r{^\|On computer\|<code>\w+ \([0-9A-Fa-f-]+\)</code>\|$})
     expect(markdown).to match(%r{^\|Directory\|<code>/.*projects_and_als</code>\|$})
   end
 
@@ -53,7 +53,7 @@ RSpec.describe AlsReport, '#show' do
   it 'numbers the devices of a track, and of a group' do
     markdown = report(LiveSets.fascination)
 
-    expect(markdown).to match(/^ {4}- Group Track Device 1a  .*Max for Live  ⚠ not usable on Push 3$/)
+    expect(markdown).to match(/^ {4}- Group Track Device 1a  .*M4L  ⚠ not usable on P3S$/)
     expect(markdown).to match(%r{^ {4}- Group Track Device 1b  <code>DrumBuss</code>  Live$})
   end
 
@@ -128,7 +128,7 @@ RSpec.describe AlsReport, '#show' do
     expect(markdown).to match(/\|.*Kontakt 7.*\|VST3\|.*Kontakt 7.*\|/)
   end
 
-  it 'marks the devices that Push 3 cannot use with a dark background' do
+  it 'marks the devices that P3S cannot use with a dark background' do
     expect(report(LiveSets.fascination)).to include(
       'color: #FFFFFF; background-color: #212121; vertical-align: middle;">Filter</code>'
     )
@@ -152,7 +152,7 @@ RSpec.describe AlsReport, '#show' do
     expect(report(LiveSets.fascination)).to include('warp: Beats')
   end
 
-  it 'marks the tracks that Push 3 cannot use with a dark background' do
+  it 'marks the tracks that P3S cannot use with a dark background' do
     markdown = report(LiveSets.fascination)
 
     # TODO: use project-wide constants for color values
@@ -167,7 +167,7 @@ RSpec.describe AlsReport, '#show' do
   end
 
   it 'gives the effects on a track' do
-    expect(report(LiveSets.fascination)).to include('Kontakt 7</code>  VST3  ⚠ not usable on Push 3')
+    expect(report(LiveSets.fascination)).to include('Kontakt 7</code>  VST3  ⚠ not usable on P3S')
   end
 
   it 'crosses the clips with the tracks that use them' do
@@ -176,7 +176,7 @@ RSpec.describe AlsReport, '#show' do
 
   it 'says that a set that cannot be transferred is not ready' do
     expect(report(LiveSets.fascination)).to include(
-      '❌ Warning: This set should not be transferred to Push 3 Standalone.'
+      '❌ Warning: This set should not be transferred to P3S Standalone.'
     )
   end
 

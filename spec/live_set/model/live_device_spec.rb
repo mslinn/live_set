@@ -29,7 +29,7 @@ RSpec.describe LiveDevice do
       expect(device).to be_plug_in
     end
 
-    it 'blocks a transfer to Push 3 Standalone' do
+    it 'blocks a transfer to P3S Standalone' do
       expect(device).to be_blocking
     end
 
@@ -48,7 +48,7 @@ RSpec.describe LiveDevice do
       expect(device).not_to be_plug_in
     end
 
-    it 'does not block a transfer to Push 3 Standalone' do
+    it 'does not block a transfer to P3S Standalone' do
       expect(device).not_to be_blocking
     end
 
@@ -64,7 +64,7 @@ RSpec.describe LiveDevice do
       described_class.new LiveSets.node(path, '//MxDeviceAudioEffect')
     end
 
-    it 'blocks a transfer to Push 3 Standalone' do
+    it 'blocks a transfer to P3S Standalone' do
       expect(device).to be_blocking
     end
 

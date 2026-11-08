@@ -439,7 +439,7 @@ Each device is its own element: `Eq8`, `GlueCompressor`, `Limiter`, `Saturator`,
 and so on. A plug-in is a `PluginDevice`.
 
 A native Ableton device is never a `PluginDevice` — it is its own element, and
-the Push 3 Standalone has all of them. Every plug-in in the corpus is
+the P3S has all of them. Every plug-in in the corpus is
 third-party, though the file does not say so: there is no `Manufacturer` element
 anywhere.
 

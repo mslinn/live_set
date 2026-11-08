@@ -160,7 +160,7 @@ Each of these classes is enriched by mixing in [`LiveTrackFacts`](../lib/live_se
 | `group_id`                  | the id of the group the track is in, or nil when it is in no group                                                      |
 | `frozen?`                   | true when the track is frozen                                                                                           |
 | `soloed?`, `armed?`, `off?` | the state of the track                                                                                                  |
-| `problem?`                  | true when the track cannot be transferred to Push 3 Standalone: it is not frozen, and it has a device Push 3 cannot run |
+| `problem?`                  | true when the track cannot be transferred to P3S: it is not frozen, and it has a device Push 3 cannot run |
 
 A MIDI track contains MIDI clips, which are stored in the ALS XML.
 
@@ -192,7 +192,7 @@ device chain of a group".
 
 #### `LiveDevice` — a device of a chain
 
-Its name, its kind, its plug-in format, and whether Push 3 Standalone can run it. A device
+Its name, its kind, its plug-in format, and whether P3S can run it. A device
 on a frozen track is written in the ordinary way and carries no warning, because freezing a
 track renders its devices away, so the serializer of a device is told whether the track is
 frozen.

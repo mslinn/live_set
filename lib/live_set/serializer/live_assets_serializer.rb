@@ -8,7 +8,7 @@ require_relative 'live_markup'
 # order of the needs does not matter. The devices of Ableton are not in it: they have no
 # location, and they come with Live.
 #
-# A sample that is in the set is compatible with Push 3 Standalone when it is there. A sample
+# A sample that is in the set is compatible with P3S Standalone when it is there. A sample
 # that is outside the set is not compatible with it, whether it is there or not: the file has
 # to be in the set for the Push to play it.
 #

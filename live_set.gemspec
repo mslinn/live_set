@@ -22,9 +22,9 @@ Gem::Specification.new do |spec|
       - Report the version compatibility of an Ableton Live set.
       - Detect environmental problems, for example unwanted directories called Ableton Project Info in parent directories.
       - Display the location and size of the samples in each track.
-      - Clearly show if a Live set is ready to be transferred to a Push 3 Standalone, and what needs to be changed if not.
-        - Detect sets that are too large to be frozen, which means they are too large to transfer to Push 3 Standalone.
-        - Detect tracks that have non-Ableton plugins that are not frozen, which means they are not ready to be transferred to Push 3 Standalone.
+      - Clearly show if a Live set is ready to be transferred to a P3S, and what needs to be changed if not.
+        - Detect sets that are too large to be frozen, which means they are too large to transfer to P3S.
+        - Detect tracks that have non-Ableton plugins that are not frozen, which means they are not ready to be transferred to P3S.
         - Shows clips that are have not been collected within the set’s project directory.
 
     Live_set has successfully converted the Ableton Live 12 demo project to Live 11.

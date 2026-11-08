@@ -1,7 +1,7 @@
 # TODO: This is a placeholder to start off the changes described as TODO comments in lib/live_set/live_palette.rb
 # TODO Write unit tests
 #
-# Writes the "Push 3 Standalone" section of the markdown report for a `LiveSet` model.
+# Writes the "P3S Standalone" section of the markdown report for a `LiveSet` model.
 #
 # Two kinds of message are reported. An error stops a set from being transferred: a clip that
 # is not collected, and a third-party device on an unfrozen track or in a group's chain.
@@ -14,26 +14,26 @@
 # Sample usage:
 # markdown = P3SCompatibility.new(live_set).to_markdown
 class P3SCompatibility
-  # Create a serializer for the "Push 3 Standalone" report section for the given set.
+  # Create a serializer for the "P3S Standalone" report section for the given set.
   #
   # @param live_set [LiveSet] the live_set to report on
   def initialize(live_set)
     @live_set = live_set
   end
 
-  # Return the "Push 3 Standalone" report section as markdown.
+  # Return the "P3S Standalone" report section as markdown.
   #
   # @return [String] the serialized markdown
   def to_markdown
     errors = @live_set.p3s_errors
     uncollected = @live_set.uncollected_clips.length
 
-    lines = ['## Push 3 Standalone', '']
+    lines = ['## P3S Standalone', '']
     lines << if errors.empty? && uncollected.zero?
-               '✅ Ready for transfer to Push 3 Standalone'
+               '✅ Ready for transfer to P3S Standalone'
              else
                <<~END_MSG
-                 ❌ Warning: This set should not be transferred to Push 3 Standalone.
+                 ❌ Warning: This set should not be transferred to P3S Standalone.
 
                  ### Reasons Why
                END_MSG

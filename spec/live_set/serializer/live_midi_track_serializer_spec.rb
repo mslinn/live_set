@@ -33,11 +33,11 @@ RSpec.describe LiveMidiTrackSerializer, '#to_markdown' do
 
     expect(markdown).to include(
       '    - Track Device 1.1a  <code style="color: #FFFFFF; background-color: #212121; ' \
-      'vertical-align: middle;">Kontakt 7</code>  VST3  ⚠ not usable on Push 3'
+      'vertical-align: middle;">Kontakt 7</code>  VST3  ⚠ not usable on P3S'
     )
   end
 
-  it 'writes the name of a track Push 3 cannot use on the dark background' do
+  it 'writes the name of a track P3S cannot use on the dark background' do
     markdown = described_class.new(track('Kontakt 7'), '1.1').to_markdown
 
     expect(markdown.lines.first.chomp).to eq(

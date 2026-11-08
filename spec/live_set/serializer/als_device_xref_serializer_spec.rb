@@ -33,7 +33,7 @@ RSpec.describe DeviceCrossReferenceSerializer, '#to_markdown' do
   it 'names the tracks a device is on' do
     markdown = described_class.new(cross_reference).to_markdown
 
-    expect(markdown).to include('|<code>Drift</code>|Live|')
+    expect(markdown).to include('|<nobr><code>Drift</code></nobr>|Live|')
     expect(markdown).to include('Coffee Leaf</code>')
   end
 end

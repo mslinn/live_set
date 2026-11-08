@@ -46,7 +46,7 @@ class LiveGroupSerializer
 
   # The name of the group, on the colour Live gave it.
   #
-  # A group that Push 3 Standalone cannot use is written on the dark background of those
+  # A group that P3S Standalone cannot use is written on the dark background of those
   # things, and the name of it is in light text.
   #
   # @return [String] the name of the group
@@ -66,9 +66,9 @@ class LiveGroupSerializer
                             foreground_color: LiveMarkup.text_color(color)
   end
 
-  # Whether the group cannot be transferred to Push 3 Standalone.
+  # Whether the group cannot be transferred to P3S Standalone.
   #
-  # A group cannot be frozen, so a device in its chain that Push 3 cannot run cannot be
+  # A group cannot be frozen, so a device in its chain that P3S cannot run cannot be
   # rendered away.
   #
   # @return [Boolean] true when the group is a problem

@@ -40,7 +40,7 @@ RSpec.describe LiveMidiTrack do
     expect(track.take_lanes.map(&:name)).to eq ['3-Kontakt 7 1']
   end
 
-  it 'is not frozen, and is a problem, because it has a device Push 3 cannot run' do
+  it 'is not frozen, and is a problem, because it has a device P3S cannot run' do
     expect(track).not_to be_frozen
     expect(track).to be_problem
   end

@@ -13,8 +13,8 @@ require_relative 'live_markup'
 # device = LiveDevice.new(...)
 # markdown = LiveDeviceSerializer.new(device, '1.1a').to_markdown
 class LiveDeviceSerializer
-  # The warning on a device that Push 3 Standalone cannot run.
-  NOT_USABLE = '⚠ not usable on Push 3'.freeze
+  # The warning on a device that P3S Standalone cannot run.
+  NOT_USABLE = '⚠ not usable on P3S'.freeze
 
   # Creates a serializer for the given device.
   #
@@ -40,7 +40,7 @@ class LiveDeviceSerializer
 
   # The name of the device.
   #
-  # A device that Push 3 Standalone cannot run is written on the dark background of the
+  # A device that P3S Standalone cannot run is written on the dark background of the
   # things it cannot run on, and the name of it is in light text.
   #
   # @return [String] the name of the device
@@ -52,9 +52,9 @@ class LiveDeviceSerializer
                             foreground_color: LiveMarkup::LIGHT_TEXT
   end
 
-  # Whether the device stops the track from being transferred to Push 3 Standalone.
+  # Whether the device stops the track from being transferred to P3S Standalone.
   #
-  # A device Push 3 cannot run blocks the transfer, unless the track is frozen: freezing a
+  # A device P3S cannot run blocks the transfer, unless the track is frozen: freezing a
   # track renders its devices away.
   #
   # @return [Boolean] true when the device is a problem

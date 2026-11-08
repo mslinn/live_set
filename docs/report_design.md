@@ -13,7 +13,7 @@ The report is a markdown document, and its sections are:
 | --------------------------------- | ---------------------------------------------------------------------------------------------- |
 | Header block                      | General facts about the set                                                                    |
 | `## Metadata`                     | Sizes and checksums                                                                            |
-| `## Push 3 Standalone`            | Push 3 Standalone compatibility status                                                         |
+| `## P3S`            | P3S compatibility status                                                         |
 | `## Groups/Tracks/Clips/Devices`  | Tracks, track groups, take lanes, clips, and devices                                           |
 | `## Missing Samples`              | Samples that are not in the project, packs, or the Core Library                                |
 | `## Located Samples`              | Samples collected into the Live project directory, and samples from a pack or the Core Library |

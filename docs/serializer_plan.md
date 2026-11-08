@@ -16,7 +16,7 @@ as the long TODO asks.
 |-------------------------------------|--------------------------------------------------------------------------------------|---------------------|
 | `AlsModelSerializer`                | the whole model: the six sections of the report                                      | `AlsModel`          |
 | `LiveHeaderSerializer`              | the facts about the set: the version of Live, the computer, the times, the time zone | the set             |
-| `P3SCompatibility`                  | the verdict for a transfer to Push 3 Standalone                                      | the set             |
+| `P3SCompatibility`                  | the verdict for a transfer to P3S                                      | the set             |
 | `LiveGroupSerializer`               | a group: its line, its devices, the tracks in it                                     | `LiveGroup`         |
 | `LiveGroupsSerializer`              | the groups of the set                                                                | `LiveGroups`        |
 | `LiveTrackSerializer`               | a track: its line, its devices, its clips, its take lanes                            | `LiveTrack`         |
@@ -147,7 +147,7 @@ organisation comment shows where each one goes in the report:
 
 ```text
 Header block
-Push 3 Standalone compatibility
+P3S compatibility
 LiveGroup
   LiveTrack & devices
     TakeLanes & ClipReferences

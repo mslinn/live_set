@@ -11,7 +11,7 @@ require 'support/live_sets'
 #   sets/live_11/reports/Fascination.md
 #
 # The report is a document, so what is expected of it is the order of its sections: the
-# header block, the metadata of the set, the verdict for a transfer to Push 3 Standalone, the
+# header block, the metadata of the set, the verdict for a transfer to P3S Standalone, the
 # hierarchy of the groups, the tracks, the clips and the devices, the samples that are not in
 # the project, the two cross-references, the assets of the set, and the state of the machine
 # the report was made on.
@@ -33,7 +33,7 @@ RSpec.describe AlsModelSerializer, '#to_markdown' do
 
     expect(markdown.scan(/^## .*$/)).to eq [
       '## Metadata',
-      '## Push 3 Standalone',
+      '## P3S Standalone',
       '## Groups/Tracks/Clips/Devices',
       '## Missing Samples',
       '## Located Samples',

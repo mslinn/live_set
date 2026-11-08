@@ -10,10 +10,13 @@ require_relative 'live_markup'
 # Sample usage:
 # markdown = LivePacksSerializer.new(packs).to_markdown
 
-LOST_PACK_REFERENCES = 'None'.freeze
-NO_PACK_REFERENCES   = 'This set does not reference any packs.'.freeze
-
 class LivePacksSerializer
+  # What the report says when the set refers to no pack.
+  NO_PACK_REFERENCES = 'This set does not reference any packs.'.freeze
+
+  # What the report says when none of the packs of the set is on this machine.
+  LOST_PACK_REFERENCES = 'None'.freeze
+
   # Creates a serializer for the packs of a set.
   #
   # @param packs [LivePacks] the packs of the set

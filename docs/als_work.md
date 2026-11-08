@@ -1207,7 +1207,7 @@ are at every depth — see "A device chain can be nested", above.
 
 TODO WTF is this discussion about blocking transfers and blocking group device?
 
-**Consequence for the Push 3 Standalone check:** a third-party plugin in a
+**Consequence for the P3S check:** a third-party plugin in a
 group's chain blocks transfer just as much as one on a track, because the
 member's audio passes through it. A report that only inspects member tracks
 would say "no blocking devices" when the group blocks transfer. `live_set`

@@ -7,7 +7,7 @@ require_relative 'live_audio_tracks_serializer'
 require_relative 'live_checksums_serializer'
 require_relative 'live_group_serializer'
 require_relative 'live_groups_serializer'
-require_relative 'live_master_tracks_serializer'
+require_relative 'live_master_track_serializer'
 require_relative 'live_midi_tracks_serializer'
 require_relative 'live_packs_serializer'
 require_relative 'live_project_info_serializer'
@@ -41,7 +41,7 @@ class AlsModelSerializer
   # Returns the complete ALS model as markdown.
   #
   # The model of a set is the report of the set: the title, the facts about the file, the
-  # metadata of the set, the verdict for a transfer to Push 3 Standalone, the outline of the
+  # metadata of the set, the verdict for a transfer to P3S Standalone, the outline of the
   # tracks and the things under them, the samples that are not in the project, the samples of
   # the set, the two cross-references, the assets of the set, and the state of the machine
   # the report was made on.
@@ -124,7 +124,7 @@ class AlsModelSerializer
     LiveChecksumsSerializer.new(@als_model.checksums).to_markdown
   end
 
-  # The verdict for a transfer to Push 3 Standalone.
+  # The verdict for a transfer to P3S Standalone.
   #
   # @return [String] the section
   def p3s_compatibility_section
@@ -208,10 +208,16 @@ class AlsModelSerializer
   #
   # @return [Array<String>] the lines of the section
   def master_section
-    master = @als_model.master_tracks.to_a.map do |track|
-      track.to_markdown((@als_model.live_set.top_level_tracks.length + 1).to_s)
-    end.join("\n")
-    section('### Master Track', master)
+    section('### Master Track', @als_model.master_track.to_markdown(master_track_number))
+  end
+
+  # The number the master track has in the report.
+  #
+  # The master track is numbered after the tracks at the top of the set.
+  #
+  # @return [String] the number
+  def master_track_number
+    (@als_model.live_set.top_level_tracks.length + 1).to_s
   end
 
   # Whether the two kinds of track are written in their own sections.
@@ -246,7 +252,7 @@ class AlsModelSerializer
   # @return [LiveDeviceCrossReference] the cross-reference
   def devices
     @devices ||= LiveDeviceCrossReference.new(
-      LiveDevices.new(@als_model.live_set.top_level + @als_model.master_tracks.to_a)
+      LiveDevices.new(@als_model.live_set.top_level + [@als_model.master_track])
     )
   end
 

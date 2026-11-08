@@ -249,14 +249,14 @@ class LiveTracks
   def track_errors(track)
     track.blocking_devices.map do |device|
       " - Track #{track_label track} is not frozen and uses device #{device.label}, " \
-        'which Push 3 Standalone cannot run. Freeze or render this track.'
+        'which P3S Standalone cannot run. Freeze or render this track.'
     end
   end
 
   # Return the errors relating to the devices in the groups' chains.
   #
   # The output of a group track's members are routed to the group, so the group's devices process the members' audio. If
-  # a group's device chain contains a non-native device (like VST2 or VST3), the set is incompatible with the Push 3
+  # a group's device chain contains a non-native device (like VST2 or VST3), the set is incompatible with the P3S
   # Standalone.
   #
   # Normally, only tracks capable of holding clips can frozen, so normally a group track cannot be frozen. This means a
@@ -272,7 +272,7 @@ class LiveTracks
     groups.flat_map do |group|
       affected = affected_track_names group
       group.blocking_devices.map do |device|
-        message = " - Group '#{group.name}' uses #{device.label}, which Push 3 Standalone cannot run. " \
+        message = " - Group '#{group.name}' uses #{device.label}, which P3S Standalone cannot run. " \
                   "Remove it from the group's device chain, or bounce the group."
         message += " It affects #{affected}." unless affected.empty?
         message

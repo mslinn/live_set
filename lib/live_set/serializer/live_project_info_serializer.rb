@@ -23,16 +23,20 @@ class LiveProjectInfoSerializer
     lines = ['### The Ableton Project Info Folder', '']
     warnings = @project_info.warnings
     if warnings.empty?
-      lines << "The '#{LiveProjectInfo::FOLDER}' folder is in the folder of the set, and in no " \
-               'parent folder of it.'
+      lines << <<~END_MSG.squish
+        The '#{LiveProjectInfo::FOLDER}' folder is in the folder of the set, and in no
+        parent folder.
+      END_MSG
     else
       warnings.each { |warning| lines << "- #{warning}" }
     end
     lines << ''
-    lines << "Live gets confused by a '#{LiveProjectInfo::FOLDER}' folder in a parent folder of " \
-             'the folder of the project: it may load the project from the wrong place. The ' \
-             'condition does not change the content of the report, but Live might not operate ' \
-             'as expected if it loaded the project from there.'
+    lines << <<~END_MSG.squish
+      Live gets confused by a <code>#{LiveProjectInfo::FOLDER}</code> folder in a parent folder of
+      the folder of where the `.als` file is found. This possible error condition does not affect
+      the content of the report being generated, but Live might not operate as expected if it
+      were to load the project from the directory the report was generated from.
+    END_MSG
     lines.join("\n")
   end
 end

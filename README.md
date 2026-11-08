@@ -26,14 +26,14 @@ This software can:
 
 6. Show changes persisted to file storage each time a Live session is saved in real time.
 
-7. Clearly show if a Live set is ready to be transferred to a Push 3 Standalone,
+7. Clearly show if a Live set is ready to be transferred to a P3S,
    and what needs to be changed if not.
 
    a. Detect sets that are too large to be frozen, which means they are too
-   large to transfer to Push 3 Standalone.
+   large to transfer to P3S.
 
    b. Detect tracks that have non-Ableton plugins are not frozen, which means
-   they are not ready to be transferred to Push 3 Standalone.
+   they are not ready to be transferred to P3S.
 
    c. Detect group tracks that have non-Ableton plugins. A group track cannot be
    frozen unless Options.txt allows it. The plugin has to be
@@ -76,8 +76,8 @@ struggling with the technology than you are getting useful work done.
 The `als_report` command from `Live_set` reports on the status of an Ableton
 Live set and gives a go/no go signal for transmission to a P3S.
 
-Push 3 Standalone runs an embedded version of Live internally. The earliest
-compatible version of a Live set that can be transferred to a Push 3 Standalone
+P3S runs an embedded version of Live internally. The earliest
+compatible version of a Live set that can be transferred to a P3S
 is Live 11. Live 12 sets can also be transferred; the latest supported version
 is Live 12.4.
 
@@ -383,7 +383,7 @@ a track, a group or a clip can be seen at a glance:
 - Every node displayed in the markdown output of an ALS report is colored
   according to the value for the corresponding node in the XML of the ALS. The
   default Live colour palette is assumed.
-- a track, a group or a device that Push 3 Standalone cannot use is highlighted,
+- a track, a group or a device that P3S cannot use is highlighted,
   and a sample that is not in the project folder is highlighted differently.
 
 The styles are inline, because Mike is unaware of a widely accepted way to use
@@ -434,7 +434,7 @@ size, and the report says that instead of the expected one.
 
 The report contains a list of the assets of the set — the samples it ships — that explains
 the sizes: the path as the set writes it, the size of the file, and when it was last
-changed. A sample that is outside the set is marked as one that Push 3 Standalone cannot
+changed. A sample that is outside the set is marked as one that P3S cannot
 play, and a sample that is not on disk is marked as one that is missing from the project.
 The devices of Ableton are not in the list: they have no location, and they come with Live.
 

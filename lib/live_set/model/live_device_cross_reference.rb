@@ -26,11 +26,11 @@ class LiveDeviceCrossReference
     self
   end
 
-  # The devices of the set, grouped by their name, their kind, and whether Push 3 Standalone
+  # The devices of the set, grouped by their name, their kind, and whether P3S
   # can run them, with the tracks each of them is on.
   #
   # Two devices with the same name and the same kind are one row of the cross-reference,
-  # whether Push 3 can run them or not.
+  # whether P3S can run them or not.
   #
   # @return [Array] each group of devices, and the tracks they are on
   def uses

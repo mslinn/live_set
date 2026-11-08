@@ -11,7 +11,7 @@ require 'support/live_sets'
 #
 # The slot of the device — "Track Device 1.1a" — and the number of it are written by the
 # serializer of the track, which numbers the devices of its track. What is written here is
-# the device itself: its name on the background of the thing Push 3 cannot use, the kind of
+# the device itself: its name on the background of the thing P3S cannot use, the kind of
 # device it is, and the warning.
 RSpec.describe LiveDeviceSerializer, '#to_markdown' do
   # The device of the set with the given name.
@@ -31,10 +31,10 @@ RSpec.describe LiveDeviceSerializer, '#to_markdown' do
     )
   end
 
-  it 'writes the name of a device Push 3 cannot run on the dark background, and warns of it' do
+  it 'writes the name of a device P3S cannot run on the dark background, and warns of it' do
     expect(described_class.new(device('Kontakt 7'), '1.1a').to_markdown).to eq(
       '<code style="color: #FFFFFF; background-color: #212121; vertical-align: middle;">Kontakt 7</code>  ' \
-      'VST3  ⚠ not usable on Push 3'
+      'VST3  ⚠ not usable on P3S'
     )
   end
 end

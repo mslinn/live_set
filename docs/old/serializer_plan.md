@@ -163,7 +163,7 @@ as the long TODO asks.
 |-------------------------------------|--------------------------------------------------------------------------------------|---------------------|
 | `AlsModelSerializer`                | the whole model: the six sections of the report                                      | `AlsModel`          |
 | `LiveHeaderSerializer`              | the facts about the set: the version of Live, the computer, the times, the time zone | the set             |
-| `P3SCompatibility`                  | the verdict for a transfer to Push 3 Standalone                                      | the set             |
+| `P3SCompatibility`                  | the verdict for a transfer to P3S                                      | the set             |
 | `LiveGroupSerializer`               | a group: its line, its devices, the tracks in it                                     | `LiveGroup`         |
 | `LiveGroupsSerializer`              | the groups of the set                                                                | `LiveGroups`        |
 | `LiveMidiTrackSerializer`           | a MIDI track: its line, its devices, its clips, its take lanes                       | `LiveMidiTrack`     |
@@ -259,7 +259,7 @@ them.
 | `LiveReturnTrack` | the name, the colour, the devices and the state of a return track | `LiveTrack`, and the track handling in `LiveSetReport` |
 | `LiveMasterTrack` | the name, the colour, the devices and the state of the master track | `LiveTrack`, and the track handling in `LiveSetReport` |
 | `LiveGroup` | a model of the track group in the XML: the group, its devices, and the tracks in it | the class that exists |
-| `LiveDevice` | a device of a chain: its name, its kind, its plug-in format, and whether Push 3 Standalone can run it | `LiveDevice`, the class that exists |
+| `LiveDevice` | a device of a chain: its name, its kind, its plug-in format, and whether P3S can run it | `LiveDevice`, the class that exists |
 | `LiveMidiClip` | one MIDI clip in the file: its name, its colour, its launch mode, its warp mode, its notes, and the place it is in | the clip handling in `LiveSetReport` |
 | `LiveAudioClip` | a clip of the audio side of a track: its name, its colour, its file, its size, whether the file is collected, its launch mode, its warp mode, and the place it is in | `LiveAudioClip`, the class that exists |
 | `LiveAsset` | one file the set refers to: the path as the set writes it, how the path was resolved, the size Live recorded, the size on disk, where it is, and when it was last changed | the `FileRef` elements of the set |
