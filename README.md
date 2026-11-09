@@ -264,6 +264,8 @@ file. The XPath expression is the only thing that has to change from one questio
 next, which makes this the tool to reach for instead of writing a program for each
 element.
 
+The results are printed as a JSON array of strings, so that jq can work with them.
+
 Syntax: als_nodes FILE XPATH [options]
 
 FILE is the path of the file, or a selector of a demo set, e.g. demo:11:suite.
@@ -286,6 +288,7 @@ Examples:
   als_nodes set.als '//MidiTrack' --attribute Id --attribute SelectedToolPanel
   als_nodes set.als '//MidiTrack' --attributes
   als_nodes set.als '//LiveSet/Scenes/Scene/FollowAction' --children
+  als_nodes set.als '//LiveSet/MainTrack' --children | jq -r '.[]'
   als_nodes set.als '//MidiTrack' --count
 ```
 

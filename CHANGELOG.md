@@ -2,6 +2,8 @@
 
 ## 0.2.6 In progress
 
+* Changed `als_nodes` to print its results as a JSON array of strings, so that `jq` can work
+  with them.
 * Quality review added TODO and FIXME comments to code and docs
 
 

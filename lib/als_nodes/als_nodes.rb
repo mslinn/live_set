@@ -1,3 +1,4 @@
+require 'json'
 require 'optparse'
 require_relative '../common/command'
 require_relative '../live_set/als_file'
@@ -24,6 +25,8 @@ class AlsNodes
       next, which makes this the tool to reach for instead of writing a program for each
       element.
 
+      The results are printed as a JSON array of strings, so that jq can work with them.
+
       Syntax: als_nodes FILE XPATH [options]
 
       FILE is the path of the file, or a selector of a demo set, e.g. demo:11:suite.
@@ -46,6 +49,7 @@ class AlsNodes
         als_nodes set.als '//MidiTrack' --attribute Id --attribute SelectedToolPanel
         als_nodes set.als '//MidiTrack' --attributes
         als_nodes set.als '//LiveSet/Scenes/Scene/FollowAction' --children
+        als_nodes set.als '//LiveSet/MainTrack' --children | jq -r '.[]'
         als_nodes set.als '//MidiTrack' --count
     END_HELP
 
@@ -78,10 +82,10 @@ class AlsNodes
     end
 
     nodes = nodes.first(found[:max]) if found[:max]
-    results = nodes.map { |node| text_of(node, found) }
+    results = nodes.flat_map { |node| values_of(node, found) }
     results = results.uniq if found[:unique]
 
-    puts results
+    puts JSON.pretty_generate(results)
     0
   end
 
@@ -111,18 +115,18 @@ class AlsNodes
     end
   end
 
-  # The text of a node.
+  # The values of a node.
   #
   # @param node [Nokogiri::XML::Node] the node
   # @param found [Hash] the options
-  # @return [String] the text of the node
-  def self.text_of(node, found)
+  # @return [Array<String>] the values of the node
+  def self.values_of(node, found)
     attributes = found[:attribute]
-    return attributes.map { |name| node[name].to_s }.join(' ') unless attributes.empty?
-    return node.attribute_nodes.map { |attribute| "#{attribute.name}=#{attribute.value}" }.join(' ') if found[:attributes]
-    return node.name if found[:name]
-    return node.element_children.map(&:name).inspect if found[:children]
+    return [attributes.map { |name| node[name].to_s }.join(' ')] unless attributes.empty?
+    return [node.attribute_nodes.map { |attribute| "#{attribute.name}=#{attribute.value}" }.join(' ')] if found[:attributes]
+    return [node.name] if found[:name]
+    return node.element_children.map(&:name) if found[:children]
 
-    node.to_xml(save_with: Nokogiri::XML::Node::SaveOptions::AS_XML)
+    [node.to_xml(save_with: Nokogiri::XML::Node::SaveOptions::AS_XML)]
   end
 end

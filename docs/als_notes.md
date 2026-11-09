@@ -730,9 +730,7 @@ a `<MasterTrack/>` are found this way:
 ```shell
 $ pinkblanket="$songs/pink_blanket/daw/live/pink_blanket Project/pink_blanket.als"
 $ als_nodes "$pinkblanket" //MainTrack --children | \
-  tr -d '[]"' | \
-  tr ',' '\n' | \
-  sed 's/^[[:space:]]*//' | \
+  jq -r '.[]' | \
   sort
 ArrangementClipsListWrapper
 AutomationEnvelopes
