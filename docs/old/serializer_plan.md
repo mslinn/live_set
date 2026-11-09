@@ -92,7 +92,7 @@ colour, and the caller says what the background colour is. The one thing the TOD
 of the text.
 
 Answer: The default color is the default markdown color. Look at the existing reports in
-`$live_reference_sets/sets/live_12/reports` and use those colors for now. We will optimize them later.
+`$live_reference_sets/sets/live_12/demo/reports` and use those colors for now. We will optimize them later.
 
 The caller passes the foreground and background colours.  The serializer only writes what it is given:
 
@@ -126,14 +126,16 @@ To see how this looks in a legal document, technical manual, or project outline:
 
 ### Usage in This Project
 
-The hierarchical relationships between the ALS model classes and their corresponding serializer classes is reflected in
-the markdown generated for the ALS report. Nested XML items stored in the ALS file are reported using a hierarchical
-numbering system.
+The hierarchical relationships between the ALS model classes and their
+corresponding serializer classes is reflected in the markdown generated for the
+ALS report. Nested XML items stored in the ALS file are reported using a
+hierarchical numbering system.
 
 TODO: the following was taken from the `Fascination.md` reference report
-($live_reference_sets/sets/live_11/reports/Fascination.md). Notice how it shows references, which we recently learned do
-not exist for MIDI. Audio files live in separate files, so ALS XML elements can only point to the audio files. in that
-sense audio samples are always references.
+($live_reference_sets/sets/live_11/experiments/reports/Fascination.md). Notice
+how it shows references, which we recently learned do not exist for MIDI. Audio
+files live in separate files, so ALS XML elements can only point to the audio
+files. in that sense audio samples are always references.
 
 ```text
 ALS_Model

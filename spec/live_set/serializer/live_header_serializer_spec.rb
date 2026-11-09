@@ -30,7 +30,7 @@ RSpec.describe LiveHeaderSerializer, '#to_markdown' do
     expect(described_class.new(header).to_markdown).to include('|On computer|')
   end
 
-  it 'writes the directory the set is in, with breaks where it has to be' do
+  it 'writes the directory the set is in, with optional line break HTML entities' do
     expect(described_class.new(header).to_markdown).to include('<wbr/>ableton/<wbr/>live_reference_sets/<wbr/>')
   end
 

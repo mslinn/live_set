@@ -27,7 +27,7 @@ class AlsToXsd
 
       Example:
         $ als_to_xsd -f "$live_reference_sets/xsd/demo11.xsd" \
-          "$live_reference_sets/sets/live_11/projects_and_als"/**/*.als
+          "$live_reference_sets/sets/live_11/demo/projects_and_als"/**/*.als
         Wrote '/mnt/f/work/ableton/live_reference_sets/xsd/demo11.xsd'
     END_HELP
 

@@ -246,6 +246,17 @@ work being added right now is:
    set. Translate the older format into the newer format.
 
 
+### Fixed Output Schemas
+
+A converted set is written to a fixed schema of the target version, not to a
+schema inferred from the XML stored in the sets of that version.
+
+Ableton Live has a constantly changing XML structure. `als_to_version` outputs a
+well-defined constant set of metadata  in the `Ableton` element.  See
+[live_11_12_diff.md](live_11_12_diff.md), "Converting a set to Live 11 uses a
+fixed schema".
+
+
 ## Gui_harness
 
 To make the required reverse-engineering possible, the

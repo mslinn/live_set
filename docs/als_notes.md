@@ -719,10 +719,17 @@ See `lib/live_set/model/live_project_info.rb`, and the section of the report wit
 name.
 
 
-## The kinds of track
+## Master/Main Track
 
-The `<Tracks>` element of a set holds four kinds of track element, and it holds them in the
-order Live wrote them:
+The master track is a child of the set and not of the tracks of the set. Live 12+ writes
+it as the `<MainTrack>` element.
+
+There is only one master track per set; it is not a collection.
+
+## Track Kinds
+
+The `<Tracks>` element can hold four kinds of track elements, and it holds them in the
+order Live they were created:
 
 ```xml
 <LiveSet>
@@ -736,74 +743,546 @@ order Live wrote them:
 </LiveSet>
 ```
 
-The master track is a child of the set and not of the tracks of the set, and Live 12 writes
-it as `<MainTrack>`.
-
-The members of a group are not inside the group: they are siblings of it, and each of them
-names its group in its `<TrackGroupId>`. The order of the elements of `<Tracks>` is the
-order Live shows the tracks in, and the members of a group are among them.
-
 A MIDI track holds MIDI clips and plays no file. An audio track plays files, and it can
 hold MIDI clips as well. A return track receives the sends of the set and holds no clips.
 
-The model has a class for each of these elements, and no class for "a track", because there
-is no element for one. See [report_design.md](report_design.md), "The classes".
+The `<Tracks/>` element is a flat structure that does not employ nested
+elements. Thus `GroupTrack`s are siblings of `AudioTrack`s and `MidiTrack`s.
 
-## The group tracks
+The model has a class for each of these elements. See
+[report_design.md](report_design.md), "The classes".
 
-A group track is a summing container, not a track that plays clips.
 
-### A group track holds no clips
+## Group Tracks
 
-A group track has no `AudioClip` and no `MidiClip` anywhere inside it, and its
-`Slots` are empty. It is therefore not reported alongside the tracks, and it
-contributes no clips to any total.
+A group track is a summing container (a dedicated sub-mix bus), not a track that
+plays clips.
 
-### A member track names its group
+A better English name would have been "Track Group". Ableton is based in Berlin,
+Germany. The German Ableton documentation calls a Group Track a Gruppenspur.
+Gruppe translates to "group", and spur translates to "track". Because standard
+German compound nouns place the head word at the end, Gruppenspur literally
+translates as "Group-Track," retaining "Track" as the primary noun while
+denoting its grouping role.
 
-A member track's `TrackGroupId` holds the `Id` of the group it belongs to, and
-`-1` means the track is at the top level.
+Group tracks have their own device chain (`<DeviceChain/>`), `<Mixer/>`,
+inserts, and routing, but they do not contain clip slots (`<ClipSlotList/>`).
+Group tracks do not play audio/MIDI clips directly; instead, they reference
+other tracks that play audio and MIDI clips.
 
-### Linked tracks
+Membership in a group track is logical, not physical. A member track's
+`TrackGroupId` holds the `Id` of the group it belongs to, and `-1` means the
+track is at the top level.
 
-A track's `LinkedTrackGroupId` holds the `Id` of the group of tracks it is
-linked to, and `-1` means it is linked to none. Linking is done with the Link
-Tracks command, in the context menu of the head of a track in the arrangement
-view: the editing of the tracks of a group is locked together, so that moving
-and resizing the clips, selecting, editing the time, splitting and
-consolidating, the fades, arming and the take lanes of one of them happen to all
-of them at once.
+Another way to say this is: group tracks do not nest their children, instead,
+all tracks are siblings and the group hierarchy is expressed by matching the
+`GroupTrack` `Id` with a track's `TrackGroupId` child element, which looks like
+this: `<TrackGroupId Value="15" />`.
 
-The groups are not the groups of the session view, which are the `TrackGroupId`
-above: a group of linked tracks is a set of tracks whose editing is locked
-together, wherever they are.
+Live 10 introduced nested groups. If a group is nested inside another group, the
+child group tracks reference their parent group's `Id` via their `TrackGroupId`
+element in the same manner.
+
+The name of a group track is stored in the same elements as for regular tracks:
+inside its <Name> element under <UserName Value="..."/> and <EffectiveName
+Value="..."/>.
+
+Group tracks use the same XML structure as audio and MIDI tracks, so a model
+could use a base class for all track types.
+
+```xml
+    <Tracks>
+      <GroupTrack Id="15" SelectedToolPanel="7" SelectedTransformationName="" SelectedGeneratorName="">
+        <LomId Value="0" />
+        <LomIdView Value="0" />
+        <IsContentSelectedInDocument Value="false" />
+        <PreferredContentViewMode Value="0" />
+        <TrackDelay>
+          <Value Value="0" />
+          <IsValueSampleBased Value="false" />
+        </TrackDelay>
+        <Name>
+          <EffectiveName Value="DRUMS GROUP" />
+          <UserName Value="DRUMS GROUP" />
+          <Annotation Value="" />
+          <MemorizedFirstClipName Value="" />
+        </Name>
+        <Color Value="21" />
+        <AutomationEnvelopes>
+          <Envelopes />
+        </AutomationEnvelopes>
+        <TrackGroupId Value="-1" />
+        <TrackUnfolded Value="true" />
+        <DevicesListWrapper LomId="0" />
+        <ClipSlotsListWrapper LomId="0" />
+        <ArrangementClipsListWrapper LomId="0" />
+        <TakeLanesListWrapper LomId="0" />
+        <ViewData Value="{}" />
+        <TakeLanes>
+          <TakeLanes />
+          <AreTakeLanesFolded Value="true" />
+        </TakeLanes>
+        <LinkedTrackGroupId Value="-1" />
+        <Slots>
+          <GroupTrackSlot Id="0">
+            <LomId Value="0" />
+          </GroupTrackSlot>
+          <GroupTrackSlot Id="1">
+            <LomId Value="0" />
+          </GroupTrackSlot>
+          <GroupTrackSlot Id="2">
+            <LomId Value="0" />
+          </GroupTrackSlot>
+          <GroupTrackSlot Id="3">
+            <LomId Value="0" />
+          </GroupTrackSlot>
+          <GroupTrackSlot Id="4">
+            <LomId Value="0" />
+          </GroupTrackSlot>
+          <GroupTrackSlot Id="5">
+            <LomId Value="0" />
+          </GroupTrackSlot>
+          <GroupTrackSlot Id="6">
+            <LomId Value="0" />
+          </GroupTrackSlot>
+          <GroupTrackSlot Id="7">
+            <LomId Value="0" />
+          </GroupTrackSlot>
+        </Slots>
+        <Freeze Value="false" />
+        <DeviceChain>
+          <AutomationLanes>
+            <AutomationLanes>
+              <AutomationLane Id="0">
+                <SelectedDevice Value="1" />
+                <SelectedEnvelope Value="0" />
+                <IsContentSelectedInDocument Value="false" />
+                <LaneHeight Value="17" />
+              </AutomationLane>
+            </AutomationLanes>
+            <AreAdditionalAutomationLanesFolded Value="false" />
+          </AutomationLanes>
+          <ClipEnvelopeChooserViewState>
+            <SelectedDevice Value="0" />
+            <SelectedEnvelope Value="0" />
+            <PreferModulationVisible Value="false" />
+          </ClipEnvelopeChooserViewState>
+          <AudioInputRouting>
+            <Target Value="AudioIn/External/S0" />
+            <UpperDisplayString Value="Ext. In" />
+            <LowerDisplayString Value="1/2" />
+            <MpeSettings>
+              <ZoneType Value="0" />
+              <FirstNoteChannel Value="1" />
+              <LastNoteChannel Value="15" />
+            </MpeSettings>
+            <MpePitchBendUsesTuning Value="true" />
+          </AudioInputRouting>
+          <MidiInputRouting>
+            <Target Value="MidiIn/External.All/-1" />
+            <UpperDisplayString Value="Ext: All Ins" />
+            <LowerDisplayString Value="" />
+            <MpeSettings>
+              <ZoneType Value="0" />
+              <FirstNoteChannel Value="1" />
+              <LastNoteChannel Value="15" />
+            </MpeSettings>
+            <MpePitchBendUsesTuning Value="true" />
+          </MidiInputRouting>
+          <AudioOutputRouting>
+            <Target Value="AudioOut/Main" />
+            <UpperDisplayString Value="Main" />
+            <LowerDisplayString Value="" />
+            <MpeSettings>
+              <ZoneType Value="0" />
+              <FirstNoteChannel Value="1" />
+              <LastNoteChannel Value="15" />
+            </MpeSettings>
+            <MpePitchBendUsesTuning Value="true" />
+          </AudioOutputRouting>
+          <MidiOutputRouting>
+            <Target Value="MidiOut/None" />
+            <UpperDisplayString Value="None" />
+            <LowerDisplayString Value="" />
+            <MpeSettings>
+              <ZoneType Value="0" />
+              <FirstNoteChannel Value="1" />
+              <LastNoteChannel Value="15" />
+            </MpeSettings>
+            <MpePitchBendUsesTuning Value="true" />
+          </MidiOutputRouting>
+          <Mixer>
+            <LomId Value="0" />
+            <LomIdView Value="0" />
+            <IsExpanded Value="true" />
+            <BreakoutIsExpanded Value="false" />
+            <On>
+              <LomId Value="0" />
+              <Manual Value="true" />
+              <AutomationTarget Id="22182">
+                <LockEnvelope Value="0" />
+              </AutomationTarget>
+              <MidiCCOnOffThresholds>
+                <Min Value="64" />
+                <Max Value="127" />
+              </MidiCCOnOffThresholds>
+            </On>
+            <ModulationSourceCount Value="0" />
+            <ParametersListWrapper LomId="0" />
+            <Pointee Id="22183" />
+            <LastSelectedTimeableIndex Value="0" />
+            <LastSelectedClipEnvelopeIndex Value="0" />
+            <LastPresetRef>
+              <Value />
+            </LastPresetRef>
+            <LockedScripts />
+            <IsFolded Value="false" />
+            <ShouldShowPresetName Value="true" />
+            <UserName Value="" />
+            <Annotation Value="" />
+            <SourceContext>
+              <Value />
+            </SourceContext>
+            <MpePitchBendUsesTuning Value="true" />
+            <ViewData Value="{}" />
+            <Sends>
+              <TrackSendHolder Id="0">
+                <Send>
+                  <LomId Value="0" />
+                  <Manual Value="0.003902641824" />
+                  <MidiControllerRange>
+                    <Min Value="0.0003162277571" />
+                    <Max Value="1" />
+                  </MidiControllerRange>
+                  <AutomationTarget Id="22184">
+                    <LockEnvelope Value="0" />
+                  </AutomationTarget>
+                  <ModulationTarget Id="22185">
+                    <LockEnvelope Value="0" />
+                  </ModulationTarget>
+                </Send>
+                <EnabledByUser Value="true" />
+              </TrackSendHolder>
+              <TrackSendHolder Id="1">
+                <Send>
+                  <LomId Value="0" />
+                  <Manual Value="0.00259593688" />
+                  <MidiControllerRange>
+                    <Min Value="0.0003162277571" />
+                    <Max Value="1" />
+                  </MidiControllerRange>
+                  <AutomationTarget Id="22186">
+                    <LockEnvelope Value="0" />
+                  </AutomationTarget>
+                  <ModulationTarget Id="22187">
+                    <LockEnvelope Value="0" />
+                  </ModulationTarget>
+                </Send>
+                <EnabledByUser Value="true" />
+              </TrackSendHolder>
+              <TrackSendHolder Id="2">
+                <Send>
+                  <LomId Value="0" />
+                  <Manual Value="0.0003162277571" />
+                  <MidiControllerRange>
+                    <Min Value="0.0003162277571" />
+                    <Max Value="1" />
+                  </MidiControllerRange>
+                  <AutomationTarget Id="25039">
+                    <LockEnvelope Value="0" />
+                  </AutomationTarget>
+                  <ModulationTarget Id="25040">
+                    <LockEnvelope Value="0" />
+                  </ModulationTarget>
+                </Send>
+                <EnabledByUser Value="true" />
+              </TrackSendHolder>
+              <TrackSendHolder Id="3">
+                <Send>
+                  <LomId Value="0" />
+                  <Manual Value="0.0003162277571" />
+                  <MidiControllerRange>
+                    <Min Value="0.0003162277571" />
+                    <Max Value="1" />
+                  </MidiControllerRange>
+                  <AutomationTarget Id="25147">
+                    <LockEnvelope Value="0" />
+                  </AutomationTarget>
+                  <ModulationTarget Id="25148">
+                    <LockEnvelope Value="0" />
+                  </ModulationTarget>
+                </Send>
+                <EnabledByUser Value="true" />
+              </TrackSendHolder>
+            </Sends>
+            <Speaker>
+              <LomId Value="0" />
+              <Manual Value="true" />
+              <AutomationTarget Id="22188">
+                <LockEnvelope Value="0" />
+              </AutomationTarget>
+              <MidiCCOnOffThresholds>
+                <Min Value="64" />
+                <Max Value="127" />
+              </MidiCCOnOffThresholds>
+            </Speaker>
+            <SoloSink Value="false" />
+            <PanMode Value="0" />
+            <Pan>
+              <LomId Value="0" />
+              <Manual Value="0.007874011993" />
+              <MidiControllerRange>
+                <Min Value="-1" />
+                <Max Value="1" />
+              </MidiControllerRange>
+              <AutomationTarget Id="22189">
+                <LockEnvelope Value="0" />
+              </AutomationTarget>
+              <ModulationTarget Id="22190">
+                <LockEnvelope Value="0" />
+              </ModulationTarget>
+            </Pan>
+            <SplitStereoPanL>
+              <LomId Value="0" />
+              <Manual Value="-1" />
+              <MidiControllerRange>
+                <Min Value="-1" />
+                <Max Value="1" />
+              </MidiControllerRange>
+              <AutomationTarget Id="22191">
+                <LockEnvelope Value="0" />
+              </AutomationTarget>
+              <ModulationTarget Id="22192">
+                <LockEnvelope Value="0" />
+              </ModulationTarget>
+            </SplitStereoPanL>
+            <SplitStereoPanR>
+              <LomId Value="0" />
+              <Manual Value="1" />
+              <MidiControllerRange>
+                <Min Value="-1" />
+                <Max Value="1" />
+              </MidiControllerRange>
+              <AutomationTarget Id="22193">
+                <LockEnvelope Value="0" />
+              </AutomationTarget>
+              <ModulationTarget Id="22194">
+                <LockEnvelope Value="0" />
+              </ModulationTarget>
+            </SplitStereoPanR>
+            <Volume>
+              <LomId Value="0" />
+              <Manual Value="1.07743776" />
+              <MidiControllerRange>
+                <Min Value="0.0003162277571" />
+                <Max Value="1.99526238" />
+              </MidiControllerRange>
+              <AutomationTarget Id="22195">
+                <LockEnvelope Value="0" />
+              </AutomationTarget>
+              <ModulationTarget Id="22196">
+                <LockEnvelope Value="0" />
+              </ModulationTarget>
+            </Volume>
+            <ViewStateSessionTrackWidth Value="93" />
+            <CrossFadeState>
+              <LomId Value="0" />
+              <Manual Value="1" />
+              <AutomationTarget Id="22197">
+                <LockEnvelope Value="0" />
+              </AutomationTarget>
+              <MidiControllerRange>
+                <Min Value="0" />
+                <Max Value="2" />
+              </MidiControllerRange>
+            </CrossFadeState>
+            <SendsListWrapper LomId="0" />
+          </Mixer>
+          <DeviceChain>
+                    <DeviceChain>
+            <Devices />
+            <SignalModulations />
+          </DeviceChain>
+          <FreezeSequencer>
+            <LomId Value="0" />
+            <LomIdView Value="0" />
+            <IsExpanded Value="true" />
+            <BreakoutIsExpanded Value="false" />
+            <On>
+              <LomId Value="0" />
+              <Manual Value="true" />
+              <AutomationTarget Id="22198">
+                <LockEnvelope Value="0" />
+              </AutomationTarget>
+              <MidiCCOnOffThresholds>
+                <Min Value="64" />
+                <Max Value="127" />
+              </MidiCCOnOffThresholds>
+            </On>
+            <ModulationSourceCount Value="0" />
+            <ParametersListWrapper LomId="0" />
+            <Pointee Id="22199" />
+            <LastSelectedTimeableIndex Value="0" />
+            <LastSelectedClipEnvelopeIndex Value="0" />
+            <LastPresetRef>
+              <Value />
+            </LastPresetRef>
+            <LockedScripts />
+            <IsFolded Value="false" />
+            <ShouldShowPresetName Value="true" />
+            <UserName Value="" />
+            <Annotation Value="" />
+            <SourceContext>
+              <Value />
+            </SourceContext>
+            <MpePitchBendUsesTuning Value="true" />
+            <ViewData Value="{}" />
+            <ClipSlotList>
+              <ClipSlot Id="0">
+                <LomId Value="0" />
+                <ClipSlot>
+                  <Value />
+                </ClipSlot>
+                <HasStop Value="true" />
+              </ClipSlot>
+              <ClipSlot Id="1">
+                <LomId Value="0" />
+                <ClipSlot>
+                  <Value />
+                </ClipSlot>
+                <HasStop Value="true" />
+              </ClipSlot>
+              <ClipSlot Id="2">
+                <LomId Value="0" />
+                <ClipSlot>
+                  <Value />
+                </ClipSlot>
+                <HasStop Value="true" />
+              </ClipSlot>
+              <ClipSlot Id="3">
+                <LomId Value="0" />
+                <ClipSlot>
+                  <Value />
+                </ClipSlot>
+                <HasStop Value="true" />
+              </ClipSlot>
+              <ClipSlot Id="4">
+                <LomId Value="0" />
+                                <ClipSlot>
+                  <Value />
+                </ClipSlot>
+                <HasStop Value="true" />
+              </ClipSlot>
+              <ClipSlot Id="5">
+                <LomId Value="0" />
+                <ClipSlot>
+                  <Value />
+                </ClipSlot>
+                <HasStop Value="true" />
+              </ClipSlot>
+              <ClipSlot Id="6">
+                <LomId Value="0" />
+                <ClipSlot>
+                  <Value />
+                </ClipSlot>
+                <HasStop Value="true" />
+              </ClipSlot>
+              <ClipSlot Id="7">
+                <LomId Value="0" />
+                <ClipSlot>
+                  <Value />
+                </ClipSlot>
+                <HasStop Value="true" />
+              </ClipSlot>
+            </ClipSlotList>
+            <MonitoringEnum Value="1" />
+            <KeepRecordMonitoringLatency Value="true" />
+            <Sample>
+              <ArrangerAutomation>
+                <Events />
+                <AutomationTransformViewState>
+                  <IsTransformPending Value="false" />
+                  <TimeAndValueTransforms />
+                </AutomationTransformViewState>
+              </ArrangerAutomation>
+            </Sample>
+            <VolumeModulationTarget Id="22200">
+              <LockEnvelope Value="0" />
+            </VolumeModulationTarget>
+            <TranspositionModulationTarget Id="22201">
+              <LockEnvelope Value="0" />
+            </TranspositionModulationTarget>
+            <TransientEnvelopeModulationTarget Id="22202">
+              <LockEnvelope Value="0" />
+            </TransientEnvelopeModulationTarget>
+            <GrainSizeModulationTarget Id="22203">
+              <LockEnvelope Value="0" />
+            </GrainSizeModulationTarget>
+            <FluxModulationTarget Id="22204">
+              <LockEnvelope Value="0" />
+            </FluxModulationTarget>
+            <SampleOffsetModulationTarget Id="22205">
+              <LockEnvelope Value="0" />
+            </SampleOffsetModulationTarget>
+            <ComplexProFormantsModulationTarget Id="22206">
+              <LockEnvelope Value="0" />
+            </ComplexProFormantsModulationTarget>
+            <ComplexProEnvelopeModulationTarget Id="22207">
+              <LockEnvelope Value="0" />
+            </ComplexProEnvelopeModulationTarget>
+            <PitchViewScrollPosition Value="-1073741824" />
+            <SampleOffsetModulationScrollPosition Value="-1073741824" />
+            <Recorder>
+              <IsArmed Value="false" />
+              <TakeCounter Value="1" />
+            </Recorder>
+          </FreezeSequencer>
+        </DeviceChain>
+      </GroupTrack>
+```
+
+
+### Linked Tracks
+
+Tracks can be linked together so they can be operated on in unison in
+arrangement view. This feature is unrelated to group tracks. The following
+aspects of linked tracks can be modified all together in arrangment view: moving
+and resizing clips, selecting, editing the time, splitting and consolidating,
+the fades, arming and the take lanes.
+
+Linking is done with the Link Tracks menu item, in the context menu of the head
+of a track in the arrangement view. A track's `LinkedTrackGroupId` holds the
+`Id` of the group of tracks it is linked to, and `-1` means it is not linked.
+
+Linked track groups are not the same as session view groups, which are the
+`TrackGroupId` in the previous section. A linked track group is a set of
+tracks whose editing is locked together, wherever they are.
 
 See "Linked-Track Editing" in the manual of Live 12, section 6.14:
 https://www.ableton.com/en/live-manual/12/arrangement-view/#linked-track-editing
 
-Every track of every set of the corpus has `-1`, so nothing in the corpus
-exercises a linked group.
+Every track of every set of the Ableton Live demo sets has `-1`, so of them
+exercise a linked group.
 
-### The device chain of a group
+
+### Group Device Chain
 
 A group has a mixer and a device chain, and its members' audio is routed through
-that chain: a member track's output is routed to `AudioOut/GroupTrack`. A
-third-party plug-in in a group's chain therefore blocks a transfer to the Push 3
-Standalone just as much as one on a track.
+that chain: a member track's output is routed to `AudioOut/GroupTrack`.
 
-A group track cannot be frozen, because only tracks that hold clips can be
-frozen, and a group track holds no clips. The device cannot be rendered away by
-freezing the group, and freezing a member does not help either: a frozen
-member stays routed into its group, so the group's device is still in the signal
-path. The remedy is to remove the device from the group's chain, or to bounce
-the group to another track and then disable it.
+A third-party plug-in in a group's chain therefore blocks a transfer to the P3S
+just the same as a third-party plug-in on a MIDI or audio track.
 
-### Freezing a group track
+Normally, a group track cannot be frozen, because only tracks that hold clips
+can be frozen, and a group track normally holds no clips. `Options.txt` can
+remove this restriction, as described in the next section.
 
-A group track is frozen only when Live is configured to allow it. See
-`Options.txt, below.
+Unless `Options.txt` allows frozen group tracks, third-party devices cannot be
+rendered away by freezing the group. The remedy is to remove the device from the
+group's chain, or to bounce the group to another track and then disable it.
 
-### `Options.txt`
+
+## `Options.txt`
 
 Ableton Live can be configured to enable experimental and unsupported features
 through an `Options.txt` file in its Preferences folder. For example,
@@ -827,7 +1306,7 @@ holds the composite clips which are the normal output of the track.
 `TakeLane` elements are wrapped in
 `<TakeLanes><TakeLanes></TakeLanes></TakeLanes>` elements:
 
-```text
+```xml
 <TakeLanes>
   <TakeLanes>
     <TakeLane Id="0">
@@ -848,20 +1327,21 @@ holds the composite clips which are the normal output of the track.
 </TakeLanes>
 ```
 
-* `TakeLane`: A take. Its `Id` numbers it, `Name` names it, and `Audition` says whether it is the take being auditioned.
+- `TakeLane`: A take. Its `Id` numbers it, `Name` names it, and `Audition` says
+  whether it is the take being auditioned.
 
-* `ClipAutomation`: The clips of the take. They play into the chain of the track.
+- `ClipAutomation`: The clips of the take. They play into the chain of the track.
 
-* `AreTakeLanesFolded`: Whether the lanes are shown expanded in the arrangement.
+- `AreTakeLanesFolded`: Whether the lanes are shown expanded in the arrangement.
 
 Live 12 take lanes also have an `ArrangementClipsListWrapper` element, which is
 empty in the sets of the corpus.
 
-**The clip of a lane and the clip of the track are different clips.** When a
-section of a take is comped into the track, Live writes a new clip element into
-the track, with its own boundaries, and the clip in the lane stays as it was:
+**A take lane clip and the track clip are different.** When a section of a take
+is comped into the track, Live writes a new clip element into the track, with
+its own boundaries, and the clip in the lane stays as it was:
 
-```text
+```xml
 <MidiClip Id="0" Time="140.77">
   <CurrentStart Value="140.77"/>   <!-- where the section sits on the timeline -->
   <CurrentEnd Value="162.42"/>
@@ -892,8 +1372,8 @@ the track.
 
 A track that is frozen keeps two sequencers:
 
-* `MainSequencer`: The editable material
-* `FreezeSequencer`: The rendered audio cache that replaces it during playback
+- `MainSequencer`: The editable material
+- `FreezeSequencer`: The rendered audio cache that replaces it during playback
 
 A frozen track's clips can be in either sequencer, and some are only in the
 `FreezeSequencer`, so a reader that looks only at the `MainSequencer` finds
@@ -911,14 +1391,3 @@ Every set of a given Live version has the same lane types, but Live 11 and Live
 
 TODO We have not figured this out yet. See
 [live_11_12_diff.md](live_11_12_diff.md), "The lane types".
-
-
-## Fixed Outpu Schemas
-
-A converted set is written to a fixed schema of the target version, not to a
-schema inferred from the XML stored in the sets of that version.
-
-Ableton Live has a constantly changing XML structure. `als_to_version` outputs a
-well-defined constant set of metadata  in the `Ableton` element.  See
-[live_11_12_diff.md](live_11_12_diff.md), "Converting a set to Live 11 uses a
-fixed schema".

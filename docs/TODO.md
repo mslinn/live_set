@@ -11,6 +11,38 @@ the code itself, then the entry is deleted from this file.
 This project was developed for WSL, which implies Windows 10 or 11.
 
 
+## Latest Thoughts
+
+## Main Topics Discussed
+
+- Simple operations, such as changing a set’s displayed name or copying a MIDI
+  map between sets, should modify the relevant XML directly rather than require
+  parsing the entire file into an object model.
+- Reporting is expected to provide substantially more value than converting.
+  Convert only the entities needed to make reports efficient; converting the
+  complete set is not a priority.
+- An end-user command should open Live 12, gather required content, ensure
+  anything that needs freezing is frozen, save the set, and send it to Push 3.
+- The next major commands should show real-time changes and compare two or more
+  sets. Organize contributions by party in separate subdirectories, with support
+  for a generic number of parties rather than only two. Show differences in
+  timeline order, and report only changes—not the full report—to keep output
+  readable.
+- Detect possible changes made to audio files outside Live by comparing file
+  sizes and dates with their recorded
+  values. Verify whether Live updates sample parameters when a changed file is
+  next opened.
+
+### Priorities
+
+1. Complete reporting.
+2. Add real-time change reporting
+3. timeline-sorted comparisons across
+   multiple parties.
+4. Investigate reliable detection of external audio-file changes.
+5. Implement end-user Push 3 preparation and transfer workflow.
+
+
 ## Reverse Engineering Work
 
 [`gui_harness`](https://github.com/mslinn/gui_harness) is the basis for the
@@ -208,11 +240,11 @@ so the two have to be told apart. The demo sets have both.
 The round trip needs three files:
 
 1. A Live 11 set
-   (`$live_reference_sets/<wbr>sets/<wbr>live_11/<wbr>projects_and_als/<wbr>Fascination.als`);
+   (`$live_reference_sets/<wbr>sets/<wbr>live_11/<wbr>experiments/<wbr>projects_and_als/<wbr>Fascination.als`);
    this set was created by a Live user and is not an official Live demo set.
 
 2. The same set upgraded by Live 12 and saved to
-   `$live_reference_sets/<wbr>sets/<wbr>live_12/projects_and_als/<wbr>Fascination_12_converted_by_live
+   `$live_reference_sets/<wbr>sets/<wbr>live_12/experiments/projects_and_als/<wbr>Fascination_12_converted_by_live
    Project/`. The conversion was automated by
    `$live_set/<wbr>dev/<wbr>make_reference_set`.
 

@@ -1,6 +1,6 @@
 require 'fileutils'
 
-# Finds the repository of the reference sets of Live.
+# Finds the repository of the demo reference sets of Live.
 #
 # The sets of every version of Live are checked in to a repository of their own, so that the
 # sets and the reports of them are in one place, and neither is in the way of the code that
@@ -8,8 +8,8 @@ require 'fileutils'
 #
 # The layout of the repository is:
 #
-#   sets/live_<version>/projects_and_als/    the sets, as Live wrote them
-#   sets/live_<version>/reports/             the reports of the sets
+#   sets/live_<version>/demo/projects_and_als/    the demo sets bundled with Live
+#   sets/live_<version>/demo/reports/             als_report output for the demo sets
 #
 # The repository is found through the environment variable `live_reference_sets`. Where that
 # is not set, the directory beside the work of this project is used.
@@ -29,7 +29,7 @@ module ReferenceSets
     # @param version [String] the version, e.g. "11"
     # @return [String] the path of the directory
     def directory_of(version)
-      File.join directory, 'sets', "live_#{version}"
+      File.join directory, 'sets', "live_#{version}/demo"
     end
 
     # The directory the reports of a version are in.

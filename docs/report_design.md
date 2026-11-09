@@ -85,7 +85,7 @@ To see how this looks in a legal document, technical manual, or project outline:
 #### Usage in This Project
 
 TODO: the following was taken from the `Fascination.md` reference report
-(`$live_reference_sets/sets/live_11/reports/Fascination.md`). Notice how it shows references, which we do not exist for
+(`$live_reference_sets/sets/live_11/experiments/reports/Fascination.md`). Notice how it shows references, which we do not exist for
 MIDI. Audio files live in separate files, so ALS XML elements can only point to the audio files. In that sense audio
 samples are always referenced.
 

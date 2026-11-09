@@ -5,6 +5,7 @@ combined with Ableton Live's remote scripting interface or a Ruby OSC library.
 [1] (https://github.com/ideoforms/AbletonOSC), [2]
 (https://opensoundcontrol.stanford.edu/implementations/ruby-osc.html)
 
+
 ## Installation
 
 To control Ableton Live from Ruby, you need a bridge inside Live that listens
@@ -30,6 +31,7 @@ for network commands.
 In Ruby, use the ruby-osc gem (gem install ruby-osc) to dispatch UDP packets
 directly to Ableton Live's local port. [1]
 (https://opensoundcontrol.stanford.edu/implementations/ruby-osc.html)
+
 
 ## Example Ruby Script
 
@@ -58,6 +60,7 @@ server.add_pattern('/live/song/get/tempo') do |message|
 end
 ```
 
+
 ## Run server briefly to catch feedback
 
 Using `sleep` is bad form! polling is better, but callbacks are best.
@@ -68,6 +71,7 @@ client.send(OSC::Message.new('/live/song/get/tempo'))
 sleep(1)
 server.stop
 ```
+
 
 ## Alternative File-Level Automation (Offline)
 

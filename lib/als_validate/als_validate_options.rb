@@ -21,9 +21,9 @@ class AlsValidate
 
       Example:
         $ als_validate \
-          "$live_reference_sets/sets/live_11/projects_and_als/one_midi_track_only_11 Project/factory_default_11.als" \
+          "$live_reference_sets/sets/live_11/experiments/projects_and_als/one_midi_track_only_11 Project/factory_default_11.als" \
           "$live_reference_sets/xsd/demo11.xsd"
-        /mnt/f/work/ableton/live_reference_sets/sets/live_11/projects_and_als/one_midi_track_only_11 Project/factory_default_11.als is valid
+        /mnt/f/work/ableton/live_reference_sets/sets/live_11/experiments/projects_and_als/one_midi_track_only_11 Project/factory_default_11.als is valid
     END_HELP
 
     msg.nil? ? help : "Error: #{msg}\n\n#{help}"

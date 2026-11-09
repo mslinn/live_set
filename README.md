@@ -60,12 +60,11 @@ differently — see
 [docs/live_11_12_diff.md](docs/live_11_12_diff.md#the-elements-the-two-versions-name-differently).
 
 The conversion in this repository is not yet known to produce a set that Live 11
-opens: the lane types are the open risk (TODO.md N42).
+opens: the lane types are the open risk (See `TODO.md` N42).
 
-This project has almost reached the goal of transitioning to being driven by
-XLST transformations, derived by recursively running Ableton Live in a GUI test
-harness. The demo programs provided with each version of Ableton Live were an
-important source of information.
+The demo programs provided with each version of Ableton Live are an important
+source of information.
+
 
 ## Push 3 Standalone (P3S)
 
@@ -76,10 +75,9 @@ struggling with the technology than you are getting useful work done.
 The `als_report` command from `Live_set` reports on the status of an Ableton
 Live set and gives a go/no go signal for transmission to a P3S.
 
-P3S runs an embedded version of Live internally. The earliest
-compatible version of a Live set that can be transferred to a P3S
-is Live 11. Live 12 sets can also be transferred; the latest supported version
-is Live 12.4.
+P3S runs an embedded version of Live internally. The earliest compatible version
+of a Live set that can be transferred to a P3S is Live 11. Live 12 sets can also
+be transferred; the latest supported version is Live 12.4.
 
 ### Reported Problems
 
@@ -140,7 +138,7 @@ is Live 12.4.
 
 ## Installation
 
-Simply type:
+Type:
 
 ```shell
 $ gem install live_set
@@ -152,7 +150,7 @@ If the above does not work because you need to install Ruby, please
 
 ## Upgrading
 
-Simply type:
+Type:
 
 ```shell
 $ gem upgrade live_set
@@ -178,7 +176,7 @@ The examples of how to use each command assume the `$live_set` environment
 variable points to an ALS file, for example:
 
 ```shell
-live_12_demos="$live_reference_sets/sets/live_12/projects_and_als/"
+live_12_demos="$live_reference_sets/sets/live_12/demo/projects_and_als/"
 live_set="$live_12_demos/Chuck Sutton - Patience (Live 12 Suite Demo).als"
 ```
 
@@ -400,7 +398,7 @@ Report an ALS file this way:
 live_home="/mnt/c/ProgramData/Ableton"
 live_12_home="$live_home/Live 12 Suite/Resources/Core Library/Lessons/Demo Songs"
 live_set="$live_12_home/Chuck Sutton - Patience (Live 12 Suite Demo).als"
-zcat "$live_set" | less
+zcat "$live_set" | less -x2
 als_report "$live_set"
 ```
 
