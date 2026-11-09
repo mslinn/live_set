@@ -21,6 +21,18 @@ is designed to handle structural differences in ALS files, such as an element
 name that was renamed, or elements that exist in one version but not in another.
 
 
+## Reading and Writing ALS Files
+
+Class `AlsFile` in `lib/live_set/als_file.rb` contains the following methods:
+
+| Method           | Description                                                      |
+|------------------|------------------------------------------------------------------|
+| `read`           | Reads the XML document of a live set.                            |
+| `read_text`      | Reads the XML of a live set, as text.                            |
+| `read_gzip_text` | Reads the XML of a live set as text; the set must be compressed. |
+| `write`          | Writes a live set.
+
+
 ## XML Tools
 
 The following subsections are presented here because this information will be

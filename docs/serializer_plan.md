@@ -114,36 +114,47 @@ For example:
 
 Note: `MissingSamples` is a view of of `LiveSamples` and is not a discrete collection.
 
-### There is no clip reference in the format
+### Clip-Related Elements
 
-A clip belongs to a place. The Session View and the Arrangement View "each hold individual
-collections of clips" (Live Concepts), and a Session clip copied into the Arrangement is an
-independent Arrangement clip.
+A clip belongs to a place. The Session View and the Arrangement View each hold
+their own clip collections. For example, a Session clip copied into the
+Arrangement becomes an independent Arrangement clip. The notes of a MIDI clip
+are in the `<MidiClip/>` element, so they are copied with when the `<MidiClip/>`
+element is copied.
 
-The file agrees. One clip of the Live 11 reference set, `3-Kontakt 7 1`, is written out as
-nine complete `MidiClip` elements, eight of them with the same forty-seven note events and
-one with nineteen; an audio clip, `Pink Noise - EDMtips.com`, is written out eleven times,
-each with its own `Id` and its own `SampleRef`. `LomId` is `0` throughout and ties nothing
-together.
+You can see this in the reference sets. One clip of the Live 11 reference set,
+`3-Kontakt 7 1`, is replicated as nine complete `<MidiClip/>` elements, eight of
+them with the same forty-seven note events and one with nineteen; an audio clip,
+`Pink Noise - EDMtips.com`, has eleven copies, each with its own `Id` and its
+own `SampleRef`.
 
-What is referenced rather than copied is the sample: the audio of a set is in files beside
-it, and each clip holds the pointer to the file in its `<SampleRef>`. Several clips can
-point at the same file, and each can play it differently — reversed, warped differently,
-trimmed — without touching the file. The notes of a MIDI clip are in the element, so they
-are copied with it.
-
-`LomId` is the identifier the Live Object Model uses while Live is running; it is `0` in
-the elements of a saved set, and it is not a key that ties the copies of a clip together.
+An audio clip XML element (`<AudioClip/>`s) is different from a `<MidiClip/>`
+elemnt in that the `<AudioClip/>` contains a file reference (a `<SampleRef>`
+subelement) to audio files instead of embedding audio data in an XML element.
+Several `<AudioClip/>` elements can point at the same audio file, and each can
+play it differently; reversed, warped differently, trimmed — without altering
+the file.
 
 So `LiveClip` is one clip in the file, with its own settings and its own place, and there is
 no `LiveClipReference`: the launch mode and the warp mode belong to the clip element they
 are written in.
 
+### LomId
+
+TODO: Is this correct?
+`LomId` is the identifier the Live Object Model uses while Live is running; it
+is `0` in the elements of a saved set, and it is not a key that ties the copies
+of a clip together.
+
+TODO: this is not a valid sentence:
 The grouping of the copies that are the same clip — the report's `Clip 1.1 (×7)` — is the
 report's own, and belongs to the report and not to the model.
 
-`LiveSetReport` names these classes in its own TODO, at the top of the file, and its
-organisation comment shows where each one goes in the report:
+### LiveSetReport
+
+The  `LiveSetReport` class contains the entire model for the `als_report`
+command. It refers to other classes to provide model details. This is a rough
+outline of the classes for `LiveSetReport`:
 
 ```text
 Header block
@@ -157,8 +168,8 @@ Device / track cross reference
 Track / clip cross reference
 ```
 
-`docs/report_design.md` describes the same design in more detail, and the two documents
-should agree.
+`docs/report_design.md` describes the same design in more detail.
+
 
 ## Live 12 Master/Main Track Icon
 

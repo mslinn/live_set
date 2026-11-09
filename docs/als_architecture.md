@@ -27,6 +27,10 @@ name that was renamed, or elements that exist in one version but not in another.
 - Where several serializers have common behaviour, that behaviour shall be
   extracted into a helper of some sort.
 
+### Single Instance Classes
+
+Many ALS XML entities in the `</Ableton>`
+
 ## Rubygem Commands
 
 Every command defined by this project is named with the `als_` prefix, and the

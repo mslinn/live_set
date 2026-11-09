@@ -1,84 +1,303 @@
 # ALS Filetype Notes
 
 This document contains details of the Ableton Live Set (ALS) file format. This
-is a WHAT document that discusses XML fragments and how they morph between Live
-versions. See [ALS Architecture](als_architecture.md) for information about how
-this project models the XML, transforms it, and serializes it to markdown.
+is a WHAT document that discusses XML documents, XML fragments, and how they
+morph between Live versions. See [ALS Architecture](als_architecture.md) for
+information about how this project models the XML, transforms it, and serializes
+it to markdown.
 
 The workflow is described in [als_work.md](als_work.md).
 
-The differences between two Live versions are in a
-version_diff document; the one for Live 11 and Live 12 is
-[live_11_12_diff.md](live_11_12_diff.md). The terms these documents use are
-defined in [glossary.md](glossary.md).
-
-The headings are what the code cites. This document was written as
-`docs/als_format.md`, which was split into this document (the format itself)
-and a version_diff document (the differences between two versions); the section
-numbers the old document carried are gone, and the headings are cited instead.
+The terms these documents use are defined in [glossary.md](glossary.md).
 
 ## ALS Files Are XML, Probably GZipped
 
 An `.als` file is an XML document. Most are gzip-compressed, but uncompressed
-`.als` files are sometimes used for testing purposes. Clas `AlsFile` in
-`lib/live_set/als_file.rb` contains the following methods:
+`.als` files are sometimes used for testing purposes.                                 |
 
-| Method           | Description                                                      |
-|------------------|------------------------------------------------------------------|
-| `read`           | Reads the XML document of a live set.                            |
-| `read_text`      | Reads the XML of a live set, as text.                            |
-| `read_gzip_text` | Reads the XML of a live set as text; the set must be compressed. |
-| `write`          | Writes a live set.                                               |
+
+## ALS XML
+
+The top-level element (or root tag) in an `.als` file is `<Ableton>`.
+
+If you uncompress an `.als` file and examine the XML it contains, the outermost
+elmentss of the XML document look something like this:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Ableton MajorVersion="5"
+         MinorVersion="12.0_12048"
+         SchemaChangeCount="3"
+         Creator="Ableton Live 12.0.5">
+  <LiveSet>
+    <!-- Tracks, clips, automation, mixer settings, and device chains go here -->
+  </LiveSet>
+</Ableton>
+```
+
+There is only `<Ableton/>` element in an `.als` file, and it is the root XML
+element. It has 4 attributes, which we discuss later in detail. Within the
+`<Ableton/>` element there is only one `<LiveSet/>` element. Both of these
+elements only occur once in the XML, so they can be represented by a Ruby model
+class.
+
+Other XML elements can occur many times in the XML. For example, tracks, devices
+and clips are wrapped within collection elements. These XML elements are
+represented in Ruby by collections of model classes.
+
+In the following example, `<Events>` is an XML element holding a collection of
+clips for the arrangment view timeline. Notice that the `<AudioClip/>` elements
+within a collection have attributes that provide their positions on the timeline
+(`Time`) and lengths (`Duration`).
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Ableton MajorVersion="5" MinorVersion="12.0_12048" SchemaChangeCount="3" Creator="Ableton Live 12.0.5">
+  <LiveSet>
+    <Tracks>
+
+      <!-- AUDIO TRACK 1: Contains 1 Clip -->
+      <AudioTrack Id="0">
+        <Name><EffectiveName Value="Audio 1" /></Name>
+        <DeviceChain>
+          <MainSequencer>
+            <SampleSequencer>
+              <ArrangerAutomation>
+                <Events>
+                  <!-- The collection wrapper for arrangement clips on this track -->
+                  <AudioClip Id="10" Time="0.0" Duration="4.0">
+                    <Name Value="Snare_Loop" />
+                    <CurrentStart Value="0.0" />
+                    <CurrentEnd Value="4.0" />
+                  </AudioClip>
+                </Events>
+              </ArrangerAutomation>
+            </SampleSequencer>
+          </MainSequencer>
+        </DeviceChain>
+      </AudioTrack>
+
+      <!-- AUDIO TRACK 2: Contains 2 Clips -->
+      <AudioTrack Id="1">
+        <Name><EffectiveName Value="Audio 2" /></Name>
+        <DeviceChain>
+          <MainSequencer>
+            <SampleSequencer>
+              <ArrangerAutomation>
+                <Events>
+                  <!-- First arrangement clip -->
+                  <AudioClip Id="20" Time="0.0" Duration="8.0">
+                    <Name Value="Synth_Pad" />
+                    <CurrentStart Value="0.0" />
+                    <CurrentEnd Value="8.0" />
+                  </AudioClip>
+                  <!-- Second arrangement clip, sequential on the timeline -->
+                  <AudioClip Id="21" Time="8.0" Duration="4.0">
+                    <Name Value="Synth_Pad_Fill" />
+                    <CurrentStart Value="0.0" />
+                    <CurrentEnd Value="4.0" />
+                  </AudioClip>
+                </Events>
+              </ArrangerAutomation>
+            </SampleSequencer>
+          </MainSequencer>
+        </DeviceChain>
+      </AudioTrack>
+    </Tracks>
+  </LiveSet>
+</Ableton>
+```
 
 
 ## ALS Schemas
 
-TODO: Show the schemas for each version of the Ableton Live ALS format.
-Use `exe/als_to_xsd` to generate the schemas and store them in the `xsd/` directory of the
-repository of the reference sets.
+TODO We have found that standard XML schemas (`.xsd` filetype) have limited use
+in this project. Ableton Live is shipped with proprietary and undocumented
+schemas that we should reverse engineer. See `C:\ProgramData\Ableton\Live 12 Suite\Resources\Schema`.
 
-The schema of a version is an *inference* from the XML stored in the sets of
-that version, not a specification of it. A name the schema does not declare is
-a name no set in the corpus uses, which is not the same as a name the version
-does not have. See
-[als_work.md](als_work.md), "Generate Each Schema From Every Set of That
-Version".
+### Ableton Schemas
 
+The Ableton Schemas are about 200KB, so they are not listed in their entirety
+here.
 
-## ALS Outlines
+#### `LiveSet` Element
 
-TODO: what version was the following taken from?
+This is the top-level element since the Ableton schema does not contain the
+`<Ableton/>` element. I sorted its child elements for easier reading.
 
 ```xml
-$ zcat '/mnt/e/media/Ableton/Projects/fu Project/fu.als' | less -N
+ <LiveSet InternalName="LiveDocument">
+  <Annotation Class="RemoteableString" Type="0" />
+  <AutoQuantisation Class="RemoteableEnum" Type="0" />
+  <ChooserBar Class="RemoteableInt" Type="0" />
+  <ContentSplitterProperties Class="RemoteableSizeManager" Type="0" />
+  <CrossfadeCurve Class="RemoteableEnum" Type="0" />
+  <DetailClipKeyMidis Class="DetailClipKeyMidis" Type="0" />
+  <GlobalQuantisation Class="RemoteableEnum" Type="0" />
+  <GlobalQuantisationKeyMidi Class="RemoteableKeyMidi" Type="0" />
+  <Grid Class="BeatGrid" Type="0" />
+  <GroovePool Class="GroovePool" Type="0" />
+  <HighlightedTrackIndex Class="RemoteableInt" Type="0" />
+  <LatencyCompensation Class="RemoteableEnum" Type="0" />
+  <Locators Class="CuePointManager" Type="0" InternalName="CuePointManager" />
+  <MasterTrack Class="MasterTrack" Type="0" />
+  <NextPointeeId Class="Int" Type="-4" />
+  <Overdub Class="RemoteableBool" Type="0" />
+  <OverwriteProtectionNumber Class="Int" Type="-4" />
+  <PreHearTrack Class="PreHearTrack" Type="0" />
+  <SceneNames Class="RemoteableList" Type="-1" />
+  <SendsPre Class="RemoteableList" Type="-1" />
+  <SequencerNavigator Class="SequencerNavigator" Type="0" />
+  <ShowVideoWindow Class="Bool" Type="-4" />
+  <SmpteFormat Class="RemoteableEnum" Type="0" />
+  <SoloInPlace Class="RemoteableBool" Type="0" />
+  <SoloOrPflSavedValue Class="Bool" Type="-4" />
+  <SongMasterValues Class="SongMasterValues" Type="0" />
+  <TimeSelection Class="SongTimeSelection" Type="0" />
+  <TrackHeaderWidth Class="RemoteableInt" Type="0" />
+  <Tracks Class="RemoteableList" Type="-1" />
+  <Transport Class="Transport" Type="0" />
+  <UseWarperLegacyHiQMode Class="RemoteableBool" Type="0" />
+  <VideoWindowRect Class="Rect" Type="-4" />
+  <ViewStateArrangerHasDetail Class="RemoteableBool" Type="0" />
+  <ViewStateDetailIsSample Class="RemoteableBool" Type="0" />
+  <ViewStateEnvelopePanel Class="RemoteableBool" Type="0" />
+  <ViewStateFxSlotCount Class="RemoteableInt" Type="0" />
+  <ViewStateLaunchPanel Class="RemoteableBool" Type="0" />
+  <ViewStateSamplePanel Class="RemoteableBool" Type="0" />
+  <ViewStateSessionHasDetail Class="RemoteableBool" Type="0" />
+  <ViewStateSessionMixerHeight Class="RemoteableInt" Type="0" />
+ </LiveSet>
+```
+
+Puzzling:
+
+- The `<Tracks/>` element is not defined in the Ableton schema.
+
+- The Ableton schema defines the `<AudioClip/>` element but does not reference it.
+
+
+#### `AudioClip` Element
+
+I sorted the child elements of the `<AudioClip/>` element in the Ableton schema
+for easier reading. It does not contain a `<DeviceChain/>` element. This is most
+puzzling.
+
+```xml
+ <AudioClip>
+  <Annotation Class="RemoteableString" Type="0" />
+  <AutoWarpTolerance Class="RemoteableEnum" Type="0" />
+  <ColorIndex Class="RemoteableInt" Type="0" />
+  <ComplexProEnvelope Class="UserFloat" Type="0" />
+  <ComplexProFormants Class="UserFloat" Type="0" />
+  <CurrentEnd Class="RemoteableDouble" Type="0" />
+  <CurrentStart Class="RemoteableDouble" Type="0" />
+  <Disabled Class="RemoteableBool" Type="0" />
+  <Fade Class="RemoteableBool" Type="0" />
+  <Fades Class="ClipFades" Type="0" />
+  <FluctuationTexture Class="UserFloat" Type="0" />
+  <FollowActionA Class="RemoteableEnum" Type="0" />
+  <FollowActionB Class="RemoteableEnum" Type="0" />
+  <FollowChanceA Class="UserFloat" Type="0" />
+  <FollowChanceB Class="UserFloat" Type="0" />
+  <FollowTime Class="RemoteableDouble" Type="0" />
+  <FreezeEnd Class="RemoteableDouble" Type="0" />
+  <FreezeStart Class="RemoteableDouble" Type="0" />
+  <GranularityTexture Class="UserFloat" Type="0" />
+  <GranularityTones Class="UserFloat" Type="0" />
+  <Grid Class="BeatGrid" Type="0" />
+  <GrooveSettings Class="ClipGrooveSettings" Type="0" />
+  <HiQ Class="RemoteableBool" Type="0" />
+  <IsSongTempoMaster Class="RemoteableBool" Type="0" />
+  <IsWarped Class="RemoteableBool" Type="0" />
+  <LaunchMode Class="RemoteableEnum" Type="0" />
+  <LaunchQuantisation Class="RemoteableEnum" Type="0" />
+  <Legato Class="RemoteableBool" Type="0" />
+  <Loop Class="Loop" Type="0" />
+  <MarkerDensity Class="RemoteableEnum" Type="0" />
+  <MarkersGenerated Class="RemoteableBool" Type="0" />
+  <ModulationList Class="ModulationList" Type="0" />
+  <Name Class="RemoteableString" Type="0" />
+  <Onsets Class="OnsetArray" Type="0" />
+  <PitchCoarse Class="UserFloat" Type="0" />
+  <PitchFine Class="UserFloat" Type="0" />
+  <Ram Class="RemoteableBool" Type="0" />
+  <SampleRef Class="SampleRef" Type="0" />
+  <SampleVolume Class="UserFloat" Type="0" />
+  <SavedWarpMarkersForStretched Class="RemoteableList" Type="-1" />
+  <ScrollerTimePreserver Class="ScrollerTimePreserver" Type="0" />
+  <StartWithSongTempo Class="RemoteableBool" Type="0" />
+  <Straightening Class="UserFloat" Type="0" />
+  <Sync Class="RemoteableBool" Type="0" />
+  <Time Class="Double" Type="-4" />
+  <TimeSelection Class="ClipTimeSelection" Type="0" />
+  <TimeSignature Class="SingleTimeSignatureManager" Type="0" />
+  <TransientEnvelope Class="UserFloat" Type="0" />
+  <TransientLoopMode Class="RemoteableEnum" Type="0" />
+  <TransientResolution Class="RemoteableEnum" Type="0" />
+  <VelocityAmount Class="UserFloat" Type="0" />
+  <WarpMarkers Class="RemoteableList" Type="-1" />
+  <WarpMode Class="RemoteableEnum" Type="0" />
+ </AudioClip>
+```
+
+### Standard XML Schemas
+
+The `exe/als_to_xsd` command generates the XML schema from one or more ALS files
+and store it in the `xsd/` directory of the repository of the reference sets
+(stored locally at `$live_reference_sets` with Git repository
+`https://github.com/mslinn/live_reference_sets`).
+
+The schema of a version is an inference from the XML stored in the sets of that
+version, not a complete specification. If no set in a corpus uses a Live
+feature, then XML elements relating to that feature will not appear in the
+corpus. See [als_work.md](als_work.md), "Generate Each Schema From Every Set of
+That Version".
+
+
+## Sample ALS XML Fragment
+
+The first 25 lines of an XML within an ALS file were be displayed as follows:
+
+```xml
+$ zcat -S .als '/mnt/e/media/songs/jamdance/daw/live/fu Project/fu.als' | less -N -x2
+      1 <?xml version="1.0" encoding="UTF-8"?>
+      2 <Ableton MajorVersion="5" MinorVersion="12.0_12120" SchemaChangeCount="4"
+      2  Creator="Ableton Live 12.1.11" Revision="ce4b7c22b06532409b78ca241e5bb73735e7ca10">
       3   <LiveSet>
+      4     <NextPointeeId Value="93191" />
+      5     <OverwriteProtectionNumber Value="3073" />
+      6     <LomId Value="3" />
+      7     <LomIdView Value="0" />
       8     <Tracks>
-      9       <AudioTrack Id="8">
-     44         <DeviceChain>
-    247           <MainSequencer>
-    278             <ClipSlotList>
-    279               <ClipSlot Id="14">
-    280                 <LomId Value="0" />
-    281                 <ClipSlot>
-    282                   <Value>
-    283                     <AudioClip Id="0" Time="0">
-    353                       <SampleRef>
-    354                         <FileRef>
-    355                           <RelativePathType Value="3" />
-    356                           <RelativePath Value="Samples/Imported/song1.mp3" />
-    357                           <Path Value="E:/media/Ableton/Projects/fu Project/Samples/Imported/song1.mp3" />
-    358                           <Type Value="1" />
-    359                           <LivePackName Value="" />
-    360                           <LivePackId Value="" />
-    361                           <OriginalFileSize Value="3626186" />  # Bytes
-    362                           <OriginalCrc Value="47766" />
-    363                         </FileRef>
-    364                         <LastModDate Value="1707598944" />  # Epoch timestamp -> Sat Feb 10 16:02:24 EST 2024
-    365                       </SourceContext>
-    366                       <SampleUsageHint Value="0" />
-    367                       <DefaultDuration Value="10809120" />
-    368                       <DefaultSampleRate Value="48000" />
-    369                     </SampleRef>
+      9       <AudioTrack Id="8" SelectedToolPanel="7" SelectedTransformationName="" SelectedGeneratorName="">
+     10         <LomId Value="0" />
+     11         <LomIdView Value="0" />
+     12         <IsContentSelectedInDocument Value="false" />
+     13         <PreferredContentViewMode Value="0" />
+     14         <TrackDelay>
+     15           <Value Value="0" />
+     16           <IsValueSampleBased Value="false" />
+     17         </TrackDelay>
+     18         <Name>
+     19           <EffectiveName Value="Drums / complete" />
+     20           <UserName Value="Drums / complete" />
+     21           <Annotation Value="" />
+     22           <MemorizedFirstClipName Value="Bruno_Mars_Uptown_Funk_percussion" />
+     23         </Name>
+     24         <Color Value="14" />
+     25         <AutomationEnvelopes>
+     26           <Envelopes />
+     27         </AutomationEnvelopes>
+     28         <TrackGroupId Value="-1" />
+     29         <TrackUnfolded Value="true" />
+     30         <DevicesListWrapper LomId="0" />
+     31         <ClipSlotsListWrapper LomId="0" />
+     32         <ArrangementClipsListWrapper LomId="0" />
+     33         <ViewData Value='{"alternative_mode_locked": false, "push-instrument-selected-notes": [36], "push-note-
+     33 repeat-rate": 0.5, "push-note-repeat-enabled": false}' />
+     34         <TakeLanes>
+     35           <TakeLanes />
 ```
 
 
@@ -107,7 +326,7 @@ Clip paths can look like this:
 ```
 
 
-## Every value is stored in a `Value` attribute
+## Values are stored in `Value` Attributes
 
 Every value in an `.als` file is stored in a `Value` attribute:
 
@@ -121,16 +340,20 @@ corpus of 460 sets.
 An element that has no `Value` attribute, or an empty one, holds no value. An
 empty attribute is not the same as an absent one:
 `<RelativePath Value="" />` means the sample is not in the project folder, while
-an absent `<RelativePath>` means the field is not in this version of the file.
+an absent `<RelativePath>` means the field is not in this version of the XML.
 `Xml#xml_value` yields `nil` for both, because every caller treats them alike.
 
-A missing element means false. For example, an `AudioTrack` with no `<Freeze>`
-element is not frozen. `Xml#xml_bool?` follows that convention for every
-boolean it reads, and warns about a value that is neither `"true"` nor
-`"false"` so that malformed data does not pass unnoticed.
+There is no text-only shape in practice. Do not attempt to read values with
+`element.text` because that will return `""` and silently produce empty results.
 
-There is no text-only shape in practice. Do not read values with `element.text`
-because that will return `""` and silently produce empty results.
+### Boolean Values
+
+A missing element means `false`. For example, an `AudioTrack` with no `<Freeze>`
+element is not frozen. `Xml#xml_bool?` follows that convention for every
+boolean it reads, and warns about a value that is neither `true` nor
+`false` so that malformed data does not pass unnoticed.
+
+### XML Reader Methods
 
 `lib/common/xml.rb` provides two readers:
 
@@ -140,7 +363,7 @@ xml_bool?(element)   # true or false, never nil
 ```
 
 `xml_bool?` treats a missing element as `false` — an `<AudioTrack>` with no `<Freeze>` element is
-not frozen. A value that is neither `"true"` nor `"false"` is also `false`, but it is logged, so
+not frozen. A value that is neither `true` nor `false` is also `false`, but it is logged, so
 malformed data does not pass unnoticed.
 
 
