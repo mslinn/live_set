@@ -724,7 +724,35 @@ name.
 The master track is a child of the set and not of the tracks of the set. Live 12+ writes
 it as the `<MainTrack>` element.
 
-There is only one master track per set; it is not a collection.
+There is only one master track per set; it is not a collection. The children of
+a `<MasterTrack/>` are found this way:
+
+```shell
+$ pinkblanket="$songs/pink_blanket/daw/live/pink_blanket Project/pink_blanket.als"
+$ als_nodes "$pinkblanket" //MainTrack --children | \
+  tr -d '[]"' | \
+  tr ',' '\n' | \
+  sed 's/^[[:space:]]*//' | \
+  sort
+ArrangementClipsListWrapper
+AutomationEnvelopes
+ClipSlotsListWrapper
+Color
+DeviceChain
+DevicesListWrapper
+IsContentSelectedInDocument
+LinkedTrackGroupId
+LomId
+LomIdView
+Name
+PreferredContentViewMode
+TakeLanes
+TakeLanesListWrapper
+TrackDelay
+TrackGroupId
+TrackUnfolded
+ViewData
+```
 
 ## Track Kinds
 
