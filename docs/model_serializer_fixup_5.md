@@ -288,8 +288,10 @@ for what the step asks for.
    (`HeaderBlock#live_version`), the packs the set refers to (`LivePacks`), the size of the
    project (`LiveSizes`), and the clips of the session view
    (`LiveTracks#session_view_clips`).
-5. **The warning decoration is one method**, in the helper the clip serializer and the
-   assets serializer both use.
+5. **The warning decoration is one method**, in the helper the clip serializer and the assets
+   serializer both use. — **Done.** `LiveMarkup.warning_span` writes a warning on the dark
+   red background, and the warning of a clip and the marker of a sample are written with it.
+   The constant that held the background and the two TODOs are gone.
 6. **The model is corrected.** `group?` is one method; the unused parameter of
    `LiveMidiTrack` is deleted; the unused scenes of `AlsReport` are deleted; the master
    track section is written as its FIXME says it should be. — **Done.**

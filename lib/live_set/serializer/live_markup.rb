@@ -117,8 +117,8 @@ module LiveMarkup
     # @return [String] the message, decorated
     def warning_span(message)
       code_span message,
-                 style: "background-color: #{WARNING_BACKGROUND}; " \
-                        "color: #{LIGHT_TEXT}; vertical-align:middle;"
+                style: "background-color: #{WARNING_BACKGROUND}; " \
+                       "color: #{LIGHT_TEXT}; vertical-align:middle;"
     end
 
     # The number Live writes for a colour, in a cell filled with that colour.
