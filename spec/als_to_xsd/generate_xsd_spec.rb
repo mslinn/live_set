@@ -96,14 +96,15 @@ RSpec.describe AlsToXsd do
       end
     end
 
-    it 'exits with an error when the sets have different root elements' do
+    it 'returns an error when the sets have different root elements' do
       Dir.mktmpdir do |dir|
         schema_path = File.join(dir, 'schema.xsd')
         first = write_set(dir, 'first.als', simple_set)
         second = write_set(dir, 'second.als', simple_set.sub('<Ableton', '<Other'))
 
-        expect { silence_output { described_class.run([schema_path, first, second]) } }
-          .to raise_error(SystemExit) { |error| expect(error.status).to eq(1) }
+        status = silence_output { described_class.run([schema_path, first, second]) }
+
+        expect(status).to eq(1)
       end
     end
 
@@ -116,6 +117,18 @@ RSpec.describe AlsToXsd do
         silence_output { described_class.run(['$LIVE_SET_TEST_DIR/schema.xsd', set_path]) }
 
         expect(File).to exist(schema_path)
+      end
+    end
+  end
+
+  describe '.schema_of' do
+    it 'gives the schema of the sets, without writing a file' do
+      Dir.mktmpdir do |dir|
+        set_path = write_set(dir, 'set.als', simple_set)
+
+        schema = described_class.schema_of([set_path])
+
+        expect(schema).to include('<xs:schema')
       end
     end
   end

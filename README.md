@@ -232,7 +232,6 @@ The following commands are provided:
 - `als_to_version` converts a Live set to another version of the format.
 - `als_to_xsd` reads one or more Ableton Live sets and generates an XSD.
 - `als_validate` checks that a session file conforms to an XSD schema.
-- `als_xsd_order` prints the order of the children of an element in a schema.
 
 The examples of how to use each command assume the `$live_set` environment
 variable points to an ALS file, for example:
@@ -612,30 +611,6 @@ Options are:
 
 Example:
   als_validate $path/to/my_v12_set.als schema.xsd
-```
-
-
-### `als_xsd_order`
-
-```text
-Als_xsd_order prints the order of the children of an element in a generated Live schema.
-
-The transformations of a conversion put elements in a particular place, and the schema is
-where that order comes from: it is generated from the demo sets of a Live version, so it
-records the order Live writes the children of an element in.
-
-Syntax: als_xsd_order SCHEMA_FILE ELEMENT_NAME
-
-SCHEMA_FILE is the path of a generated schema, e.g. schemas/live_12.4d1.xsd.
-ELEMENT_NAME is the name of an element of the format, e.g. MidiClip.
-
-Options are:
-  -h Display this help message.
-  -l LOGLEVEL Set the log level (DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
-
-Example:
-  als_xsd_order schemas/live_12.4d1.xsd MidiClip
-  MidiClip: ["LomId", "LomIdView", "CurrentStart", ...]
 ```
 
 

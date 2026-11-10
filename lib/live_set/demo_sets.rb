@@ -24,15 +24,23 @@ require 'zlib'
 module DemoSets
   # The directories the demo sets are expected to be in, in the order they are tried.
   #
-  # The first two follow Ableton's documented layout. The rest are places where the sets are
-  # found on the machine this was developed on.
-  # TODO: look in the appropriate Ableton configuration and discover where the factory packs
-  # are stored, instead of hard-coding them here.
+  # The first follows Ableton's documented layout: the demo sets of a version of Live are in
+  # the Live installation, under `Resources/Core Library/Lessons/Demo Songs`. The second is
+  # where the sets are found on the machine this was developed on.
   DEFAULT_DIRECTORIES = [
     '/mnt/c/ProgramData/Ableton',
+    '/mnt/e/media/Ableton'
+  ].freeze
+
+  # The roots the factory packs are looked for under.
+  #
+  # A factory pack holds the demo sets of the pack it holds, in a `Demo Songs` directory of
+  # its own, so the packs are found by that directory: the packs of a machine are discovered
+  # rather than named here.
+  FACTORY_PACK_ROOTS = [
+    '/mnt/c/ProgramData/Ableton',
     '/mnt/e/media/Ableton',
-    '/mnt/m/Ableton 11 Factory Packs',
-    '/mnt/m/Ableton 12 Factory Packs'
+    '/mnt/m'
   ].freeze
 
   # The directories holding the demo sets.
@@ -43,7 +51,9 @@ module DemoSets
   # @param directories [Array<String>] the directories to search
   # @return [Array<String>] the directories
   def self.directories(directories = DEFAULT_DIRECTORIES)
-    directories.flat_map { |root| demo_songs_under root }.select { |path| File.directory? path }.uniq
+    found = directories.flat_map { |root| demo_songs_under root }
+    found += FACTORY_PACK_ROOTS.flat_map { |root| factory_pack_songs_under root }
+    found.select { |path| File.directory? path }.uniq
   end
 
   # The "Demo Songs" directories under a root, found without walking the whole tree.
@@ -57,6 +67,18 @@ module DemoSets
     candidates += Dir.glob(File.join(root, '*', 'Resources', 'Core Library', 'Lessons', 'Demo Songs'))
     candidates += Dir.glob(File.join(root, 'Lessons', 'Demo Songs'))
     candidates
+  end
+
+  # The "Demo Songs" directories of the factory packs under a root.
+  #
+  # A factory pack holds the demo sets of the pack it holds, in a `Demo Songs` directory of
+  # its own. The packs are found by that directory, so that the packs of a machine are
+  # discovered rather than named.
+  #
+  # @param root [String] the directory to search
+  # @return [Array<String>] the directories
+  def self.factory_pack_songs_under(root)
+    Dir.glob File.join(root, '*', 'Demo Songs')
   end
 
   # The demo sets, as { live version => [paths] }.

@@ -6,10 +6,6 @@ require_relative '../live_set/als_file'
 require_relative 'als_to_xsd_options'
 require_relative 'xsd_builder'
 
-# TODO: make this a library, so it can be called from other code. Then make
-# this file a thin wrapper that calls the library and returns an error code.
-# See AlsReport.run
-#
 # Generates an XML Schema (XSD) from one or more Ableton Live sets.
 #
 # The sets are read and their structure is handed to XsdBuilder, which turns it
@@ -23,16 +19,21 @@ require_relative 'xsd_builder'
 # of an older version. Give the generator every set of the version you have, not
 # just the demo sets.
 #
+# The class is a library and a command: `AlsToXsd.schema_of` gives the schema
+# of a set of files to other code, and `AlsToXsd.run` is the command that writes
+# it to a file.
+#
 # Usage: generate_xsd OPTIONS XSD_FILE_NAME PATH_TO_ALS_FILE...
 class AlsToXsd
   extend Command
 
   # Generate an XSD from one or more Live sets, and write it to a file.
   #
+  # The command returns an error code, and it does not exit the process, so that it can
+  # be called from other code.
+  #
   # @param args [Array<String>] the command line arguments
-  # @return [void]
-  # TODO return an error code instead of calling exit, so this can be called
-  # from other code without exiting the process. See LiveSet.run
+  # @return [Integer] the exit status: zero when the schema was written
   def self.run(args)
     options, xsd_file, als_files = parse_options(args)
 
@@ -48,14 +49,37 @@ class AlsToXsd
     trap('SIGINT') { throw :ctrl_c }
 
     catch :ctrl_c do
-      generate_xsd = new xsd_file, als_files, **options
-      content = generate_xsd.generate
-      generate_xsd.write(content)
-      puts "Wrote '#{File.expand_path xsd_file}'".green
-    rescue StandardError => e
-      warn e.full_message
-      exit 1
+      write_schema xsd_file, als_files, **options
+      0
     end
+  rescue StandardError => e
+    warn e.full_message
+    1
+  end
+
+  # The schema of the given sets.
+  #
+  # This is the library: it takes the sets, and it returns the schema. It does not write a
+  # file, and it does not parse a command line.
+  #
+  # @param als_files [Array<String>] the paths of the sets
+  # @param options [Hash] the command line options
+  # @return [String] the schema
+  def self.schema_of(als_files, **)
+    new(als_files, **).generate
+  end
+
+  # Writes the schema of the given sets to a file.
+  #
+  # @param xsd_file [String] the path of the file to write
+  # @param als_files [Array<String>] the paths of the sets
+  # @param options [Hash] the command line options
+  # @return [void]
+  def self.write_schema(xsd_file, als_files, **)
+    generator = new(als_files, **)
+    content = generator.generate
+    generator.write(xsd_file, content)
+    puts "Wrote '#{File.expand_path xsd_file}'".green
   end
 
   # The files the arguments name.
@@ -85,14 +109,12 @@ class AlsToXsd
     abort help("File already exists: #{path}. Use --force to overwrite it.")
   end
 
-  # @param xsd_file [String] the path of the XSD file to write
   # @param xml_files [Array<String>] the paths of the Live set files to read
   # @param options [Hash] the command line options
-  def initialize(xsd_file, xml_files, **options)
+  def initialize(xml_files, **options)
     raise ArgumentError, 'Provide at least one XML file' if xml_files.empty?
 
     @overwrite = options[:force]
-    @xsd_file = xsd_file
     @roots = xml_files.map do |xml_file|
       contents = AlsFile.read_text(xml_file)
       xml_doc = Nokogiri::XML(contents)
@@ -113,11 +135,12 @@ class AlsToXsd
 
   # Write the generated schema to the output file.
   #
+  # @param xsd_file [String] the path of the XSD file to write
   # @param content [String] the generated schema
   # @return [void]
-  def write(content)
-    self.class.check_overwrite(@xsd_file, @overwrite)
+  def write(xsd_file, content)
+    self.class.check_overwrite(xsd_file, @overwrite)
 
-    File.write(@xsd_file, content, encoding: 'UTF-8')
+    File.write(xsd_file, content, encoding: 'UTF-8')
   end
 end

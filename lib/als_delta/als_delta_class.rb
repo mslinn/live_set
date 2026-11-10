@@ -10,8 +10,11 @@ class AlsDelta
 
   # Show the changes to a Live set each time it is saved.
   #
+  # The command returns an error code, and it does not exit the process, so that it can
+  # be called from other code.
+  #
   # @param args [Array<String>] the command line arguments
-  # @return [void]
+  # @return [Integer] the exit status: zero when the differences were shown
   def self.run(args)
     options, remaining = parse_options(args)
 
@@ -27,8 +30,10 @@ class AlsDelta
     catch :ctrl_c do
       als_delta.show
       als_delta.cleanup
+      0
     rescue Exception # rubocop:disable Lint/RescueException
       als_delta.cleanup
+      1
     end
   end
 
@@ -65,14 +70,25 @@ class AlsDelta
     File.delete @backup_name
   end
 
+  # The changes to the set, since the backup of it was made.
+  #
+  # This is the library: it takes the set, and it returns the differences. It does not ask
+  # for a key, and it does not parse a command line.
+  #
+  # @return [Array<String>] the lines of the differences
+  def differences
+    run_capture_stdout "GZIP=--no-name zdiff #{@set_name.shellescape} #{@backup_name.shellescape}",
+                       success_statuses: [0, 1]
+  end
+
   def show
     backup_set
     loop do
       puts 'Press any key to display the changes to the Live set XML file, or press Esc to exit.'
       character = $stdin.getch
-      exit if character.ord == 27
-      output = run_capture_stdout "GZIP=--no-name zdiff #{@set_name.shellescape} #{@backup_name.shellescape}",
-                                  success_statuses: [0, 1]
+      break if character.ord == 27
+
+      output = differences
       if output.empty?
         puts 'There were no changes to the saved live set.'
       else

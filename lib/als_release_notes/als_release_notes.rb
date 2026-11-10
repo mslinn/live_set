@@ -47,12 +47,12 @@ class AlsReleaseNotes
       only a guide to the differences rather than a detailed source of information.
 
       Ableton provides the notes at https://www.ableton.com/en/release-notes/live-XX/,
-      where XX is the version of Live. The fetched notes are cached in markdown format
-      at docs/release_notes/, one file per version. The cache allows the notes to be
+      where XX is the version of Live. The fetched notes are cached in HTML at
+      docs/release_notes/, one file per version. The cache allows the notes to be
       accessed easily. The release notes are fetched when there is a cache miss.
 
-      TODO decide how to resolve docs/release_notes/ because that is a relative
-      directory and its location is not known at present when the command runs as a gem.
+      The cache is found beside the command: the notes are packaged with the gem, so the
+      command reads them wherever the gem is installed.
 
       Syntax: als_release_notes [OPTIONS] VERSION
 

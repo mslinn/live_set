@@ -26,8 +26,10 @@ PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REFERENCE_SETS_DIR="${live_reference_sets:-$(cd "$PROJECT_DIR/../../../ableton/live_reference_sets" && pwd)}"
 SCHEMA_DIR="$REFERENCE_SETS_DIR/xsd"
 
-# TODO $live_reference_sets was reorganized. Is CONVERSIONS_DIR still correct?
-CONVERSIONS_DIR="$PROJECT_DIR/conversions"
+# The sets Live wrote by converting a set of an older version. They live in the repository of
+# the reference sets, which was reorganized: each version holds them in its own experiments
+# directory.
+CONVERSIONS_DIR="$REFERENCE_SETS_DIR/sets"
 ABLETON_HOME="${1:-${ableton_home:-/mnt/c/ProgramData/Ableton}}"
 
 # Use the code in this repository, not an installed gem of the same name.
@@ -42,6 +44,7 @@ mkdir -p "$SCHEMA_DIR"
 cd "$PROJECT_DIR"
 
 shopt -s nullglob
+shopt -s globstar
 
 generated=0
 for installation in "$ABLETON_HOME"/Live*/; do
@@ -69,23 +72,21 @@ for installation in "$ABLETON_HOME"/Live*/; do
   schema="$SCHEMA_DIR/live_${version}.xsd"
 
   samples=("${demo_sets[@]}")
-  for converted in "$CONVERSIONS_DIR"/*.als; do
-    [ -f "$converted" ] || continue
-    converted_creator="$(zcat "$converted" | grep -m1 -o 'Creator="[^"]*"' | cut -d '"' -f2 || true)"
-    [ -n "$converted_creator" ] || continue
-    converted_version="${converted_creator#Ableton Live }"
+
+  # The sets of the repository of the reference sets: the sets Live wrote by converting a set
+  # of an older version, and the experimental sets. The repository was reorganized, and the
+  # sets of a version are in its own directory now, and the converted sets are in the
+  # experiments directory of the version they were made from.
+  for checked_in in "$CONVERSIONS_DIR"/**/*.als; do
+    [ -f "$checked_in" ] || continue
+    checked_in_creator="$(zcat "$checked_in" | grep -m1 -o 'Creator="[^"]*"' | cut -d '"' -f2 || true)"
+    [ -n "$checked_in_creator" ] || continue
+    checked_in_version="${checked_in_creator#Ableton Live }"
     # The versions differ in their last part — "12.4d1" and "12.4.6" are the same Live — so the
     # major version decides whether the set belongs to this schema.
-    if [ "${converted_version%%.*}" = "${version%%.*}" ]; then
-      samples+=("$converted")
+    if [ "${checked_in_version%%.*}" = "${version%%.*}" ]; then
+      samples+=("$checked_in")
     fi
-  done
-
-  # The sets checked into this repository hold what the demo sets do not: no demo set of Live 11
-  # has a return track, for instance.
-  for checked_in in "$PROJECT_DIR"/sets/live_"${version%%.*}"/*.als; do
-    [ -f "$checked_in" ] || continue
-    samples+=("$checked_in")
   done
 
   echo "Generating $schema from ${#samples[@]} sets"

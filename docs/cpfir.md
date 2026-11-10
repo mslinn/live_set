@@ -216,7 +216,7 @@ Two sets cannot be compared directly, because the same set is written
 differently in each Live version. Both are brought to a common version first,
 and the comparison is made there.
 
-The comparison is made by `lib/live_set/xml_diff.rb`, which walks two
+The comparison is made by `lib/als_diff/als_diff.rb`, which walks two
 documents in parallel: the children of two elements are matched by their
 names, the children with the same name are compared with each other in the
 order they come, and the children that one of the elements has and the other

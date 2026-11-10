@@ -54,7 +54,6 @@ command names the levels.
 | `als_validate`      | `AlsValidate`     | Checks a set against a schema                                 |
 | `als_nodes`         | `AlsNodes`        | Shows the nodes of a document that an XPath expression finds  |
 | `als_diff`          | `AlsDiff`         | Compares two sets element by element                          |
-| `als_xsd_order`     | `AlsXsdOrder`     | Shows the order of the children of an element in a schema     |
 | `als_release_notes` | `AlsReleaseNotes` | Shows the release notes of a version of Live as markdown      |
 
 

@@ -27,9 +27,7 @@ class AlsDiff
       first promoted to the newer of the two ALS versions, and are then walked in
       parallel: the children of two elements are matched by their names, and the
       children that one of the elements has and the other does not are reported as
-      differences.
-
-      TODO: compare attributes as well
+      differences. The attributes of two elements are compared as well.
 
       Syntax: als_diff [OPTIONS] FILE1 FILE2
 

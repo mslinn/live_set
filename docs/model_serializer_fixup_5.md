@@ -302,10 +302,28 @@ for what the step asks for.
    well; the section of the master track is the heading of the section and the number of the
    track, and the word "Master" is not in the line of the track as well.
 7. **The conversion is corrected.** The two version FIXMEs, the sentence that says nothing,
-   and the sorting of the special transformations.
+   and the sorting of the special transformations. — **Done.** `oversampling` and
+   `audio_out_target` rewrite their value in the direction of the conversion, and not
+   whichever spelling is found; the sentence that says nothing is written out, and the fact
+   about `NeedRefreeze` is stated in `docs/live_11_12_diff.md`; the special transformations
+   are sorted alphabetically.
 8. **The commands are corrected.** `als_to_xsd` becomes a library with a thin wrapper, and
-   the five small items are done.
-9. **The documents are brought up to date.** The order of item 8 above.
+   the five small items are done. — **Done.** `AlsToXsd.schema_of` is the library, and
+   `AlsToXsd.run` returns an error code; `AlsDelta.run` returns an error code, and the
+   `exit` that ended its loop is a `break`, so that the backup is cleaned up; `als_xsd_order`
+   is deleted, and the spec that used it reads the order of the children from the schema
+   itself; the backups of `als_delta` are documented, and the notes of
+   `als_release_notes` are found beside the command, because they are packaged with the gem;
+   the factory packs are discovered by the `Demo Songs` directory they hold; the comment of
+   `common/xml.rb` says what it means; and `dev/generate_xsds` reads the converted sets from
+   the repository of the reference sets.
+9. **The documents are brought up to date.** The order of item 8 above. — **Partly done.**
+   The citations the code makes are corrected, and the file references the documents make
+   that name files which no longer exist are corrected. The stale documents themselves —
+   `glossary.md`, `cpfir.md`, `conversion.md`, `ab_test_plan.md` and `live_11_12_diff.md` —
+   are read against the code and corrected next; `docs/serializer_plan.md` is rewritten to
+   say what is left; and `docs/index.md` and the README are brought up to date with the
+   report as it is written now.
 
 ## The proof
 

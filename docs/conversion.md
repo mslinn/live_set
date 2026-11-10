@@ -660,8 +660,8 @@ The comparison is symmetric, so one comparison informs both directions.
 
 **Not everything in that table can be decided by the comparison.** A rename is not obvious from it:
 `MainTrack` and `MasterTrack` are the same element under two names, and so are
-`MidiEditorLaneModel` and `ExpressionLane`, but a comparison cannot tell that from an unrelated
-pair of elements that happen to sit at the same path. That is settled by inspection, and then
+`MidiEditorLaneModel` and `ExpressionLane`, but a comparison cannot tell that from two
+unrelated elements that happen to sit at the same path. That is settled by inspection, and then
 written into the transformations by hand. The same goes for value respellings, moves, and elements that have
 to be added with a default.
 
@@ -737,7 +737,7 @@ root `<Ableton>` node and nothing else. Its README says:
 > this will cause an error when loading the project.
 
 **`als-parser` has the same problem this project has, in the same shape, and its author left a
-TODO.** `lib/LiveSet.js` handles one version difference by checking for both spellings:
+TODO.** Its `LiveSet.js` handles one version difference by checking for both spellings:
 
 ```javascript
 // Live 12.something changed from MasterTrack to MainTrack

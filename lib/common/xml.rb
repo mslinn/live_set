@@ -3,16 +3,10 @@ require_relative 'log'
 
 # Helpers for reading values out of Ableton Live's XML.
 #
-# Ableton stores the same kind of value in more than one shape, and the shape changed between
-# Live versions:
-#
-#   As an attribute:  <EffectiveName Value="My Track" />
-#   As text:          <EffectiveName>My Track</EffectiveName>
-#   As nested text:   <Path><Path>E:/media/song.mp3</Path></Path>
-
-# TODO: what does this comment mean?
-# Rather than have every call site guess which shape it is looking at, put the
-# guess in one place.
+# Every value in an .als file is stored in a `Value` attribute, e.g.
+# `<EffectiveName Value="My Track" />`. Rather than have every call site guess where the
+# value is, the guess is made in one place, here: a value that is not there yields nil, and a
+# boolean that is not there is false.
 
 # Mix this module into a class that needs to read XML values:
 #

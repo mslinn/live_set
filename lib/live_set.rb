@@ -25,7 +25,6 @@ require_directory "#{__dir__}/live_set/tx"
 #   als_validate       AlsValidate.run
 #   als_nodes          AlsNodes.run
 #   als_diff           AlsDiff.run
-#   als_xsd_order      AlsXsdOrder.run
 #   als_release_notes  AlsReleaseNotes.run
 #
 # The executables in `exe/` call the class methods. Each class also parses its

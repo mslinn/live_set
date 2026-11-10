@@ -117,8 +117,8 @@ else.
 
 The rename is not a substitution over the string "Master": `MainSequencer` is
 spelled the same in Live 11 and Live 12, and it has nothing to do with the
-master track. The pairs are named one by one: the elements in the table above,
-and the routing target in "The values the two versions write differently".
+master track. The two spellings are named one by one: the elements in the table
+above, and the routing target in "The values the two versions write differently".
 
 ### The values the two versions write differently
 
@@ -145,6 +145,18 @@ The names are in the `ADD` list of `lib/live_set/tx/live_11_and_12.rb`. Three
 of the additions are not elements but splits: the mixer of the arrangement view
 and the mixer of the session view are each one element in Live 11 and several
 in Live 12.
+
+### The element Live 11 has and Live 12 does not
+
+Live 11 asks whether a clip slot has to be refrozen, and it answers the question
+with a `NeedRefreeze` element: a slot that has a stop has one. Live 12 leaves
+the question out — it has no such element, and it says nothing about a refreeze.
+
+Going down, the element is written for every slot that has a stop, which is what
+Live 11 writes for a slot that has one. Going up, the elements are removed,
+because Live 12 has no such element. The element is not in the lists of
+`lib/live_set/tx/live_11_and_12.rb`, because it is not removed from every slot
+and not added to every slot.
 
 ### The element Live 12 puts at another depth
 

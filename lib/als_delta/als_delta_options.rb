@@ -5,11 +5,14 @@ require_relative '../common/command'
 require_relative '../common/log'
 
 class AlsDelta
-  # TODO: document where the backups are stored, and how to change that location.
-  # The backups are stored in a temporary directory, which is deleted when the
-  # process exits. If you want to keep the backups, use the -k option. If you
-  # want to change the location of the backups, set the TMPDIR environment
-  # variable before running als_delta.
+  # Where the backups are stored.
+  #
+  # A backup is written beside the set it is a backup of: it is the file of the set with
+  # `_backup` before the extension, e.g. `song_backup.als` beside `song.als`. The backup is
+  # deleted when the command exits, unless the `-k` option is given: a kept backup is the
+  # file of the set with the time it was made before the extension, e.g.
+  # `song_2026-11-09_19:30:00.als`. The location of the backups is the directory of the set,
+  # and there is no option that changes it.
 
   # Display help message for als_delta
   #

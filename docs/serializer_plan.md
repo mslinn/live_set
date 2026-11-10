@@ -1,6 +1,21 @@
-# TODO Implementation Plan for`lib/live_set/model/live_palette.rb`
+# Implementation Plan for `live_set`
 
 This is the plan for preparing the next major version of `live_set`.
+
+The steps of the plan are in "The steps", at the end of this document, and each of them says
+whether it is done. The steps that are done are the record of what was done; the work that is
+left is in "What is left", below, and in [`TODO.md`](TODO.md).
+
+
+## What is left
+
+- **The documents.** The stale documents are read against the code and corrected:
+  `glossary.md` first, because it defines the terms the other documents use, and then
+  `cpfir.md`, `conversion.md`, `ab_test_plan.md` and `live_11_12_diff.md`.
+- **This plan.** The proposals of "The work", below, are the record of what was decided; the
+  parts that are done are deleted from it as the work is finished.
+- **The README and the index.** `README.md` and [`index.md`](index.md) are brought up to date
+  with the report as it is written now.
 
 
 ## TODOs
@@ -401,12 +416,12 @@ Each step leaves the program working, and the reports unchanged.
    | `lib/live_set/live_set_audio_clip.rb` | `lib/live_set/model/live_audio_clip.rb` | `LiveAudioClip` |
    | `lib/live_set/live_set_group.rb`      | `lib/live_set/model/live_group.rb`      | `LiveGroup`     |
    | `lib/live_set/live_set_scene.rb`      | `lib/live_set/model/live_scene.rb`      | `LiveScene`     |
-   | `lib/live_set/live_set_track.rb`      | `lib/live_set/model/live_track.rb`      | `LiveTrack`     |
+   | `lib/live_set/live_set_track.rb`      | `lib/live_set/model/live_track_facts.rb` | `LiveTrackFacts` |
    | `lib/live_set/live_tracks.rb`         | `lib/live_set/model/live_tracks.rb`     | `LiveTracks`    |
 
    and their nine specs move with them into `spec/live_set/model/`, renamed the same way:
    `spec/live_set/live_set_track_audio_clips_spec.rb` becomes
-   `spec/live_set/model/live_track_audio_clips_spec.rb`, and so on.
+   `spec/live_set/model/live_audio_track_audio_clips_spec.rb`, and so on.
 
    Three things the move breaks, and what is done about each:
 

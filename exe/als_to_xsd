@@ -1,10 +1,13 @@
 #!/usr/bin/env ruby
 
-# TODO change returns an error code. See AlsReport.run
+# Writes an XML Schema (XSD) of one or more Ableton Live sets.
+#
+# The implementation is in the AlsToXsd class, in lib/als_to_xsd/als_to_xsd.rb.
+
 if ENV['VO_DEBUGGING']
   require_relative '../lib/live_set'
 else
   require 'live_set'
 end
 
-AlsToXsd.run(ARGV)
+exit AlsToXsd.run(ARGV)

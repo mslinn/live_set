@@ -49,8 +49,8 @@ class LiveDevice
   # process audio themselves, so they are not reported — but the devices they hold are, because
   # those are the devices that actually run.
   #
-  # See docs/als_notes.md, "The device chain, and the chains nested inside it", and "The device
-  # chain of a group".
+  # See docs/als_notes.md, "The device chain, and the chains nested inside it", and "Group Device
+  # Chain".
   CONTAINER_ELEMENTS = %w[AudioEffectGroupDevice DrumGroupDevice InstrumentGroupDevice].freeze
 
   def initialize(node)

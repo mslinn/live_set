@@ -33,6 +33,28 @@ module Schemas
     file
   end
 
+  # The names of the children of an element, in the order a schema gives them.
+  #
+  # A generated schema describes an element with an `xs:sequence`, which lists the kinds of
+  # child element the element may have, in order. The order is the order Live writes the
+  # children in, because the schema is generated from the XML stored in the demo sets of a
+  # Live version.
+  #
+  # @param version [String] the Live version, e.g. "11" or "12.4"
+  # @param element_name [String] the name of an element of the format, e.g. MidiClip
+  # @return [Array<String>, nil] the names of the children, in order
+  def self.children_of(version, element_name)
+    namespace = { 'xs' => 'http://www.w3.org/2001/XMLSchema' }
+    document = Nokogiri::XML File.read(path(version))
+    element = document.xpath('//xs:element[@name]', namespace).find { |e| e['name'] == element_name }
+    return nil if element.nil?
+
+    sequence = element.at_xpath('./xs:complexType/xs:sequence', namespace)
+    return nil if sequence.nil?
+
+    sequence.xpath('./xs:element', namespace).map { |child| child['name'] }
+  end
+
   # The name of the schema of a Live version.
   #
   # The name comes from the Creator attribute of the demo set, e.g. "Ableton Live 11.3d1" gives

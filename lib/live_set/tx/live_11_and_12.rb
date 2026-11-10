@@ -575,22 +575,22 @@ class Live11And12 < LiveVersionConverter
   # The transformations that a list cannot express.
   #
   # @return [void]
-  def special_transformations # TODO: can these be sorted alphabetically?
-    oversampling
+  def special_transformations
     audio_out_target
-    scroll_position
-    freeze_elements
-    need_refreeze
     chooser_bar
     clip_scale
-    midi_take_lanes
-    take_lane_lom_id
     device_view_data
-    id_ref_list
-    source_context
-    tuning
-    track_names
     follow_action_link
+    freeze_elements
+    id_ref_list
+    midi_take_lanes
+    need_refreeze
+    oversampling
+    scroll_position
+    source_context
+    take_lane_lom_id
+    track_names
+    tuning
 
     super # This must be the last line in the method
   end
@@ -603,9 +603,16 @@ class Live11And12 < LiveVersionConverter
   # closely.
   #
   # A Pedal's Oversampling uses "true"/"false" in both versions, so only a Saturator's is rewritten.
+  #
+  # The value is rewritten in the direction of the conversion, and not whichever spelling is
+  # found: a value that both versions write is left alone. See docs/conversion.md, "The kinds
+  # of difference".
   def oversampling
-    # FIXME: This implementation does not test the Live version before outputting a value
-    values = { 'true' => '1', 'false' => '0', '1' => 'true', '0' => 'false' }
+    values = if down?
+               { 'true' => '1', 'false' => '0' }
+             else
+               { '1' => 'true', '0' => 'false' }
+             end
     document.xpath('//Saturator/Oversampling').each do |element|
       value = element['Value'].to_s
       element['Value'] = values[value] if values.key?(value)
@@ -613,9 +620,15 @@ class Live11And12 < LiveVersionConverter
   end
 
   # Live 12 routes to "AudioOut/Main" and Live 11 routes to "AudioOut/Master".
+  #
+  # The value is rewritten in the direction of the conversion, and not whichever spelling is
+  # found. See docs/conversion.md, "The kinds of difference".
   def audio_out_target
-    # FIXME: This implementation does not test the Live version before outputting a value
-    values = { 'AudioOut/Main' => 'AudioOut/Master', 'AudioOut/Master' => 'AudioOut/Main' }
+    values = if down?
+               { 'AudioOut/Main' => 'AudioOut/Master' }
+             else
+               { 'AudioOut/Master' => 'AudioOut/Main' }
+             end
     document.xpath('//Target').each do |element|
       value = element['Value'].to_s
       element['Value'] = values[value] if values.key?(value)
@@ -666,9 +679,16 @@ class Live11And12 < LiveVersionConverter
 
   # The refreeze of a clip slot.
   #
-  # Live 11 says that a clip slot needs a refreeze, and Live 12 leaves the question out.
+  # Live 11 asks whether a clip slot has to be refrozen, and it answers the question with a
+  # `NeedRefreeze` element: a slot that has a stop has one, and the value is "true". Live 12
+  # has no such element, and it leaves the question out: it says nothing about a refreeze.
   #
-  # FIXME "Live 12 leaves the question out" wtf does that mean?
+  # Going down, the element is written for every slot that has a stop, because that is what
+  # Live 11 writes for a slot that has one. Going up, the elements are removed, because Live
+  # 12 has no such element. The element is not in the lists of the bridge, because it is not
+  # removed from every slot and not added to every slot.
+  #
+  # See docs/live_11_12_diff.md, "The element Live 11 has and Live 12 does not".
   def need_refreeze
     if down?
       document.xpath('//ClipSlot[HasStop and not(NeedRefreeze)]').each do |slot|

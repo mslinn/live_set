@@ -14,7 +14,6 @@ Gem::Specification.new do |spec|
     als_to_version
     als_to_xsd
     als_validate
-    als_xsd_order
   ]
   spec.description = <<~END_DESC
     This software can:
