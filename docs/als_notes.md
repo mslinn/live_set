@@ -744,7 +744,7 @@ a `<MasterTrack/>` are found this way:
 $ pinkblanket="$songs/pink_blanket/daw/live/pink_blanket Project/pink_blanket.als"
 $ als_nodes "$pinkblanket" //MainTrack --children | \
   jq -r '.[]' | \
-  sort
+  sort -u
 ArrangementClipsListWrapper
 AutomationEnvelopes
 ClipSlotsListWrapper

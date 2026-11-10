@@ -1,9 +1,15 @@
 require_relative 'live_device'
 
-# The devices of a set, and the tracks they are on.
+# Cross-reference of the devices in a Live set by the tracks and groups that use them.
 #
-# A device of a group is on the group and on the tracks in the group, because the chain of
-# the group processes the audio of the tracks in it.
+# A group device is present in two places:
+# 1. on the group
+# 2. on each the track of the group.
+#
+# FIXME: search for comments in code and docs that claim devices on a group track are replicated on its child tracks.
+# THIS IS FALSE
+#
+# Devices on a group track are NOT replicated on its child tracks.
 class LiveDeviceCrossReference
   include Enumerable
 
@@ -14,11 +20,18 @@ class LiveDeviceCrossReference
     @devices = devices
   end
 
-  # Each device of the set, with the tracks it is on.
+  # Iterates over the devices, yielding each device and its associated tracks.
   #
-  # @yieldparam device [LiveDevice] a device
-  # @yieldparam tracks [Array<LiveTrack, LiveGroup>] the tracks it is on
-  # @return [void]
+  # The unnamed `&` parameter accepts the caller's block without assigning it to a
+  # local variable. The `&` in `devices.each_with_its_tracks(&)` forwards that block
+  # unchanged, so this method's caller receives the yielded values.
+  # This anonymous block-forwarding syntax requires Ruby 3.1 or later.
+  #
+  # Without a block, returns an Enumerator.
+  #
+  # @yieldparam device [LiveDevice] a device in the set
+  # @yieldparam tracks [Array<LiveTrack, LiveGroup>] tracks associated with the device
+  # @return [Enumerator, LiveDeviceCrossReference]
   def each(&)
     return enum_for(:each) unless block_given?
 
@@ -26,13 +39,12 @@ class LiveDeviceCrossReference
     self
   end
 
-  # The devices of the set, grouped by their name, their kind, and whether P3S
-  # can run them, with the tracks each of them is on.
+  # Groups devices by label, kind, and P3S compatibility.
   #
-  # Two devices with the same name and the same kind are one row of the cross-reference,
-  # whether P3S can run them or not.
+  # Each hash key is `[label, kind, unusable]`; its value is the tracks associated
+  # with devices in that group. Devices with matching keys share one entry.
   #
-  # @return [Array] each group of devices, and the tracks they are on
+  # @return [Hash<Array, Array<LiveTrack, LiveGroup>>] device attributes mapped to associated tracks
   def uses
     @uses ||= begin
       groups = {}

@@ -2,7 +2,7 @@ require 'optparse'
 require_relative 'command_options'
 require_relative 'log'
 
-# The parts of a command that are the same everywhere.
+# Mixin for the common parts of a command.
 #
 # Every command is a class with three methods:
 # - `run` takes the command line arguments and does the work
@@ -13,13 +13,43 @@ require_relative 'log'
 # logging. A command that is given an option it does not understand, or an option that is missing its argument, says so
 # and prints its help message, instead of failing with a backtrace.
 #
-#   class AlsExample extend Command
+# lib/als_example/als_example.rb:
+#   require 'shellwords'
+#   require_relative '../common/command'
+#   require_relative '../common/run'
+#
+#   class AlsExample
+#     extend Command
+#     include Run
+#
 #     def self.run(args)
 #       options, remaining = parse_options(args)
 #       ...
 #     end
 #
+#     def initialize(whatever, **options)
+#       ...
+#     end
+#   end
+#
+#
+# lib/als_example/als_example_options.rb:
+#   require 'logger'
+#   require 'optparse'
+#   require_relative '../common/command'
+#   require_relative '../common/log'
+#
+#   class AlsExample
+#     # Display help message for als_example
+#     # @param msg [String, nil] an error message to show above the help
+#     # @return [String] the help message
 #     def self.help(msg = nil)
+#       ...
+#     end
+#
+#     # The options the command starts with.
+#     # @return [Hash] the options
+#     def self.default_options
 #       ...
 #     end
 #

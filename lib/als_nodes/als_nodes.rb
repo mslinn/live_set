@@ -4,11 +4,22 @@ require_relative '../common/command'
 require_relative '../live_set/als_file'
 require_relative '../live_set/demo_sets'
 
+# TODO: I frequently run commands like:
+# $ als_nodes "$pinkblanket" //AudioTrack/DeviceChain/DeviceChain --children |   jq -r '.[]' | sort -u
+# This portion is boilerplate that I want to abbreviate somehow: `--children |   jq -r '.[]' | sort -u`
+# Here are some options. help me decide which would be flexible and easy to understand for a user:
+# $ als_nodes "$pinkblanket" //AudioTrack/DeviceChain/DeviceChain --unique_child_entities
+# $ als_nodes "$pinkblanket" //AudioTrack/DeviceChain/DeviceChain --children --unique_entities
+# $ als_nodes "$pinkblanket" //AudioTrack/DeviceChain/DeviceChain --children --unique
+# We also need short-forms for options:
+# - --children/-c
+# - --unique/-u
+#
 # Prints the nodes of an XML document that an XPath expression finds.
 #
-# A Live set is XML, usually gzip-compressed, so the document can be a .als file or any XML
-# file. The XPath expression is the only thing that has to change from one question to the next,
-# which makes this the tool to reach for instead of writing a program for each element.
+# A Live set is XML, usually gzip-compressed, so the document can be a .als file or any XML file. The XPath expression
+# is the only thing that has to change from one question to the next, which makes this the tool to reach for instead of
+# writing a program for each element.
 class AlsNodes
   extend Command
 
