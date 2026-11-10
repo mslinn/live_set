@@ -1,4 +1,5 @@
 require 'cgi'
+require 'twitter_cldr'
 require_relative '../../common/log'
 require_relative '../model/live_palette'
 
@@ -31,6 +32,7 @@ module LiveMarkup
   INDENT = '    '.freeze
 
   class << self
+    # TODO: since this is dedicated to tracks, this belongs in a base class for tracks, which should already exist
     # Returns an icon denoting the type of track it was passed.
     #
     # If a track is not recognized, then this a programming error, and it is reported.
@@ -44,6 +46,7 @@ module LiveMarkup
       '💣'
     end
 
+    # TODO: this belongs in a HierarchicalNumber class
     # The indentation of a thing with the given number in the report.
     #
     # The number of a thing says how deep it is: "1" is a track at the top of the set, "1.1"
@@ -57,6 +60,7 @@ module LiveMarkup
       INDENT * (levels_of(number) - 1)
     end
 
+    # TODO: this belongs in a HierarchicalNumber class
     # The number of levels of a thing with the given number in the report.
     #
     # @param number [String] the number of the thing in the report
@@ -66,7 +70,7 @@ module LiveMarkup
       parts.last.match?(/[a-z]\z/) ? parts.length + 1 : parts.length
     end
 
-    # The name of a thing, on the colour it is written on.
+    # Return a string containing colored HTML code tags with embedded text.
     #
     # The style is applied to the <code> element and not on a <span around the element>.
     #
@@ -121,12 +125,14 @@ module LiveMarkup
                        "color: #{LIGHT_TEXT}; vertical-align:middle;"
     end
 
+    # Return a string containing colored HTML code tags with embedded text and CSS so it completely fills its
+    # container. Originally written to fill table cells.
+    #
     # The number Live writes for a colour, in a cell filled with that colour.
     #
-    # @param value [Integer, String, nil] the number Live writes
-    # @param background_color [String, nil] the colour the cell is filled with
-    # @param foreground_color [String, nil] the colour the number is written in
-    # @return [String] the cell
+    # @param value [Integer, String, nil] the number Live writes @param background_color [String, nil] the colour the
+    # cell is filled with @param foreground_color [String, nil] the colour the number is written in @return [String] the
+    # cell
     def swatch(value, background_color: nil, foreground_color: nil)
       return '' if value.nil?
 
@@ -146,17 +152,20 @@ module LiveMarkup
       "<code style=\"#{style}\">#{escaped_value}</code>"
     end
 
-    # The colour the text on a colour is written in.
+    # Return colour the text on a background colour is written in.
     #
-    # Black is written on a colour that looks light, and white on a colour that looks dark.
+    # Black text is written on a lignt background colour, and white text on a colour that looks dark.
     #
-    # @param color [String] the colour, as six hex digits
+    # @param background_color [String] the colour, as six hex digits
     # @return [String] the colour of the text
-    def text_color(color)
-      brightness(color) > 128 ? '#000000' : LIGHT_TEXT
+    def text_color(background_color)
+      brightness(background_color) > 128 ? '#000000' : LIGHT_TEXT
     end
 
-    # A number, as the default locale writes it.
+    # TODO: this method adds no value. delete it and call localize.to_s at the call sites
+    # I added a new dependency to the project to make this work: twitter_cldr
+    #
+    # An integer, as the default locale writes it.
     #
     # Ruby does not format numbers by locale, so the grouping of the default locale is
     # written here: the thousands separator of US English.
@@ -164,10 +173,10 @@ module LiveMarkup
     # @param value [Integer] the number
     # @return [String] the number, with its thousands separated
     def number(value)
-      value.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\1,').reverse
+      value.localize.to_s
     end
 
-    # The characters of a name that would break a table, or the markup around it.
+    # Escape the characters of a name that would break a table, or the markup around it.
     #
     # The text is escaped for HTML, and the pipe is escaped as well, because a pipe in a
     # name would break the table the name is written in.
@@ -192,17 +201,20 @@ module LiveMarkup
       (0.299 * red) + (0.587 * green) + (0.114 * blue)
     end
 
+    # TODO: This appears to be doing the same job as the swatch method. We are doing something two different ways.  The
+    # names of both methods are bad. Neither name suggests that the purpose is to fill a table cell with a color.
+    #
     # The CSS for a table cell filled with a colour.
     #
-    # @param background_color [String, nil] the colour the cell is filled with
-    # @param foreground_color [String, nil] the colour the number is written in
-    # @return [String, nil] the style, or nil when there is no colour
+    # @param background_color [String, nil] the colour the cell is filled with @param foreground_color [String, nil] the
+    # colour the number is written in @return [String, nil] the style, or nil when there is no colour
     def style_of(background_color: nil, foreground_color: nil)
       return nil unless background_color
 
       "background-color: #{background_color}; color: #{foreground_color}"
     end
 
+    # TODO: Move this to LiveTracksSerializer lib/live_set/serializer/live_tracks_serializer.rb
     # track detail: its number, its icon, its kind, its name and its state.
     #
     # The indentation of the line comes from the number of the track, so that the number and
@@ -220,6 +232,8 @@ module LiveMarkup
         "#{track_name_markdown(track, name)}#{states_suffix}"
     end
 
+    # TODO: Move this to LiveTracksSerializer lib/live_set/serializer/live_tracks_serializer.rb
+    #
     # colored code containing the track name, using the color from the Live set.
     #
     # A track that is incompatible with the P3S Standalone is highlighted.
@@ -251,6 +265,9 @@ module LiveMarkup
       "<nobr>#{label}</nobr>"
     end
 
+    # TODO: Move this to LiveTracksSerializer lib/live_set/serializer/live_tracks_serializer.rb and rename to
+    # `full_status`
+    #
     # The complete state of a track.
     #
     # Ableton Live does not display a small icon to denote a frozen track. Instead, it indicates a frozen track by

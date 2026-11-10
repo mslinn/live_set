@@ -8,7 +8,8 @@ meaning never changes. When an item is completed
 anything worth keeping is written up in another Markdown file in `docs/` and/or
 the code itself, then the entry is deleted from this file.
 
-This project was developed for WSL, which implies Windows 10 or 11.
+This project was developed for WSL, which implies Windows 10 or 11. Ruby, Bash and
+PowerShell are the principal languages in use for this project.
 
 
 ## Latest Thoughts

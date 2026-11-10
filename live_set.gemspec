@@ -62,4 +62,5 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'highline'
   spec.add_dependency 'markdown-tables'
   spec.add_dependency 'nokogiri'
+  spec.add_dependency 'twitter_cldr'
 end

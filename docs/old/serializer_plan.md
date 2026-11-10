@@ -65,6 +65,9 @@ contrary, SOP requires every class to be designed for testability and to have un
 
 ## TODOs
 
+TODO How many of these are done, and how many were bad ideas and should be
+deleted without doing them? the user must start by examining the report.
+
 <!-- markdownlint-disable MD013 MD060 -->
 | The TODO, in `live_palette.rb`                                                                                                                                              | What is to be done                                                     | Where it goes                    |
 |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|-------------------------------------|
