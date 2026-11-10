@@ -58,10 +58,11 @@ class LiveProjectInfo
 
   # What is wrong with the folders around the set.
   #
+  # The warnings are written in the report, and they are not logged as well: the report is
+  # what the program was asked to produce.
+  #
   # @return [Array<String>] the warnings
   def warnings
-    # TODO: return [] # if running als_report (so these warnings are not logged when generating a report)
-
     messages = []
     messages << "The `#{FOLDER}` folder is not present in <code>#{directory.gsub('/', '/<wbr>')}</code>" unless present?
     messages << "The `#{FOLDER}` folder in `#{directory}` is not a directory" if present? && !a_directory?

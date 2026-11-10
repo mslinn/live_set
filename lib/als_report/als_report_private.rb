@@ -8,11 +8,11 @@ class AlsReport
   # Verify that the Ableton Live project is valid.
   #
   # The 'Ableton Project Info' folders around the set are a fact about the machine the report
-  # is made on, and not about the set. The report says what was found, and the warnings are
-  # logged here as well.
+  # is made on, and not about the set. The report says what was found: the warnings are in
+  # the report, and they are not logged as well, because the report is what the program was
+  # asked to produce.
   def check_ableton_project_info
     project_info = LiveProjectInfo.new File.realpath(File.dirname(@set_name))
-    project_info.warnings.each { |warning| Log.warn "Warning: #{warning}" }
 
     project_info.in_parents.each { |parent| add_dash_suffix parent }
   end

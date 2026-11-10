@@ -9,6 +9,9 @@ module LiveMarkup
   DARK_BACKGROUND = '#212121'.freeze
   LIGHT_TEXT      = '#FFFFFF'.freeze
 
+  # The background color of a warning.
+  WARNING_BACKGROUND = '#8B0000'.freeze
+
   # Hash from track type to track icon.
   #
   # Live 12 renamed the master track to the main track, and it is the same thing, so it has the same icon.
@@ -101,6 +104,21 @@ module LiveMarkup
       opening_tag = attributes.empty? ? '<code>' : "<code #{attributes.join(' ')}>"
 
       %(#{opening_tag}#{text}</code>)
+    end
+
+    # A warning, in a span of its own.
+    #
+    # A warning is written on the dark background of the things that cannot be used, and in
+    # light text, so that a reader sees it in the report. The decoration of a warning is
+    # made in one place, and every warning is written with it: the warning of a clip, and the
+    # marker of a sample.
+    #
+    # @param message [String] the message
+    # @return [String] the message, decorated
+    def warning_span(message)
+      code_span message,
+                 style: "background-color: #{WARNING_BACKGROUND}; " \
+                        "color: #{LIGHT_TEXT}; vertical-align:middle;"
     end
 
     # The number Live writes for a colour, in a cell filled with that colour.

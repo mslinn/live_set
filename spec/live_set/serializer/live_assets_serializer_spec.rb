@@ -45,6 +45,15 @@ RSpec.describe LiveAssetsSerializer, '#to_markdown' do
     expect(markdown).to include('❌ missing')
   end
 
+  it 'writes the marker of a file with the decoration of a warning' do
+    markdown = described_class.new(assets).to_markdown
+
+    # The decoration is the one of the warning of a clip, and it is made in one place.
+    expect(markdown).to include(
+      '<code style="background-color: #8B0000; color: #FFFFFF; vertical-align:middle;">❌ missing</code>'
+    )
+  end
+
   it 'writes no date for a file that is not on disk' do
     markdown = described_class.new(assets).to_markdown
 

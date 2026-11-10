@@ -88,14 +88,15 @@ class LiveAssetsSerializer
 
   # What is said about the sample.
   #
+  # A sample that is not in the set, or that is not on disk, is a warning, and it is written
+  # with the decoration of a warning.
+  #
   # @param asset [LiveAsset] the sample
   # @return [String, nil] the marker, or nil when the sample is in the set and is there
   def marker_of(asset)
-    # TODO: Extract the text decorator functionality from LiveAudioClipSerializer#warning_markdown in
-    # lib/live_set/serializer/live_audio_clip_serializer.rb and use that value in place of MISSING below
-    return asset.there? ? nil : MISSING if asset.in_project?
+    return asset.there? ? nil : LiveMarkup.warning_span(MISSING) if asset.in_project?
 
-    asset.there? ? NOT_COMPATIBLE : MISSING
+    asset.there? ? LiveMarkup.warning_span(NOT_COMPATIBLE) : LiveMarkup.warning_span(MISSING)
   end
 
   # When the file was last changed.

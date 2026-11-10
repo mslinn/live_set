@@ -296,8 +296,9 @@ for what the step asks for.
    `LiveTrackFacts#group?` reads the kind of the track, and `LiveGroup` includes
    `LiveTrackFacts`, so the two copies are one; the unused `set_directory` parameter of
    `LiveMidiTrack` and of `LiveMidiTracks` is gone, and the call sites are corrected; the
-   section of the master track is the heading of the section and the number of the track,
-   and the word "Master" is not in the line of the track as well.
+   warnings of the 'Ableton Project Info' folders are in the report and are not logged as
+   well; the section of the master track is the heading of the section and the number of the
+   track, and the word "Master" is not in the line of the track as well.
 7. **The conversion is corrected.** The two version FIXMEs, the sentence that says nothing,
    and the sorting of the special transformations.
 8. **The commands are corrected.** `als_to_xsd` becomes a library with a thin wrapper, and

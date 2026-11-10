@@ -13,9 +13,6 @@ require_relative 'live_markup'
 # clip = LiveAudioClip.new(...)
 # markdown = LiveAudioClipSerializer.new(clip, '1.1.1').to_markdown
 class LiveAudioClipSerializer
-  # The background a clip whose sample is not in the project is marked on.
-  NOT_COLLECTED_BACKGROUND = '#8B0000'.freeze
-
   # Creates a serializer for the given clip.
   #
   # @param clip [LiveAudioClip] the clip to be serialized
@@ -44,15 +41,8 @@ class LiveAudioClipSerializer
   # A clip whose sample is not in the project is highlighted.
   #
   # @return [String] the messages for a clip
-  #
-  # TODO Extract the warning decoration to a method that can replace what LiveAssetsSerializer.MISSING is doing when
-  # called by LiveAssetsSerializer#marker_of.
   def warning_markdown
-    @clip.messages.map do |warning|
-      LiveMarkup.code_span warning,
-                           style: "background-color: #{NOT_COLLECTED_BACKGROUND}; " \
-                                  "color: #{LiveMarkup::LIGHT_TEXT}; vertical-align:middle;"
-    end.join ', '
+    @clip.messages.map { |warning| LiveMarkup.warning_span warning }.join ', '
   end
 
   # The name of the clip, on the colour Live gave it.
