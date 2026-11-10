@@ -81,7 +81,11 @@ be transferred; the latest supported version is Live 12.4.
 
 ### Reported Problems
 
-1. Third-Party Plugins (VST / AU)
+A Live Set may fail to open, open with missing content, or open but behave
+differently on Push 3 Standalone for several reasons. The `als_report` command
+reports the ones it can see, and says what to do about each of them.
+
+1. Third-Party Plugins (VST / VST3 / AU)
 
     An unfrozen track will cause a error (or fail to produce sound) on a P3S if
     it relies on an unsupported device or routing that the P3S does not support.
@@ -100,22 +104,30 @@ be transferred; the latest supported version is Live 12.4.
 
     If any non-Ableton plugin is not on a frozen track then the `als_report`
     command includes a clear explanation of the problem in its generated report.
+    A MIDI track has the same devices as an audio track, and the same problems:
+    a plug-in on a MIDI track has to be frozen as well.
 
-2. Desktop-Specific External Audio Routing
+2. Missing Samples or Media
 
-    If a track's Audio From is set to "Ext. In" and routed to a specific channel of
-    a desktop audio interface (e.g., "Ext. In: 3/4" from a Focusrite Scarlett), that
-    routing will not exist on the P3S.
+    Transferring just the .als leaves the files it refers to behind. The whole
+    project has to be transferred, or the set has to be saved with Collect All
+    and Save. The report counts the clips of the set that have not been
+    collected.
 
-    The track will load, but it will be silent because the expected input hardware
-    isn't there.
+3. Packs
 
-    Once again, freezing the track makes the Live set compatible with the P3S.
-    Recording the external audio into a clip, then freezing the track converts
-    an external input dependency into a self-contained audio clip and makes the
-    Live set compatible with the P3S.
+    A set that plays a file of a pack refers to the pack, and the pack has to be
+    installed for the file to be found. Samples from packs require those packs
+    to be installed on the Push as well.
 
-3. Incompatible or Overloaded Max for Live (M4L) Devices
+    A pack that is not installed does not stop the set from loading, and the set
+    plays: the content of the pack does not play. There is no way to probe the P3S,
+    so what is installed on it is not known here, and a set that refers to a pack
+    can only be classified as *probably* ready. The report says what could not be
+    checked, and it names the packs the set refers to that are not installed on
+    the computer the report was made on.
+
+4. Incompatible or Overloaded Max for Live (M4L) Devices
 
     While the P3S does support Max for Live, the P3S has less CPU headroom than a
     modern desktop computer.
@@ -126,6 +138,10 @@ be transferred; the latest supported version is Live 12.4.
     Freezing an M4L device renders its output to audio, removing the CPU load and
     the need for the Max runtime to process it in real-time.
 
+    The report treats a Max for Live device as advice and not as an error: the
+    device is supported by the P3S, and the report names the devices of the set
+    that use one, so that they can be frozen if they overload the P3S.
+
     You do not need to freeze tracks that only use:
 
     - Native Ableton Instruments: Simpler, Sampler, Drum Rack, Wavetable, Operator,
@@ -134,6 +150,52 @@ be transferred; the latest supported version is Live 12.4.
     - External MIDI Hardware: If a track is set to "MIDI To" an external hardware
       synth connected to the Push 3's MIDI out ports, it will work perfectly. The
       Push 3 will just send the MIDI notes out to your gear.
+
+5. Live Version Mismatch
+
+    The oldest version of Live the P3S Standalone can load a set of is Live 11.3.
+    The P3S Standalone runs a version of Live of its own, and it loads a set only
+    when the set was made with that version of Live or with a later one: a P3S
+    Standalone that has Live 12.3 in it cannot load a set that was made with
+    Live 12.4. The version of Live the P3S Standalone has is not known to the
+    report, so the oldest version it supports is the one that is checked.
+
+6. The Arrangement View
+
+    Sets can load and play, but Arrangement View editing is not supported in
+    Standalone Mode; the Push is optimized for the Session View. A set that has
+    no clip in the session view is an empty set as far as the P3S is concerned.
+
+7. Capacity
+
+    A set may exceed the available CPU, memory, or track capacity for the Live
+    edition running on the Push. A set of more than 2 GB is incompatible with the
+    P3S Standalone.
+
+### Known Problems the Report Does Not Check
+
+The Licence of the Content
+
+    Whether the sound or the device of a set is available under the Live licence
+    that the P3S Standalone is authorized with cannot be checked here. A set that
+    uses content the licence does not cover loads and plays, but the content does
+    not play. The report does not check this.
+
+Desktop-Specific External Audio Routing
+
+    If a track's Audio From is set to "Ext. In" and routed to a specific channel of
+    a desktop audio interface (e.g., "Ext. In: 3/4" from a Focusrite Scarlett), that
+    routing will not exist on the P3S.
+
+    The track will load, but it will be silent because the expected input hardware
+    isn't there.
+
+    Freezing the track makes the Live set compatible with the P3S. Recording the
+    external audio into a clip, then freezing the track converts an external input
+    dependency into a self-contained audio clip and makes the Live set compatible
+    with the P3S.
+
+    The report does not check this yet.
 
 
 ## Installation

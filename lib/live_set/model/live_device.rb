@@ -22,12 +22,25 @@ class LiveDevice
 
   # The element names that mean "this device is a plug-in".
   #
-  # A PluginDevice is a plug-in. A Max for Live device is an MxDeviceAudioEffect, and Max for Live
-  # devices are supported on the P3S if they are not CPU intensive, so it is treated separately.
+  # A PluginDevice is a plug-in. A Max for Live device is one of the elements
+  # MAX_FOR_LIVE_ELEMENTS names, and Max for Live devices are supported on the P3S if they
+  # are not CPU intensive, so it is treated separately.
   PLUGIN_ELEMENTS = %w[PluginDevice].freeze
 
   # The element names that mean "this device is a Max for Live device".
-  MAX_FOR_LIVE_ELEMENTS = %w[MxDeviceAudioEffect].freeze
+  #
+  # The devices of a chain are the children of the `Devices` element of a device chain, and
+  # a Max for Live device is a child of its own kind. Its element name says which kind it
+  # is:
+  #
+  #   MxDeviceMidiEffect    a Max for Live MIDI effect
+  #   MxDeviceInstrument    a Max for Live instrument
+  #   MxDeviceAudioEffect   a Max for Live audio effect
+  #
+  # These are the class names of the Live Object Model. The name of the device is inside the
+  # element, and says nothing about what the device is: there are hundreds of Max for Live
+  # devices, and the element is what they all have in common.
+  MAX_FOR_LIVE_ELEMENTS = %w[MxDeviceAudioEffect MxDeviceInstrument MxDeviceMidiEffect].freeze
 
   # The element names that mean "this device holds other devices".
   #
@@ -58,7 +71,7 @@ class LiveDevice
   #
   # The container devices themselves are not returned. They are not devices that process audio —
   # they hold devices that do. See docs/als_notes.md, "The device chain, and the chains nested
-  # inside it", and "The device chain of a group".
+  # inside it", and "Group Device Chain".
   #
   # @param element [Nokogiri::XML::Node, nil] the track or group element
   # @return [Array<Nokogiri::XML::Element>] the devices
@@ -84,9 +97,15 @@ class LiveDevice
     end
   end
 
-  # @return true if the device is a plug-in, or a Max for Live device
+  # Whether the device stops the track from being transferred to P3S Standalone.
+  #
+  # A plug-in stops the transfer: the P3S Standalone cannot run one. A Max for Live device
+  # is supported by the P3S Standalone, but with less CPU headroom, so it is a matter of
+  # advice rather than of transfer. See README.md, "Push 3 Standalone (P3S)".
+  #
+  # @return true if the device is a plug-in
   def blocking?
-    plug_in? || max_for_live?
+    plug_in?
   end
 
   # @return true if the device is a plug-in
@@ -132,11 +151,13 @@ class LiveDevice
 
   # Whether the device is a Max for Live device.
   #
+  # The element the device was built from is the whole of the answer. The name of the device
+  # and the manufacturer are not consulted: the name is whatever the user called the device,
+  # and no device of the corpus has a manufacturer.
+  #
   # @return [Boolean] true when the device is a Max for Live device
   def max_for_live?
-    return true if MAX_FOR_LIVE_ELEMENTS.include? @node.name
-
-    "#{@manufacturer} #{@name}".match?(/max\s*for\s*live|\bM4L\b/i)
+    MAX_FOR_LIVE_ELEMENTS.include? @node.name
   end
 
   private

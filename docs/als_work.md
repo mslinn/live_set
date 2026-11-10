@@ -545,8 +545,8 @@ See `spec/support/schemas.rb`, which finds the sets and generates the schemas, a
 
 ## Test Suite
 
-The `live_set` test in `spec/demo_sets.rb` works with the test corpuses, instead
-of XML fragments.
+The `live_set` test in `spec/als_validate/demo_sets_spec.rb` works with the test
+corpuses, instead of XML fragments.
 
 `dev/generate_reference_als_reports` runs `als_report` on every reference set in
 the [Live Reference Sets
@@ -556,8 +556,8 @@ in that repository.
 When testing the `als_to_version` command, the sets are converted only once, and
 `spec/conversions.rb` provides the result for multiple assertions.
 
-The examples in `spec/live_set/live_set_modify_als_spec.rb` call the method
-directly, and the examples in `spec/integration/live_set_modify_als_spec.rb` run
+The examples in `spec/als_to_version/als_to_version_spec.rb` call the method
+directly, and the examples in `spec/integration/live_set_round_trip_spec.rb` run
 the command as a subprocess, three times per set, so that the second and third
 runs can examine what happens when the set the command writes already exists.
 

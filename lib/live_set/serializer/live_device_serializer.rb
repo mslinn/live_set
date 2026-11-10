@@ -1,6 +1,3 @@
-# TODO: This is a placeholder to start off the changes described as TODO comments in lib/live_set/live_palette.rb.
-# TODO Write unit tests
-#
 require_relative 'live_markup'
 
 # Serializes a `LiveDevice` model as markdown.

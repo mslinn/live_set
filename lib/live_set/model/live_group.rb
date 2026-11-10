@@ -2,6 +2,7 @@ require_relative '../../common/xml'
 require_relative 'live_audio_tracks'
 require_relative 'live_device'
 require_relative 'live_midi_tracks'
+require_relative 'live_track_facts'
 
 # A group track in an Ableton Live set.
 #
@@ -14,13 +15,14 @@ require_relative 'live_midi_tracks'
 # therefore blocks a transfer to P3S just as much as one on a track.
 #
 # A group track cannot be frozen, because only tracks that hold clips can be frozen, and a group
-# track holds no clips. See docs/als_notes.md, "The group tracks".
+# track holds no clips. See docs/als_notes.md, "Group Tracks".
 #
 # live_set does not support experimental features, so a group track is always read as unfrozen,
 # as though no Options.txt option had been specified. See docs/als_notes.md, "The `Options.txt`
 # hidden option".
 class LiveGroup
   include Xml
+  include LiveTrackFacts
 
   attr_reader :audio_tracks, :color, :id, :members, :midi_tracks, :name
 
@@ -29,11 +31,13 @@ class LiveGroup
   # @param set_directory [String, nil] the directory of the set
   def initialize(group_track, elements = [], set_directory = nil)
     @group_track = group_track
+    @element     = group_track
+    read_track_facts 'GroupTrack'
     @id          = @group_track['Id']
     @name        = name_of group_track
     @color       = @group_track.at('Color')&.[]('Value')&.to_i
     @members = member_tracks elements
-    @midi_tracks = LiveMidiTracks.new(set_directory, @members.select { |member| member.name == 'MidiTrack' })
+    @midi_tracks = LiveMidiTracks.new(@members.select { |member| member.name == 'MidiTrack' })
     @audio_tracks = LiveAudioTracks.new(set_directory, @members.select { |member| member.name == 'AudioTrack' })
   end
 
@@ -46,17 +50,6 @@ class LiveGroup
     midi_tracks.to_a + audio_tracks.to_a
   end
 
-  # TODO: methods should not return a constant. This method has not been properly implemented. This module method might
-  # be redefined by the class it is mixed into. This is a poor design. Instead, this methods should examine the track
-  # type and return the appropriate value.
-  #
-  # Whether the group is a group track.
-  #
-  # @return [Boolean] true, always: a group is a group track
-  def group?
-    true
-  end
-
   # The kind of the track.
   #
   # @return [String] the kind
@@ -66,7 +59,7 @@ class LiveGroup
 
   # The id of the group the group is in.
   #
-  # A group can be in a group. See docs/als_notes.md, "A member track names its group".
+  # A group can be in a group. See docs/als_notes.md, "Group Tracks".
   #
   # @return [String, nil] the id of the group, or nil when the group is in no group
   def group_id
@@ -90,6 +83,18 @@ class LiveGroup
   # @return [String, nil] the name, or nil when the user has not named the group
   def user_name
     @group_track.at('Name/UserName')&.[]('Value')
+  end
+
+  # The name of the group, as the report names it.
+  #
+  # The name the user typed is the name of the group. When there is none, the name Live
+  # resolved is the name, without the number Live gives the things that share a name.
+  #
+  # @return [String] the name
+  def display_name
+    return user_name unless user_name.nil? || user_name.empty?
+
+    name.sub(/\A\d+[- ]/, '')
   end
 
   # Whether the group cannot be transferred to P3S.
@@ -122,6 +127,17 @@ class LiveGroup
     devices.select(&:blocking?)
   end
 
+  # The Max for Live devices of the group.
+  #
+  # A Max for Live device is supported by the P3S Standalone, but with less CPU headroom,
+  # so it is a matter of advice rather than of transfer. See README.md, "Push 3 Standalone
+  # (P3S)".
+  #
+  # @return [Array<LiveDevice>] the devices
+  def max_for_live_devices
+    devices.select(&:max_for_live?)
+  end
+
   # The names of the group's devices.
   #
   # @return [String] a comma-separated list
@@ -132,7 +148,7 @@ class LiveGroup
   # The tracks in this group.
   #
   # A member track's TrackGroupId holds the Id of the group it belongs to, and -1 means the track
-  # is at the top level. See docs/als_notes.md, "A member track names its group".
+  # is at the top level. See docs/als_notes.md, "Group Tracks".
   #
   # @param tracks [Array<Nokogiri::XML::Element>] the track elements in the set
   # @return [Array<Nokogiri::XML::Element>] the member tracks
@@ -153,5 +169,22 @@ class LiveGroup
   # @return [String, nil] the name, or nil if the track has no name
   def track_name(track)
     xml_first_value(track.at('Name/EffectiveName'), track.at('Name/UserName'))
+  end
+
+  # The names of the tracks whose audio passes through the group.
+  #
+  # A member track's output is routed to the group, so the group's devices process its audio. A
+  # member that has been routed somewhere else — to an external output, say — is not affected.
+  #
+  # The names are de-duplicated, because the tracks in a group often share a name. Ableton numbers
+  # a track's name when it is duplicated, but a group of clips recorded from the same source can
+  # end up with the same name on every track.
+  #
+  # @return [Array<String>] the names
+  def affected_track_names
+    members
+      .select { |track| track.at('DeviceChain/AudioOutputRouting/Target')&.[]('Value') == 'AudioOut/GroupTrack' }
+      .filter_map { |track| track_name track }
+      .uniq
   end
 end

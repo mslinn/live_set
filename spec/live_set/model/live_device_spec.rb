@@ -64,12 +64,59 @@ RSpec.describe LiveDevice do
       described_class.new LiveSets.node(path, '//MxDeviceAudioEffect')
     end
 
-    it 'blocks a transfer to P3S Standalone' do
-      expect(device).to be_blocking
+    it 'is a Max for Live device' do
+      expect(device).to be_max_for_live
+    end
+
+    it 'does not block a transfer to P3S Standalone' do
+      # The P3S Standalone runs Max for Live devices, with less headroom than a desktop.
+      expect(device).not_to be_blocking
     end
 
     it 'is not a plug-in' do
       expect(device).not_to be_plug_in
+    end
+  end
+
+  describe 'a Max for Live MIDI effect' do
+    # The corpus holds no Max for Live MIDI effect, so the element of the audio effect is
+    # copied and given the name of a MIDI effect.
+    def device
+      element = LiveSets.with_element_name LiveSets.node(path, '//MxDeviceAudioEffect'), 'MxDeviceMidiEffect'
+      described_class.new element
+    end
+
+    it 'is a Max for Live device' do
+      expect(device).to be_max_for_live
+    end
+  end
+
+  describe 'a Max for Live instrument' do
+    # The corpus holds no Max for Live instrument, so the element of the audio effect is
+    # copied and given the name of an instrument.
+    def device
+      element = LiveSets.with_element_name LiveSets.node(path, '//MxDeviceAudioEffect'), 'MxDeviceInstrument'
+      described_class.new element
+    end
+
+    it 'is a Max for Live device' do
+      expect(device).to be_max_for_live
+    end
+  end
+
+  describe 'a device whose name says it is a Max for Live device' do
+    # A native device that the user called "Max for Live". The name of a device is whatever
+    # the user called it, and says nothing about what the device is: the element does.
+    def device
+      element = LiveSets.with_element_name LiveSets.node(path, '//MxDeviceAudioEffect'), 'Eq8'
+      copy = Nokogiri::Slop element.to_xml
+      copied = copy.at_xpath('//*')
+      copied.xpath('.//UserName | .//EffectiveName').each { |name| name['Value'] = 'Max for Live' }
+      described_class.new copied
+    end
+
+    it 'is not a Max for Live device' do
+      expect(device).not_to be_max_for_live
     end
   end
 end

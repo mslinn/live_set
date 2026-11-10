@@ -17,7 +17,7 @@ RSpec.describe LiveMidiClipGroups, '#to_markdown' do
       candidate.at('Name/EffectiveName')&.[]('Value')&.sub(/\A\d+[- ]/, '') == name
     end
     # TODO: the first parameter below is ignored so delete it:
-    LiveMidiTrack.new(LiveSets.directory(LiveSets.fascination), element).clips
+    LiveMidiTrack.new(element).clips
   end
 
   let(:groups) { described_class.new clips_called('Kontakt 7') }

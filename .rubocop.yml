@@ -4,6 +4,14 @@ plugins:
   - rubocop-rake
   - rubocop-rspec
 
+require:
+  - ./.rubocop/cops/ban_to_markdown
+
+Custom/BanToMarkdown:
+  Enabled: true
+  Include:
+    - 'lib/live_set/model/**/*.rb'
+
 AllCops:
   Exclude:
     - binstub/**/*

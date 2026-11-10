@@ -31,6 +31,24 @@ class HeaderBlock
     @ableton['Creator']
   end
 
+  # The version of Live that wrote the set.
+  #
+  # The creator of the set names the version of Live that wrote it: `Ableton Live 11.3d1`.
+  # The version is the major and the minor version of Live, and the rest of the name — the
+  # build, and the letters that follow it — says nothing about which version of Live it is.
+  #
+  # The `MinorVersion` attribute is Ableton's internal format number, and not the version of
+  # Live a user sees. See docs/als_notes.md, "The `Creator` Attribute".
+  #
+  # @return [Array<Integer>, nil] the major and the minor version, or nil when the creator
+  #   does not name a version
+  def live_version
+    match = creator.to_s.match(/Live (\d+)\.(\d+)/)
+    return nil unless match
+
+    [match[1].to_i, match[2].to_i]
+  end
+
   # The format of the set.
   #
   # @return [String] the minor version

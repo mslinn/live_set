@@ -18,12 +18,10 @@ RSpec.describe LiveMasterTrackSerializer, '#to_markdown' do
     end
   end
 
-  it 'writes the line of the track: its number, its icon, its kind and its name' do
+  it 'writes the line of the track: its number' do
     markdown = described_class.new(track, '7').to_markdown
 
-    expect(markdown.lines.first.chomp).to eq(
-      '- Track 7  🎚️ Master  <code style="color: #000000; background-color: #F6F57C; ' \
-      'vertical-align: middle;" title="Live color #3">Master</code>'
-    )
+    # The word "Master" is in the heading of the section, and it is not repeated here.
+    expect(markdown.lines.first.chomp).to eq('- Track 7')
   end
 end

@@ -14,6 +14,7 @@ require_relative 'live_project_info_serializer'
 require_relative 'live_return_tracks_serializer'
 require_relative 'live_samples_serializer'
 require_relative 'live_sizes_serializer'
+require_relative 'live_tracks_serializer'
 require_relative 'missing_samples_serializer'
 require_relative 'p3s_compatibility'
 require_relative 'report_header_serializer'
@@ -107,7 +108,7 @@ class AlsModelSerializer
   #
   # @return [String] the section
   def packs_section
-    LivePacksSerializer.new(samples.packs).to_markdown
+    LivePacksSerializer.new(@als_model.packs).to_markdown
   end
 
   # The sizes of the set.
@@ -128,21 +129,21 @@ class AlsModelSerializer
   #
   # @return [String] the section
   def p3s_compatibility_section
-    P3SCompatibility.new(@als_model.live_set).to_markdown
+    P3SCompatibility.new(@als_model).to_markdown
   end
 
   # The samples of the set that are not in the project.
   #
   # @return [String] the section
   def missing_samples
-    MissingSamplesSerializer.new(samples.missing).to_markdown
+    MissingSamplesSerializer.new(@als_model.samples.missing).to_markdown
   end
 
   # The samples of the set.
   #
   # @return [String] the section
   def samples_section
-    LiveSamplesSerializer.new(samples).to_markdown
+    LiveSamplesSerializer.new(@als_model.samples).to_markdown
   end
 
   # The devices of the set, and the tracks they are on.
@@ -195,12 +196,12 @@ class AlsModelSerializer
   #
   # @return [Array<String>] the lines of the sections
   def track_sections
-    return [section('### Ungrouped Tracks', @als_model.live_set.to_markdown)] unless separate_tracks?
+    return [section('### Ungrouped Tracks', tracks_serializer.to_markdown)] unless separate_tracks?
 
     [
-      section('### Audio Tracks', @als_model.live_set.audio_tracks.to_markdown),
-      section('### MIDI Tracks', @als_model.live_set.midi_tracks.to_markdown),
-      section('### Return Tracks', @als_model.live_set.return_tracks.to_markdown)
+      section('### Audio Tracks', LiveAudioTracksSerializer.new(@als_model.live_set.audio_tracks).to_markdown),
+      section('### MIDI Tracks', LiveMidiTracksSerializer.new(@als_model.live_set.midi_tracks).to_markdown),
+      section('### Return Tracks', LiveReturnTracksSerializer.new(@als_model.live_set.return_tracks).to_markdown)
     ].flatten
   end
 
@@ -208,7 +209,9 @@ class AlsModelSerializer
   #
   # @return [Array<String>] the lines of the section
   def master_section
-    section('### Master Track', @als_model.master_track.to_markdown(master_track_number))
+    track = @als_model.master_track
+    heading = "### #{LiveMarkup.icon_for track.kind} Master Track"
+    section(heading, LiveMasterTrackSerializer.new(track, master_track_number).to_markdown)
   end
 
   # The number the master track has in the report.
@@ -240,13 +243,6 @@ class AlsModelSerializer
 
   private
 
-  # The samples of the set.
-  #
-  # @return [LiveSamples] the samples
-  def samples
-    @samples ||= LiveSamples.new(@als_model.live_set.audio_clips, @als_model.directory)
-  end
-
   # The devices of the set, and the tracks they are on.
   #
   # @return [LiveDeviceCrossReference] the cross-reference
@@ -261,6 +257,23 @@ class AlsModelSerializer
   #
   # @return [LiveTrackClipCrossReference] the cross-reference
   def cross_reference
-    @cross_reference ||= LiveTrackClipCrossReference.new @als_model.live_set
+    @cross_reference ||= LiveTrackClipCrossReference.new numbered_tracks
+  end
+
+  # The serializer of the tracks of the set.
+  #
+  # @return [LiveTracksSerializer] the serializer
+  def tracks_serializer
+    @tracks_serializer ||= LiveTracksSerializer.new @als_model.live_set
+  end
+
+  # Every track of the set, with the numbers they have in the report.
+  #
+  # The tracks at the top of the set are numbered from one, and the members of the groups are
+  # numbered after the group they are in. The numbers are the ones the outline gives them.
+  #
+  # @return [Array<Array>] the number and the track
+  def numbered_tracks
+    @numbered_tracks ||= tracks_serializer.numbered_tracks
   end
 end

@@ -1,4 +1,4 @@
-# TODO Implementation Plan for`lib/live_set/live_palette.rb`
+# TODO Implementation Plan for`lib/live_set/model/live_palette.rb`
 
 This is the plan for preparing the next major version of `live_set`.
 
@@ -16,7 +16,7 @@ as the long TODO asks.
 |-------------------------------------|--------------------------------------------------------------------------------------|---------------------|
 | `AlsModelSerializer`                | the whole model: the six sections of the report                                      | `AlsModel`          |
 | `LiveHeaderSerializer`              | the facts about the set: the version of Live, the computer, the times, the time zone | the set             |
-| `P3SCompatibility`                  | the verdict for a transfer to P3S                                      | the set             |
+| `P3SCompatibility`                  | the verdict for a transfer to P3S                                      | `AlsModel`          |
 | `LiveGroupSerializer`               | a group: its line, its devices, the tracks in it                                     | `LiveGroup`         |
 | `LiveGroupsSerializer`              | the groups of the set                                                                | `LiveGroups`        |
 | `LiveTrackSerializer`               | a track: its line, its devices, its clips, its take lanes                            | `LiveTrack`         |
@@ -260,7 +260,7 @@ are fixed as it is implemented:
 ## The text that changes with this work
 
 - **The legend the report writes** — the `LEGEND` constant of
-  `lib/live_set/live_set_report.rb` — says that every place a clip is in "holds a reference
+  `lib/live_set/serializer/als_model_serializer.rb` — says that every place a clip is in "holds a reference
   to it", and that the settings of a reference belong to the reference and not to the clip.
   There is no reference in the format: each place holds its own clip, and the settings
   belong to the clip element they are written in. The legend says that instead, and the
@@ -392,6 +392,9 @@ Each step leaves the program working, and the reports unchanged.
    proof; it needs no tests of its own. It comes first, because everything after it then
    happens in the layout the project ends up with.
 
+   The move is done. The files named in the first column are where the files came from;
+   the files are in the second column.
+
    | From                                  | To                                      | Class           |
    | ------------------------------------- | --------------------------------------- | --------------- |
    | `lib/live_set/live_device.rb`         | `lib/live_set/model/live_device.rb`     | `LiveDevice`    |
@@ -484,14 +487,16 @@ Each step leaves the program working, and the reports unchanged.
   that is checked in.
 - The specs of the serializers hold the expected markdown, whole and literal, so
   a change to the markdown shows up in the diff of the spec that expects it.
-- The specs of the report (`spec/live_set/live_set_show_spec.rb`) are the other check.
+- The specs of the report (`spec/als_report/als_report_spec.rb`) are the other check.
 - `bundle exec rubocop` is clean after every step, and the specs pass before it
   is run.
 
 ## The other TODOs in the code
 
 These are not in `live_palette.rb`, and are not part of this plan, but they are
-the same work and are listed here so that they are not lost:
+the same work and are listed here so that they are not lost. The file they are
+about, `live_set_report.rb`, is retired: the report is written by the model and
+its serializers.
 
 | Where                            | The TODO                                                                                                                                                                                |
 | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

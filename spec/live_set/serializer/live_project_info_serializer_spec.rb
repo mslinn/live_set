@@ -47,8 +47,7 @@ RSpec.describe LiveProjectInfoSerializer, '#to_markdown' do
     markdown = described_class.new(LiveProjectInfo.new(directory)).to_markdown
 
     expect(markdown).to include(
-      "Live gets confused by a 'Ableton Project Info' folder in a parent folder of the folder " \
-      'of the project'
+      'Live gets confused by a <code>Ableton Project Info</code> folder in a parent folder'
     )
   end
 end

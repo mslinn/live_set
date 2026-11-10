@@ -21,22 +21,11 @@ class LiveMasterTrackSerializer
 
   # Returns the track as markdown.
   #
-  # @return [String] the serialized markdown
+  # The section of the master track is the heading of the section, and the line of the track.
+  # The word "Master" is in the heading, and it is not repeated in the line of the track:
+  # there is one master track, and its name is the word that is in the heading.
   #
-  # FIXME the current output is:
-  #   ```html
-  #   <h3 id="master-track"><a class="mdr-anchor" href="#master-track" id="9" aria-hidden="true"></a>Master Track</h3>
-  #   <ul>
-  #     <li>Track 7  🎚️ Master  <code style="color: #000000; background-color: #F6F57C; vertical-align: middle;" title="Live color #3">Master</code></li>
-  #   </ul>
-  #   ```
-  #   The word Master appears in the heading, and this section will always only consist of just the heading and one detail
-  #   line. notice that the word Master appears twice on the detail line. Both of these are redundant. the entire section
-  #   output should be simplified to:
-  #   ```html
-  #   <h3 id="master-track">🎚️ <a class="mdr-anchor" href="#master-track" id="9" aria-hidden="true"></a>Master Track</h3>
-  #   <p>Track 7</p>
-  #   ```
+  # @return [String] the serialized markdown
   def to_markdown
     parts = [track_detail, device_lines]
     parts.reject(&:empty?).join "\n"
@@ -44,11 +33,11 @@ class LiveMasterTrackSerializer
 
   private
 
-  # The line of the track: its number, its icon, its kind, its name and its state.
+  # The line of the track: its number.
   #
   # @return [String] the line
   def track_detail
-    LiveMarkup.track_detail @track, @hierarchical_number
+    "#{LiveMarkup.indent_for @hierarchical_number}- Track #{@hierarchical_number}"
   end
 
   # The lines of the devices of the track.

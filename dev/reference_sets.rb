@@ -32,6 +32,17 @@ module ReferenceSets
       File.join directory, 'sets', "live_#{version}/demo"
     end
 
+    # The directory the experimental sets of a version are in.
+    #
+    # The sets of a version are in two directories: the demo sets are the ones Ableton
+    # ships, and the experimental sets are the ones this project made.
+    #
+    # @param version [String] the version, e.g. "11"
+    # @return [String] the path of the directory
+    def experiments_directory_of(version)
+      File.join directory, 'sets', "live_#{version}/experiments"
+    end
+
     # The directory the reports of a version are in.
     #
     # @param version [String] the version, e.g. "11"
@@ -42,10 +53,17 @@ module ReferenceSets
 
     # The sets of a version.
     #
+    # The sets of a version are in two directories: the demo sets are in the
+    # `projects_and_als` directory of the demo directory, and the experimental sets are in
+    # the experiments directory. A set of the experiments may be a project folder of its own,
+    # beside the `projects_and_als` directory.
+    #
     # @param version [String] the version, e.g. "11"
     # @return [Array<String>] the paths of the sets
     def sets_of(version)
-      Dir.glob File.join(directory_of(version), 'projects_and_als', '**', '*.als')
+      [directory_of(version), experiments_directory_of(version)].flat_map do |sets_directory|
+        Dir.glob File.join(sets_directory, '**', '*.als')
+      end
     end
 
     # The versions of Live that have sets.

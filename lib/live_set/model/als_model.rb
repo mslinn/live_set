@@ -2,6 +2,7 @@ require_relative 'header_block'
 require_relative 'live_assets'
 require_relative 'live_checksums'
 require_relative 'live_master_track'
+require_relative 'live_packs'
 require_relative 'live_project_info'
 require_relative 'live_sizes'
 require_relative 'live_tracks'
@@ -71,6 +72,20 @@ class AlsModel
   # @return [LiveSizes] the sizes
   def sizes
     @sizes ||= LiveSizes.new path, assets
+  end
+
+  # The samples of the set: the files it plays.
+  #
+  # @return [LiveSamples] the samples
+  def samples
+    @samples ||= LiveSamples.new(live_set.audio_clips, directory)
+  end
+
+  # The packs the set refers to.
+  #
+  # @return [LivePacks] the packs
+  def packs
+    @packs ||= LivePacks.new(samples)
   end
 
   # The checksums of the set: the hash of the file, and the hash of the content.

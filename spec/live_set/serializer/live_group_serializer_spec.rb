@@ -23,21 +23,20 @@ RSpec.describe LiveGroupSerializer, '#to_markdown' do
   it 'writes the line of the group: its number, its icon, its kind and its name' do
     markdown = described_class.new(group('Drums'), '1').to_markdown
 
+    # The group is not a problem: its only device is a Max for Live device, which the P3S
+    # Standalone runs. It keeps the colour Live gave it.
     expect(markdown.lines.first.chomp).to eq(
-      '- Group track 1  👥 Group  <code style="color: #FFFFFF; background-color: #212121; ' \
-      'vertical-align: middle;"># Drums</code>'
+      '- Group track 1  👥 Group  <code style="color: #000000; background-color: #18E9FE; ' \
+      'vertical-align: middle;" title="Live color #21"># Drums</code>'
     )
   end
 
   it 'writes the devices of the group under it' do
     markdown = described_class.new(group('Drums'), '1').to_markdown
 
-    # FIXME: Max for Live devices **are** supported on the P3S. This report is WRONG!
+    # A Max for Live device is supported by the P3S Standalone, so it carries no warning.
 
-    expect(markdown).to include(
-      '    - Group Track Device 1a  <code style="color: #FFFFFF; background-color: #212121; ' \
-      'vertical-align: middle;">Filter</code>  M4L  ⚠ not usable on P3S'
-    )
+    expect(markdown).to include('    - Group Track Device 1a  <code>Filter</code>  M4L')
   end
 
   it 'writes the tracks in the group under it, numbered after the group' do

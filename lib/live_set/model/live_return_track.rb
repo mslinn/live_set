@@ -1,5 +1,4 @@
 require_relative '../../common/xml'
-require_relative '../serializer/live_return_track_serializer'
 require_relative 'live_track_facts'
 
 # A return track of a set: the `<ReturnTrack>` element of the XML.
@@ -24,16 +23,5 @@ class LiveReturnTrack
   # @return [String] the kind
   def kind
     'Return'
-  end
-
-  # TODO: Model classes should not contain a `to_markdown` method. This class and its parent class should have a
-  # corresponding serializer, which should contain this method. See docs/report_design.md
-  #
-  # Returns markdown for the return track.
-  #
-  # @param number [String] the number of the track in the report
-  # @return [String] the markdown
-  def to_markdown(number)
-    LiveReturnTrackSerializer.new(self, number).to_markdown
   end
 end

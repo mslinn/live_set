@@ -95,7 +95,7 @@ The [`als_report` command](../exe/als_report) generates a report of a set in
 markdown format. The top-level implementation class is `AlsReport`, defined in
 [`lib/als_report/als_report.rb`](../lib/als_report/als_report.rb). It builds the
 model of the entire set (`AlsModel`) and uses `AlsModelSerializer`, defined in
-[`lib/als_report/als_model_serializer.rb`](../lib/als_report/als_model_serializer.rb),
+[`lib/live_set/serializer/als_model_serializer.rb`](../lib/live_set/serializer/als_model_serializer.rb),
 to generate markdown.
 
 ### Collections
@@ -106,11 +106,9 @@ to generate markdown.
 | `LiveMidiTracks`   | the MIDI tracks of the set, and the MIDI tracks of a group                                             |
 | `LiveAudioTracks`  | the audio tracks of the set, and the audio tracks of a group                                           |
 | `LiveReturnTracks` | the return tracks of the set                                                                           |
-| `LiveMasterTracks` | the master track of the set                                                                            |
 | `LiveGroups`       | the groups of the set                                                                                  |
 | `LiveDevices`      | the devices of a track, or of a group                                                                  |
 | `LiveTakeLanes`    | the take lanes of a track                                                                              |
-| `LiveClips`        | the MIDI clips of the set, and the MIDI clips of a track                                               |
 | `LiveSamples`      | the samples of the set                                                                                 |
 | `LivePacks`        | the packs the set refers to                                                                            |
 | `LiveAudioClips`   | the clips of the audio side of a track                                                                 |
@@ -132,7 +130,8 @@ the order Live wrote them.
 | `groups`           | the groups of the set                                                       |
 | `top_level_tracks` | the tracks that are in no group, in the order Live wrote them               |
 | `audio_clips`      | the clips of the audio side of every track of the set                       |
-| `missing_samples`  | the samples of the set that are not in the project, by the pack they are in |
+| `blocking_tracks`  | the tracks that stop the set from being transferred, and the devices that do |
+| `blocking_groups`  | the groups that stop the set from being transferred, and the devices that do |
 
 By default, every track of the set is reported in the order it was found in the
 ALS XML. The `als_report --show_midi_and_audio_tracks_separately` option writes

@@ -10,9 +10,8 @@ require 'support/live_sets'
 #
 # The groups are real ones. The Live 11 Suite demo set holds a group of four tracks whose chain
 # holds native devices only, and the checked-in set with return tracks holds a group whose chain
-# holds a Max for Live device, which blocks a transfer to P3S Standalone.
-
-# FIXME: Max for Live devices **are** supported on the P3S standalone. This report is WRONG!
+# holds a Max for Live device, which the P3S Standalone runs with less headroom, but which does
+# not block a transfer.
 
 RSpec.describe LiveGroup do
   # The group of the Live 11 Suite demo set.
@@ -55,16 +54,16 @@ RSpec.describe LiveGroup do
     expect(group.devices).to be_empty
   end
 
-  it 'reports a third-party device in its chain as blocking' do
+  it 'reports a Max for Live device in its chain as advice, not as blocking' do
     group = described_class.new fascination_group
 
-    expect(group.blocking_devices.length).to eq(1)
+    expect(group.blocking_devices).to be_empty
   end
 
-  it 'names the blocking device' do
+  it 'names the Max for Live device in its chain' do
     group = described_class.new fascination_group
 
-    expect(group.blocking_devices.first.label).to eq('Filter')
+    expect(group.max_for_live_devices.map(&:label)).to eq(['Filter'])
   end
 
   it 'does not report a native device as blocking' do

@@ -1,5 +1,4 @@
 require_relative '../../common/xml'
-require_relative '../serializer/live_audio_track_serializer'
 require_relative 'live_audio_clip'
 require_relative 'live_audio_clips'
 require_relative 'live_midi_clip'
@@ -158,13 +157,5 @@ class LiveAudioTrack
   # @return [Boolean] true when the clips are collected
   def clips_collected?
     distinct_clips.all?(&:collected?)
-  end
-
-  # TODO: Model classes should not contain a `to_markdown` method. This class and its parent class should have a
-  # corresponding serializer, which should contain the `to_markdown` method. See docs/report_design.md
-  #
-  # @param number [String] the number of the track in the report @return [String] the markdown
-  def to_markdown(number)
-    LiveAudioTrackSerializer.new(self, number).to_markdown
   end
 end

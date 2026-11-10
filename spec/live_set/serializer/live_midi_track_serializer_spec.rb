@@ -16,7 +16,7 @@ RSpec.describe LiveMidiTrackSerializer, '#to_markdown' do
     element = LiveSets.nodes(LiveSets.fascination, '//MidiTrack').find do |candidate|
       candidate.at('Name/EffectiveName')&.[]('Value')&.sub(/\A\d+[- ]/, '') == name
     end
-    LiveMidiTrack.new LiveSets.directory(LiveSets.fascination), element
+    LiveMidiTrack.new element
   end
 
   it 'writes the line of the track: its number, its icon, its kind and its name' do

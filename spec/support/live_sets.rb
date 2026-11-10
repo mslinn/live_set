@@ -30,16 +30,33 @@ module LiveSets
     #
     # @return [String] the path of the set
     def fascination
-      File.join ReferenceSets.directory_of('11'), 'projects_and_als', 'Fascination.als'
+      File.join ReferenceSets.experiments_directory_of('11'), 'projects_and_als', 'Fascination.als'
+    end
+
+    # The factory default set of Live 11: a set with no clips at all.
+    #
+    # @return [String] the path of the set
+    def factory_default11
+      File.join ReferenceSets.experiments_directory_of('11'), 'projects_and_als',
+                'one_midi_track_only_11 Project', 'factory_default_11.als'
+    end
+
+    # A demo set of Live 9: a set that an old version of Live wrote.
+    #
+    # @return [String] the path of the set
+    def live_9_demo
+      File.join ReferenceSets.directory_of('9'), 'projects_and_als', 'Live 9 Demo_Intro.als'
     end
 
     # The Live 12 version of the checked-in set with return tracks and a third-party device.
     #
-    # Live 12 saves a set as a project folder, and the set is the .als file in it.
+    # Live 12 saves a set as a project folder, and the set is the .als file in it. The
+    # project folder is in the experiments directory of Live 12, and not in its
+    # `projects_and_als` directory.
     #
     # @return [String] the path of the set
     def fascination12
-      File.join ReferenceSets.directory_of('12'), 'projects_and_als',
+      File.join ReferenceSets.experiments_directory_of('12'),
                 'Fascination_12_converted_by_live Project', 'Fascination_12_converted_by_live.als'
     end
 
@@ -106,6 +123,22 @@ module LiveSets
       copy = Nokogiri::Slop(element.to_xml)
       copied = copy.at_xpath('//*')
       copied.xpath(xpath).each(&:remove)
+      copied
+    end
+
+    # A copy of an element, with the name of the element changed.
+    #
+    # The name of an element is the fact about it: a Max for Live device is an element
+    # whose name says what it is. A case the corpus does not hold is made by copying a real
+    # element and giving the copy the name of the case.
+    #
+    # @param element [Nokogiri::XML::Element] the element to copy
+    # @param name [String] the name of the element
+    # @return [Nokogiri::XML::Element] the copy
+    def with_element_name(element, name)
+      copy = Nokogiri::Slop(element.to_xml)
+      copied = copy.at_xpath('//*')
+      copied.name = name
       copied
     end
 

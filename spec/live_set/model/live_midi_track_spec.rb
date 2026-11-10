@@ -17,7 +17,7 @@ RSpec.describe LiveMidiTrack do
     element = LiveSets.nodes(LiveSets.fascination, '//MidiTrack').find do |candidate|
       candidate.at('Name/EffectiveName')&.[]('Value')&.sub(/\A\d+[- ]/, '') == name
     end
-    described_class.new LiveSets.directory(LiveSets.fascination), element
+    described_class.new element
   end
 
   subject(:track) { track_named('Kontakt 7') }

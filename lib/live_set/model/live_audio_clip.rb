@@ -12,7 +12,7 @@ require_relative 'live_clip_settings'
 #
 # Every value in an .als file is stored in a Value attribute, e.g.
 # <RelativePath Value="Samples/Imported/song1.mp3" />. This holds for every Live version from
-# 8.2 to 12.4. See docs/als_notes.md, "Every value is stored in a `Value` attribute".
+# 8.2 to 12.4. See docs/als_notes.md, "Values are stored in `Value` Attributes".
 #
 # The file size tag is <OriginalFileSize> in newer versions of Live, and <FileSize> in older
 # ones (like Live 8).

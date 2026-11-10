@@ -49,26 +49,13 @@ class DeviceCrossReferenceSerializer
     end
   end
 
-  # TODO: This code is identical to track_label in track_clip_cross_reference_serializer.rb. Consolidate this and be DRY.
   # The name of a track, on the colour Live gave it.
+  #
+  # The name is in a table cell, so it is written without a line break.
   #
   # @param track [LiveTrack, LiveGroup] the track
   # @return [String] the name of the track
   def track_label(track)
-    name = LiveMarkup.display_name track
-    if track.problem?
-      return LiveMarkup.colored_code LiveMarkup.escape(name),
-                                     background_color: LiveMarkup::DARK_BACKGROUND,
-                                     foreground_color: LiveMarkup::LIGHT_TEXT
-    end
-
-    color = LivePalette.color_of track.color
-    return "<code>#{LiveMarkup.escape name}</code>" unless color
-
-    label = LiveMarkup.colored_code LiveMarkup.escape(name),
-                                    color_number:     track.color,
-                                    background_color: "##{color}",
-                                    foreground_color: LiveMarkup.text_color(color)
-    "<nobr>#{label}</nobr>"
+    LiveMarkup.track_name_markdown track, track.display_name, in_a_cell: true
   end
 end

@@ -21,17 +21,13 @@ module LiveTrackFacts
     @element['Id']
   end
 
-  # TODO: methods should not return a constant. This method has not been properly implemented. This module method might
-  # be redefined by the class it is mixed into. This is a poor design. Instead, this methods should examine the track
-  # type and return the appropriate value.
-  #
   # Whether the track is a group track.
   #
-  # A group track has type `LiveGroup`.
+  # A group track is a group, and the kind of a group is `Group`.
   #
-  # @return [Boolean] false, always
+  # @return [Boolean] true when the track is a group track
   def group?
-    false
+    kind == 'Group'
   end
 
   # The clips of the track.
@@ -74,6 +70,18 @@ module LiveTrackFacts
     @element.at('Name/UserName')&.[]('Value')
   end
 
+  # The name of the track, as the report names it.
+  #
+  # The name the user typed is the name of the track. When there is none, the name Live
+  # resolved is the name, without the number Live gives the things that share a name.
+  #
+  # @return [String] the name
+  def display_name
+    return user_name unless user_name.nil? || user_name.empty?
+
+    name.sub(/\A\d+[- ]/, '')
+  end
+
   # The colour Live gave the track.
   #
   # @return [Integer, nil] the number Live writes for the colour
@@ -85,7 +93,7 @@ module LiveTrackFacts
   #
   # The chain of the group the track is in holds the group's own devices, and those belong
   # to the group. See docs/als_notes.md, "The device chain, and the chains nested inside
-  # it", and "The device chain of a group".
+  # it", and "Group Device Chain".
   #
   # @return [Array<LiveDevice>] the devices
   def devices
@@ -153,7 +161,7 @@ module LiveTrackFacts
   # The id of the group the track is in.
   #
   # A member track's TrackGroupId holds the id of the group it belongs to, and -1 means the
-  # track is at the top level. See docs/als_notes.md, "A member track names its group".
+  # track is at the top level. See docs/als_notes.md, "Group Tracks".
   #
   # @return [String, nil] the id of the group, or nil when the track is in no group
   def group_id
@@ -180,6 +188,17 @@ module LiveTrackFacts
   # @return [Array<LiveDevice>] the blocking devices
   def blocking_devices
     frozen? ? [] : chain_devices.select(&:blocking?)
+  end
+
+  # The Max for Live devices of the track.
+  #
+  # A Max for Live device is supported by the P3S Standalone, but with less CPU headroom,
+  # so it is a matter of advice rather than of transfer. See README.md, "Push 3 Standalone
+  # (P3S)".
+  #
+  # @return [Array<LiveDevice>] the devices
+  def max_for_live_devices
+    devices.select(&:max_for_live?)
   end
 
   # The names of the devices of the track.

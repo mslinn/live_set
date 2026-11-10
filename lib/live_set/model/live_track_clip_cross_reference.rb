@@ -10,9 +10,10 @@ require_relative '../serializer/live_markup'
 class LiveTrackClipCrossReference
   attr_reader :tracks
 
-  # @param tracks [LiveTracks] the tracks of the set
-  def initialize(tracks)
-    @tracks = tracks
+  # @param numbered_tracks [Array<Array>] the tracks of the set, and the numbers they have
+  #   in the report
+  def initialize(numbered_tracks)
+    @tracks = numbered_tracks
   end
 
   # The places the clips of a track are in, and how many of them there are in each.
@@ -47,10 +48,10 @@ class LiveTrackClipCrossReference
   def tracks_of_clips
     uses = Hash.new { |hash, key| hash[key] = {} }
 
-    tracks.each_numbered_track do |number, track|
+    tracks.each do |number, track|
       next if track.group?
 
-      name = LiveMarkup.display_name track
+      name = track.display_name
       track.clips.each { |clip| holds_of uses, label_of(clip), number, name }
       track.audio_clips.each { |clip| holds_of uses, label_of(clip), number, name, lane_of(clip, number) }
       holds_of_lanes uses, track, number, name

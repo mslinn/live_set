@@ -70,8 +70,13 @@ def analyse(sets_dir, reports_dir, label)
       next
     end
 
-    File.write report, AlsReport.new(set, loglevel: 'ERROR').show
-    puts "#{label}/#{File.basename report}: written"
+    # A set that cannot be read does not stop the reports of the other sets.
+    begin
+      File.write report, AlsReport.new(set, loglevel: 'ERROR').show
+      puts "#{label}/#{File.basename report}: written"
+    rescue StandardError => e
+      puts "#{label}/#{File.basename set}: not reported: #{e.class}: #{e.message}"
+    end
   end
 end
 
@@ -79,17 +84,16 @@ Dir.children(sets_directory).sort.each do |entry|
   path = File.join(sets_directory, entry)
   next unless File.directory? path
 
-  if entry.start_with? 'live_'
-    # the sets of a version of Live, and the reports of them
-    analyse File.join(path, 'projects_and_als'), File.join(path, 'reports'), entry
-    next
-  end
+  next unless entry.start_with? 'live_'
 
-  # a group of versions, such as the demo sets
-  Dir.children(path).sort.each do |version|
-    version_path = File.join path, version
-    next unless File.directory? version_path
+  # the sets of a version of Live, and the reports of them. The sets of a version are in two
+  # directories: the demo sets are the ones Ableton ships, and the experimental sets are the
+  # ones this project made. The sets of a directory are in its `projects_and_als`
+  # directory, and a set may be a project folder of its own beside it.
+  Dir.children(path).sort.each do |kind|
+    kind_path = File.join path, kind
+    next unless File.directory? kind_path
 
-    analyse version_path, File.join(version_path, 'reports'), "#{entry}/#{version}"
+    analyse kind_path, File.join(kind_path, 'reports'), "#{entry}/#{kind}"
   end
 end

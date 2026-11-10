@@ -89,6 +89,12 @@ Implement models, serializers, and specs for the following:
   state, the arrangment zoom. This model class might not be included when
   computing equivalence between sets.
 
+#### FU1. The values to compute
+
+the report has none of these today
+
+- LiveTrackFacts#device_summary — split into the blocking devices (the plug-ins) and the M4L devices. It lists every
+  device in the chain today, native ones included.
 
 #### T5. Tighten conversion check names and scope
 
@@ -346,7 +352,8 @@ Live 11 or Live 12 is enough, since two of its tracks can be linked.
 
 #### N57. The legend of the report describes clip references, and there are none
 
-The legend the report writes — the `LEGEND` constant of `lib/live_set/live_set_report.rb` —
+The legend the report writes — the `LEGEND` constant of
+`lib/live_set/serializer/als_model_serializer.rb` —
 says that a clip is its name and the file it plays, and that every place a clip is in — a
 slot of the session view, the arrangement, a take lane — holds a *reference* to it, and that
 the settings of a reference belong to the reference and not to the clip.

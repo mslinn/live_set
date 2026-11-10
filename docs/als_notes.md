@@ -482,7 +482,7 @@ clips is not the number of files.
 An `<AudioClip>` is not always inside a `<ClipSlot>`. Live 12 moved most of
 them into the arrangement and the take lanes.
 
-See `lib/live_set/model/live_track.rb`.
+See `lib/live_set/model/live_audio_track.rb`.
 
 
 ## Every place holds its own clip
@@ -649,8 +649,8 @@ mode uses: `GranularityTones` is the grain of the Tones mode, and
 fluctuation of the Texture mode. A clip in any other mode carries the
 default values of all three.
 
-See `lib/live_set/live_set_report.rb`, which reports the mode of a clip by
-its name and its number.
+See `lib/live_set/serializer/live_audio_clip_serializer.rb`, which reports the mode of
+a clip by its name and its number.
 
 See `lib/live_set/model/live_audio_clip.rb`.
 
@@ -675,10 +675,23 @@ A plug-in's name is in a different place depending on the plug-in format:
 
 Both shapes are in real sets, and the VST3 shape has no `PlugName` at all.
 
-A Max for Live device is an `MxDeviceAudioEffect` for an audio effect and an
-`MxDeviceMidiEffect` for a MIDI effect. Max for Live is supported on the Push 3
-Standalone, but with less headroom, so it is treated separately from a
-third-party plug-in.
+A Max for Live device is a child of a `Devices` element of its own kind, and
+the name of the element says what it is:
+
+| Element               | What it is                       |
+| --------------------- | -------------------------------- |
+| `MxDeviceAudioEffect` | a Max for Live audio effect      |
+| `MxDeviceMidiEffect`  | a Max for Live MIDI effect       |
+| `MxDeviceInstrument`  | a Max for Live instrument        |
+
+These are the class names of the Live Object Model. The name of the device is
+inside the element, and says nothing about what the device is: there are
+hundreds of Max for Live devices, and the element is what they all have in
+common. No device of the corpus has a `Manufacturer` element.
+
+Max for Live is supported on the Push 3 Standalone, but with less headroom, so
+a Max for Live device is advice and not an error: the set can be transferred,
+and a device that overloads the P3S has to be frozen away.
 
 See `lib/live_set/model/live_device.rb`.
 
@@ -1390,8 +1403,8 @@ Live 11 and Live 12 hold the take lanes the same way. The difference between
 them is elsewhere: the clips of both carry `ScaleInformation`, which is what
 Live 12 uses for the scale of the clip. The Live 11 demo set has 74 of them.
 
-See `lib/live_set/live_set_report.rb`, which reports the lanes of a track under
-the track.
+See `lib/live_set/serializer/live_take_lane_serializer.rb`, which reports the lanes of a
+track under the track.
 
 
 ## Two Track Sequencers
@@ -1407,7 +1420,7 @@ nothing. Both sequencers must be searched.
 
 The freeze state of a track is its `<Freeze Value="true"/>` subelement.
 
-See `lib/live_set/model/live_track.rb`.
+See `lib/live_set/model/live_track_facts.rb`.
 
 
 ## Lane Types

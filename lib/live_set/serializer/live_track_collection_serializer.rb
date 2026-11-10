@@ -26,9 +26,18 @@ class LiveTrackCollectionSerializer
   #
   # @return [String] the serialized markdown
   def to_markdown
-    @tracks.each_with_index.map do |track, index|
-      @track_serializer.new(track, number_of(index)).to_markdown
+    numbered_tracks.map do |number, track|
+      @track_serializer.new(track, number).to_markdown
     end.join("\n")
+  end
+
+  # The tracks of the collection, with the numbers they have in the report.
+  #
+  # @return [Array<Array>] the number and the track
+  def numbered_tracks
+    @tracks.each_with_index.map do |track, index|
+      [number_of(index), track]
+    end
   end
 
   private

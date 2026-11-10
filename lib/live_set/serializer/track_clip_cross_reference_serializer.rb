@@ -2,7 +2,6 @@ require 'markdown-tables'
 require_relative '../model/live_palette'
 require_relative 'live_midi_clip_groups'
 require_relative 'live_midi_clip_serializer'
-require_relative 'live_clips_serializer'
 require_relative 'live_markup'
 
 # Writes the section of the report that crosses the tracks of the set with the clips they
@@ -40,7 +39,7 @@ class TrackClipCrossReferenceSerializer
   # @return [String] the table
   def tracks_and_clips_table
     rows = []
-    @cross_reference.tracks.each_numbered_track do |number, track|
+    @cross_reference.tracks.each do |number, track|
       places = @cross_reference.places_of track, number
       next if places.empty?
 
@@ -74,29 +73,16 @@ class TrackClipCrossReferenceSerializer
   # @param track [LiveTrack, LiveGroup] the track
   # @return [String] the name
   def track_name(track)
-    LiveMarkup.display_name track
+    track.display_name
   end
 
-  # TODO: This code is identical to track_label in device_cross_reference_serializer.rb. Consolidate this and be DRY.
   # The name of a track, on the colour Live gave it.
+  #
+  # The name is in a table cell, so it is written without a line break.
   #
   # @param track [LiveTrack, LiveGroup] the track
   # @return [String] the name
   def track_label(track)
-    name = track_name(track)
-    if track.problem?
-      return LiveMarkup.colored_code LiveMarkup.escape(name),
-                                     background_color: LiveMarkup::DARK_BACKGROUND,
-                                     foreground_color: LiveMarkup::LIGHT_TEXT
-    end
-
-    color = LivePalette.color_of track.color
-    return "<code>#{LiveMarkup.escape name}</code>" unless color
-
-    label = LiveMarkup.colored_code LiveMarkup.escape(name),
-                                    color_number:     track.color,
-                                    background_color: "##{color}",
-                                    foreground_color: LiveMarkup.text_color(color)
-    "<nobr>#{label}</nobr>"
+    LiveMarkup.track_name_markdown track, track_name(track), in_a_cell: true
   end
 end

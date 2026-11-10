@@ -42,7 +42,7 @@ class LiveTracks
   def initialize(set_directory, elements)
     @elements = elements
     @track_ids = elements.map { |element| element['Id'] }
-    @midi_tracks = LiveMidiTracks.new set_directory, elements_of(elements, 'MidiTrack')
+    @midi_tracks = LiveMidiTracks.new elements_of(elements, 'MidiTrack')
     @audio_tracks = LiveAudioTracks.new set_directory, elements_of(elements, 'AudioTrack')
     @return_tracks = LiveReturnTracks.new set_directory, elements_of(elements, 'ReturnTrack')
     @groups = LiveGroups.new(
@@ -82,59 +82,6 @@ class LiveTracks
     groups_of_the_set.to_a + top_level_tracks
   end
 
-  # The tracks at the top of the set, with the number each of them has in the report.
-  #
-  # The tracks are numbered in the order Live wrote them, so that the numbers of the tracks
-  # of the set are unique in the report. The groups are numbered among themselves, and a
-  # group and a track are numbered in their own company.
-  #
-  # @return [Array<Array>] the number of the track, and the track
-  def numbered_tracks_of_the_set
-    @numbered_tracks_of_the_set ||= top_level_tracks.each_with_index.map do |track, index|
-      [(index + 1).to_s, track]
-    end
-  end
-
-  # TODO: Model classes should not contain a `to_markdown` method. This class and its parent class should have a
-  # corresponding serializer, which should contain this method. See docs/report_design.md
-  #
-  # The markdown of the tracks of the set.
-  #
-  # The tracks are written in the order Live wrote them. When they are to be shown
-  # separately, the audio tracks and the MIDI tracks are written in their own lists, and
-  # the caller writes the heading of each.
-  #
-  # @param separately [Boolean] whether the two kinds of track are written in their own
-  #   lists
-  # @return [String] the markdown
-  def to_markdown(separately: false)
-    return separate_markdown if separately
-
-    ordered_markdown
-  end
-
-  # TODO: Model classes should not contain methods for serialization. This class and its parent class should have a
-  # corresponding serializer, which should contain this method. See docs/report_design.md
-  #
-  # Every track of the set, with the number it has in the report.
-  #
-  # The tracks at the top of the set are numbered from one, and the tracks of a group are numbered after the group, as
-  # 1.1.
-  #
-  # The XML has no notion of a track number, so the number is made here, and it is not held by the model.
-  #
-  # @yieldparam number [String] the number of the track @yieldparam track [LiveMidiTrack, LiveAudioTrack] the track
-  # @return [void]
-  def each_numbered_track(&)
-    numbered_tracks_of_the_set.each(&)
-
-    groups.each_with_index do |group, index|
-      group.tracks.each_with_index do |member, position|
-        yield "#{index + 1}.#{position + 1}", member
-      end
-    end
-  end
-
   # The audio clips of the set.
   #
   # The audio of the set is in these clips, and the files they play are the samples of the
@@ -157,80 +104,103 @@ class LiveTracks
     end
   end
 
-  # The errors that stop a set from being transferred.
+  # The tracks of the set that cannot be transferred to P3S Standalone.
   #
-  # A third-party device on an unfrozen track or in a group's chain. The clips that have not
-  # been collected are counted, and are not errors here.
+  # A third-party device on a track that is not frozen. A MIDI track has the same devices as
+  # an audio track, and the same problems: the P3S Standalone cannot run a plug-in on a MIDI
+  # track either, and freezing the track renders it away.
   #
-  # @return [Array<String>] the errors
-  def p3s_errors
-    audio_tracks.flat_map { |track| track_errors(track) } + group_errors
+  # The clips that have not been collected are counted, and are not among these.
+  #
+  # @return [Array<Array>] the track, and the devices that stop it
+  def blocking_tracks
+    all_tracks.filter_map do |track|
+      devices = track.blocking_devices
+      next if devices.empty?
+
+      [track, devices]
+    end
   end
 
-  # The advice about a set that can be transferred.
+  # The groups of the set that cannot be transferred to P3S Standalone.
   #
-  # Advice is not an error and does not change the verdict: an unfrozen track that uses only
-  # native devices.
+  # The output of a group track's members are routed to the group, so the group's devices
+  # process the members' audio. If a group's device chain contains a non-native device (like
+  # VST2 or VST3), the set is incompatible with the P3S Standalone.
   #
-  # @return [Array<String>] the advice
-  def p3s_advice
-    advice = []
-    audio_tracks.each do |track|
-      next if track.frozen? || track.distinct_clips.empty? || track.device_summary.empty?
+  # Normally, only tracks capable of holding clips can frozen, so normally a group track
+  # cannot be frozen. This means a non-native device on a group track cannot be rendered away
+  # by freezing the group. However, an Ableton Live option permits the creation of frozen
+  # group tracks. See [Options.txt](docs/als_work.md).
+  #
+  # See docs/als_notes.md, "Group Device Chain".
+  #
+  # @return [Array<Array>] the group, the devices that stop it, and the names of the tracks
+  #   whose audio they affect
+  def blocking_groups
+    groups.filter_map do |group|
+      devices = group.blocking_devices
+      next if devices.empty?
 
-      advice << "Track #{track_label track} is not frozen but has incompatible devices: #{track.device_summary}"
+      [group, devices, group.affected_track_names]
     end
-    advice
+  end
+
+  # The tracks of the set that use a Max for Live device.
+  #
+  # A Max for Live device is supported by the P3S Standalone, but with less CPU headroom,
+  # so it is advice and not an error. A frozen track has its devices rendered away, so it is
+  # not among these.
+  #
+  # @return [Array<Array>] the track, and the devices
+  def max_for_live_tracks
+    all_tracks.filter_map do |track|
+      next if track.frozen?
+
+      devices = track.max_for_live_devices
+      next if devices.empty?
+
+      [track, devices]
+    end
+  end
+
+  # The groups of the set that use a Max for Live device.
+  #
+  # A Max for Live device is supported by the P3S Standalone, but with less CPU headroom,
+  # so it is advice and not an error. A group cannot be frozen, so its devices cannot be
+  # rendered away.
+  #
+  # @return [Array<Array>] the group, and the devices
+  def max_for_live_groups
+    groups.filter_map do |group|
+      devices = group.max_for_live_devices
+      next if devices.empty?
+
+      [group, devices]
+    end
+  end
+
+  # The clips of the session view.
+  #
+  # The P3S Standalone is made for the Session View: a set that has no clip in the session
+  # view has nothing for it to launch. A set loads and plays in Standalone Mode, but the
+  # Arrangement View cannot be edited there.
+  #
+  # @return [Array<LiveClip>] the clips
+  def session_view_clips
+    all_tracks.flat_map do |track|
+      track.clips.select { |clip| clip.place == 'session view' } +
+        track.audio_clips.select { |clip| clip.place == 'session view' }
+    end
   end
 
   private
 
-  # TODO: This code is identical to track_label in track_clip_cross_reference_serializer.rb. Consolidate this and be DRY.
-  # The name of a track, on the colour Live gave it.
+  # Every track of the set: the MIDI tracks, the audio tracks and the return tracks.
   #
-  # @param track [LiveTrack, LiveGroup] the track
-  # @return [String] the name of the track
-  def track_label(track)
-    name = LiveMarkup.display_name track
-    if track.problem?
-      return LiveMarkup.colored_code LiveMarkup.escape(name),
-                                     background_color: LiveMarkup::DARK_BACKGROUND,
-                                     foreground_color: LiveMarkup::LIGHT_TEXT
-    end
-
-    color = LivePalette.color_of track.color
-    return "<code>#{LiveMarkup.escape name}</code>" unless color
-
-    label = LiveMarkup.colored_code LiveMarkup.escape(name),
-                                    color_number:     track.color,
-                                    background_color: "##{color}",
-                                    foreground_color: LiveMarkup.text_color(color)
-    "<nobr>#{label}</nobr>"
-  end
-
-  # TODO: Model classes should not contain methods for serialization. This class and its parent class should have a
-  # corresponding serializer, which should contain this method. See docs/report_design.md
-  #
-  # The tracks of the set, in the order Live wrote them.
-  #
-  # @return [String] the markdown
-  def ordered_markdown
-    numbered_tracks_of_the_set.map do |number, track|
-      track.to_markdown number
-    end.join("\n")
-  end
-
-  # TODO: Model classes should not contain methods for serialization. This class and its parent class should have a
-  # corresponding serializer, which should contain this method. See docs/report_design.md
-  #
-  # The audio tracks and the MIDI tracks of the set, in their own lists.
-  #
-  # @return [String] the markdown
-  def separate_markdown
-    [
-      audio_tracks.to_markdown(nil, 1),
-      midi_tracks.to_markdown(nil, 1)
-    ].reject(&:empty?).join("\n")
+  # @return [Array<LiveTrack>] the tracks
+  def all_tracks
+    @all_tracks ||= midi_tracks.to_a + audio_tracks.to_a + return_tracks.to_a
   end
 
   # The elements of one kind of track.
@@ -240,62 +210,5 @@ class LiveTracks
   # @return [Array<Nokogiri::XML::Element>] the elements
   def elements_of(elements, name)
     elements.select { |element| element.name == name }
-  end
-
-  # The errors caused by one track.
-  #
-  # @param track [LiveAudioTrack] the track
-  # @return [Array<String>] the errors
-  def track_errors(track)
-    track.blocking_devices.map do |device|
-      " - Track #{track_label track} is not frozen and uses device #{device.label}, " \
-        'which P3S Standalone cannot run. Freeze or render this track.'
-    end
-  end
-
-  # Return the errors relating to the devices in the groups' chains.
-  #
-  # The output of a group track's members are routed to the group, so the group's devices process the members' audio. If
-  # a group's device chain contains a non-native device (like VST2 or VST3), the set is incompatible with the P3S
-  # Standalone.
-  #
-  # Normally, only tracks capable of holding clips can frozen, so normally a group track cannot be frozen. This means a
-  # non-native device on a group track cannot be rendered away by freezing the group. However, an Ableton Live option
-  # permits the creation of frozen group tracks. See [Options.txt](docs/als_work.md).
-  #
-  # The error names the tracks whose audio the device affects, so the user knows which ones are involved.
-  #
-  # See docs/als_notes.md, "The device chain of a group".
-  #
-  # @return [Array<String>] the errors
-  def group_errors
-    groups.flat_map do |group|
-      affected = affected_track_names group
-      group.blocking_devices.map do |device|
-        message = " - Group '#{group.name}' uses #{device.label}, which P3S Standalone cannot run. " \
-                  "Remove it from the group's device chain, or bounce the group."
-        message += " It affects #{affected}." unless affected.empty?
-        message
-      end
-    end
-  end
-
-  # The names of the tracks whose audio passes through a group.
-  #
-  # A member track's output is routed to the group, so the group's devices process its audio. A
-  # member that has been routed somewhere else — to an external output, say — is not affected.
-  #
-  # The names are de-duplicated, because the tracks in a group often share a name. Ableton numbers
-  # a track's name when it is duplicated, but a group of clips recorded from the same source can
-  # end up with the same name on every track.
-  #
-  # @param group [LiveGroup] the group
-  # @return [String] a comma-separated list of track names
-  def affected_track_names(group)
-    group.members
-         .select { |track| track.at('DeviceChain/AudioOutputRouting/Target')&.[]('Value') == 'AudioOut/GroupTrack' }
-         .filter_map { |track| group.track_name track }
-         .uniq
-         .join(', ')
   end
 end

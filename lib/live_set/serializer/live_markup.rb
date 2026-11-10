@@ -138,20 +138,6 @@ module LiveMarkup
       brightness(color) > 128 ? '#000000' : LIGHT_TEXT
     end
 
-    # The name of a thing, as the report writes it.
-    #
-    # The name the user typed is the name of the thing. When there is none, the name Live
-    # resolved is the name, without the number Live gives the things that share a name.
-    #
-    # @param thing [LiveMidiTrack, LiveAudioTrack, LiveGroup] the thing
-    # @return [String] the name
-    def display_name(thing)
-      user_name = thing.user_name
-      return user_name unless user_name.nil? || user_name.empty?
-
-      thing.name.sub(/\A\d+[- ]/, '')
-    end
-
     # A number, as the default locale writes it.
     #
     # Ruby does not format numbers by locale, so the grouping of the default locale is
@@ -209,7 +195,7 @@ module LiveMarkup
     # @return [String] the line
     def track_detail(track, number)
       states = states_of(track)
-      name = display_name(track)
+      name = track.display_name
       states_suffix = states.empty? ? '' : "  #{states.join(', ')}"
 
       "#{indent_for(number)}- Track #{number}  #{icon_for(track.kind)} #{track.kind}  " \
@@ -220,10 +206,14 @@ module LiveMarkup
     #
     # A track that is incompatible with the P3S Standalone is highlighted.
     #
+    # The name of a track in a table cell does not break across lines, which is what the
+    # `nobr` element is for. Only the name of a track that has a colour is wrapped.
+    #
     # @param track [LiveMidiTrack, LiveAudioTrack, LiveReturnTrack, LiveMasterTrack] the track
     # @param name [String] the name of the track
+    # @param in_a_cell [Boolean] true when the name is written in a table cell
     # @return [String] the name of the track
-    def track_name_markdown(track, name)
+    def track_name_markdown(track, name, in_a_cell: false)
       if track.problem?
         # TODO: surface this to a configurable parameter driven from a default style sheet.
         return colored_code escape(name),
@@ -234,10 +224,13 @@ module LiveMarkup
       color = LivePalette.color_of track.color
       return "<code>#{escape name}</code>" unless color
 
-      colored_code escape(name),
-                   color_number:     track.color,
-                   background_color: "##{color}",
-                   foreground_color: text_color(color)
+      label = colored_code escape(name),
+                           color_number:     track.color,
+                           background_color: "##{color}",
+                           foreground_color: text_color(color)
+      return label unless in_a_cell
+
+      "<nobr>#{label}</nobr>"
     end
 
     # The complete state of a track.

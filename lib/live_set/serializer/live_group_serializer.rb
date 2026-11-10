@@ -30,6 +30,16 @@ class LiveGroupSerializer
     parts.reject(&:empty?).join "\n"
   end
 
+  # The tracks in the group, with the numbers they have in the report.
+  #
+  # The numbers of the members follow the number of the group, and they are the numbers the
+  # cross-references of the set use.
+  #
+  # @return [Array<Array>] the number and the track
+  def numbered_members
+    track_serializers.flat_map(&:numbered_tracks)
+  end
+
   private
 
   # The line of the group: its number, its icon, its kind and its name.
@@ -39,7 +49,7 @@ class LiveGroupSerializer
   #
   # @return [String] the line
   def group_line
-    name = LiveMarkup.display_name @group
+    name = @group.display_name
     "#{LiveMarkup.indent_for(@hierarchical_number)}- Group track #{@hierarchical_number}  " \
       "👥 Group  #{name_markdown(name)}"
   end
@@ -91,9 +101,20 @@ class LiveGroupSerializer
   #
   # @return [String] the tracks
   def track_details
-    midi = LiveMidiTracksSerializer.new @group.midi_tracks, @hierarchical_number, 1
-    audio = LiveAudioTracksSerializer.new @group.audio_tracks, @hierarchical_number,
-                                          @group.midi_tracks.size + 1
-    [midi.to_markdown, audio.to_markdown].reject(&:empty?).join("\n")
+    track_serializers.map(&:to_markdown).reject(&:empty?).join("\n")
+  end
+
+  # The serializers of the tracks in the group.
+  #
+  # The MIDI members of the group come first, and the audio members after them, and the
+  # numbers of the members follow the number of the group.
+  #
+  # @return [Array<LiveTrackCollectionSerializer>] the serializers
+  def track_serializers
+    [
+      LiveMidiTracksSerializer.new(@group.midi_tracks, @hierarchical_number, 1),
+      LiveAudioTracksSerializer.new(@group.audio_tracks, @hierarchical_number,
+                                    @group.midi_tracks.size + 1)
+    ]
   end
 end

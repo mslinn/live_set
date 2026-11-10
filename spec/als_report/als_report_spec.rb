@@ -53,7 +53,7 @@ RSpec.describe AlsReport, '#show' do
   it 'numbers the devices of a track, and of a group' do
     markdown = report(LiveSets.fascination)
 
-    expect(markdown).to match(/^ {4}- Group Track Device 1a  .*M4L  ⚠ not usable on P3S$/)
+    expect(markdown).to match(/^ {4}- Group Track Device 1a  .*M4L$/)
     expect(markdown).to match(%r{^ {4}- Group Track Device 1b  <code>DrumBuss</code>  Live$})
   end
 
@@ -129,7 +129,11 @@ RSpec.describe AlsReport, '#show' do
   end
 
   it 'marks the devices that P3S cannot use with a dark background' do
+    # A Max for Live device is supported by the P3S Standalone, so it is not marked.
     expect(report(LiveSets.fascination)).to include(
+      'color: #FFFFFF; background-color: #212121; vertical-align: middle;">Kontakt 7</code>'
+    )
+    expect(report(LiveSets.fascination)).not_to include(
       'color: #FFFFFF; background-color: #212121; vertical-align: middle;">Filter</code>'
     )
   end
@@ -156,7 +160,8 @@ RSpec.describe AlsReport, '#show' do
     markdown = report(LiveSets.fascination)
 
     # TODO: use project-wide constants for color values
-    expect(markdown).to include('color: #FFFFFF; background-color: #212121; vertical-align: middle;"># Drums</code>')
+    # A group whose only device is a Max for Live device is not a problem, so it keeps the
+    # colour Live gave it.
     expect(markdown).to include('color: #FFFFFF; background-color: #212121; vertical-align: middle;">Kontakt 7</code>')
   end
 
@@ -181,7 +186,7 @@ RSpec.describe AlsReport, '#show' do
   end
 
   it 'writes the errors of the verdict as a list' do
-    expect(report(LiveSets.fascination)).to match(/^- Group '2 Drums' uses Filter/)
+    expect(report(LiveSets.fascination)).to match(/^- Group '2 Drums' uses Max for Live device Filter/)
   end
 
   it 'writes the sizes and the checksums of the set under the metadata' do

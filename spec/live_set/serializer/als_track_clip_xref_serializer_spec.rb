@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'live_set/model/live_track_clip_cross_reference'
+require 'live_set/serializer/live_tracks_serializer'
 require 'live_set/serializer/track_clip_cross_reference_serializer'
 require 'support/live_fixtures'
 
@@ -8,17 +9,25 @@ require 'support/live_fixtures'
 # The model is inflated from the fixture data: the XML of the largest Live 12 demo set.
 # See docs/serializer_plan.md, "Testing".
 RSpec.describe TrackClipCrossReferenceSerializer, '#to_markdown' do
+  # The tracks of the set.
+  #
+  # @return [LiveTracks] the tracks of the set
+  def tracks
+    @tracks ||= begin
+      document = LiveFixtures.document 'live_12_suite_demo'
+      elements = document.xpath('//MidiTrack | //AudioTrack | //GroupTrack | //Tracks/ReturnTrack | ' \
+                                '//MasterTrack | //MainTrack')
+      LiveTracks.new LiveFixtures.directory_of('live_12_suite_demo'), elements
+    end
+  end
+
   # The tracks of the set, and the clips they hold.
   #
   # @return [LiveTrackClipCrossReference] the cross-reference
   def cross_reference
-    @cross_reference ||= begin
-      document = LiveFixtures.document 'live_12_suite_demo'
-      elements = document.xpath('//MidiTrack | //AudioTrack | //GroupTrack | //Tracks/ReturnTrack | ' \
-                                '//MasterTrack | //MainTrack')
-      tracks = LiveTracks.new LiveFixtures.directory_of('live_12_suite_demo'), elements
-      LiveTrackClipCrossReference.new tracks
-    end
+    @cross_reference ||= LiveTrackClipCrossReference.new(
+      LiveTracksSerializer.new(tracks).numbered_tracks
+    )
   end
 
   it 'writes the heading of the section, and the two tables under it' do

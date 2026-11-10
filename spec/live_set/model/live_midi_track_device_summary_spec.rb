@@ -25,8 +25,9 @@ RSpec.describe LiveMidiTrack, '#device_summary' do
   #
   # The only plug-in in the corpus is on a MIDI track.
   def track_with_plugin
-    @track_with_plugin ||= described_class.new LiveSets.directory(path),
-                                               LiveSets.node(path, '//MidiTrack[@Id="16"]')
+    @track_with_plugin ||= described_class.new(
+      LiveSets.node(path, '//MidiTrack[@Id="16"]')
+    )
   end
 
   it 'finds a plug-in in the chain' do

@@ -1,5 +1,4 @@
 require_relative '../../common/xml'
-require_relative '../serializer/live_midi_track_serializer'
 require_relative 'live_midi_clip'
 require_relative 'live_track_facts'
 
@@ -27,10 +26,8 @@ class LiveMidiTrack
 
   attr_reader :clips
 
-  # TODO: if set_directory is not required, delete it and correct all call sites
-  # @param set_directory [String] the directory of the set
   # @param element [Nokogiri::XML::Element] the `<MidiTrack>` element
-  def initialize(_set_directory, element)
+  def initialize(element)
     @element = element
     read_track_facts 'MidiTrack'
     @clips = clips_of_track
@@ -50,19 +47,5 @@ class LiveMidiTrack
     PLACES.flat_map do |place, path|
       @element.xpath(path).map { |node| LiveMidiClip.new node, place: place }
     end
-  end
-
-  # TODO: Model classes should not contain a `to_markdown` method. This class and its parent class should have a
-  # corresponding serializer, which should contain this method. See docs/report_design.md
-  #
-  # The markdown of the track.
-  #
-  # The track is written by the serializer of a track, which is given the track and the
-  # number the track has in the report.
-  #
-  # @param number [String] the number of the track in the report
-  # @return [String] the markdown
-  def to_markdown(number)
-    LiveMidiTrackSerializer.new(self, number).to_markdown
   end
 end
