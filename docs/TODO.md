@@ -68,6 +68,46 @@ describes these documents in `docs/`: `report_design.md`, `als_architecture.md`,
 `als_notes.md`, `als_work.md`, `glossary.md`. We need a migration plan, followed
 by retiring `docs/serializer_plan.md` to `docs/old_serializer_plan2.md`.
 
+
+### D5. Re-Indent Output XML
+
+When the `als_nodes` command outputs XML, the XML should be properly indented,
+such that the outermost element starts on column 0.
+
+For example, this is the current output:
+
+```shell
+$ als_nodes "$pinkblanket" //FileRef --max 1
+<FileRef>
+                                                                                                <RelativePathType Value="5"/>
+                                                                                                <RelativePath Value="Drum Kits/Multisampled/32 Pad Kit Jazz.adg"/>
+                                                                                                <Path Value="M:/Ableton 12 Factory Packs/Drum Booth/Drum Kits/Multisampled/32 Pad Kit Jazz.adg"/>
+                                                                                                <Type Value="1"/>
+                                                                                                <LivePackName Value="Drum Booth"/>
+                                                                                                <LivePackId Value="www.ableton.com/248"/>
+                                                                                                <OriginalFileSize Value="0"/>
+                                                                                                <OriginalCrc Value="0"/>
+                                                                                                <SourceHint Value=""/>
+                                                                                        </FileRef>
+```
+
+This is the desired output:
+
+```shell
+$ als_nodes "$pinkblanket" //FileRef --max 1
+<FileRef>
+  <RelativePathType Value="5"/>
+  <RelativePath Value="Drum Kits/Multisampled/32 Pad Kit Jazz.adg"/>
+  <Path Value="M:/Ableton 12 Factory Packs/Drum Booth/Drum Kits/Multisampled/32 Pad Kit Jazz.adg"/>
+  <Type Value="1"/>
+  <LivePackName Value="Drum Booth"/>
+  <LivePackId Value="www.ableton.com/248"/>
+  <OriginalFileSize Value="0"/>
+  <OriginalCrc Value="0"/>
+  <SourceHint Value=""/>
+</FileRef>
+```
+
 #### D3. Consistent Command Code Organization
 
 The module-level comment in `lib/common/command.rb` shows how commands should be

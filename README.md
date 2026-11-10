@@ -325,7 +325,8 @@ file. The XPath expression is the only thing that has to change from one questio
 next, which makes this the tool to reach for instead of writing a program for each
 element.
 
-The results are printed as a JSON array of strings, so that jq can work with them.
+The nodes are printed as XML. The values of the nodes are printed as a JSON array of
+strings, so that jq can work with them: jq reads JSON, and not XML.
 
 Syntax: als_nodes FILE XPATH [options]
 
@@ -351,6 +352,34 @@ Examples:
   als_nodes set.als '//LiveSet/Scenes/Scene/FollowAction' --children
   als_nodes set.als '//LiveSet/MainTrack' --children | jq -r '.[]'
   als_nodes set.als '//MidiTrack' --count
+```
+
+#### What the command prints
+
+| The command | What it prints |
+| --- | --- |
+| `als_nodes FILE XPATH` | the XML of the nodes, one after another |
+| `--attribute NAME` | the values of the attribute, as a JSON array of strings |
+| `--attributes` | every attribute of the node, as `name=value` pairs, as a JSON array of strings |
+| `--name` | the name of each node, as a JSON array of strings |
+| `--children` | the names of the children of each node, as a JSON array of strings |
+| `--count` | the number of nodes that were found, and nothing else |
+
+The XML is indented: every level of nesting is indented by two spaces, and the outermost
+element is at the start of a line.
+
+```shell
+$ als_nodes "$live_set" //FileRef --max 1
+<FileRef>
+  <RelativePathType Value="6"/>
+  <RelativePath Value="Samples/Pink Noise - EDMtips.com.wav"/>
+  <Path Value="/Users/owen/Music/Ableton/User Library/Samples/Pink Noise - EDMtips.com.wav"/>
+  <Type Value="2"/>
+  <LivePackName Value=""/>
+  <LivePackId Value=""/>
+  <OriginalFileSize Value="4130387"/>
+  <OriginalCrc Value="513"/>
+</FileRef>
 ```
 
 

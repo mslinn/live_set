@@ -36,7 +36,8 @@ class AlsNodes
       next, which makes this the tool to reach for instead of writing a program for each
       element.
 
-      The results are printed as a JSON array of strings, so that jq can work with them.
+      The nodes are printed as XML. The values of the nodes are printed as a JSON array of
+      strings, so that jq can work with them: jq reads JSON, and not XML.
 
       Syntax: als_nodes FILE XPATH [options]
 
@@ -96,8 +97,32 @@ class AlsNodes
     results = nodes.flat_map { |node| values_of(node, found) }
     results = results.uniq if found[:unique]
 
-    puts JSON.pretty_generate(results)
+    print_results results, found
     0
+  end
+
+  # Prints what the command found.
+  #
+  # The nodes are printed as XML. The values of the nodes are printed as a JSON array of
+  # strings, so that jq can work with them: jq reads JSON, and not XML.
+  #
+  # @param results [Array<String>] the results
+  # @param found [Hash] the options
+  # @return [void]
+  def self.print_results(results, found)
+    if prints_nodes?(found)
+      results.each { |node| puts node }
+    else
+      puts JSON.pretty_generate(results)
+    end
+  end
+
+  # Whether the command prints the nodes themselves, and not the values of them.
+  #
+  # @param found [Hash] the options
+  # @return [Boolean] true when the nodes are printed
+  def self.prints_nodes?(found)
+    found[:attribute].empty? && !found[:attributes] && !found[:name] && !found[:children]
   end
 
   # The options the command starts with.
@@ -138,6 +163,26 @@ class AlsNodes
     return [node.name] if found[:name]
     return node.element_children.map(&:name) if found[:children]
 
-    [node.to_xml(save_with: Nokogiri::XML::Node::SaveOptions::AS_XML)]
+    [xml_of(node)]
+  end
+
+  # The XML of a node, indented.
+  #
+  # The node is copied into a document of its own, so that it is the outermost element of
+  # what is printed. The blank text nodes are removed, so that the formatter indents the
+  # children of the node: otherwise the whitespace of the file the node came from is kept,
+  # and the node is printed at the depth it has in that file.
+  #
+  # Every level of nesting is indented by two spaces, and the outermost element is at the
+  # start of a line.
+  #
+  # @param node [Nokogiri::XML::Node] the node
+  # @return [String] the XML of the node
+  def self.xml_of(node)
+    document = Nokogiri::XML::Document.new
+    document.root = node.dup
+    document.xpath('//text()').each { |text| text.remove if text.content.strip.empty? }
+
+    document.root.to_xml(indent: 2)
   end
 end

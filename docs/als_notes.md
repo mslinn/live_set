@@ -18,7 +18,7 @@ An `.als` file is an XML document. Most are gzip-compressed, but uncompressed
 
 ## ALS XML
 
-The top-level element (or root tag) in an `.als` file is `<Ableton>`.
+The top-level element (or root tag) in an `.als` file is `<Ableton/>`.
 
 If you uncompress an `.als` file and examine the XML it contains, the outermost
 elmentss of the XML document look something like this:
@@ -28,7 +28,8 @@ elmentss of the XML document look something like this:
 <Ableton MajorVersion="5"
          MinorVersion="12.0_12048"
          SchemaChangeCount="3"
-         Creator="Ableton Live 12.0.5">
+         Creator="Ableton Live 12.0.5"
+         Revision="ce4b7c22b06532409b78ca241e5bb73735e7ca10">
   <LiveSet>
     <!-- Tracks, clips, automation, mixer settings, and device chains go here -->
   </LiveSet>
@@ -36,7 +37,7 @@ elmentss of the XML document look something like this:
 ```
 
 There is only `<Ableton/>` element in an `.als` file, and it is the root XML
-element. It has 4 attributes, which we discuss later in detail. Within the
+element. It has 5 attributes, which we discuss later in detail. Within the
 `<Ableton/>` element there is only one `<LiveSet/>` element. Both of these
 elements only occur once in the XML, so they can be represented by a Ruby model
 class.
@@ -52,7 +53,8 @@ within a collection have attributes that provide their positions on the timeline
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<Ableton MajorVersion="5" MinorVersion="12.0_12048" SchemaChangeCount="3" Creator="Ableton Live 12.0.5">
+<Ableton MajorVersion="5" MinorVersion="12.0_12048"
+  SchemaChangeCount="3" Creator="Ableton Live 12.0.5" Revision="ce4b7c22b06532409b78ca241e5bb73735e7ca10">
   <LiveSet>
     <Tracks>
 
@@ -170,76 +172,10 @@ This is the top-level element since the Ableton schema does not contain the
  </LiveSet>
 ```
 
-Puzzling:
-
-- The `<Tracks/>` element is not defined in the Ableton schema.
-
-- The Ableton schema defines the `<AudioClip/>` element but does not reference it.
-
 
 #### `AudioClip` Element
 
-I sorted the child elements of the `<AudioClip/>` element in the Ableton schema
-for easier reading. It does not contain a `<DeviceChain/>` element. This is most
-puzzling.
-
-```xml
- <AudioClip>
-  <Annotation Class="RemoteableString" Type="0" />
-  <AutoWarpTolerance Class="RemoteableEnum" Type="0" />
-  <ColorIndex Class="RemoteableInt" Type="0" />
-  <ComplexProEnvelope Class="UserFloat" Type="0" />
-  <ComplexProFormants Class="UserFloat" Type="0" />
-  <CurrentEnd Class="RemoteableDouble" Type="0" />
-  <CurrentStart Class="RemoteableDouble" Type="0" />
-  <Disabled Class="RemoteableBool" Type="0" />
-  <Fade Class="RemoteableBool" Type="0" />
-  <Fades Class="ClipFades" Type="0" />
-  <FluctuationTexture Class="UserFloat" Type="0" />
-  <FollowActionA Class="RemoteableEnum" Type="0" />
-  <FollowActionB Class="RemoteableEnum" Type="0" />
-  <FollowChanceA Class="UserFloat" Type="0" />
-  <FollowChanceB Class="UserFloat" Type="0" />
-  <FollowTime Class="RemoteableDouble" Type="0" />
-  <FreezeEnd Class="RemoteableDouble" Type="0" />
-  <FreezeStart Class="RemoteableDouble" Type="0" />
-  <GranularityTexture Class="UserFloat" Type="0" />
-  <GranularityTones Class="UserFloat" Type="0" />
-  <Grid Class="BeatGrid" Type="0" />
-  <GrooveSettings Class="ClipGrooveSettings" Type="0" />
-  <HiQ Class="RemoteableBool" Type="0" />
-  <IsSongTempoMaster Class="RemoteableBool" Type="0" />
-  <IsWarped Class="RemoteableBool" Type="0" />
-  <LaunchMode Class="RemoteableEnum" Type="0" />
-  <LaunchQuantisation Class="RemoteableEnum" Type="0" />
-  <Legato Class="RemoteableBool" Type="0" />
-  <Loop Class="Loop" Type="0" />
-  <MarkerDensity Class="RemoteableEnum" Type="0" />
-  <MarkersGenerated Class="RemoteableBool" Type="0" />
-  <ModulationList Class="ModulationList" Type="0" />
-  <Name Class="RemoteableString" Type="0" />
-  <Onsets Class="OnsetArray" Type="0" />
-  <PitchCoarse Class="UserFloat" Type="0" />
-  <PitchFine Class="UserFloat" Type="0" />
-  <Ram Class="RemoteableBool" Type="0" />
-  <SampleRef Class="SampleRef" Type="0" />
-  <SampleVolume Class="UserFloat" Type="0" />
-  <SavedWarpMarkersForStretched Class="RemoteableList" Type="-1" />
-  <ScrollerTimePreserver Class="ScrollerTimePreserver" Type="0" />
-  <StartWithSongTempo Class="RemoteableBool" Type="0" />
-  <Straightening Class="UserFloat" Type="0" />
-  <Sync Class="RemoteableBool" Type="0" />
-  <Time Class="Double" Type="-4" />
-  <TimeSelection Class="ClipTimeSelection" Type="0" />
-  <TimeSignature Class="SingleTimeSignatureManager" Type="0" />
-  <TransientEnvelope Class="UserFloat" Type="0" />
-  <TransientLoopMode Class="RemoteableEnum" Type="0" />
-  <TransientResolution Class="RemoteableEnum" Type="0" />
-  <VelocityAmount Class="UserFloat" Type="0" />
-  <WarpMarkers Class="RemoteableList" Type="-1" />
-  <WarpMode Class="RemoteableEnum" Type="0" />
- </AudioClip>
-```
+TODO write me.
 
 ### Standard XML Schemas
 
@@ -371,11 +307,11 @@ malformed data does not pass unnoticed.
 
 ### XML Root Element
 
-The root element is `<Ableton>`, and the document is a single `<LiveSet>` under it.
+The root element is `<Ableton/>`, and the document is a single `<LiveSet/>` under it.
 
 #### Adding Custom Attributes
 
-Custom attributes can be added to the root `<Ableton>` element without causing
+Custom attributes can be added to the root `<Ableton/>` element without causing
 problems with Ableton Live because its XML deserializer will ignore them.
 
 Ableton's XML parsing engine checks for a strict whitelist of attributes
@@ -385,12 +321,12 @@ other nodes) are treated as non-fatal noise and skipped during the
 object-mapping phase.
 
 While Live will successfully load a specially prepared `.als` file containing
-custom root attributes, Live will not preserve them them in the root `<Ableton>`
+custom root attributes, Live will not preserve them them in the root `<Ableton/>`
 element when the set is saved.
 
 #### Custom Marker Elements
 
-TODO Write out new attributes the root `<Ableton>` element:
+TODO Write out new attributes the root `<Ableton/>` element:
 
 `Generated by`:     `Live_set vX.Y.Z`
 `Live_set author`:  `Mike Slinn mslinn@mslinn.com`
@@ -398,7 +334,7 @@ TODO Write out new attributes the root `<Ableton>` element:
 
 #### The `Creator` Attribute
 
-The `<Ableton>` element has `MajorVersion` and `MinorVersion` attributes, but
+The `<Ableton/>` element has `MajorVersion` and `MinorVersion` attributes, but
 those are Ableton's internal set-format numbers, not the Live version a user
 sees. A set written by Live 12.2.1 reports `MajorVersion="5"
 MinorVersion="12.0_12203"`.
@@ -420,7 +356,7 @@ The real Live version is stored in the `Creator` attribute:
 files. It tracks structural schema revisions within the same major/minor release
 of Live.
 
-It sits directly inside the top-level `<Ableton>` root element:
+It sits directly inside the top-level `<Ableton/>` root element:
 
 ```xml
 <Ableton
@@ -451,30 +387,30 @@ It sits directly inside the top-level `<Ableton>` root element:
    apply during deserialization.
 
 
-##### Practical Implications for Custom Serializers
+## Clips and Samples For an Audio Track
 
-If you are constructing or modifying `.als` files via automated tools or custom
-serialization libraries:
+TODO Move this under a `## Generic Tracks` section
 
-* **Strict Match Requirements:** Live's XML parser will throw a version mismatch
-  error if `SchemaChangeCount` doesn't align with the expects of that build's
-  parser—even if all element tags are structurally valid.
-
-* **Downgrading Hacks:** When manually modifying an `.als` file to open in a
-  slightly older point release of the same major version, both `MinorVersion`
-  and `SchemaChangeCount` generally need to be spoofed to match a valid `.als`
-  generated by the target build.
+The Session View and the Arrangement View each hold their own clips. Ableton.com
+says they "each hold individual collections of clips" ([Live
+Concepts](https://www.ableton.com/en/manual/live-concepts/)), and a session clip
+copied into the arrangement view becomes an new arrangement clip, independent of
+the original sesison clip.
 
 
-## Where a track's audio is
+A track's audio is in three places, and in a fourth if the track is frozen:
 
-A track's audio is in three places:
+TODO: prove these are correct for all supported Live versions, and update this
+info when checking:
 
-| Where | Path to the clips |
-| --- | --- |
-| The session view | `DeviceChain/MainSequencer/ClipSlotList/ClipSlot/ClipSlot/Value/AudioClip` |
-| The arrangement | `DeviceChain/MainSequencer/Sample/ArrangerAutomation/Events/AudioClip` |
-| The take lanes | `TakeLanes/TakeLane/ClipAutomation/Events/AudioClip` |
+- Session view<br>
+`DeviceChain/MainSequencer/ClipSlotList/ClipSlot/ClipSlot/Value/AudioClip`
+- Arrangement view<br>
+  `DeviceChain/MainSequencer/SampleSequencer/ArrangerAutomation/Events/AudioClip`
+- Take lanes<br>
+  `TakeLanes/TakeLane/ClipAutomation/Events/AudioClip`
+- Freeze sequencer (frozen tracks only)<br>
+  `DeviceChain/FreezeSequencer/ClipSlotList/ClipSlot/ClipSlot/Value`
 
 The same file can be referenced from more than one of them, so the number of
 clips is not the number of files.
@@ -485,16 +421,9 @@ them into the arrangement and the take lanes.
 See `lib/live_set/model/live_audio_track.rb`.
 
 
-## Every place holds its own clip
+## MIDI Clips
 
-A place a clip is in holds the whole clip, not a reference to a clip that is
-held somewhere else. There is no pool of clips in a set, and nothing points
-into one.
-
-The Session View and the Arrangement View each hold their own clips: the manual
-says they "each hold individual collections of clips" ([Live
-Concepts](https://www.ableton.com/en/manual/live-concepts/)), and a Session clip
-copied into the Arrangement is an independent Arrangement clip.
+TODO Move this under a `## Generic Tracks` section
 
 The set that is checked in shows it. The clip `3-Kontakt 7 1` is written out as
 nine complete `MidiClip` elements, eight of them with the same forty-seven
@@ -520,26 +449,18 @@ The legend the report writes still describes references; see **N57** in
 `TODO.md`.
 
 
-## The colour of a track or a clip
+## Audio Samples
 
-Live writes the colour of a track or a clip as a number, in a `Color` element,
-and the number is an index into the colour menu of Live:
+A clip that plays an audio file refers to it with XPath `SampleRef/FileRef`.
 
-```text
-<Color Value="1" />
+```shell
+$ als_nodes "$pinkblanket" //SampleRef/FileRef --children | jq -r '.[]' | head -5
+RelativePathType
+RelativePath
+Path
+Type
+LivePackName
 ```
-
-The palette is the user's: it can be changed in the Preferences of Live, and
-the number means whatever the user's palette says it means. The default
-palette is in `lib/live_set/model/live_palette.rb`, in the order of the menu.
-
-The tooltip of a name in a report carries the number, so that the colour of a
-thing can be looked up in the palette the reader has.
-
-
-## The sample references of a clip
-
-A clip that plays a file refers to it through `SampleRef/FileRef`:
 
 | Element            | What it holds                                                    |
 | ------------------ | ---------------------------------------------------------------- |
@@ -922,7 +843,7 @@ unknown entities and attributes through when converting between ALS versions.
 See `lib/live_set/model/live_group.rb`.
 
 
-## Track TakeLlanes
+## Track TakeLanes
 
 Take lanes are subordinate to the track they belong to. Takes lane are in
 `TakeLanes` elements, which hold the clips for each take of a track. The track

@@ -57,72 +57,62 @@ versions are recorded in [live_11_12_diff.md](live_11_12_diff.md).
 
 ## Clip
 
-A piece of musical material in a set: a melody, a drum pattern, a bassline. A
+A passage of musical material in a set: a melody, a drum pattern, a bassline. A
 clip belongs to a place — a slot of the session view, a position on the
-arrangement timeline, a take lane — and each place holds the whole clip. There
-is no clip in a set that the places point at, and no reference to a clip
-anywhere in the format.
+arrangement timeline, a take lane. There are many types of clips, including MIDI
+and audio.
 
-Two clips that carry the same name and play the same file are alike, and they
-are not the same clip. A report that counts how many places a clip is in is
-counting the clips in the file that are alike.
+Two clips that carry the same name and play the same file are alike, but they
+are not the same clip. `als_report` counts how many places have a copy of a clip.
 
-See [als_notes.md](als_notes.md), "Every place holds its own clip".
+See [als_notes.md](als_notes.md) for `AudioClip` and `MidiClip`.
 
 ## Conversion
 
-The act of converting a set from one version of Live to another. In the program
-it is `LiveVersions.convert`: it looks at the version of the set, finds the
-bridges between that version and the one it is converted to, and applies them.
-The result depends only on the set, and nothing outside it is touched.
+The act of converting a set from one version of Live to another. See classes
+`LiveSetConverter` and `LiveVersions`.
 
 ## Corpus
 
-The sets available to be examined: the demo sets of every installed version of
-Live, and the 460-set corpus. Where the demo sets live is written down in
-[als_work.md](als_work.md), "Corpus of Demo Sets".
+The reference sets available to be examined, including the demo sets of every installed
+version of Live, specially prepared sets for A/B testing, and the 460-set Mike
+Slinn has under `$songs`. See [als_work.md](als_work.md), "Corpus of Demo Sets".
 
-## Data
-
-The values a document carries: the numbers and strings in the attributes, the
-samples a clip refers to, the devices in a chain, the name of a track. Data is
-distinct from structure. Live 12 writes the value of a `Target` element as
-`AudioOut/Main` where Live 11 writes `AudioOut/Master`: the element is the same
-one in both, and the value in it differs. That is a difference in data.
 
 ## Demo set
 
-A set that ships with Live. The demo sets of a version are the corpus that its
-schema is generated from, and the Live 12 demo set is the material of the
-end-to-end example.
+A set that ships with Live. See
+[$live_reference_sets](https://github.com/mslinn/live_reference_sets).
 
 ## Difference
 
-A place where two versions of Live disagree. The kinds of difference are listed
-in [conversion.md](conversion.md), "The kinds of difference": an element one
-version has and the other does not; an attribute one has and the other does not;
-an element the two name differently; an attribute value or an element value the
-two spell differently; an element one version has and the other does not; a
-value that is not legal in one of them; an element one puts at another depth.
+A node where two versions of Live differ. The kinds of difference are listed in
+[conversion.md](conversion.md), "The kinds of difference":
+
+1. an element one version has and the other does not;
+2. an attribute one has and the other does not;
+3. an element the two name differently;
+4. an attribute value or an element value the two spell differently;
+5. an element one version has and the other does not;
+6. a value that is not legal in one of them;
+7. an element one puts at another depth.
 
 A difference belongs to the version that introduced it, so a difference between
-Live 11 and Live 12 is in `live_11_12_diff.md` and not in the Live 10 and Live 11
-document. A fact both versions share is not a difference at all: it is a fact
-about the format, and it belongs in [als_notes.md](als_notes.md).
+Live 11 and Live 12 is described in `live_11_12_diff.md`. A fact all versions
+share is by definition not a difference; it is a fact about the format, so it
+belongs in [als_notes.md](als_notes.md).
 
 ## Direction
 
 Which way a conversion is going: `:up` from an older version to a newer one, or
-`:down` from a newer one to an older. The direction is a property of the
-document, not of the bridge: the bridge reads the version out of the document and
-converts it to the other of the two versions.
+`:down` from a newer one to an older.
 
 ## Format
 
-The way Live writes a set: its structure and its data together. Where a
-document says "the Live 11 format", read "the elements, attributes and values
-that Live 11 writes". The two are kept apart elsewhere in these documents, and
-so they are here.
+The way Live writes a set: its structure and its data together. Where a document
+says "the Live 11 format", read "the Live 11 XML format", which means "the
+elements, attributes and values that Live 11 writes". Thus "the Live 11 format"
+does not actually refer to formatting.
 
 ## Fully resolved size
 
