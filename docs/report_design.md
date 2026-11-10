@@ -70,7 +70,9 @@ Here is how this specific number breaks down from the top level down to the most
 • 1. — The first main section or chapter.
 • 1.1. — The first subsection under main section 1.
 • 1.1.2. — The second sub-subsection under subsection 1.1.
-• 1.1.2a — The first individual clause, paragraph, or item (denoted by 'a') within sub-subsection 1.1.2.
+• 1.1.2a — The first individual clause, paragraph, or item (denoted by 'a')
+within sub-subsection 1.1.2.
+
 
 #### Visual Example
 

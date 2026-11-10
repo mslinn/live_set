@@ -1,5 +1,8 @@
 # The A/B program of nearly-empty sets
 
+TODO: The user's suggestion was not properly captured. thus this explanation
+is misleading. Ignore this document until further notice.
+
 The program for finding out what Live 12 does to a Live 11 set, one small thing at a time.
 
 ## What the program is

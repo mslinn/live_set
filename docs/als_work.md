@@ -21,6 +21,27 @@ is designed to handle structural differences in ALS files, such as an element
 name that was renamed, or elements that exist in one version but not in another.
 
 
+## Guidelines
+
+- Simple operations, such as changing a set’s displayed name or copying a MIDI
+  map between sets, should modify the relevant XML directly rather than require
+  parsing the entire file into an object model.
+- Reporting is expected to provide substantially more value than converting.
+  Convert only the entities needed to make reports efficient; converting the
+  complete set is not a priority.
+- An end-user command should open Live 12, gather required content, ensure
+  anything that needs freezing is frozen, save the set, and send it to Push 3.
+- The next major commands should show real-time changes and compare two or more
+  sets. Organize contributions by party in separate subdirectories, with support
+  for a generic number of parties rather than only two. Show differences in
+  timeline order, and report only changes—not the full report—to keep output
+  readable.
+- Detect possible changes made to audio files outside Live by comparing file
+  sizes and dates with their recorded
+  values. Verify whether Live updates sample parameters when a changed file is
+  next opened.
+
+
 ## Reading and Writing ALS Files
 
 Class `AlsFile` in `lib/live_set/als_file.rb` contains the following methods:

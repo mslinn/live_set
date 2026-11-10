@@ -4,50 +4,75 @@ The scope of this document is restricted to the outstanding work of the `live_se
 
 Every TODO item has an identifier, and the identifiers are stable: the code, the
 specs and the documents cite them, so an identifier is never reused, and its
-meaning never changes. When an item is completed
-anything worth keeping is written up in another Markdown file in `docs/` and/or
-the code itself, then the entry is deleted from this file.
+meaning never changes. When an item is completed anything worth keeping is
+written up in another Markdown file in `docs/` and/or the code itself, then the
+entry is deleted from this file.
 
 This project was developed for WSL, which implies Windows 10 or 11. Ruby, Bash and
 PowerShell are the principal languages in use for this project.
 
 
-## Latest Thoughts
+## Priorities
 
-## Main Topics Discussed
+Highest priorties are mentioned first.
 
-- Simple operations, such as changing a set’s displayed name or copying a MIDI
-  map between sets, should modify the relevant XML directly rather than require
-  parsing the entire file into an object model.
-- Reporting is expected to provide substantially more value than converting.
-  Convert only the entities needed to make reports efficient; converting the
-  complete set is not a priority.
-- An end-user command should open Live 12, gather required content, ensure
-  anything that needs freezing is frozen, save the set, and send it to Push 3.
-- The next major commands should show real-time changes and compare two or more
-  sets. Organize contributions by party in separate subdirectories, with support
-  for a generic number of parties rather than only two. Show differences in
-  timeline order, and report only changes—not the full report—to keep output
-  readable.
-- Detect possible changes made to audio files outside Live by comparing file
-  sizes and dates with their recorded
-  values. Verify whether Live updates sample parameters when a changed file is
-  next opened.
-
-### Priorities
-
-1. Complete reporting.
-2. Add real-time change reporting
-3. timeline-sorted comparisons across
-   multiple parties.
+1. Complete `als_report`.
+2. Complete `als_diff`.
+3. Define and implement timeline-sorted comparisons for multiple parties.
 4. Investigate reliable detection of external audio-file changes.
 5. Implement end-user Push 3 preparation and transfer workflow.
+6. Complete `als_convert`.
 
 
-## Consistent Command Code Organization
+## Reverse Engineering
+
+[`gui_harness`](https://github.com/mslinn/gui_harness) is the basis for the
+reverse engineering of the Ableton Live XML format.
+
+At a high level, the GUI harness does the following:
+
+1. Launch a live app
+2. Inspect the process-owned windows
+3. Read visible dialog text
+4. Classify the dialog family
+5. Dismiss the correct control
+6. Report the outcome.
+
+
+### Outstanding work
+
+The commands in `exe/` and `dev/` are now usable, however minor bugs are
+expected, and all bugs musts of course be captured in this file, then showing
+the description to the user so they can prioritize the bug before it is fixed.
+
+The documentation (mostly in top-level markdown files and the `docs/` directory
+tree) likely has errors, omissions and inconsistencies; these must also be
+described, presented to the user, and only fixed according to the priority the
+user assigns.
+
+Ignore the contents of `docs/old/` unless historical information is required.
+
+The following TODO items are listed in the suggested order of completion.
+
+See TODO and FIXME comments throughout the project.
+
+#### D4. Migrate Duplicate serializer_plan.md Content
+
+`docs/serializer_plan.md` and `docs/old/serializer_plan.md` appear very similar.
+However, they might both be obsolete. I assume that `docs/serializer_plan.md` is
+the working copy.
+
+If so, then that document contains lots of useful information that goes far
+beyond what a plan would normally contain. [docs/index.md](docs/index.md)
+describes these documents in `docs/`: `report_design.md`, `als_architecture.md`,
+`als_notes.md`, `als_work.md`, `glossary.md`. We need a migration plan, followed
+by retiring `docs/serializer_plan.md` to `docs/old_serializer_plan2.md`.
+
+#### D3. Consistent Command Code Organization
 
 The module-level comment in `lib/common/command.rb` shows how commands should be
-organized in detail. Ensure all commands follow this structure. Following are the worst offenses.
+organized in detail. Ensure all commands follow this structure. Following are
+the worst offenses.
 
 The commands `als_diff`, `als_nodes`, `als_release_notes` and
 `als_to_version.rb` do not follow the layout for option parsing and help message
@@ -70,33 +95,16 @@ for these properly organized commands is done in
 `lib/als_to_xsd/als_to_xsd_options.rb`.
 
 
-## Reverse Engineering Work
+#### D2. Make a HierarchicalNumber class
 
-[`gui_harness`](https://github.com/mslinn/gui_harness) is the basis for the
-reverse engineering of the Ableton Live XML format.
+Define methods:
 
-At a high level, the GUI harness does the following:
-
-1. Launch a live app
-2. Inspect the process-owned windows
-3. Read visible dialog text
-4. Classify the dialog family
-5. Dismiss the correct control
-6. Report the outcome.
-
-
-### Outstanding work
-
-The commands in `exe/` are now usable, however minor bugs are expected, and all
-bugs musts of course be logged in this file and fixed.
-
-The documentation (mostly in top-level markdown files and the `docs/` directory
-tree) likely has errors, omissions and inconsistencies; these must also be
-logged and fixed. See TODO and FIXME comments throughout the project.
-
-Ignore the contents of `docs/old/` unless historical information is required.
-
-The TODO itens are listed in the suggested order of completion:
+- `indent` Append a subordinate number (for example, if the number was "1", after
+  the call the class instance would contain "1.1".)
+- `outdent` Pop off the most recent subordinate number (for example, if the number was "1.1", after
+  the call the class instance would contain "1".)
+- `reset` Set the value to "1"
+- `to_markdown` Return a markdown representation
 
 
 #### D1. Required Model Classes, Serializers, and Specs
@@ -118,10 +126,11 @@ Implement models, serializers, and specs for the following:
 
 #### FU1. The values to compute
 
-the report has none of these today
+The report has none of these today:
 
-- LiveTrackFacts#device_summary — split into the blocking devices (the plug-ins) and the M4L devices. It lists every
-  device in the chain today, native ones included.
+- LiveTrackFacts#device_summary — split into the blocking devices (the plug-ins)
+  and the M4L devices. It lists every device in the chain today, native ones
+  included.
 
 #### T5. Tighten conversion check names and scope
 
@@ -317,26 +326,6 @@ The prompt no longer stops the work: the harness writes a per-user registration 
 version of Live that is about to run is the one the registration names and no prompt comes. That
 is in the `gui_harness` project, in `docs/elevation.md`.
 
-#### N55. The A/B program of nearly-empty sets
-
-The program is in `docs/ab_test_plan.md`: nearly-empty Live 11 sets, one thing in each, written
-by Live 11 and by Live 12 and compared, with the bridge and the version_diff document brought
-up to date with what the comparison shows.
-
-The first case is made: `sets/live_11/projects_and_als/one_midi_track_only_11 Project/one_midi_track_only_11.als`,
-a Live 11.3.43 set with one MIDI track, the two return tracks, and no audio track. Its Live 12
-counterpart has not been made yet.
-
-Three questions are open, and they are the questions the first cases have to answer:
-
-- What happens when every track is removed? The interface will not delete the last track that is
-  left, so a set with no tracks has to be written by hand to find out.
-- Will Live 11 and Live 12 load a programmatically created empty Live set? Live is strict about
-  the sets it opens, and a set that Live rejects is a file and not a case.
-- Can the MIDI track be deleted when it is the only track left? That settles whether Live
-  protects the arrangement from being emptied, or protects an audio track from being the last
-  one.
-
 #### N56. `LinkedTrackGroupId` is not exercised by any set in the corpus
 
 A track's `LinkedTrackGroupId` holds the id of the group of tracks it is linked to, and `-1`
@@ -489,3 +478,23 @@ diffing two of Live's own would give them directly, and would give them for Live
 8, Live 9 and Live 10 as well, which is the work of **D8**. The four final
 schema files should be checked into `$live_reference_sets/xsd/`, so that a new contributor has
 them without installing Live.
+
+#### N55. The A/B program of nearly-empty sets
+
+The program is in `docs/ab_test_plan.md`: nearly-empty Live 11 sets, one thing in each, written
+by Live 11 and by Live 12 and compared, with the bridge and the version_diff document brought
+up to date with what the comparison shows.
+
+The first case is made: `sets/live_11/projects_and_als/one_midi_track_only_11 Project/one_midi_track_only_11.als`,
+a Live 11.3.43 set with one MIDI track, the two return tracks, and no audio track. Its Live 12
+counterpart has not been made yet.
+
+Three questions are open, and they are the questions the first cases have to answer:
+
+- What happens when every track is removed? The interface will not delete the last track that is
+  left, so a set with no tracks has to be written by hand to find out.
+- Will Live 11 and Live 12 load a programmatically created empty Live set? Live is strict about
+  the sets it opens, and a set that Live rejects is a file and not a case.
+- Can the MIDI track be deleted when it is the only track left? That settles whether Live
+  protects the arrangement from being emptied, or protects an audio track from being the last
+  one.

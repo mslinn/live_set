@@ -1,14 +1,18 @@
 # Glossary
 
-The terms these documents use. Where a word has been used in more than one sense,
-the sense meant here is the one the documents mean by it.
+The terms these documents use. Where a word has been used in more than one
+sense, the sense meant here is the one the documents mean by it.
 
 ## A/B set
 
-A nearly-empty set of one version of Live, holding one thing — a track, a clip, a device — and
-as little else as Live allows. It is written by that version of Live and then written by the
-version next to it, so that the two documents can be compared, and what the second version did
-to the set is what the bridge has to reproduce.
+TODO: The user's suggestion was not properly captured. thus this explanation
+is misleading. Consider this term to be undefined until further notice.
+
+A nearly-empty set of one version of Live, holding one thing — a track, a clip,
+a device — and as little else as Live allows. It is written by that version of
+Live and then written by the next version, so that the two documents can
+be compared, and what the second version did to the set is what the bridge has
+to reproduce.
 
 The A/B sets are reference sets, and the program that makes and reads them is in
 [ab_test_plan.md](ab_test_plan.md).
