@@ -128,7 +128,7 @@ a bridge.
 `LiveVersions.convert(document, from: 11, to: 12)` is the conversion of one
 version into another, and it is the composition of the bridges between them.
 
-## The Lifecycle of a Conversion
+## Composable Transforms
 
 A conversion is made of two classes and one document.
 
