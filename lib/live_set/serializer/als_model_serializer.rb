@@ -1,3 +1,4 @@
+require_relative '../../common/util'
 require_relative '../model/live_device_cross_reference'
 require_relative '../model/live_devices'
 require_relative '../model/live_track_clip_cross_reference'

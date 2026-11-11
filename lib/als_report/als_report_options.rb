@@ -1,10 +1,11 @@
-require 'colorator'
 require 'logger'
 require 'optparse'
 require_relative '../common/command'
 require_relative '../common/log'
 
 class AlsReport
+  extend Command
+
   # Display help message for als_report
   #
   # @param msg [String, nil] an error message to show above the help
@@ -30,10 +31,10 @@ class AlsReport
       Options are:
         -h    Display this help message.
         -v    Show the version of this program.
-        -z    The time zone to use in the report in, e.g. America/Chicago. The time zone
-              of the computer the command ran on when this option is not specified.
+        -z    The time zone to use in the report in, e.g. America/Chicago. The default
+              is America/Toronto.
         #{log_level_help}
-        --show_midi_and_audio_tracks_separately
+        -s, --show_midi_and_audio_tracks_separately
               Report the audio tracks and the MIDI tracks separately. By default, every
               track is displayed in the order found in the ALS file.
 
@@ -46,6 +47,13 @@ class AlsReport
     END_HELP
 
     msg.nil? ? help : "Error: #{msg}\n\n#{help}"
+  end
+
+  # The options the command starts with.
+  #
+  # @return [Hash] the options
+  def self.default_options
+    super.merge(version: false, time_zone: 'America/Toronto', show_midi_and_audio_tracks_separately: false)
   end
 
   # Whether a time zone is one this machine knows.
@@ -65,10 +73,9 @@ class AlsReport
     OptionParser.new do |parser|
       parser.program_name = 'als_report'
 
-      parser.on('-s', '--show', 'Display information about the Ableton Live set')
       parser.on('-v', '--version', 'Show the version of this program')
       parser.on('-z', '--time_zone ZONE', String, 'The time zone the times in the report are written in')
-      parser.on('--show_midi_and_audio_tracks_separately',
+      parser.on('-s', '--show_midi_and_audio_tracks_separately',
                 'Write the audio tracks and the MIDI tracks of the set in their own lists')
       add_common_options parser
 

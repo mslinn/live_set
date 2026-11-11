@@ -1,8 +1,11 @@
-require 'colorator'
+require 'logger'
 require 'optparse'
 require_relative '../common/command'
+require_relative '../common/log'
 
 class AlsValidate
+  extend Command
+
   # Display help message for als_validate
   #
   # @param msg [String, nil] an error message to show above the help

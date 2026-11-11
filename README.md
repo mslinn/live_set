@@ -439,34 +439,38 @@ Syntax: als_report OPTIONS PATH_TO_ALS_FILE
 Environment variables used in PATH_TO_ALS_FILE are expanded.
 
 Options are:
-  -v  Show the version of this program.
-  -z  The time zone to use in the report in, e.g. America/Chicago. The time zone
-      of the computer the command ran on when this option is not specified.
-  -h Display this help message.
-  -l LOGLEVEL Set the log level (DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
-  --show_midi_and_audio_tracks_separately
-      Report the audio tracks and the MIDI tracks separately. By default, every
-      track is displayed in the order found in the ALS file.
+  -h    Display this help message.
+  -v    Show the version of this program.
+  -z    The time zone to use in the report in, e.g. America/Chicago. The default
+        is America/Toronto.
+  -l/--log LOGLEVEL Set the log level (allowable values are: DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
+  -s, --show_midi_and_audio_tracks_separately
+        Report the audio tracks and the MIDI tracks separately. By default, every
+        track is displayed in the order found in the ALS file.
 
 
 Example:
-  als_report $path/to/my_set.als
+  als_report \
+    -z America/Toronto \
+    --show_midi_and_audio_tracks_separately \
+    "$path_to_my_set/demo.als"
 ```
 
 #### The Report
 
-`als_report` writes a report of a set in markdown: the tracks of the set and the groups they
-are in, the devices of each of them, the clips and the take lanes, the samples that are not
-in the project and the samples that are, the metadata of the set, the assets the set ships,
-the packs it refers to, and a cross-reference of the tracks and the clips.
+`als_report` writes a report of a set in markdown: the tracks of the set and the
+groups they are in, the devices of each of them, the clips and the take lanes,
+the samples that are not in the project and the samples that are, the metadata
+of the set, the assets the set ships, the packs it refers to, and a
+cross-reference of the tracks and the clips.
 
 Every track of the set is written in the order Live saved it in. The
-`--show_midi_and_audio_tracks_separately` option writes the audio tracks and the MIDI
-tracks in their own lists instead, which is easier to read when a set has many tracks of
-one kind.
+`-s` / `--show_midi_and_audio_tracks_separately` option writes the audio tracks
+and the MIDI tracks in their own lists instead, which is easier to read when a
+set has many tracks of one kind.
 
-The names in the report are written on the colour Live gave the thing, so that the colour of
-a track, a group or a clip can be seen at a glance:
+The names in the report are written on the colour Live gave the thing, so that
+the colour of a track, a group or a clip can be seen at a glance:
 
 - the name is written in a `<code>` element, and the colors are applied as a
   style attribute;
@@ -474,8 +478,8 @@ a track, a group or a clip can be seen at a glance:
 - Every node displayed in the markdown output of an ALS report is colored
   according to the value for the corresponding node in the XML of the ALS. The
   default Live colour palette is assumed.
-- a track, a group or a device that P3S cannot use is highlighted,
-  and a sample that is not in the project folder is highlighted differently.
+- a track, a group or a device that P3S cannot use is highlighted, and a sample
+  that is not in the project folder is highlighted differently.
 
 The styles are inline, because Mike is unaware of a widely accepted way to use
 stylesheets with markdown. (TODO is this possible?) The reports of the reference

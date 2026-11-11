@@ -2,7 +2,7 @@
 
 # Shows the changes to an Ableton Live set each time it is saved.
 #
-# The implementation is in the AlsDelta class, in lib/als_delta/als_delta_class.rb.
+# The implementation is in the AlsDelta class, in lib/als_delta/als_delta.rb.
 
 if ENV['VO_DEBUGGING']
   require_relative '../lib/live_set'

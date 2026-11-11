@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'live_set/demo_sets'
+require 'support/schemas'
 
 # Every demo set of a Live version has to validate against the schema generated from the demo
 # sets of that version. A schema generated from a single set is stricter than Live is, and
@@ -8,28 +9,24 @@ require 'live_set/demo_sets'
 # The largest demo set of a version is the one that is checked. It holds the most of everything
 # Ableton writes, so a schema that is too strict rejects it.
 #
-# The schemas are checked in, so the examples run on a fresh clone. A version whose schema is
-# not there has no example, and the examples are skipped. See docs/als_work.md, "XSD Schemas".
+# The schemas are checked in to the repository of the reference sets, so every developer has
+# them. The versions that are checked are the ones DemoSets reports, so a version of Live that
+# is installed is checked without a change to this file. See docs/als_work.md, "XSD Schemas".
 RSpec.describe AlsValidate, 'the demo sets of each Live version' do # rubocop:disable RSpec/DescribeMethod
-  # The directory the schemas are written to.
-  let(:schema_dir) { File.expand_path('../../schemas', __dir__) }
-
-  # The schemas, as { live version => path of the schema }.
+  # The schemas of the Live versions, as { live version => path of the schema }.
   #
   # A schema is named after the version of Live that wrote the sets it was generated from, so
   # "Ableton Live 11.3d1" gives live_11.3d1.xsd. The version of a demo set as DemoSets reports
   # it drops the suffix, so "11.3d1" is reported as "11.3".
   let(:schemas) do
-    Dir.glob(File.join(schema_dir, 'live_*.xsd')).to_h do |path|
+    Dir.glob(File.join(Schemas::DIRECTORY, 'live_*.xsd')).to_h do |path|
       [File.basename(path)[/live_(.+)\.xsd/, 1], path]
     end
   end
 
-  # The largest demo set of each version that has a schema, as { live version => path }.
+  # The largest demo set of each version, as { live version => path of the set }.
   let(:demo_sets) do
-    DemoSets.all.to_h do |version, sets|
-      [version, schema_for(version) ? sets.max_by { |path| File.size(path) } : nil]
-    end
+    DemoSets.all.transform_values { |sets| sets.max_by { |path| File.size(path) } }
   end
 
   # The schema of a Live version.
@@ -41,22 +38,22 @@ RSpec.describe AlsValidate, 'the demo sets of each Live version' do # rubocop:di
   end
 
   it 'validates the largest demo set against the schema of its own version' do
-    checked = demo_sets.compact
-    require_fixture 'a generated schema', schemas.values.first
+    demo_sets.each do |version, set_path|
+      schema = schema_for(version)
+      require_fixture "the schema of Live #{version}", schema
 
-    invalid = checked.reject do |version, set_path|
       document = Nokogiri::XML(Zlib::GzipReader.open(set_path, &:read))
-      schema = Nokogiri::XML::Schema(File.read(schema_for(version)))
-      schema.validate(document).empty?
-    end
+      xsd = Nokogiri::XML::Schema(File.read(schema))
 
-    expect(invalid).to be_empty
+      expect(xsd.validate(document)).to be_empty, "the demo set of Live #{version} does not validate"
+    end
   end
 
   it 'validates a demo set the way the command does' do
-    version, set_path = demo_sets.find { |_candidate, path| !path.nil? }
-    require_fixture 'a generated schema', schemas.values.first
+    version, set_path = demo_sets.first
+    schema = schema_for(version)
+    require_fixture "the schema of Live #{version}", schema
 
-    expect(silence_output { described_class.new(set_path, schema_for(version)).validate }).to be_empty
+    expect(silence_output { described_class.new(set_path, schema).validate }).to be_empty
   end
 end

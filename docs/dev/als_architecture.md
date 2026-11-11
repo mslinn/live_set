@@ -35,8 +35,14 @@ Many ALS XML entities in the `</Ableton>`
 
 Every command defined by this project is named with the `als_` prefix, and the
 class that implements a command is named after the command. The class has a
-`run` method that takes the command line arguments, and a `help` method that
-prints what the command does and what its options mean.
+`run` method that takes the command line arguments.
+
+The help of a command, and the parsing of its options, live in a file of their
+own next to the command, named after it: `lib/als_report/als_report_options.rb`
+holds the `help`, `default_options` and `parser` methods of `AlsReport`. The
+command requires that file, and the file requires what it needs itself, so that
+either of them can be loaded on its own. The commands that do not do this yet
+are listed in `docs/TODO.md`, item D3.
 
 Commands mix in the `Command` module, defined in `lib/common/command.rb`;
 provides functionality common to all commands, including option parsing, and logging.

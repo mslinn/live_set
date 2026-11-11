@@ -1,8 +1,10 @@
+require 'colorator'
 require 'date'
 require 'fileutils'
 require 'shellwords'
 require_relative '../common/command'
 require_relative '../common/run'
+require_relative 'als_validate_options'
 
 # Validates an Ableton Live set against an XSD schema.
 #

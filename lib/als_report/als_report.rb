@@ -7,11 +7,13 @@ require 'time'
 require 'zlib'
 require_relative '../common/command'
 require_relative '../common/log'
+require_relative '../common/util'
 require_relative '../live_set/als_file'
 require_relative '../live_set/model/als_model'
 require_relative '../live_set/model/header_block'
 require_relative '../live_set/model/live_scene'
 require_relative '../live_set/serializer/als_model_serializer'
+require_relative 'als_report_options'
 
 # See https://www.ionos.ca/digitalguide/websites/web-development/xpath-tutorial/
 # See https://www.scrapingbee.com/webscraping-questions/selenium/how-to-find-elements-by-xpath-selenium

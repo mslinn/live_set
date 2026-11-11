@@ -35,7 +35,8 @@ class AlsToXsd
   # @param args [Array<String>] the command line arguments
   # @return [Integer] the exit status: zero when the schema was written
   def self.run(args)
-    options, xsd_file, als_files = parse_options(args)
+    options, remaining = parse_options(args)
+    xsd_file, als_files = arguments_of(remaining)
 
     check_overwrite(xsd_file, options[:force])
 
@@ -55,6 +56,22 @@ class AlsToXsd
   rescue StandardError => e
     warn e.full_message
     1
+  end
+
+  # The XSD file and the ALS files that the arguments name.
+  #
+  # @param remaining [Array<String>] the arguments that are not options
+  # @return [Array(String, Array<String>)] the path of the XSD file, and the paths of the ALS files
+  def self.arguments_of(remaining)
+    abort help('No XSD file name provided.') if remaining.empty?
+    xsd_file = remaining.shift.expand_env
+
+    abort help('No ALS file names provided.') if remaining.empty?
+
+    directory = File.dirname(File.expand_path(xsd_file))
+    abort help("Directory does not exist: #{directory}") unless Dir.exist?(directory)
+
+    [xsd_file, remaining]
   end
 
   # The schema of the given sets.

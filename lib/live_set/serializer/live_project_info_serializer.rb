@@ -1,3 +1,4 @@
+require_relative '../../common/util'
 require_relative '../model/live_project_info'
 
 # Writes what the report found of the 'Ableton Project Info' folders around the set.

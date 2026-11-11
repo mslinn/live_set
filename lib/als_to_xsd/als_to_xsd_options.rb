@@ -1,10 +1,11 @@
-require 'colorator'
 require 'logger'
 require 'optparse'
 require_relative '../common/command'
 require_relative '../common/log'
 
 class AlsToXsd
+  extend Command
+
   # Display help message for als_to_xsd
   #
   # @param msg [String, nil] an error message to show above the help
@@ -32,24 +33,6 @@ class AlsToXsd
     END_HELP
 
     msg.nil? ? help : "Error: #{msg}\n\n#{help}"
-  end
-
-  # Parse options for the als_to_xsd command
-  #
-  # @param args [Array<String>] the command line arguments
-  # @return [Array(Hash, String, Array<String>)] the options, the XSD file name, and the ALS file names
-  def self.parse_options(args)
-    options, remaining = super
-
-    abort help('No XSD file name provided.') if remaining.empty?
-    xsd_file = remaining.shift.expand_env
-
-    abort help('No ALS file names provided.') if remaining.empty?
-
-    xsd_directory = File.dirname(File.expand_path(xsd_file))
-    abort help("Directory does not exist: #{xsd_directory}") unless Dir.exist?(xsd_directory)
-
-    [options, xsd_file, remaining]
   end
 
   def self.parser

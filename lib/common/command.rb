@@ -9,6 +9,10 @@ require_relative 'log'
 # - `help` says what the command does and what its options mean
 # - `parser` describes the options of the command.
 #
+# The last two live in a file of their own, next to the command:
+# `lib/als_example/als_example_options.rb`. The command requires that file, and the
+# file requires what it needs itself, so that either of them can be loaded on its own.
+#
 # Every command mixes in this module; it provides functionality common to all commands, including option parsing, and
 # logging. A command that is given an option it does not understand, or an option that is missing its argument, says so
 # and prints its help message, instead of failing with a backtrace.
@@ -17,6 +21,7 @@ require_relative 'log'
 #   require 'shellwords'
 #   require_relative '../common/command'
 #   require_relative '../common/run'
+#   require_relative 'als_example_options'
 #
 #   class AlsExample
 #     extend Command
@@ -40,6 +45,8 @@ require_relative 'log'
 #   require_relative '../common/log'
 #
 #   class AlsExample
+#     extend Command
+#
 #     # Display help message for als_example
 #     # @param msg [String, nil] an error message to show above the help
 #     # @return [String] the help message

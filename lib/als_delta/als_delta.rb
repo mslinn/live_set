@@ -3,6 +3,7 @@ require 'fileutils'
 require 'shellwords'
 require_relative '../common/command'
 require_relative '../common/run'
+require_relative 'als_delta_options'
 
 class AlsDelta
   extend Command
@@ -47,6 +48,14 @@ class AlsDelta
     @set_name_only = File.basename set_name, '.als'
   end
 
+  # Where the backups are stored.
+  #
+  # A backup is written beside the set it is a backup of: it is the file of the set with
+  # `_backup` before the extension, e.g. `song_backup.als` beside `song.als`. The backup is
+  # deleted when the command exits, unless the `-k` option is given: a kept backup is the
+  # file of the set with the time it was made before the extension, e.g.
+  # `song_2026-11-09_19:30:00.als`. The location of the backups is the directory of the set,
+  # and there is no option that changes it.
   def backup_name
     @backup_name = if @options[:keep]
                      timestamp = Time.now.getutc.strftime '%Y-%m-%d_%H:%M:%S'
