@@ -35,6 +35,13 @@ class AlsToXsd
     msg.nil? ? help : "Error: #{msg}\n\n#{help}"
   end
 
+  # The options the command starts with.
+  #
+  # @return [Hash] the options
+  def self.default_options
+    super.merge(force: false)
+  end
+
   def self.parser
     OptionParser.new do |parser|
       parser.program_name = 'als_to_xsd'

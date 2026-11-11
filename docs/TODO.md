@@ -69,38 +69,6 @@ describes these documents in `docs/`: `report_design.md`, `als_architecture.md`,
 by retiring `docs/serializer_plan.md` to `docs/old_serializer_plan2.md`.
 
 
-#### D3. Consistent Command Code Organization
-
-The module-level comment in `lib/common/command.rb` shows how commands should be
-organized in detail. The following commands follow this structure.
-
-See how `lib/als_delta/`, `lib/als_report/`, `lib/als_to_xsd/`, and
-`lib/als_validate/` are organized so option parsing is contained in its own
-file. The option parsing for these commands is done in
-`lib/als_delta/als_delta_options.rb`, `lib/als_report/als_report_options.rb`,
-`lib/als_validate/als_validate_options.rb` and
-`lib/als_to_xsd/als_to_xsd_options.rb`.
-
-Discuss any deviation then stop without making changes.
-
-
-The command `als_diff` does not follow the layout for option parsing and help
-message code. Option parsing and the help message for this command should be
-moved to this new file: `lib/als_diff/als_diff_options.rb`
-
-The command `als_nodes` does not follow the layout for option parsing and help
-message code. Option parsing and the help message for this command should be
-moved to this new file: `lib/als_nodes/als_nodes_options.rb`
-
-The command `als_release_notes` does not follow the layout for option parsing
-and help message code. Option parsing and the help message for this command
-should be moved to this new file:
-`lib/als_release_notes/als_release_notes_options.rb`
-
-The command `als_to_version.rb` does not follow the layout for option parsing
-and help message code. Option parsing and the help message for this command
-should be moved to this new file: `lib/als_to_version/als_to_version_options.rb`
-
 #### D2. Make a HierarchicalNumber class
 
 Define methods:

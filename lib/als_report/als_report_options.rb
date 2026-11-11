@@ -32,7 +32,8 @@ class AlsReport
         -h    Display this help message.
         -v    Show the version of this program.
         -z    The time zone to use in the report in, e.g. America/Chicago. The default
-              is America/Toronto.
+              is America/Toronto, unless the TZ environment variable is set. This option
+              overrides the environment variable.
         #{log_level_help}
         -s, --show_midi_and_audio_tracks_separately
               Report the audio tracks and the MIDI tracks separately. By default, every
@@ -53,7 +54,18 @@ class AlsReport
   #
   # @return [Hash] the options
   def self.default_options
-    super.merge(version: false, time_zone: 'America/Toronto', show_midi_and_audio_tracks_separately: false)
+    super.merge(version: false, time_zone: default_time_zone, show_midi_and_audio_tracks_separately: false)
+  end
+
+  # The time zone the report is written in.
+  #
+  # The TZ environment variable gives the time zone when it is set, and the time zone of
+  # Toronto is used when it is not.
+  #
+  # @return [String] the name of the time zone
+  def self.default_time_zone
+    zone = ENV.fetch('TZ', nil)
+    zone.nil? || zone.empty? ? 'America/Toronto' : zone
   end
 
   # Whether a time zone is one this machine knows.

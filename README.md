@@ -442,7 +442,8 @@ Options are:
   -h    Display this help message.
   -v    Show the version of this program.
   -z    The time zone to use in the report in, e.g. America/Chicago. The default
-        is America/Toronto.
+        is America/Toronto, unless the TZ environment variable is set. This option
+        overrides the environment variable.
   -l/--log LOGLEVEL Set the log level (allowable values are: DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
   -s, --show_midi_and_audio_tracks_separately
         Report the audio tracks and the MIDI tracks separately. By default, every
@@ -572,34 +573,33 @@ $ als_to_version 11 path/to/my_set_12.als path/to/my_set_11.als
 
 The set is written to the same directory as the original set to be converted,
 unless another destination is named. The `-f` option overwrites any pre-existing
-destination set.
+destination set. The set to convert may be named by a selector of a demo set, e.g.
+`demo:11:suite` for the Live 11 Suite demo set, or `demo:12` for the demo set of
+Live 12.
 
 ```text
 $ als_to_version -h
-Als_to_version converts a Live set to another version of the Live format.
-
-The direction of the conversion is given: the set is converted to the version named on
-the command line. The set is written the way Live writes it, so that the converted set is
-a set of that version and not merely XML that happens to mean the same thing.
-
-Syntax: als_to_version [-f] VERSION SRC [DST]
-
-VERSION is the Ableton Live version to be converted to, e.g. 11.
-SRC is the set to convert: the path of the file, or a selector of a demo set, e.g.
-  demo:11:suite  the Live 11 Suite demo set
-  demo:12        the demo set of Live 12
-DST is where the converted set is written. Without it, the set is written next to the set
-that was converted, with the version as a suffix, e.g. set_11.als.
-
-Options are:
-  -f Overwrite the destination when it already exists.
-  -h Display this help message.
-  -l LOGLEVEL Set the log level (DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
-
+als_to_version converts a Live set to another version of the Live format.
 If SRC is already at the version it is converted to, the program says so and stops.
 
+Syntax: als_to_version [OPTIONS] VERSION SRC [DST]
+
+Where:
+  VERSION  is the Ableton Live version to be converted to, e.g. 11.
+  SRC      is the path of of the set to be converted
+  DST      is the optional path to write the converted set to. Without it, the
+           converted set is written to the same directory as SRC, with the version
+           as a suffix. For example, if SRC is set.als, and VERSION is 11, the default
+           destination path would be set_11.als.
+
+OPTIONS can be specified anywhere on the command line:
+  -f    Overwrite the destination if it already exists.
+  -h    Display this help message.
+  -l/--log LOGLEVEL Set the log level (allowable values are: DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
+
 Example:
-  als_to_version 11 $path/to/my_v12_set.als
+  als_to_version 11 "$path/to/sample_set.als"  # writes to "$path/to/sample_set_11.als"
+  als_to_version 12 "$path/to/sample_set.als" "live_12_test_conversion.als" -f
 ```
 
 When converting to Live 11 format, the converted set uses the Live 11.3.21
