@@ -69,50 +69,99 @@ describes these documents in `docs/`: `report_design.md`, `als_architecture.md`,
 by retiring `docs/serializer_plan.md` to `docs/old_serializer_plan2.md`.
 
 
-### D5. Re-Indent Output XML
-
-When the `als_nodes` command outputs XML, the XML should be properly indented,
-such that the outermost element starts on column 0.
-
-For example, this is the current output:
-
-```shell
-$ als_nodes "$pinkblanket" //FileRef --max 1
-<FileRef>
-                                                                                                <RelativePathType Value="5"/>
-                                                                                                <RelativePath Value="Drum Kits/Multisampled/32 Pad Kit Jazz.adg"/>
-                                                                                                <Path Value="M:/Ableton 12 Factory Packs/Drum Booth/Drum Kits/Multisampled/32 Pad Kit Jazz.adg"/>
-                                                                                                <Type Value="1"/>
-                                                                                                <LivePackName Value="Drum Booth"/>
-                                                                                                <LivePackId Value="www.ableton.com/248"/>
-                                                                                                <OriginalFileSize Value="0"/>
-                                                                                                <OriginalCrc Value="0"/>
-                                                                                                <SourceHint Value=""/>
-                                                                                        </FileRef>
-```
-
-This is the desired output:
-
-```shell
-$ als_nodes "$pinkblanket" //FileRef --max 1
-<FileRef>
-  <RelativePathType Value="5"/>
-  <RelativePath Value="Drum Kits/Multisampled/32 Pad Kit Jazz.adg"/>
-  <Path Value="M:/Ableton 12 Factory Packs/Drum Booth/Drum Kits/Multisampled/32 Pad Kit Jazz.adg"/>
-  <Type Value="1"/>
-  <LivePackName Value="Drum Booth"/>
-  <LivePackId Value="www.ableton.com/248"/>
-  <OriginalFileSize Value="0"/>
-  <OriginalCrc Value="0"/>
-  <SourceHint Value=""/>
-</FileRef>
-```
-
 #### D3. Consistent Command Code Organization
 
 The module-level comment in `lib/common/command.rb` shows how commands should be
-organized in detail. Ensure all commands follow this structure. Following are
-the worst offenses.
+organized in detail. The following commands follow this structure.
+
+See how `lib/als_delta/`, `lib/als_report/`, `lib/als_to_xsd/`, and
+`lib/als_validate/` are organized so option parsing is contained in its own
+file. The option parsing for these commands is done in
+`lib/als_delta/als_delta_options.rb`, `lib/als_report/als_report_options.rb`,
+`lib/als_validate/als_validate_options.rb` and
+`lib/als_to_xsd/als_to_xsd_options.rb`.
+
+Discuss any deviation then stop without making changes.
+
+---
+I read lib/common/command.rb, the four commands that split options into their
+own file, and the four that don't. Here is what deviates.
+
+The layout the module comment describes
+
+lib/common/command.rb:16-62 shows two files per command:
+
+- lib/<cmd>/<cmd>.rb — the command: run, initialize
+- lib/<cmd>/<cmd>_options.rb — reopens the class with help, default_options, parser
+
+als_to_xsd is the closest match; als_report, als_validate, als_delta follow it
+partially. The other four (als_diff, als_nodes, als_release_notes,
+als_to_version) keep help/parser/default_options in the command file — already
+recorded as D3 in docs/TODO.md.
+
+Deviations in the four commands that are supposed to follow the layout
+
+1. als_delta's command file is als_delta_class.rb, not als_delta.rb
+(lib/als_delta/als_delta_class.rb). Every other command's main file is named for
+the command; the _class suffix is unique to it, and exe/als_delta:6 points at
+that name.
+
+2. Only als_to_xsd requires its own options file. lib/als_to_xsd/als_to_xsd.rb:6
+has require_relative 'als_to_xsd_options'. als_report.rb, als_validate.rb and
+als_delta_class.rb do not — they work only because lib/live_set.rb
+require_directorys every *.rb in the directory (lib/common/util.rb:31-38). So
+  the options file is an implicit dependency, not a declared one, and no command
+file can be loaded on its own. The spec works around this by requiring
+als_report/als_report_options directly
+(spec/als_report/als_report_options_spec.rb:2), which only succeeds because
+spec_helper.rb has already loaded all of live_set.
+
+3. als_report_options.rb has no default_options, though the command has four
+switches. The comment's template lists default_options as part of the options
+file, and als_delta_options.rb:49 follows it (keep: false). The effect in
+als_report is that options[:show] and
+options[:show_midi_and_audio_tracks_separately] are nil rather than false when
+not given.
+
+4. als_report has an option that is neither documented nor used.
+lib/als_report/als_report_options.rb:68 defines -s/--show, but it does not
+  appear in the help text (als_report_options.rb:30-39), and options[:show] is
+read nowhere in lib/. It is a dead, undocumented switch.
+
+5. als_delta_options.rb:8-15 holds a comment that belongs to the command file.
+It describes where backups are stored and how they are named — that documents
+AlsDelta#backup_name (lib/als_delta/als_delta_class.rb:50-57), and it sits
+detached at the top of the options file's class body.
+
+6. als_to_xsd_options.rb changes the contract of parse_options. The mixin
+returns [options, remaining] (lib/common/command.rb:71-83, documented at
+:69-70); als_to_xsd_options.rb:41-53 overrides it to return a 3-tuple and also
+performs the argument validation (missing XSD name, missing ALS names,
+non-existent directory). Any caller that treats parse_options generically — as
+spec/common/command_spec.rb does — has to special-case this one command.
+
+7. The require lists do not match the template. The comment's example options
+file requires logger, optparse, ../common/command, ../common/log.
+als_validate_options.rb omits logger and ../common/log; als_to_xsd_options.rb
+omits ../common/log. Separately, colorator is required by three of the four
+options files but used by none of them: als_validate.rb:27,32,35 calls
+.green/.red without requiring colorator itself, and als_delta_options.rb:1
+requires it although neither als_delta file colours any output.
+
+8. als_report is spread over three files (als_report.rb, als_report_options.rb,
+als_report_private.rb). The template does not cover the private-methods file, so
+this is an extension rather than a deviation, but it means the class is defined
+in three places.
+
+Minor and cosmetic: the help openings differ in style ("als_delta: Shows
+changes…" vs "Als_report writes…" vs "als_to_xsd reads…"), and the options are
+listed in different orders.
+
+The two items I would rank as worth fixing first are #2 (the undeclared
+dependency on the directory scan) and #4 (the dead -s switch), since the second
+ is the only one that changes what a user sees.
+
+---
 
 The commands `als_diff`, `als_nodes`, `als_release_notes` and
 `als_to_version.rb` do not follow the layout for option parsing and help message
@@ -125,15 +174,6 @@ these new files:
 - `lib/als_nodes/als_nodes_options.rb`
 - `lib/als_release_notes/als_release_notes_options.rb`
 - `lib/als_to_version/als_to_version_options.rb`
-
-See `lib/als_delta/`, `lib/als_report/`, `lib/als_to_xsd/`, and
-`lib/als_validate/` for better examples (they are not perfect) of how to
-organize code so option parsing is contained in its own file. The option parsing
-for these properly organized commands is done in
-`lib/als_delta/als_delta_options.rb`, `lib/als_validate/als_report_options.rb`,
-`lib/als_validate/als_validate_options.rb` and
-`lib/als_to_xsd/als_to_xsd_options.rb`.
-
 
 #### D2. Make a HierarchicalNumber class
 
