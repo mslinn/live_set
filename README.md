@@ -260,10 +260,10 @@ Environment variables used in PATH_TO_ALS_FILE are expanded.
 Options are:
   -k Keep each backup and timestamp it, instead of overwriting the previous backup.
   -h Display this help message.
-  -l LOGLEVEL Set the log level (DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
+  -l/--log LOGLEVEL Set the log level (allowable values are: DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
 
 Example (references an environment variable called `path`):
-als_delta "$live_set"
+  $ als_delta "$path/to/my_set.als"
 ```
 
 #### Example
@@ -289,9 +289,7 @@ or files containing XML extracted from an ALS file. The two documents are
 first promoted to the newer of the two ALS versions, and are then walked in
 parallel: the children of two elements are matched by their names, and the
 children that one of the elements has and the other does not are reported as
-differences.
-
-TODO: compare attributes as well
+differences. The attributes of two elements are compared as well.
 
 Syntax: als_diff [OPTIONS] FILE1 FILE2
 
@@ -302,8 +300,8 @@ OPTIONS can be specified before or after positional parameters:
   --count        print the number of differences, and nothing else
   --max N        print at most N differences
   --skip NAME    do not compare the elements with this name, or anything below
-                 them. This option may be given more than once.
-  -l LOGLEVEL Set the log level (DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
+                them. This option may be given more than once.
+  -l/--log LOGLEVEL Set the log level (allowable values are: DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
 
 The exit status is 0 when the documents are the same, and 1 when they are not.
 
@@ -343,7 +341,7 @@ Options are:
   --max N           print at most N nodes
   --unique          print each distinct result once
   -h                Display this help message.
-  -l LOGLEVEL Set the log level (DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
+  -l/--log LOGLEVEL Set the log level (allowable values are: DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
 
 Examples:
   als_nodes set.als '//MidiTrack/IsTuned' --attribute Value
@@ -388,32 +386,40 @@ $ als_nodes "$live_set" //FileRef --max 1
 ```text
 Als_release_notes prints the release notes of a version of Live as markdown.
 
-The release notes are the evidence the version_diff documents are built from: they say
-which differences to expect, and which version introduced each one. They are written for
-the musicians who use Live, and they never give an element name or an attribute name, so
-they are a filter over the differences rather than a source of them.
+The release notes are the evidence the version_diff documents are built from.
+They say the changes to expect between version formats, and which version
+introduced each change. Release notes are written for the musicians who use
+Live, so they never give an element name or an attribute name, thus they are
+only a guide to the differences rather than a detailed source of information.
 
-The notes are HTML, downloaded from Ableton's web site and kept in docs/release_notes/,
-one file per version. This command reads one of them and prints it as markdown, so that
-the notes can be read, searched, and pasted into a document. When the file is not there,
-the notes are fetched from the page they came from.
+Ableton provides the notes at https://www.ableton.com/en/release-notes/live-XX/,
+where XX is the version of Live. The fetched notes are cached in HTML at
+docs/release_notes/, one file per version. The cache allows the notes to be
+accessed easily. The release notes are fetched when there is a cache miss.
 
-Syntax: als_release_notes VERSION [--find PATTERN]
+The cache is found beside the command: the notes are packaged with the gem, so the
+command reads them wherever the gem is installed.
 
-VERSION is the version of Live, e.g. 12, and it may name a single release, e.g. 12.0. The
-notes of a single release are printed when it does.
+Syntax: als_release_notes [OPTIONS] VERSION
 
-Options are:
-  --find PATTERN  print the lines of the notes that match PATTERN, each with the release
-                  it belongs to. The pattern is matched without regard to case.
+VERSION is the version of Live
+  Specifying just the major release (e.g. 12) returns the release notes for all
+  versions of that major release. Specifying the minor release (e.g. 12.0)
+  returns just the release notes for that minor release.
+
+OPTIONS can be specified anywhere on the command line:
+  --find PATTERN  print the lines of the notes that match PATTERN, each with the
+                  release it belongs to. The pattern is case-insensitive.
   -h              Display this help message.
-  -l LOGLEVEL Set the log level (DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
+  -l/--log LOGLEVEL Set the log level (allowable values are: DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
 
 Examples:
-  als_release_notes 12          # the notes of Live 12
-  als_release_notes 12.0        # the notes of the release 12.0
+  als_release_notes 12          # output the release notes for all Live 12 versions
+  als_release_notes 12.0        # output the release notes for 12.0 only
+  als_release_notes 12.1        # output the release notes for 12.1 only
   als_release_notes 12 --find "scale awareness"
   als_release_notes 12 > docs/release_notes/live-12.md
+  diff <(als_release_notes 12.0) <(als_release_notes 12.1)
 ```
 
 
@@ -543,26 +549,6 @@ The report says what made it — the version of `live_set`, and where the tool i
 documented: <https://www.mslinn.com/av_studio/ableton_live_set.html>.
 
 
-
-### `als_validate`
-
-```text
-$ als_validate
-Als_validate checks that an Ableton Live set conforms to an XSD schema.
-
-Syntax: als_validate PATH_TO_ALS_FILE SCHEMA.xsd
-
-Environment variables used in PATH_TO_ALS_FILE are expanded.
-
-Options are:
-  -h Display this help message.
-  -l LOGLEVEL Set the log level (DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
-
-Example:
-  als_validate $path/to/my_v12_set.als schema.xsd
-```
-
-
 ### `als_to_version`
 
 Convert a set to another version of the Live format, and write it out:
@@ -573,9 +559,7 @@ $ als_to_version 11 path/to/my_set_12.als path/to/my_set_11.als
 
 The set is written to the same directory as the original set to be converted,
 unless another destination is named. The `-f` option overwrites any pre-existing
-destination set. The set to convert may be named by a selector of a demo set, e.g.
-`demo:11:suite` for the Live 11 Suite demo set, or `demo:12` for the demo set of
-Live 12.
+destination set.
 
 ```text
 $ als_to_version -h
@@ -586,7 +570,8 @@ Syntax: als_to_version [OPTIONS] VERSION SRC [DST]
 
 Where:
   VERSION  is the Ableton Live version to be converted to, e.g. 11.
-  SRC      is the path of of the set to be converted
+  SRC      is the path of of the set to be converted, or a selector of a demo set,
+           e.g. demo:11:suite
   DST      is the optional path to write the converted set to. Without it, the
            converted set is written to the same directory as SRC, with the version
            as a suffix. For example, if SRC is set.als, and VERSION is 11, the default
@@ -610,22 +595,23 @@ schema. The sub-version is not configurable. For more infomation, see
 ### `als_to_xsd`
 
 ```text
-Als_to_xsd reads one or more Ableton Live sets and generates an XSD with the given name.
+als_to_xsd reads one or more Ableton Live sets and generates an XSD with the given name.
 
 Syntax: als_to_xsd [OPTIONS] XSD_FILE_NAME PATH_TO_ALS_FILE...
 
-Environment variables used in XSD_FILE_NAME and PATH_TO_ALS_FILE are expanded.
+Environment variables used in XSD_FILE_NAME and PATH_TO_ALS_FILE are expanded by the operating system.
 
 A PATH_TO_ALS_FILE that holds a glob pattern is expanded by the command, and a pattern
 that holds ** matches the files in the directories below the one that is named.
 
-Options are:
+OPTIONS may be specified anywhere on the command line:
   -f Overwrite any existing xsd.
   -h Display this help message.
-  -l LOGLEVEL Set the log level (DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
+  -l/--log LOGLEVEL Set the log level (allowable values are: DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
 
 Example:
-  als_to_xsd -f xsd_file_name $path/to/my_v12_set.als
+  $ als_to_xsd -f "$live_reference_sets/xsd/demo11.xsd"     "$live_reference_sets/sets/live_11/demo/projects_and_als"/**/*.als
+  Wrote '/mnt/f/work/ableton/live_reference_sets/xsd/demo11.xsd'
 ```
 
 
@@ -636,14 +622,15 @@ Als_validate checks that an Ableton Live set conforms to an XSD schema.
 
 Syntax: als_validate [OPTIONS] PATH_TO_ALS_FILE SCHEMA.xsd
 
-Environment variables used in PATH_TO_ALS_FILE are expanded.
+Environment variables used in PATH_TO_ALS_FILE are expanded by the operating system.
 
-Options are:
+OPTIONS may be specified anywhere on the command line:
   -h Display this help message.
-  -l LOGLEVEL Set the log level (DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
+  -l/--log LOGLEVEL Set the log level (allowable values are: DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
 
 Example:
-  als_validate $path/to/my_v12_set.als schema.xsd
+  $ als_validate     "$live_reference_sets/sets/live_11/experiments/projects_and_als/one_midi_track_only_11 Project/factory_default_11.als"     "$live_reference_sets/xsd/demo11.xsd"
+  /mnt/f/work/ableton/live_reference_sets/sets/live_11/experiments/projects_and_als/one_midi_track_only_11 Project/factory_default_11.als is valid
 ```
 
 

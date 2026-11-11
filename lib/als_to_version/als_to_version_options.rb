@@ -19,7 +19,8 @@ class AlsToVersion
 
       Where:
         VERSION  is the Ableton Live version to be converted to, e.g. 11.
-        SRC      is the path of of the set to be converted
+        SRC      is the path of of the set to be converted, or a selector of a demo set,
+                 e.g. demo:11:suite
         DST      is the optional path to write the converted set to. Without it, the
                  converted set is written to the same directory as SRC, with the version
                  as a suffix. For example, if SRC is set.als, and VERSION is 11, the default
