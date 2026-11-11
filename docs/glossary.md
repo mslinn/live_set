@@ -17,6 +17,18 @@ to reproduce.
 The A/B sets are reference sets, and the program that makes and reads them is in
 [ab_test_plan.md](ab_test_plan.md).
 
+
+## ALS File
+
+An XML document whose root element is `<Ableton/>`, in a file with an `.als`
+filetype. This file is usually gzipped.
+
+
+## ALS XML
+
+The XML within an [ALS file](#als-file).
+
+
 ## Bridge
 
 A bridge converts a set from one version of Live to another.
@@ -63,26 +75,29 @@ arrangement timeline, a take lane. There are many types of clips, including MIDI
 and audio.
 
 Two clips that carry the same name and play the same file are alike, but they
-are not the same clip. `als_report` counts how many places have a copy of a clip.
+are not the same clip. [`als_report`](../exe/als_report) counts how many places
+have a copy of a clip.
 
 See [als_notes.md](als_notes.md) for `AudioClip` and `MidiClip`.
 
 ## Conversion
 
 The act of converting a set from one version of Live to another. See classes
-`LiveSetConverter` and `LiveVersions`.
+[`LiveSetConverter`](../lib/als_to_version/live_set_converter.rb) and
+[`LiveVersions`](../lib/live_set/tx/live_versions.rb).
 
 ## Corpus
 
-The reference sets available to be examined, including the demo sets of every installed
-version of Live, specially prepared sets for A/B testing, and the 460-set Mike
-Slinn has under `$songs`. See [als_work.md](als_work.md), "Corpus of Demo Sets".
+The reference sets available to be examined, including the demo sets of every
+installed version of Live, specially prepared sets for A/B testing, and the
+460-set Mike Slinn has in the `$songs` directory of computer Bear. See
+[als_work.md](als_work.md), "Corpus of Demo Sets".
 
 
 ## Demo set
 
 A set that ships with Live. See
-[$live_reference_sets](https://github.com/mslinn/live_reference_sets).
+[$live_reference_sets/sets](https://github.com/mslinn/live_reference_sets/tree/master/sets).
 
 ## Difference
 
@@ -104,98 +119,101 @@ belongs in [als_notes.md](als_notes.md).
 
 ## Direction
 
-Which way a conversion is going: `:up` from an older version to a newer one, or
-`:down` from a newer one to an older.
+Which way a conversion is going: `:up` from an older version to a newer version,
+or `:down` from a newer version to an older version.
 
 ## Format
 
 The way Live writes a set: its structure and its data together. Where a document
 says "the Live 11 format", read "the Live 11 XML format", which means "the
-elements, attributes and values that Live 11 writes". Thus "the Live 11 format"
-does not actually refer to formatting.
+elements, attributes and values that Live 11 writes".
+
+Thus "the Live 11 format" might seem to be misleading, because the phrase does
+not actually refer to formatting.
+
 
 ## Fully resolved size
 
-The size of everything a set draws on: the project, and the assets outside it — the samples
-in the user library, the Live Packs, the Racks, the Live Clips.
+The size of everything a set draws on: the project, and the assets outside it —
+the samples in the user library, the Live Packs, devices, and project samples.
 
-A report gives it beside the size of the set file, the expected size of the project and the
-actual size of the project, and says what each of them was computed from.
 
-## Ground truth
+## Ground Truth
 
 A document that Live itself produced, used as the expected result of a
-conversion. The up direction has one: a Live 11 set is opened in Live 12 and
-saved, and the file Live wrote is the ground truth the upgrade is measured
-against — including the elements Live adds and the default values it gives them.
+conversion from an older version of Live to a new version. For example, a Live
+11 set opened in Live 12 and saved will be the ground truth, including the
+XML elements Live adds, the default values it gives them, as well as deleted and
+modified XML elements.
+
 
 ## Lane type
 
 The kind of a lane in a track: a MIDI clip lane, an audio clip lane, a MIDI note
-lane, an automation lane. Every set of a given version has the same lane types,
-and two versions do not have the same ones, so a converted set has to be given
-the lane types of the version it is converted to. See
-[live_11_12_diff.md](live_11_12_diff.md), "The lane types".
+lane, or an automation lane. See [live_11_12_diff.md](live_11_12_diff.md), "The
+lane types".
+
+TODO Move the discussion of lanes to `als_notes.md`.
 
 ## Pair
 
-The word is not used in these documents. Where two versions of Live are concerned,
-the words are "bridge" and "version_diff"; where the same set in two versions is
-concerned, the words are "reference sets".
+The word "pair" is not used in these documents because the word has so many
+meanings and context is often insufficient to know what the word might mean.
 
-## Project folder
 
-What Live writes a set as: a directory that holds the set and what Live writes
-around it. The set is the `.als` file in it, and the folder also holds
-`Desktop.ini` and `Ableton Project Info/AProject.ico`. A file manager shows the
-folder as a file.
+## Project Folder
 
-Live appends ` Project` to the name of the set to make the folder, and it makes
-the folder itself. Live does not write into a folder that is already there: it
-makes a folder with a number on the end of the name instead.
+Live writes a set as a directory named after a set, with the word " Project"
+after it. The directory contains the [ALS File](#als-file), along with other
+files and a subdirectory with an icon called `Ableton Project
+Info/AProject.ico`. OS file managers show the folder as a file.
 
-Only the `.als` file of a project folder is checked in.
 
 ## Reference sets
 
-Sets that are checked in, so that they are the same for everyone who works on this
-project. The demo sets Ableton ships are not reference sets: they are installed with
-Live, and they differ from one machine to the next.
+Reference sets are checked into the
+[`$live_reference_sets`](https://github.com/mslinn/live_reference_sets) Git
+project so that they are available for everyone who works on this project.
 
-`sets/live_11/projects_and_als/Fascination.als` and the Live 12 version of it,
-`sets/live_12/projects_and_als/Fascination_12_converted_by_live Project/Fascination_12_converted_by_live.als`,
-are the reference sets for Live 11 and Live 12. They are the same set in the two
-versions, so the conversion down to Live 11 can be proved against the set Live 11
-itself wrote.
 
 ## Registry
 
-The list of bridges, keyed by version. The registry is in
-`lib/live_set/tx/live_versions.rb`, and the key is the version a bridge leads
-to: the entry for 12 is the bridge between Live 11 and Live 12. See
-[fix_plan2.md](fix_plan2.md), M7.
+The hash of bridges, keyed by version. The registry is defined in
+`lib/live_set/tx/live_versions.rb`.
+
+The hash key is the Live version a bridge coverts a set to. For example, the
+registry value for key `12` is the bridge for converting a set from Live 11
+[format](#format) to Live 12 format.
+
 
 ## Schema
 
 An XSD file describing the structure of the sets of one version of Live. Stored
-in the `xsd/` directory of the repository of the reference sets, one per version,
-named for the version that wrote them:
-`live_10.1.3d1.xsd`, `live_11.3d1.xsd`, `live_12.4d1.xsd`.
-They are generated by `dev/generate_xsds`, which calls `exe/als_to_xsd` on every
-demo set of the version. They are checked in, so that a new contributor and a
-new machine can work with the latest information without having to install
-Live first; regenerating them is a matter of running `dev/generate_xsds` again.
+in
+[$live_reference_sets/xsd](https://github.com/mslinn/live_reference_sets/tree/master/xsd/),
+one per version, named for the version that wrote them: `live_10.1.3d1.xsd`,
+`live_11.3d1.xsd`, `live_12.4d1.xsd`.
 
 A schema is an inference from the XML stored in the sets of that version, not a
-specification of it: a name the schema does not declare is a name no set in the
-corpus uses, which is not the same as a name the version does not have. A schema
-inferred from too few sets is stricter than Live is.
+specification. If none of the processed Live sets contain an XML element, the
+schema generated from those sets will not include that element. Thus a schema
+is unnecessarily stricter than Live.
+
+The schemas are generated by `../dev/generate_xsds`, which calls
+`../exe/als_to_xsd` on every demo set for a specific Live version. The schemas
+are checked into
+[`$live_reference_sets/xsd`](https://github.com/mslinn/live_reference_sets/tree/master/xsd),
+so that a new contributor can work with the latest information without having to
+install that version of Live first.
+
 
 ## Set
 
-An Ableton Live project, as the file Live writes it: a gzipped XML document whose
-root element is `Ableton`. The version of Live that wrote it is in the
+A set is a complete Ableton Live project, contained within a [" Project"
+folder](#project-folder). Contents include an XML document whose
+root element is `Ableton`, in a file with an `.als` filetype. The version of Live that wrote it is in the
 `MinorVersion` attribute of that root element.
+
 
 ## Special transformation
 
