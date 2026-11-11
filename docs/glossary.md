@@ -215,7 +215,7 @@ root element is `Ableton`, in a file with an `.als` filetype. The version of Liv
 `MinorVersion` attribute of that root element.
 
 
-## Special transformation
+## Special Transformation
 
 A transformation that a list of names cannot express: a value the two versions
 write differently, an element one version wraps and the other keeps bare, an
@@ -223,45 +223,51 @@ element that has to move to another parent. They are the hand-written methods of
 a bridge's `special_transformations`. There are fifteen of them in
 `lib/live_set/tx/live_11_and_12.rb`.
 
-## Structure
+## XML Structure
 
-The elements a document has, the attributes they carry, and how they nest. It is
-what a schema describes. Structure is distinct from data.
+The elements a document has, the attributes they carry, and how they nest. This
+is what a schema describes. Structure is distinct from data.
 
 ## Transformation
 
-An operation that turns a document into another document. The transformations of
-a bridge are the differences between the two versions it bridges, expressed as
-operations on the document: a rename, a removal, an emptying, an addition.
+An operation that turns the XML format for a Live version into the format for
+another Live version. The transformations of a bridge are the differences
+between the two versions it bridges, expressed as operations on the document: a
+rename, a removal, an emptying, an addition.
 
-A transformation does not say which way it goes. A rename matches either
-spelling and emits the other, so the same transformation carries both
-directions.
+A transformations are defined bi-directionally.
 
+TODO: delete this old paragraph?
 In `lib/live_set/tx/live_12_to_live_11.xsl`, the stylesheet that is kept for
 comparison, the word is used in the XSLT sense: a stylesheet compiles to a
 transformation, and that transformation is the whole conversion there, not one
 operation.
 
-## Up direction and down direction
+## Up And Down Directions
 
-Up is from an older version to a newer one. It is lossless: it preserves
-everything the set contains and changes only how it is expressed, and it
-reproduces Live's own conversion.
+Converting ALS XML from an older Live version to a newer one is called
+converting in the up direction. Up conversions are lossless because they
+preserve everything the set contains and only change how it is expressed.
+Round-trip conversions starting with the up direction, followed by a down
+conversion, are lossless.
 
-Down is from a newer version to an older one. It is lossy: constructs the older
-version cannot represent are dropped and cannot be recovered. The down direction
-is therefore not a functional inverse of the up direction, and down-then-up does
-not return the original document.
+Down conversion is converting ALS XML from from a newer Live version to an older
+Live version. In general, down conversions are lossy: often the older version
+cannot represent XML elements from the newer version. XML elements that are not
+present in the older version are dropped. The down direction is therefore not a
+functional inverse of the up direction, and down-then-up does not return the
+original document.
 
 ## Version
 
 The version of Live that wrote a set, read from the `MinorVersion` attribute of
-the root element, e.g. `12.0_12402`. The major version is no help: Live 10, 11
-and 12 all write `MajorVersion="5"`.
+the root `<Ableton/>` element, e.g. `12.0_12402`. The `MajorVersion` attribute
+is no use to anyone but Ableton: Live 10, 11 and 12 all write
+`MajorVersion="5"`.
 
 ## Version_diff
 
-Two adjacent versions of Live, together with the differences between them.
-The document for a version_diff is one of `live_8_9_diff.md`, `live_9_10_diff.md`,
-`live_10_11_diff.md`, `live_11_12_diff.md`; the code for one is a bridge.
+Two adjacent versions of Live, together with the differences between them.  The
+document for a version_diff is one of `live_8_9_diff.md`, `live_9_10_diff.md`,
+`live_10_11_diff.md`, `live_11_12_diff.md`; the code for a version_diff is a
+[bridge](#bridge).
