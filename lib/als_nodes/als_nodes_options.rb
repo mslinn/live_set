@@ -19,32 +19,38 @@ class AlsNodes
       next, which makes this the tool to reach for instead of writing a program for each
       element.
 
-      The nodes are printed as XML. The values of the nodes are printed as a JSON array of
-      strings, so that jq can work with them: jq reads JSON, and not XML.
+      Some options return XML results, some return plaintext, while others return JSON.
 
-      Syntax: als_nodes FILE XPATH [options]
+      Syntax: als_nodes [OPTIONS] FILE XPATH
 
-      FILE is the path of the file, or a selector of a demo set, e.g. demo:11:suite.
-
-      Options are:
-        --attribute NAME  print the value of an attribute of each node, not the node itself. The
-                           option may be given more than once, and the values of the attributes
-                           are then printed in the order the options were given.
-        --attributes       print every attribute of each node, as name=value pairs
-        --name             print the name of each node, not the node itself
-        --children        print the names of the children of each node, not the node itself
-        --count           print the number of nodes that were found, and nothing else
-        --max N           print at most N nodes
-        --unique          print each distinct result once
-        -h                Display this help message.
+      FILE is the path of the file, or a selector of a demo set, e.g. demo:12:suite.
+      XPATH is an XPATH selector
+      OPTIONS may be placed anywhere on the command line. They are:
+        --attribute NAME
+                Return the value of an attribute of each node as plaintext. The
+                option may be given more than once. The values of the attributes
+                are returned in the order the options were given.
+        --attributes
+                Return every attribute of each node, as a JSON dictionary (name/value pairs).
+                Has priority over the --attribute, --children and --name options.
+        --children
+                Return the names of the children of each node as a JSON array of text strings.
+                Has priority over the --attribute option.
+        --count Return the number of nodes that were found, and nothing else.
+        #{help_help}
         #{log_level_help}
+        --max N Return at most N nodes. This is the highest priority option.
+        --name  Return the name of each node, not the node itself.
+        --unique
+                Remove duplicate results.
 
       Examples:
         als_nodes set.als '//MidiTrack/IsTuned' --attribute Value
         als_nodes set.als '//MidiTrack' --attribute Id --attribute SelectedToolPanel
         als_nodes set.als '//MidiTrack' --attributes
         als_nodes set.als '//LiveSet/Scenes/Scene/FollowAction' --children
-        als_nodes set.als '//LiveSet/MainTrack' --children | jq -r '.[]'
+        als_nodes set.als '//LiveSet/MainTrack' --children | jq -r '.[]' | sort -u
+        als_nodes set.als '//MidiTrack' --count
         als_nodes set.als '//MidiTrack' --count
     END_HELP
 

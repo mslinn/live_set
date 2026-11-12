@@ -124,10 +124,21 @@ module Command
     parser.on('-l', '--log LOGLEVEL', String, "Log level (#{LOG_LEVELS.join ', '})")
   end
 
+  def help_help
+    <<~END_MSG
+      -h, --help
+          Display this help message.
+    END_MSG
+  end
+
   # The line of the help that says what the log levels are.
   #
   # @return [String] the line
   def log_level_help
-    "-l/--log LOGLEVEL Set the log level (allowable values are: #{LOG_LEVELS.join ', '})"
+    <<~END_MSG
+      -l, --log
+              LOGLEVEL Set the log level. Allowable values are:
+              #{LOG_LEVELS.join ', '})
+    END_MSG
   end
 end

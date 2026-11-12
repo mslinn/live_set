@@ -19,13 +19,13 @@ class AlsDelta
       Backups can be kept by using the -k option. By default, only one backup is
       used, and it is deleted when the process exits.
 
-      Syntax: als_delta OPTIONS PATH_TO_ALS_FILE
+      Syntax: als_delta [OPTIONS] PATH_TO_ALS_FILE
 
       Environment variables used in PATH_TO_ALS_FILE are expanded.
 
-      Options are:
-        -k Keep each backup and timestamp it, instead of overwriting the previous backup.
-        -h Display this help message.
+      OPTIONS are:
+        -k      Keep each backup and timestamp it, instead of overwriting the previous backup.
+        #{help_help}
         #{log_level_help}
 
       Example (references an environment variable called `path`):

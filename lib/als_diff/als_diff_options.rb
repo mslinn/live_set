@@ -27,12 +27,13 @@ class AlsDiff
       Where: FILE1 and FILE2 are paths
 
       OPTIONS can be specified before or after positional parameters:
-        -h             Display this help message.
-        --count        print the number of differences, and nothing else
-        --max N        print at most N differences
-        --skip NAME    do not compare the elements with this name, or anything below
-                      them. This option may be given more than once.
+        --count only print the number of differences
+        #{help_help}
         #{log_level_help}
+        --max N print at most N differences
+        --skip NAME
+                Do not compare elements with this name, or any children.
+                This option may be specified more than once.
 
       The exit status is 0 when the documents are the same, and 1 when they are not.
 
