@@ -23,70 +23,70 @@ differences in how Markdown processors handle Markdown nested inside HTML.
 
 ```html
 <ul>
-  <li>item 1</li>
+  <li>1. This is the top level blah</li>
   <li>
     <details open>
-      <summary>item 2</summary>
+      <summary>1.1 Sublevel Blah</summary>
       <ul>
-        <li>item 2.1</li>
+        <li>1.1 blah</li>
         <li style="list-style: none;"> <!-- optional tweak for open details child -->
           <details open>
-            <summary>item 2.2</summary>
+            <summary>1.2 blah</summary>
             <ul>
-              <li>item 2.2.1</li>
-              <li>item 2.2.2</li>
-              <li>item 2.2.3</li>
+              <li>2.2.1 blah</li>
+              <li>2.2.2 blah</li>
+              <li>2.2.3 blah</li>
             </ul>
           </details>
         </li>
-        <li>item 2.3</li>
+        <li>2.3 blah</li>
       </ul>
     </details>
   </li>
   <li style="list-style: none;">
     <details closed>
-      <summary>item 3  (click me to open)</summary>
+      <summary>3  <i>click me to open</i></summary>
       <ul>
-        <li>item 3.1</li>
+        <li>3.1 blah</li>
       </ul>
     </details>
   </li>
-  <li>item 4</li>
+  <li>4 blah</li>
 </ul>
 ```
 
 Renders as:
 
-<ul>
-  <li>item 1</li>
-  <li>
+<ul style="list-style: none;">
+  <li>1. This is the top level blah</li>
+  <li style="list-style: none;">
     <details open>
-      <summary>item 2</summary>
-      <ul>
-        <li>item 2.1</li>
-        <li style="list-style: none;"> <!-- optional tweak for open details -->
+      <summary>1.1 Sublevel Blah</summary>
+      <ul style="list-style: none;">
+        <li>1.1 blah</li>
+        <li"> <!-- optional tweak for open details child -->
           <details open>
-            <summary>item 2.2</summary>
+            <summary>1.2 blah</summary>
             <ul>
-              <li>item 2.2.1</li>
-              <li>item 2.2.2</li>
-              <li>item 2.2.3</li>
+              <li>2.2.1 blah</li>
+              <li>2.2.2 blah</li>
+              <li>2.2.3 blah</li>
             </ul>
-          </details open>
+          </details>
         </li>
-        <li>item 2.3</li>
+        <li>2.3 blah</li>
       </ul>
     </details>
   </li>
   <li style="list-style: none;">
     <details closed>
-      <summary>item 3  (click me to open)</summary>
-      <ul>
-        <li>item 3.1</li>
+      <summary>3  <i>click me to open</i></summary>
+      <ul style="list-style: none;">
+        <li>3.1 blah</li>
       </ul>
     </details>
   </li>
-  <li>item 4</li>
+  <li>4 blah</li>
 </ul>
 
 
