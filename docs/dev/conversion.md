@@ -8,10 +8,10 @@ This document says:
 
 The companion documents are:
 
-- [`glossary.md`](glossary.md) — the terms these documents use.
+- [`glossary.md`](../glossary.md) — the terms these documents use.
 - [`als_notes.md`](als_notes.md) — the format itself: what the XML looks like.
 - [`als_work.md`](als_work.md) — the how-to document for working with the format.
-- [`live_control_plan.md`](live_control_plan.md) — the plan for proving a
+- [`live_control_plan.md`](../old/live_control_plan.md) — the plan for proving a
   conversion by opening it in Live.
 
 Open questions live in [`TODO.md`](../TODO.md). The ones this document touches are **T1** (XML-level
@@ -25,7 +25,7 @@ the XML contained within the ALS file:
 
 The transformations for converting Live 12 back to Live 11 were figured out by:
 
-1. Reading the Ableton Live [release notes](release_notes/index.md).
+1. Reading the Ableton Live [release notes](../release_notes/index.md).
 
 2. Opening a Live 11 demo set in Live 12, saving it, and comparing the two
    versions of the Live set.
@@ -38,7 +38,7 @@ Similarly, downgrades are performed in reverse stages: 12 to 11, 11 to 10, 10 to
 9, 9 to 8.4.
 
 TODO The following is old information and should be replaced with a short
-high-level description of the [`als_to_version` command](../exe/als_to_version).
+high-level description of the [`als_to_version` command](../../exe/als_to_version).
 
 The transform now exists, and it peformed in Ruby rather than via XSLT. The base
 class is `lib/live_set/tx/live_version_converter.rb`, the transformations of the

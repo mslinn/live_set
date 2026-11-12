@@ -7,7 +7,7 @@ Status: For Discussion
 This document is a reference for the how the work of reverse engineering the
 Ableton Live set (ALS) format is being done. This is a HOW-TO document. The WHAT
 document (discussing findings) is [als_notes.md](als_notes.md). The terms these
-documents use are defined in [glossary.md](glossary.md).
+documents use are defined in [glossary.md](../glossary.md).
 
 <blockquote style="border: 1px solid currentColor; padding: 12px; border-radius: 4px;">
 IMPORTANT: We are not allowing any additional switches or configuration ability
@@ -417,7 +417,7 @@ versions of Live, and the XML stored in the sets of those two versions can be
 inspected to reveal the structure of each one, and comparing the two
 structures reveals the changes between the Live versions that produced those
 files. Where the release notes are, how they were obtained, and what they are
-used for is in [`release_notes/index.md`](release_notes/index.md).
+used for is in [`release_notes/index.md`](../release_notes/index.md).
 
 
 ### Bash Environment Variables for Live Demo Sets
@@ -471,7 +471,7 @@ similar structure.
 
 ## Surveying Corpuses
 
-The [`als_files`](../bin/als_files) script re-runs the survey. To survey the
+The [`als_files`](../../bin/als_files) script re-runs the survey. To survey the
 Live sets in the `$songs` directory, type:
 
 ```shell
@@ -592,9 +592,9 @@ differences that follow from them.
 
 | Document | The versions |
 | --- | --- |
-| [`live_8_9_diff.md`](live_8_9_diff.md) | Live 8 and Live 9 |
-| [`live_9_10_diff.md`](live_9_10_diff.md) | Live 9 and Live 10 |
-| [`live_10_11_diff.md`](live_10_11_diff.md) | Live 10 and Live 11 |
+| `live_8_9_diff.md` | Live 8 and Live 9 — not written yet |
+| `live_9_10_diff.md` | Live 9 and Live 10 — not written yet |
+| `live_10_11_diff.md` | Live 10 and Live 11 — not written yet |
 | [`live_11_12_diff.md`](live_11_12_diff.md) | Live 11 and Live 12 |
 
 A difference belongs to the version that introduced it, so a difference between

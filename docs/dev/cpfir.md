@@ -1,6 +1,6 @@
 # Architectural Guide: Composing Bidirectional Transformations in Ruby
 
-The terms used here are defined in [glossary.md](glossary.md).
+The terms used here are defined in [glossary.md](../glossary.md).
 
 Function composition in Ruby allows you to link a sequence of isolated, pure
 transformations into a seamless pipeline. This guide covers how a

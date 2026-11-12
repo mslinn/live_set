@@ -63,7 +63,7 @@ However, they might both be obsolete. I assume that `docs/serializer_plan.md` is
 the working copy.
 
 If so, then that document contains lots of useful information that goes far
-beyond what a plan would normally contain. [docs/index.md](docs/index.md)
+beyond what a plan would normally contain. [index.md](index.md)
 describes these documents in `docs/`: `report_design.md`, `als_architecture.md`,
 `als_notes.md`, `als_work.md`, `glossary.md`. We need a migration plan, followed
 by retiring `docs/serializer_plan.md` to `docs/old_serializer_plan2.md`.
@@ -198,7 +198,7 @@ not compare against the prior version in the first run. Use `gui_harness` to run
 als_delta and summarize changes in the ALS XML when the harness performs the
 following automated tasks ()
 
-See [OSC](docs/osc.md) for information about how to automate Ableton Live from
+See [OSC](dev/osc.md) for information about how to automate Ableton Live from
 Ruby using OSC.
 
 
@@ -316,40 +316,6 @@ The one way to close the gap is for Live to write such a set: open a set in Live
 select two or more tracks in the arrangement view, use Link Tracks on them, save, and look at
 what is written. The set to use is a scratch copy of a small one — the factory default set of
 Live 11 or Live 12 is enough, since two of its tracks can be linked.
-
-#### N57. The legend of the report describes clip references, and there are none
-
-The legend the report writes — the `LEGEND` constant of
-`lib/live_set/serializer/als_model_serializer.rb` —
-says that a clip is its name and the file it plays, and that every place a clip is in — a
-slot of the session view, the arrangement, a take lane — holds a *reference* to it, and that
-the settings of a reference belong to the reference and not to the clip.
-
-**There is no clip reference in the format.** A clip belongs to a place, and each place holds
-the whole clip. The Session View and the Arrangement View "each hold individual collections
-of clips" (Live Concepts), and a Session clip copied into the Arrangement is an independent
-Arrangement clip. The set that is checked in shows it: the clip `3-Kontakt 7 1` is written
-out as eight complete `MidiClip` elements, seven of them with the same forty-seven
-`MidiNoteEvent` elements, and the audio clip `Pink Noise - EDMtips.com` is written out as
-eleven complete `AudioClip` elements, each with its own `Id` and its own `SampleRef`.
-`LomId` is `0` throughout and is the identifier the Live Object Model uses while Live is
-running; it ties nothing together. What is referenced rather than copied is the sample: the
-audio is in files beside the set, and several clips can point at the same file and play it
-differently. See `docs/als_notes.md`, "Every place holds its own clip", and `docs/glossary.md`,
-"Clip".
-
-What is left:
-
-- The wording of the legend, and the wording of the lines under a clip, which the report
-  calls "References (×7): launch: trigger, warp: none". The report groups the clips of a
-  track that are alike — the same name, file, colour and state — and counts them; the
-  settings they differ in are given under them. That grouping is the report's own, and the
-  report should say so rather than describe a reference that the format does not have.
-- The model. `LiveClip` is one clip in the file, with its own settings and its own place, and
-  there is no `LiveClipReference` and no `LiveClipSettings`. `docs/report_design.md` and
-  `docs/serializer_plan.md` say so; the code does not yet.
-- The reports of the reference sets carry the old legend, and are regenerated when the
-  wording changes.
 
 #### N58. Should each asset of a set carry a hash of its own?
 

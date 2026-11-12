@@ -15,7 +15,7 @@ be compared, and what the second version did to the set is what the bridge has
 to reproduce.
 
 The A/B sets are reference sets, and the program that makes and reads them is in
-[ab_test_plan.md](ab_test_plan.md).
+[ab_test_plan.md](dev/ab_test_plan.md).
 
 
 ## ALS File
@@ -65,7 +65,7 @@ The differences between a version and the previous version are memorialized in
 the appropriate `version_diff` document. For example, the bridge
 `lib/live_set/tx/live_11_and_12.rb` provides the conversions that transform the
 Live 11 XML to and from Live 12 XML, and the differences between those two
-versions are recorded in [live_11_12_diff.md](live_11_12_diff.md).
+versions are recorded in [live_11_12_diff.md](dev/live_11_12_diff.md).
 
 ## Clip
 
@@ -78,7 +78,7 @@ Two clips that carry the same name and play the same file are alike, but they
 are not the same clip. [`als_report`](../exe/als_report) counts how many places
 have a copy of a clip.
 
-See [als_notes.md](als_notes.md) for `AudioClip` and `MidiClip`.
+See [als_notes.md](dev/als_notes.md) for `AudioClip` and `MidiClip`.
 
 ## Conversion
 
@@ -91,7 +91,7 @@ The act of converting a set from one version of Live to another. See classes
 The reference sets available to be examined, including the demo sets of every
 installed version of Live, specially prepared sets for A/B testing, and the
 460-set Mike Slinn has in the `$songs` directory of computer Bear. See
-[als_work.md](als_work.md), "Corpus of Demo Sets".
+[als_work.md](dev/als_work.md), "Corpus of Demo Sets".
 
 
 ## Demo set
@@ -102,7 +102,7 @@ A set that ships with Live. See
 ## Difference
 
 A node where two versions of Live differ. The kinds of difference are listed in
-[conversion.md](conversion.md), "The kinds of difference":
+[conversion.md](dev/conversion.md), "The kinds of difference":
 
 1. an element one version has and the other does not;
 2. an attribute one has and the other does not;
@@ -115,7 +115,7 @@ A node where two versions of Live differ. The kinds of difference are listed in
 A difference belongs to the version that introduced it, so a difference between
 Live 11 and Live 12 is described in `live_11_12_diff.md`. A fact all versions
 share is by definition not a difference; it is a fact about the format, so it
-belongs in [als_notes.md](als_notes.md).
+belongs in [als_notes.md](dev/als_notes.md).
 
 ## Direction
 
@@ -150,7 +150,7 @@ modified XML elements.
 ## Lane type
 
 The kind of a lane in a track: a MIDI clip lane, an audio clip lane, a MIDI note
-lane, or an automation lane. See [live_11_12_diff.md](live_11_12_diff.md), "The
+lane, or an automation lane. See [live_11_12_diff.md](dev/live_11_12_diff.md), "The
 lane types".
 
 TODO Move the discussion of lanes to `als_notes.md`.

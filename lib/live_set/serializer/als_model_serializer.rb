@@ -26,8 +26,9 @@ class AlsModelSerializer
   # What a clip is, and what the messages for a clip mean.
   LEGEND = <<~TEXT.squish.freeze
     Clip properties include the name of the clip and the audio file.
-    Clip references are found in session view slots, the arrangement, and a take lanes.
-    Reference properties include launch method and warp mode.
+    A clip is in a place: a slot of the session view, the arrangement, or a take lane.
+    Each place holds the whole clip, and the settings of a clip are written in the place
+    that holds it.
     The take lanes of a track are under the track.
     The string `⚠ missing` means the sample is not within the project directory tree,
     so the set is not self-contained.

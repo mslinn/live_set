@@ -8,7 +8,7 @@ it to markdown.
 
 The workflow is described in [als_work.md](als_work.md).
 
-The terms these documents use are defined in [glossary.md](glossary.md).
+The terms these documents use are defined in [glossary.md](../glossary.md).
 
 ## ALS Files Are XML, Probably GZipped
 

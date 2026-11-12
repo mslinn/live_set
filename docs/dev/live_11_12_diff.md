@@ -10,8 +10,8 @@ inherits from another bridge.
 
 The format itself — the elements, the attributes, and the shapes they take — is
 in [als_notes.md](als_notes.md). The release notes of Live 12 are in
-[release_notes/](release_notes/), and what they say is summarized below. The
-terms used here are defined in [glossary.md](glossary.md).
+[release_notes/](../release_notes/), and what they say is summarized below. The
+terms used here are defined in [glossary.md](../glossary.md).
 
 ## The Live 12 release notes
 

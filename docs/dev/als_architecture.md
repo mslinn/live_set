@@ -22,7 +22,7 @@ name that was renamed, or elements that exist in one version but not in another.
   generating a markdown representation, and includes methods for escaping
   characters and namespace support. Serializers are initialized from a model
   class instance.
-- [Class AlsModel](lib/live_set/model/als_model.rb) holds everything stored in
+- [Class AlsModel](../../lib/live_set/model/als_model.rb) holds everything stored in
   an ALS file. We can call this singleton instance "the ALS model."
 - Where several serializers have common behaviour, that behaviour shall be
   extracted into a helper of some sort.
@@ -96,11 +96,11 @@ The class is in `lib/live_set/model/als_model.rb`, and its serializer,
 
 ### `AlsReport` — Report Writer
 
-The [`als_report` command](../exe/als_report) generates a report of a set in
+The [`als_report` command](../../exe/als_report) generates a report of a set in
 markdown format. The top-level implementation class is `AlsReport`, defined in
-[`lib/als_report/als_report.rb`](../lib/als_report/als_report.rb). It builds the
+[`lib/als_report/als_report.rb`](../../lib/als_report/als_report.rb). It builds the
 model of the entire set (`AlsModel`) and uses `AlsModelSerializer`, defined in
-[`lib/live_set/serializer/als_model_serializer.rb`](../lib/live_set/serializer/als_model_serializer.rb),
+[`lib/live_set/serializer/als_model_serializer.rb`](../../lib/live_set/serializer/als_model_serializer.rb),
 to generate markdown.
 
 ### Collections
@@ -152,7 +152,7 @@ The ALS XML has an element for each kind of track, and the model has a class for
 - XML element `<MasterTrack>` (renamed to `<MainTrack>` in Live 12) is modeled
   by `LiveMasterTrack`.
 
-Each of these classes is enriched by mixing in [`LiveTrackFacts`](../lib/live_set/model/live_track_facts.rb).
+Each of these classes is enriched by mixing in [`LiveTrackFacts`](../../lib/live_set/model/live_track_facts.rb).
 
 |                             |                                                                                                                         |
 | --------------------------- | ----------------------------------------------------------------------------------------------------------------------- |

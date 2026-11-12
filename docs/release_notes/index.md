@@ -109,4 +109,4 @@ So the release notes are a complete account of what Live 10, 11 and 12
 changed, and a partial account of what Live 8 and 9 changed. Where the notes
 are silent, the differences between two versions have to be found by diffing
 the schemas of the two versions, which is the method described in
-[`../als_work.md`](../als_work.md) under "Mapping XSD to Ruby Classes".
+[`../dev/als_work.md`](../dev/als_work.md) under "Mapping XSD to Ruby Classes".
