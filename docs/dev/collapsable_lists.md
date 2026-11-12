@@ -1,5 +1,10 @@
 # Collapsible Nested Lists
 
+This feature shows the value of the architectual separation of a model from its
+serialization. Currently `to_markdown` is the only serializataion. The same
+serialization classes can now also provide `to_html` so the feature described
+below can be implemented.
+
 ## Requirement
 
 The portion of the current output of `als_report` that deals with hierarchical
@@ -8,7 +13,8 @@ lists is:
 ![portion of als_report output](hierarchy.png)
 
 I want to be able to collapse nested markdown lists. All items should start
-open, user action is required to collapse them. For example:
+open, user action is required to collapse them. The current output of `als_report` can
+be abstracted as:
 
 ```markdown
 * item 1
@@ -29,6 +35,9 @@ open, user action is required to collapse them. For example:
 Standard Markdown can indent nested bullets, but it doesn't support users
 collapsing them. Because markdown processors pass through html unchanged, we
 generate this portion of the `als_report` markdown output as HTML.
+
+Markdown processors pass HTML embedded in markdown through unaltered. This
+allows HTML to be embedded in a markdown document.
 
 To make nested lists collapsible, use HTML `<details>` and `<summary>`
 elements. Writing the whole list as HTML, with no Markdown inside, avoids
@@ -106,7 +115,7 @@ Renders as:
 
 Notes:
 
-- Every `<ul>` and every `<li>` that contains a <details> needs `list-style: none;`. The
+- Every `<ul>` and every `<li>` that contains a `<details>` needs `list-style: none;`. The
   `<ul>` elements keep their default left padding, so the indentation still shows
   the hierarchy.
 - All items start collapsed by default. Add `open` to a `<details>` tag
@@ -178,23 +187,28 @@ The essence of each collection class serializer is to output something like:
 
 ### Summary
 
-Every serialization class that outputs a hierarchical number must be
-collapsible, which means it must have a `to_html` method. At least the following
-leaf serialization classes require a `to_html` method:
-DeviceCrossReferenceSerializer, LiveAudioTrackSerializer, LiveDeviceSerializer,
-LiveGroupSerializer, LiveHeaderSerializer, LiveMasterTrackSerializer,
-LiveMidiClipGroups, LiveMidiTrackSerializer, LivePackSerializer (TODO write
-this), LiveProjectInfoSerializer, LiveReturnTrackSerializer, LiveSizesSerializer
-(TODO rename this class because it does not deal with collecitons. call it
- LiveSizeSerializer), LiveSampleSerializer, LiveTakeLaneSerializer,
-LiveTakeLanesSerializer, LiveTrackCollectionSerializer,  P3SCompatibility, TrackClipCrossReferenceSerializer
+Every serialization class that is associated with a hierarchical node — that
+writes an item of the list, or the list that holds the items — must have a
+`to_html` method.
 
-The following collection serializer classes also require a `to_html` method:
-LiveAssetsSerializer, LiveAudioClipsSerializer, LiveAudioClipsSerializer,
-LiveAudioTracksSerializer, LiveDevicesSerializer, LiveGroupsSerializer,
-LiveMidiClipSerializer, LiveMidiTracksSerializer, LivePacksSerializer,
-LiveReturnTracksSerializer, LiveSamplesSerializer, LiveTracksSerializer,
-MissingSamplesSerializer
+The leaf serialization classes, each of which writes one item of the list:
+LiveAudioClipSerializer, LiveAudioTrackSerializer, LiveDeviceSerializer,
+LiveGroupSerializer, LiveMasterTrackSerializer, LiveMidiClipGroups,
+LiveMidiClipSerializer, LiveMidiTrackSerializer, LiveReturnTrackSerializer,
+LiveTakeLaneSerializer.
+
+The collection serialization classes, each of which writes a list of items:
+LiveAudioClipsSerializer, LiveAudioTracksSerializer, LiveDevicesSerializer,
+LiveGroupsSerializer, LiveMidiTracksSerializer, LiveReturnTracksSerializer,
+LiveTakeLanesSerializer, LiveTrackCollectionSerializer, LiveTracksSerializer.
+
+The composers, each of which writes the report that holds the list:
+AlsModelSerializer, LiveProjectSerializer.
+
+The other serialization classes write sections that are not lists of
+hierarchical nodes — the facts of the set, the sizes, the checksums, the
+verdict, the cross-references, the samples, the packs and the assets — and they
+stay markdown.
 
 
 
@@ -325,15 +339,28 @@ Rules applied:
 
 #### Notes on the above mockup
 
+- The report has a "### Groups" heading and an "### Ungrouped Tracks" heading
+  above its lists. The mockup has neither, because this is just a mockup, this
+  is how you can understand the shape of working code. this is not a spec, it is
+  a starting point for further refinement.
+- The requirement says all items start open, so that is what the code must do.
+  The mockup has the clips and the take lanes collapsed and the group tracks
+  and the tracks open so users can experience the mockup for illustrative
+  purposes only.
+- Indent the HTML two spaces per level, as the mockup shows
 - The screenshot cuts off at Track 2.2, so the mockup ends at Track 2.1.
 - The `to_html` method of each serializer must emit the same `<li>`,
   `<details>`, `<summary>` and `<ul>` pattern as in this mockup.
 - The long file path in the Audio Clip summary wraps in the screenshot. It is
   placed in `<summary>` here, so the whole line is the click target.
-
 - In the "Renders as" block, the `<li>` elements that contain `<details>` lack
   `style="list-style: none;"`, so the rendered demo differs from its source.
+  Don't worry about demo details. Focus on the complete report.
 
-The mockup avoids all three. Per the document's convention, paste an unfenced
-copy of the mockup HTML beneath a "Renders as:" line if you want a live demo of
-it.
+
+#### Complete Mocked Report
+
+[See the above mocked code in a sample report](collapsible_mockup.md)
+This report is completely fake an inconsistent. I just combined two different
+reports together to show how HTML is embedded in markup. This way there is no
+question about what part is markdown and what part is HTML.
