@@ -235,13 +235,8 @@ another Live version. The transformations of a bridge are the differences
 between the two versions it bridges, expressed as operations on the document: a
 rename, a removal, an emptying, an addition.
 
-A transformations are defined bi-directionally.
-
-TODO: delete this old paragraph?
-In `lib/live_set/tx/live_12_to_live_11.xsl`, the stylesheet that is kept for
-comparison, the word is used in the XSLT sense: a stylesheet compiles to a
-transformation, and that transformation is the whole conversion there, not one
-operation.
+A transformation is defined in both directions: a rename matches either spelling
+and emits the other.
 
 ## Up And Down Directions
 

@@ -34,18 +34,12 @@ Many ALS XML entities in the `</Ableton>`
 ## Rubygem Commands
 
 Every command defined by this project is named with the `als_` prefix, and the
-class that implements a command is named after the command. The class has a
-`run` method that takes the command line arguments.
+class that implements a command is named after the command.
 
-The help of a command, and the parsing of its options, live in a file of their
-own next to the command, named after it: `lib/als_report/als_report_options.rb`
-holds the `help`, `default_options` and `parser` methods of `AlsReport`. The
-command requires that file, and the file requires what it needs itself, so that
-either of them can be loaded on its own. The commands that do not do this yet
-are listed in `docs/TODO.md`, item D3.
-
-Commands mix in the `Command` module, defined in `lib/common/command.rb`;
-provides functionality common to all commands, including option parsing, and logging.
+The layout of a command — the two files it is made of, and what each of them holds — is
+described in `lib/common/command.rb`. The commands mix in the `Command` module, which is
+defined there, and it provides the functionality they have in common: the parsing of the
+options, and the logging.
 
 Every command takes `-l` (or `--log`) with the level of the messages it writes to the
 standard error: `DEBUG`, `INFO`, `WARN`, `ERROR`, `FATAL` or `UNKNOWN`. The help of every
@@ -92,7 +86,7 @@ The complete model of the contents of an ALS file: its path, its XML, the times
 of the file, and the Live contents of the file, which it holds as `live_set`.
 
 The class is in `lib/live_set/model/als_model.rb`, and its serializer,
-`AlsModelSerializer`, writes the report of the whole model. See the [Report Sections](report_design.md#report-sections).
+`AlsModelSerializer`, writes the report of the whole model. See the [sections of the report](report_design.md#the-sections-of-the-report).
 
 ### `AlsReport` — Report Writer
 
@@ -140,7 +134,7 @@ the order Live wrote them.
 
 By default, every track of the set is reported in the order it was found in the
 ALS XML. The `als_report --show_midi_and_audio_tracks_separately` option writes
-the audio tracks and the MIDI tracks in separete lists instead.
+the audio tracks and the MIDI tracks in separate lists instead.
 
 #### Track Types
 
@@ -175,14 +169,6 @@ A MIDI track contains MIDI clips, which are stored in the ALS XML.
 An audio track plays audio files, which are not contained in the ALS XML. The
 audio clips are modeled by `LiveAudioClip`, and they say where the file is, how
 big it is, and whether it is present in the project or is missing.
-
-TODO Examine the XML and the report to ensure the following explanation is
-correct and the report represents the facts:
-
-The devices for track group are applied to the tracks in the group. group
-devices are included with the devices of each group track: the chain of
-the group processes the audio of the tracks in it. A report that names the
-devices of a track names the group's devices too.
 
 #### `LiveGroup`
 
@@ -282,9 +268,7 @@ The name of the pack, the path of the folder of it, and whether the pack is on t
 
 #### `LivePacks` — the packs of the set
 
-The packs the set refers to, the ones that are on this machine, and the ones that are not. A
-pack that is not installed is not a fault of the set: the set names the file, and the pack
-holds it.
+The packs the set refers to, the ones that are on this machine, and the ones that are not.
 
 #### `MissingSamples`
 

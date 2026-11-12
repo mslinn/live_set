@@ -57,7 +57,7 @@ Live 11 version strings, removed the three elements that Live 11 does not have,
 and copied everything else through unchanged. Two elements that Live 11 *does*
 have were translated rather than removed, because Live 12 names them
 differently — see
-[docs/live_11_12_diff.md](docs/live_11_12_diff.md#the-elements-the-two-versions-name-differently).
+[docs/dev/live_11_12_diff.md](docs/dev/live_11_12_diff.md#the-elements-the-two-versions-name-differently).
 
 The conversion in this repository is not yet known to produce a set that Live 11
 opens: the lane types are the open risk (See `TODO.md` N42).
@@ -607,7 +607,7 @@ Example:
 
 When converting to Live 11 format, the converted set uses the Live 11.3.21
 schema. The sub-version is not configurable. For more infomation, see
-[docs/live_11_12_diff.md](docs/live_11_12_diff.md#converting-a-set-to-live-11-uses-a-fixed-schema).
+[docs/dev/live_11_12_diff.md](docs/dev/live_11_12_diff.md#converting-a-set-to-live-11-uses-a-fixed-schema).
 
 
 ### `als_to_xsd`
@@ -669,7 +669,7 @@ TODO One of the experimental options that might be in effect when saving a Live
 set is the ability to save a frozen group track. The all of the group-related
 data should be converted when upgrading between versions to maintain the
 integrity of the data, unless we learn about a problem from doing that. Also see
-[docs/als_notes.md](docs/dev/als_notes.md#the-optionstxt-hidden-option).
+[docs/dev/als_notes.md](docs/dev/als_notes.md#the-optionstxt-hidden-option).
 
 
 ## Development
@@ -686,7 +686,7 @@ $ code .  # Run Visual Studio Code
 
 ### The File Format
 
-[docs/als_notes.md](docs/dev/als_notes.md) documents the parts of the Ableton Live
+[docs/dev/als_notes.md](docs/dev/als_notes.md) documents the parts of the Ableton Live
 `.als` format that this project reads, based on a survey of 460 real sets and
 on the official Ableton demo sets. `bin/als_files` re-runs the survey. The terms
 the documents use are defined in

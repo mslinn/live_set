@@ -123,7 +123,7 @@ stream itself differs.
 
 TODO `als_delta` must compare XML trees, not XML strings. It reads the sets
 with `AlsFile`, and the trees have to be brought to a common version before
-they are compared. See docs/cpfir.md, "Comparing Two Live Sets".
+they are compared. See docs/dev/cpfir.md, "Comparing Two Live Sets".
 
 
 #### XSLT Identity Template
@@ -243,7 +243,7 @@ the inventory nor the diff needs the ALS files scanned by hand.
 
 **This is how the transformations of a version_diff are found.** The names one schema
 has and the other does not are the candidates, and each transformation is then written
-by hand in the bridge for that version_diff. See `docs/conversion.md`, "The kinds of
+by hand in the bridge for that version_diff. See `docs/dev/conversion.md`, "The kinds of
 difference", for the kinds of difference and "The differences must be sorted by kind, and the
 non-obvious ones hand-written" for how a transformation is written, and
 `lib/live_set/tx/live_11_and_12.rb` for the transformations of the 11↔12 version_diff.
@@ -260,7 +260,8 @@ work being added right now is:
    The code base is organized this way now: the transform is in
    `lib/live_set/tx/`, and each version_diff has a bridge whose lists and
    special transformations hold the differences of that version_diff. The transform is Ruby rather
-   than XSLT; `docs/fix_plan2.md` says why.
+   than XSLT: a transformation is an entry in a list, and the list is read the other way for
+   the down direction.
 
 2. Develop high-level methods that detect and describe the differences between
    two Live sets. Do not assume that the XML schemas are identical for both Live

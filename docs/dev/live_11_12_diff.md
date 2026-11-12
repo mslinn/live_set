@@ -260,7 +260,7 @@ unchanged, and the Live 11 schema accepts it.
 
 ### The comparison of two sets
 
-`docs/cpfir.md`, "Comparing Two Live Sets", compares two sets by bringing both to the same version.
+`docs/dev/cpfir.md`, "Comparing Two Live Sets", compares two sets by bringing both to the same version.
 Until the device-level part of the up direction is done, that comparison has to
 allow for the differences listed above, or it has to compare sets that hold
 the same devices.

@@ -38,6 +38,9 @@ Read this first. It is the map; the documents it points at are the detail.
   sets live, what the factory-default set holds, and the questions that are
   still open.
 - [`dev/report_design.md`](dev/report_design.md): How a set report is written.
+- [`report_context.md`](report_context.md): What `als_report` is given, and what it does
+  with it: the path to a set or to a project, the two contexts, and the decisions about the
+  command.
 - [`release_notes/index.md`](release_notes/index.md): The release notes of Live
   8 through Live 12, downloaded from Ableton's web site and kept in
   `release_notes/`, one HTML file per version. They are the primary evidence for
@@ -60,6 +63,8 @@ finding them is written down:
 ## Code Map
 
 - [Reading a set, converting it, writing it out](../lib/als_to_version/live_set_converter.rb)
+- [What a report is about, and what it may say](../lib/live_set/report_context.rb)
+- [The report of a project](../lib/live_set/serializer/live_project_serializer.rb)
 - [Tools for looking inside sets](../exe/als_nodes), [als_diff](../exe/als_diff), [als_to_xsd](../exe/als_to_xsd), [als_validate](../exe/als_validate)
 - [Live colour palette](../lib/live_set/model/live_palette.rb)
 - [Generated markup](../lib/live_set/serializer/live_markup.rb)

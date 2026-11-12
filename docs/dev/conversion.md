@@ -37,19 +37,12 @@ Upgrades are performed in stages; 8 to 9, 9 to 10, 10 to 11, 11 to 12.
 Similarly, downgrades are performed in reverse stages: 12 to 11, 11 to 10, 10 to
 9, 9 to 8.4.
 
-TODO The following is old information and should be replaced with a short
-high-level description of the [`als_to_version` command](../../exe/als_to_version).
-
-The transform now exists, and it peformed in Ruby rather than via XSLT. The base
-class is `lib/live_set/tx/live_version_converter.rb`, the transformations of the
-11↔12 version_diff are `lib/live_set/tx/live_11_and_12.rb`, and
-`docs/fix_plan2.md` says why the stylesheet was replaced. The line numbers above
-are those of the code that is gone; the table describes what the conversion did,
-not where it lives now.
+The transform is in `lib/live_set/tx/live_version_converter.rb`, and the transformations of
+the 11↔12 version_diff are in `lib/live_set/tx/live_11_and_12.rb`.
 
 A transform takes its direction from the document it is given. A rename matches either
 spelling and emits the other, so one set of transformations carries both directions of a
-version_diff. See `docs/cpfir.md`, "The Lifecycle of a Conversion".
+version_diff. See `docs/dev/cpfir.md`, "The Lifecycle of a Conversion".
 
 
 #### Unique Live 11 Schema
@@ -307,9 +300,8 @@ that are applied, rather than code that patches a document in place.
 The transform is Ruby, not XSLT. The stylesheet was written first and then
 replaced, because a transformation is an entry in a list in Ruby and a template in
 XSLT: in XSLT the up direction needs a second template for every transformation,
-while in Ruby
-the same list is read the other way. `docs/fix_plan2.md` says why, and
-`lib/live_set/tx/` holds the result.
+while in Ruby the same list is read the other way. `lib/live_set/tx/` holds the
+result.
 
 
 ### The differences must be written down as transformations, not discovered each time
@@ -416,7 +408,7 @@ artifacts of that one set.
 ### The reader
 
 An `.als` file is an XML document. Most are gzip-compressed, but uncompressed ones are used for
-testing. `docs/als_work.md` has the method:
+testing. `docs/dev/als_work.md` has the method:
 
 ```ruby
 require 'zlib'
@@ -552,7 +544,7 @@ comparator works on the shapes.
 - **Decide what the differences are.** That is the transformations' job. The component applies
   transformations; it does not write them.
 - **Generate transformations at run time.** The transformations are written by hand and checked in.
-- **Open Live.** Proving a converted set works is `docs/live_control_plan.md`'s job.
+- **Open Live.** Proving a converted set works is `docs/old/live_control_plan.md`'s job.
 - **Lose material it does not understand.** The identity transformation copies everything the
   transformations do not mention, with its attributes. That is what makes it safe to run a transform written for one
   version against a set that contains something new.
@@ -766,7 +758,7 @@ The value domains have to be produced by this project. There are three possible 
 | Source                 | What it gives                 | What it costs |
 | ---------------------- | ----------------------------- | ------------- |
 | The corpus             | The values that were seen, per element path, per Live version. The XSD generator can record these mechanically, the same way it records structure. | It records what was seen, not what is legal. A value never seen is indistinguishable from an illegal value. |
-| Live itself            | The authority.                | It can only be consulted by opening sets in Live and seeing what it accepts. That is what `docs/live_control_plan.md` does. |
+| Live itself            | The authority.                | It can only be consulted by opening sets in Live and seeing what it accepts. That is what `docs/old/live_control_plan.md` does. |
 | Hand-written knowledge | The values that matter.       | Tedious, and it goes stale. |
 <!-- markdownlint-enable MD060 MD013 -->
 
