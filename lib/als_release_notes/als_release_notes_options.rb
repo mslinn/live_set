@@ -46,7 +46,7 @@ class AlsReleaseNotes
         als_release_notes 12          # output the release notes for all Live 12 versions
         als_release_notes 12.0        # output the release notes for 12.0 only
         als_release_notes 12.1        # output the release notes for 12.1 only
-        als_release_notes 12 --find "scale awareness"
+        als_release_notes 12 --pattern "scale awareness"
         diff <(als_release_notes 12.0) <(als_release_notes 12.1) # Show what changed between 12.0 and 12.1
     END_HELP
 
@@ -57,7 +57,7 @@ class AlsReleaseNotes
   #
   # @return [Hash] the options
   def self.default_options
-    super.merge(find: nil)
+    super.merge(pattern: nil)
   end
 
   def self.parser

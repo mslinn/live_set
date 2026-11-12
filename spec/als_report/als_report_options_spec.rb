@@ -72,16 +72,16 @@ RSpec.describe AlsReport, '.parse_options' do
     end
   end
 
-  it 'reports no machine when the option is not given' do
+  it 'reports no computer when the option is not given' do
     options, = described_class.parse_options(['/music/set.als'])
 
-    expect(options[:report_machine]).to be false
+    expect(options[:computer]).to be false
   end
 
-  it 'reports the machine when the option is given' do
-    options, = described_class.parse_options(['--report_machine', '/music/set.als'])
+  it 'reports the computer when the option is given' do
+    options, = described_class.parse_options(['--computer', '/music/set.als'])
 
-    expect(options[:report_machine]).to be true
+    expect(options[:computer]).to be true
   end
 
   it 'names no set of a project when no name is given' do

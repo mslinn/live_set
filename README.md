@@ -253,16 +253,19 @@ compare it with previous version.
 Backups can be kept by using the -k option. By default, only one backup is
 used, and it is deleted when the process exits.
 
-Syntax: als_delta OPTIONS PATH_TO_ALS_FILE
+Syntax: als_delta [OPTIONS] PATH_TO_ALS_FILE
 
 Environment variables used in PATH_TO_ALS_FILE are expanded.
 
-Options are:
-  -k Keep each backup and timestamp it, instead of overwriting the previous backup.
-  -h Display this help message.
-  -l/--log LOGLEVEL Set the log level (allowable values are: DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
+OPTIONS can be specified anywhere on the command line:
+  -h, --help
+          Display this help message.
+  -k      Keep each backup and timestamp it, instead of overwriting the previous backup.
+  -l LOGLEVEL, --log LOGLEVEL
+          Set the log level. Allowable values are:
+          DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN.
 
-Example (references an environment variable called `path`):
+Example (references an environment variable called "path"):
   $ als_delta "$path/to/my_set.als"
 ```
 
@@ -295,13 +298,19 @@ Syntax: als_diff [OPTIONS] FILE1 FILE2
 
 Where: FILE1 and FILE2 are paths
 
-OPTIONS can be specified before or after positional parameters:
-  -h             Display this help message.
-  --count        print the number of differences, and nothing else
-  --max N        print at most N differences
-  --skip NAME    do not compare the elements with this name, or anything below
-                them. This option may be given more than once.
-  -l/--log LOGLEVEL Set the log level (allowable values are: DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
+OPTIONS can be specified anywhere on the command line:
+  -c, --count
+          Only return the number of differences. This is the highest priority option.
+  -h, --help
+          Display this help message.
+  -l LOGLEVEL, --log LOGLEVEL
+          Set the log level. Allowable values are:
+          DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN.
+  -m N, --max N
+          Return at most N differences
+  -s NAME, --skip NAME
+          Do not compare elements with this name, or any children.
+          This option may be specified more than once.
 
 The exit status is 0 when the documents are the same, and 1 when they are not.
 
@@ -323,32 +332,41 @@ file. The XPath expression is the only thing that has to change from one questio
 next, which makes this the tool to reach for instead of writing a program for each
 element.
 
-The nodes are printed as XML. The values of the nodes are printed as a JSON array of
-strings, so that jq can work with them: jq reads JSON, and not XML.
+Some options return XML results, some return plaintext, while others return JSON.
 
-Syntax: als_nodes FILE XPATH [options]
+Syntax: als_nodes [OPTIONS] FILE XPATH
 
-FILE is the path of the file, or a selector of a demo set, e.g. demo:11:suite.
-
-Options are:
-  --attribute NAME  print the value of an attribute of each node, not the node itself. The
-                     option may be given more than once, and the values of the attributes
-                     are then printed in the order the options were given.
-  --attributes       print every attribute of each node, as name=value pairs
-  --name             print the name of each node, not the node itself
-  --children        print the names of the children of each node, not the node itself
-  --count           print the number of nodes that were found, and nothing else
-  --max N           print at most N nodes
-  --unique          print each distinct result once
-  -h                Display this help message.
-  -l/--log LOGLEVEL Set the log level (allowable values are: DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
+FILE is the path of the file, or a selector of a demo set, e.g. demo:12:suite.
+XPATH is an XPATH selector
+OPTIONS may be placed anywhere on the command line. They are:
+  --attribute NAME
+          Return the value of an attribute of each node as plaintext. The
+          option may be given more than once. The values of the attributes
+          are returned in the order the options were given.
+  --attributes
+          Return every attribute of each node, as a JSON dictionary (name/value pairs).
+          Has priority over the --attribute, --children and --name options.
+  --children
+          Return the names of the children of each node as a JSON array of text strings.
+          Has priority over the --attribute option.
+  --count Return the number of nodes that were found, and nothing else.
+  -h, --help
+          Display this help message.
+  -l LOGLEVEL, --log LOGLEVEL
+          Set the log level. Allowable values are:
+          DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN.
+  --max N Return at most N nodes. This is the highest priority option.
+  --name  Return the name of each node, not the node itself.
+  --unique
+          Remove duplicate results.
 
 Examples:
   als_nodes set.als '//MidiTrack/IsTuned' --attribute Value
   als_nodes set.als '//MidiTrack' --attribute Id --attribute SelectedToolPanel
   als_nodes set.als '//MidiTrack' --attributes
   als_nodes set.als '//LiveSet/Scenes/Scene/FollowAction' --children
-  als_nodes set.als '//LiveSet/MainTrack' --children | jq -r '.[]'
+  als_nodes set.als '//LiveSet/MainTrack' --children | jq -r '.[]' | sort -u
+  als_nodes set.als '//MidiTrack' --count
   als_nodes set.als '//MidiTrack' --count
 ```
 
@@ -357,11 +375,14 @@ Examples:
 | The command | What it prints |
 | --- | --- |
 | `als_nodes FILE XPATH` | the XML of the nodes, one after another |
-| `--attribute NAME` | the values of the attribute, as a JSON array of strings |
-| `--attributes` | every attribute of the node, as `name=value` pairs, as a JSON array of strings |
-| `--name` | the name of each node, as a JSON array of strings |
-| `--children` | the names of the children of each node, as a JSON array of strings |
+| `--attribute NAME` | the value of the attribute, as plaintext |
+| `--attributes` | every attribute of the node, as a JSON dictionary of name/value pairs |
+| `--name` | the name of each node, as plaintext |
+| `--children` | the names of the children of each node, as a JSON array of text strings |
 | `--count` | the number of nodes that were found, and nothing else |
+
+`--attributes` has priority over `--children`, `--attribute` and `--name`, and `--children`
+has priority over `--attribute`.
 
 The XML is indented: every level of nesting is indented by two spaces, and the outermost
 element is at the start of a line.
@@ -408,18 +429,21 @@ VERSION is the version of Live
   returns just the release notes for that minor release.
 
 OPTIONS can be specified anywhere on the command line:
-  --find PATTERN  print the lines of the notes that match PATTERN, each with the
-                  release it belongs to. The pattern is case-insensitive.
-  -h              Display this help message.
-  -l/--log LOGLEVEL Set the log level (allowable values are: DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
+  -p PATTERN, --pattern PATTERN
+          Return the lines of the notes that match PATTERN with the release it belongs to.
+          PATTERN is case-insensitive.
+  -h, --help
+          Display this help message.
+  -l LOGLEVEL, --log LOGLEVEL
+          Set the log level. Allowable values are:
+          DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN.
 
 Examples:
   als_release_notes 12          # output the release notes for all Live 12 versions
   als_release_notes 12.0        # output the release notes for 12.0 only
   als_release_notes 12.1        # output the release notes for 12.1 only
-  als_release_notes 12 --find "scale awareness"
-  als_release_notes 12 > docs/release_notes/live-12.md
-  diff <(als_release_notes 12.0) <(als_release_notes 12.1)
+  als_release_notes 12 --pattern "scale awareness"
+  diff <(als_release_notes 12.0) <(als_release_notes 12.1) # Show what changed between 12.0 and 12.1
 ```
 
 
@@ -447,29 +471,34 @@ project holds one or more sets, and each of them is reported.
 
 Environment variables used in PATH_TO_ALS_FILE are expanded.
 
-Options are:
-  -h    Display this help message.
-  -v    Show the version of this program.
-  -z    The time zone to use in the report in, e.g. America/Chicago. The default
-        is America/Toronto, unless the TZ environment variable is set. This option
-        overrides the environment variable.
-  -l/--log LOGLEVEL Set the log level (allowable values are: DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
+OPTIONS may be specified anywhere on the command line:
+  -a, --als NAME
+          Report only the `.als` file specifed by NAME and ignore all other `.als` files
+          in the project. This option may be provided more than once.
+  -c, --computer
+          Report the facts of the computer the report was made on: the packs that are
+          installed, the folders around the set, and the files that are there. They are
+          true of the machine and not of the set.
+  -h, --help
+          Display this help message.
+  -l LOGLEVEL, --log LOGLEVEL
+          Set the log level. Allowable values are:
+          DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN.
   -s, --show_midi_and_audio_tracks_separately
-        Report the audio tracks and the MIDI tracks separately. By default, every
-        track is displayed in the order found in the ALS file.
-  --als NAME
-        Report only the named set of the project. The name is the name of a file in
-        the project, or a path relative to the project. The option may be given more
-        than once.
-  --report_machine
-        Report the facts of the machine the report was made on: the packs that are
-        installed, the folders around the set, and the files that are there. They are
-        true of the machine and not of the set.
+          Report the audio tracks and the MIDI tracks separately. By default, every
+          track is displayed in the order found in the ALS file.
+  -v      Show the version of this program and exit. This is the highest priority option.
+  -z      The time zone to use in the report in, e.g. America/Chicago. The default
+          is America/Toronto, unless the TZ environment variable is set. This option
+          overrides the TZ environment variable.
 
-
-Example:
+Examples:
   als_report \
-    -z America/Toronto \
+    -z Europe/Berlin \
+    --show_midi_and_audio_tracks_separately \
+    "$path_to_my_set/demo.als"
+
+   TZ=Europe/Berlin als_report \
     --show_midi_and_audio_tracks_separately \
     "$path_to_my_set/demo.als"
 ```
@@ -596,9 +625,12 @@ Where:
            destination path would be set_11.als.
 
 OPTIONS can be specified anywhere on the command line:
-  -f    Overwrite the destination if it already exists.
-  -h    Display this help message.
-  -l/--log LOGLEVEL Set the log level (allowable values are: DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
+  -f      Overwrite the destination if it already exists.
+  -h, --help
+          Display this help message.
+  -l LOGLEVEL, --log LOGLEVEL
+          Set the log level. Allowable values are:
+          DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN.
 
 Example:
   als_to_version 11 "$path/to/sample_set.als"  # writes to "$path/to/sample_set_11.als"
@@ -623,9 +655,12 @@ A PATH_TO_ALS_FILE that holds a glob pattern is expanded by the command, and a p
 that holds ** matches the files in the directories below the one that is named.
 
 OPTIONS may be specified anywhere on the command line:
-  -f Overwrite any existing xsd.
-  -h Display this help message.
-  -l/--log LOGLEVEL Set the log level (allowable values are: DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
+  -f      Overwrite any existing xsd.
+  -h, --help
+          Display this help message.
+  -l LOGLEVEL, --log LOGLEVEL
+          Set the log level. Allowable values are:
+          DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN.
 
 Example:
   $ als_to_xsd -f "$live_reference_sets/xsd/demo11.xsd"     "$live_reference_sets/sets/live_11/demo/projects_and_als"/**/*.als
@@ -636,15 +671,19 @@ Example:
 ### `als_validate`
 
 ```text
-Als_validate checks that an Ableton Live set conforms to an XSD schema.
+als_validate checks that the XML in an Ableton Live .als file conforms to an XSD schema.
+Returns rcode 0 if no errors are found.
 
 Syntax: als_validate [OPTIONS] PATH_TO_ALS_FILE SCHEMA.xsd
 
 Environment variables used in PATH_TO_ALS_FILE are expanded by the operating system.
 
 OPTIONS may be specified anywhere on the command line:
-  -h Display this help message.
-  -l/--log LOGLEVEL Set the log level (allowable values are: DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN)
+  -h, --help
+          Display this help message.
+  -l LOGLEVEL, --log LOGLEVEL
+          Set the log level. Allowable values are:
+          DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN.
 
 Example:
   $ als_validate     "$live_reference_sets/sets/live_11/experiments/projects_and_als/one_midi_track_only_11 Project/factory_default_11.als"     "$live_reference_sets/xsd/demo11.xsd"

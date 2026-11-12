@@ -48,7 +48,7 @@ class AlsReleaseNotes
     live = version.split('.').first
     notes = notes_of html_of(live)
 
-    print_notes notes, version, found[:find]
+    print_notes notes, version, found[:pattern]
     0
   end
 

@@ -60,7 +60,7 @@ class AlsReport
   # @param options [Hash] the options
   # @return [Integer] the exit status of the command
   def self.report_set(path, options)
-    context = ReportContext.new machine: options[:report_machine]
+    context = ReportContext.new machine: options[:computer]
     puts new(path, **options, context: context).show
     0
   end
@@ -76,7 +76,7 @@ class AlsReport
     abort help("No set named #{missing.join ', '} was found in #{path}") unless missing.empty?
     abort help("No set was found in #{path}") if sets.empty?
 
-    context = ReportContext.new project_path: path, machine: options[:report_machine], sets: sets.length
+    context = ReportContext.new project_path: path, machine: options[:computer], sets: sets.length
     models = sets.map { |set| new(set, **options, context: context).als_model }
     puts LiveProjectSerializer.new(path, models, context).to_markdown
     0

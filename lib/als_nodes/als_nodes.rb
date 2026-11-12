@@ -58,17 +58,19 @@ class AlsNodes
 
   # Prints what the command found.
   #
-  # The nodes are printed as XML. The values of the nodes are printed as a JSON array of
-  # strings, so that jq can work with them: jq reads JSON, and not XML.
+  # The nodes are printed as XML. The values of the nodes are printed as plaintext or as
+  # JSON, so that jq can work with them: jq reads JSON, and not XML.
   #
-  # @param results [Array<String>] the results
+  # @param results [Array] the results
   # @param found [Hash] the options
   # @return [void]
   def self.print_results(results, found)
     if prints_nodes?(found)
       results.each { |node| puts node }
+    elsif prints_json?(found)
+      results.each { |value| puts JSON.pretty_generate(value) }
     else
-      puts JSON.pretty_generate(results)
+      results.each { |value| puts value }
     end
   end
 
@@ -80,19 +82,37 @@ class AlsNodes
     found[:attribute].empty? && !found[:attributes] && !found[:name] && !found[:children]
   end
 
+  # Whether the command prints the values of the nodes as JSON.
+  #
+  # @param found [Hash] the options
+  # @return [Boolean] true when the values are printed as JSON
+  def self.prints_json?(found)
+    found[:attributes] || found[:children]
+  end
+
   # The values of a node.
+  #
+  # The options have a priority: `--attributes` over `--children`, `--attribute` and
+  # `--name`, and `--children` over `--attribute`.
   #
   # @param node [Nokogiri::XML::Node] the node
   # @param found [Hash] the options
-  # @return [Array<String>] the values of the node
+  # @return [Array] the values of the node
   def self.values_of(node, found)
-    attributes = found[:attribute]
-    return [attributes.map { |name| node[name].to_s }.join(' ')] unless attributes.empty?
-    return [node.attribute_nodes.map { |attribute| "#{attribute.name}=#{attribute.value}" }.join(' ')] if found[:attributes]
+    return [attributes_of(node)] if found[:attributes]
+    return [node.element_children.map(&:name)] if found[:children]
+    return [found[:attribute].map { |name| node[name].to_s }.join(' ')] unless found[:attribute].empty?
     return [node.name] if found[:name]
-    return node.element_children.map(&:name) if found[:children]
 
     [xml_of(node)]
+  end
+
+  # The attributes of a node, as name/value pairs.
+  #
+  # @param node [Nokogiri::XML::Node] the node
+  # @return [Hash] the attributes
+  def self.attributes_of(node)
+    node.attribute_nodes.to_h { |attribute| [attribute.name, attribute.value] }
   end
 
   # The XML of a node, indented.

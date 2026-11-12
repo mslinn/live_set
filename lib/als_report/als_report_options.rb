@@ -68,7 +68,7 @@ class AlsReport
   # @return [Hash] the options
   def self.default_options
     super.merge(version: false, time_zone: default_time_zone, show_midi_and_audio_tracks_separately: false,
-                als: [], report_machine: false)
+                als: [], computer: false)
   end
 
   # The time zone the report is written in.

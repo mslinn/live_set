@@ -54,7 +54,7 @@ samples collected into that folder, and the content of the machine. It says what
 holds, and what is where.
 
 The facts of the machine are true of the machine and not of the set, so they are written
-only when `--report_machine` is given.
+only when `--computer` is given.
 
 ## The work
 
