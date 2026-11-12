@@ -2,6 +2,11 @@
 
 ## Requirement
 
+The portion of the current output of `als_report` that deals with hierarchical
+lists is:
+
+![portion of als_report output](hierarchy.png)
+
 I want to be able to collapse nested markdown lists. All items should start
 open, user action is required to collapse them. For example:
 
@@ -157,21 +162,40 @@ renders the leaf model class instance passed to it. Serialization classes that
 receive collections of model classes shall delegate the rendering of their
 colleciton items to a corresponding leaf renderer.
 
-In summary, every serialization class that outputs a hierarchical number must be
-collapsible, which means it must have a `to_html` method. At least the following
-serialization classes require a `to_html` method:
-DeviceCrossReferenceSerializer, LiveAssetsSerializer, LiveAudioClipsSerializer,
-LiveAudioClipsSerializer, LiveAudioTrackSerializer, LiveAudioTracksSerializer,
-LiveDeviceSerializer, LiveDevicesSerializer, LiveGroupSerializer,
-LiveGroupsSerializer, LiveHeaderSerializer, LiveMasterTrackSerializer,
-LiveMidiClipGroups, LiveMidiClipSerializer, LiveMidiTrackSerializer,
-LiveMidiTracksSerializer, LivePacksSerializer LiveProjectInfoSerializer,
-LiveReturnTrackSerializer, LiveReturnTracksSerializer, LiveSampleSerializer,
-LiveSamplesSerializer, LiveSizesSerializer, LiveTakeLaneSerializer,
-LiveTakeLanesSerializer, LiveTrackCollectionSerializer, LiveTracksSerializer,
-MissingSamplesSerializer, P3SCompatibility, TrackClipCrossReferenceSerializer
+### Collection Serializers
 
-![portion of als_report output](hierarchy.png)
+The essence of each collection class serializer is to output something like:
+
+```html
+<details open>
+  <summary>1.1 Sublevel Blah</summary>
+  <ul style="list-style: none;">
+    #{children.each(&:to_html).join("\n"-)}
+  </ul>
+</details>
+```
+
+
+### Summary
+
+Every serialization class that outputs a hierarchical number must be
+collapsible, which means it must have a `to_html` method. At least the following
+leaf serialization classes require a `to_html` method:
+DeviceCrossReferenceSerializer, LiveAudioTrackSerializer, LiveDeviceSerializer,
+LiveGroupSerializer, LiveHeaderSerializer, LiveMasterTrackSerializer,
+LiveMidiClipGroups, LiveMidiTrackSerializer, LivePackSerializer (TODO write
+this), LiveProjectInfoSerializer, LiveReturnTrackSerializer, LiveSizesSerializer
+(TODO rename this class because it does not deal with collecitons. call it
+ LiveSizeSerializer), LiveSampleSerializer, LiveTakeLaneSerializer,
+LiveTakeLanesSerializer, LiveTrackCollectionSerializer,  P3SCompatibility, TrackClipCrossReferenceSerializer
+
+The following collection serializer classes also require a `to_html` method:
+LiveAssetsSerializer, LiveAudioClipsSerializer, LiveAudioClipsSerializer,
+LiveAudioTracksSerializer, LiveDevicesSerializer, LiveGroupsSerializer,
+LiveMidiClipSerializer, LiveMidiTracksSerializer, LivePacksSerializer,
+LiveReturnTracksSerializer, LiveSamplesSerializer, LiveTracksSerializer,
+MissingSamplesSerializer
+
 
 
 ### Claude Said
