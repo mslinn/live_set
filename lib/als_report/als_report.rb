@@ -43,10 +43,10 @@ class AlsReport
 
     abort help("Unknown time zone: #{options[:time_zone]}") if options[:time_zone] &&
                                                                !known_time_zone?(options[:time_zone])
-
     abort help('A path must be provided.') if remaining.empty?
+    abort help('Extra argument provided') if remaining.length > 1
 
-    path = remaining.join(' ').expand_env
+    path = remaining.first.expand_env
     abort "Error: #{path} does not exist" unless File.exist? path
 
     return report_project(path, options) if File.directory? path

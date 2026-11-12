@@ -12,14 +12,15 @@ class AlsValidate
   # @return [String] the help message
   def self.help(msg = nil)
     help = <<~END_HELP
-      Als_validate checks that an Ableton Live set conforms to an XSD schema.
+      als_validate checks that the XML in an Ableton Live .als file conforms to an XSD schema.
+      Returns rcode 0 if no errors are found.
 
       Syntax: als_validate [OPTIONS] PATH_TO_ALS_FILE SCHEMA.xsd
 
       Environment variables used in PATH_TO_ALS_FILE are expanded by the operating system.
 
       OPTIONS may be specified anywhere on the command line:
-        -h Display this help message.
+        #{help_help}
         #{log_level_help}
 
       Example:
