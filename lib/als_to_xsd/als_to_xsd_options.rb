@@ -22,8 +22,8 @@ class AlsToXsd
       that holds ** matches the files in the directories below the one that is named.
 
       OPTIONS may be specified anywhere on the command line:
-        -f Overwrite any existing xsd.
-        -h Display this help message.
+        -f      Overwrite any existing xsd.
+        #{help_help}
         #{log_level_help}
 
       Example:

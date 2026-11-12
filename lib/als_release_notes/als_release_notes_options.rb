@@ -36,7 +36,7 @@ class AlsReleaseNotes
         returns just the release notes for that minor release.
 
       OPTIONS can be specified anywhere on the command line:
-        --find PATTERN
+        -p PATTERN, --pattern PATTERN
                 Return the lines of the notes that match PATTERN with the release it belongs to.
                 PATTERN is case-insensitive.
         #{help_help}
@@ -64,7 +64,7 @@ class AlsReleaseNotes
     OptionParser.new do |parser|
       parser.program_name = 'als_release_notes'
 
-      parser.on('--find PATTERN', 'Print the lines of the notes that match PATTERN')
+      parser.on('-p', '--pattern PATTERN', 'Return the lines of release notes that match PATTERN')
       add_common_options parser
 
       parser.on_tail('-h', '--help', 'Show this message') do

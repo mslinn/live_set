@@ -125,9 +125,9 @@ module Command
   end
 
   def help_help
-    <<~END_MSG
+    <<~END_MSG.chomp
       -h, --help
-          Display this help message.
+                Display this help message.
     END_MSG
   end
 
@@ -135,10 +135,10 @@ module Command
   #
   # @return [String] the line
   def log_level_help
-    <<~END_MSG
-      -l, --log
-              LOGLEVEL Set the log level. Allowable values are:
-              #{LOG_LEVELS.join ', '})
+    <<~END_MSG.chomp
+      -l LOGLEVEL, --log LOGLEVEL
+                Set the log level. Allowable values are:
+                #{LOG_LEVELS.join ', '}.
     END_MSG
   end
 end

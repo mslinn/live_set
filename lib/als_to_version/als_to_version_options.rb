@@ -27,8 +27,8 @@ class AlsToVersion
                  destination path would be set_11.als.
 
       OPTIONS can be specified anywhere on the command line:
-        -f    Overwrite the destination if it already exists.
-        -h    Display this help message.
+        -f      Overwrite the destination if it already exists.
+        #{help_help}
         #{log_level_help}
 
       Example:

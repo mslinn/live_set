@@ -23,12 +23,12 @@ class AlsDelta
 
       Environment variables used in PATH_TO_ALS_FILE are expanded.
 
-      OPTIONS are:
-        -k      Keep each backup and timestamp it, instead of overwriting the previous backup.
+      OPTIONS can be specified anywhere on the command line:
         #{help_help}
+        -k      Keep each backup and timestamp it, instead of overwriting the previous backup.
         #{log_level_help}
 
-      Example (references an environment variable called `path`):
+      Example (references an environment variable called "path"):
         $ als_delta "$path/to/my_set.als"
     END_HELP
 

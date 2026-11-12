@@ -23,8 +23,6 @@ This is the plan for preparing the next major version of `live_set`.
   extracted into a helper of some sort.
 
 
-
-
 ## Ruby Coding Standards
 
 See `$agent_instructions/ruby_standards.md`
@@ -381,37 +379,7 @@ Track / clip cross reference
 `docs/report_design.md` describes the same design in more detail, and the two documents
 should agree.
 
-## What the models do not yet know
-
-This project has several executables, and every one of them is named with the `als_`
-prefix, and the class that implements a command is named after the command:
-`als_report` writes the report of a set, `als_delta` diffs two sets, `als_to_xsd`
-writes a schema of the format, `als_validate` checks a set against a schema,
-`als_to_version` converts a set to another version of the format, and `als_nodes`,
-`als_diff` and `als_xsd_order` are the tools for looking inside a set. Every command
-extends the `Command` module, in `lib/common/command.rb`, which holds the parsing of the
-options and the handling of the errors of the parser. See `docs/index.md`, "The commands".
-
-**The converter needs a complete model of the XML.** A set cannot be converted from Live 12
-to Live 11 by a model that has not read what Live 12 wrote: whatever the model does not
-parse is whatever the conversion loses. So the model of the XML, taken as a whole, has to
-be complete for that work, and "the model" means that, not any one class.
-
-**That is not what the reporting task needs.** A report needs the tracks, the groups, the
-clips, the references, the take lanes, the devices, the samples and the states of a set,
-and nothing else. The present work is the report, and the models are written for it.
-
-**Where the reporting models do not parse something, the code says so.** The note is left
-where the parsing would have been:
-
-```ruby
-# not implemented: parsing of elements AutomationEnvelopes and MidiClip, and attributes
-# Clip.Type and Track.TrackGroupId
-```
-
-Every such note is a statement of what the model does not know, and the notes together are
-the work list of the converter. They are written as the models are written, and they are
-the first thing the converter asks for.
+## Not Yet Reported
 
 The parts of a set that the report does not read today, and that the notes will name as
 they are written:

@@ -26,12 +26,14 @@ class AlsDiff
 
       Where: FILE1 and FILE2 are paths
 
-      OPTIONS can be specified before or after positional parameters:
-        --count only print the number of differences
+      OPTIONS can be specified anywhere on the command line:
+        -c, --count
+                Only return the number of differences. This is the highest priority option.
         #{help_help}
         #{log_level_help}
-        --max N print at most N differences
-        --skip NAME
+        -m N, --max N
+                Return at most N differences
+        -s NAME, --skip NAME
                 Do not compare elements with this name, or any children.
                 This option may be specified more than once.
 
@@ -58,9 +60,9 @@ class AlsDiff
     OptionParser.new do |parser|
       parser.program_name = 'als_diff'
 
-      parser.on('--skip NAME', Array, 'Do not compare the elements with this name')
-      parser.on('--count', 'Print the number of differences')
-      parser.on('--max N', Integer, 'Print at most N differences')
+      parser.on('-s NAME', '--skip NAME', Array,   'Ignore elements with this name')
+      parser.on('-c',      '--count',              'Return the number of differences')
+      parser.on('-m N',    '--max N',     Integer, 'Return at most N differences')
       add_common_options parser
 
       parser.on_tail('-h', '--help', 'Show this message') do

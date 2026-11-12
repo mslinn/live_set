@@ -32,8 +32,6 @@ class AlsReport
       Environment variables used in PATH_TO_ALS_FILE are expanded.
 
       OPTIONS may be specified anywhere on the command line:
-        #{help_help}
-        #{log_level_help}
         -a, --als NAME
                 Report only the `.als` file specifed by NAME and ignore all other `.als` files
                 in the project. This option may be provided more than once.
@@ -41,6 +39,8 @@ class AlsReport
                 Report the facts of the computer the report was made on: the packs that are
                 installed, the folders around the set, and the files that are there. They are
                 true of the machine and not of the set.
+        #{help_help}
+        #{log_level_help}
         -s, --show_midi_and_audio_tracks_separately
                 Report the audio tracks and the MIDI tracks separately. By default, every
                 track is displayed in the order found in the ALS file.
@@ -49,9 +49,13 @@ class AlsReport
                 is America/Toronto, unless the TZ environment variable is set. This option
                 overrides the TZ environment variable.
 
-      Example:
+      Examples:
         als_report \\
-          -z America/Toronto \\
+          -z Europe/Berlin \\
+          --show_midi_and_audio_tracks_separately \\
+          "$path_to_my_set/demo.als"
+
+         TZ=Europe/Berlin als_report \\
           --show_midi_and_audio_tracks_separately \\
           "$path_to_my_set/demo.als"
     END_HELP
@@ -72,7 +76,8 @@ class AlsReport
   # The TZ environment variable gives the time zone when it is set, and the time zone of
   # Toronto is used when it is not.
   #
-  # @return [String] the name of the time zone
+  # @return [String] the name of the time
+  # TODO accept other common values for timezone, e.g.: CET, UTC-5
   def self.default_time_zone
     zone = ENV.fetch('TZ', nil)
     zone.nil? || zone.empty? ? 'America/Toronto' : zone
