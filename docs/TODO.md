@@ -272,33 +272,10 @@ verify that the XML is well-formed and Ableton Live 11 can read the set back.
 There is a spec for this:
 `$live_set/<wbr>spec/<wbr>live_set/<wbr>tx/<wbr>live_12_fascination_down_spec.rb`.
 
-#### N54. Live 8, Live 9 and Live 10 cannot be authorized
+#### N54. Live 8 cannot be authorized
 
 Every version of Live registers the file types of its sets when it starts, and that registration
-needs the permission of an administrator. On this machine only Live 11 and Live 12 can be
-authorized. Live 8, Live 9 and Live 10 start, but they cannot save sets: the registration cannot
-be completed for them, so a set they are given is never written back.
-
-The licences were the other half of it, and they are in place: the account holds the Suite
-licence of every version from Live 8 to Live 12, and Ableton added the licences of Live 8
-Suite, Live 9 Suite and Live 10 Suite on 4 November 2026. Live 9 Standard was installed in
-the place of Live 9 Suite, and it is to be replaced by it. The versions are downloaded from
-the Ableton download archive, and an offline authorization is tried when the online one does
-not work. See `docs/als_work.md`, "The licences".
-
-What is left is the registration, which the licences do not help with: until it is done for
-those versions, the round trip through them cannot be proved by running Live, and the
-examples that need them are the ones that are skipped.
-
-The prompt is per version, and it only comes once per version: the first time a version runs it
-asks, switching to another version asks again for that version, and running a version again does
-not ask, provided the user accepted the first time. `docs/live_control_plan.md` describes the
-behavior and what the harness does with it.
-
-The prompt no longer stops the work: the harness writes a per-user registration of the
-`ableton:` protocol before it starts Live, and takes it away when the run is over, so that the
-version of Live that is about to run is the one the registration names and no prompt comes. That
-is in the `gui_harness` project, in `docs/elevation.md`.
+needs the permission of an administrator. On this machine Live 8 starts, but cannot save sets.
 
 #### N56. `LinkedTrackGroupId` is not exercised by any set in the corpus
 
