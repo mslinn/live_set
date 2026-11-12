@@ -36,9 +36,10 @@ class AlsReleaseNotes
         returns just the release notes for that minor release.
 
       OPTIONS can be specified anywhere on the command line:
-        --find PATTERN  print the lines of the notes that match PATTERN, each with the
-                        release it belongs to. The pattern is case-insensitive.
-        -h              Display this help message.
+        --find PATTERN
+                Return the lines of the notes that match PATTERN with the release it belongs to.
+                PATTERN is case-insensitive.
+        #{help_help}
         #{log_level_help}
 
       Examples:
@@ -46,8 +47,7 @@ class AlsReleaseNotes
         als_release_notes 12.0        # output the release notes for 12.0 only
         als_release_notes 12.1        # output the release notes for 12.1 only
         als_release_notes 12 --find "scale awareness"
-        als_release_notes 12 > docs/release_notes/live-12.md
-        diff <(als_release_notes 12.0) <(als_release_notes 12.1)
+        diff <(als_release_notes 12.0) <(als_release_notes 12.1) # Show what changed between 12.0 and 12.1
     END_HELP
 
     msg.nil? ? help : "Error: #{msg}\n\n#{help}"

@@ -49,10 +49,11 @@ class AlsValidate
     set_name = remaining.shift&.expand_env
     xsd_name = remaining.shift&.expand_env
 
-    abort help("#{set_name} does not exist") unless File.exist? set_name
-    abort help("#{set_name} is a directory") if File.directory? set_name
-    abort help("#{xsd_name} does not exist") unless File.exist? xsd_name
-    abort help("#{xsd_name} is a directory") if File.directory? xsd_name
+    abort "Error: #{set_name} does not exist" unless File.exist? set_name
+    abort "Error: #{set_name} is a directory" if File.directory? set_name
+
+    abort "Error: #{xsd_name} does not exist" unless File.exist? xsd_name
+    abort "Error: #{xsd_name} is a directory" if File.directory? xsd_name
 
     [set_name, xsd_name]
   end

@@ -22,8 +22,8 @@ class AlsDelta
     abort help('An Ableton Live set name must be provided.') if remaining.empty?
 
     set_name = remaining.join(' ').expand_env
-    abort help("#{set_name} does not exist") unless File.exist? set_name
-    abort help("#{set_name} is a directory") if File.directory? set_name
+    abort "Error: #{set_name} does not exist" unless File.exist? set_name
+    abort "Error: #{set_name} is a directory" if File.directory? set_name
 
     trap('SIGINT') { throw :ctrl_c }
 

@@ -47,7 +47,7 @@ class AlsReport
     abort help('A path must be provided.') if remaining.empty?
 
     path = remaining.join(' ').expand_env
-    abort help("#{path} does not exist") unless File.exist? path
+    abort "Error: #{path} does not exist" unless File.exist? path
 
     return report_project(path, options) if File.directory? path
 

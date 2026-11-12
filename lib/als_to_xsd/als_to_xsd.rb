@@ -42,8 +42,8 @@ class AlsToXsd
 
     als_files = expand_globs(als_files).map do |file|
       expanded_file = file.expand_env
-      abort help("ALS file does not exist: #{expanded_file}") unless File.exist?(expanded_file)
-      abort help("#{expanded_file} is a directory") if File.directory? expanded_file
+      abort "Error: ALS file does not exist: #{expanded_file}" unless File.exist?(expanded_file)
+      abort "Error: #{expanded_file} is a directory" if File.directory? expanded_file
       expanded_file
     end
 
