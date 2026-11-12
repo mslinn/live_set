@@ -41,6 +41,14 @@ module LiveSets
                 'one_midi_track_only_11 Project', 'factory_default_11.als'
     end
 
+    # The project of the factory default set of Live 11: a folder that holds a set.
+    #
+    # @return [String] the path of the project
+    def project11
+      File.join ReferenceSets.experiments_directory_of('11'), 'projects_and_als',
+                'one_midi_track_only_11 Project'
+    end
+
     # A demo set of Live 9: a set that an old version of Live wrote.
     #
     # @return [String] the path of the set

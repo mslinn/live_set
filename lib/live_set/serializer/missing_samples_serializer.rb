@@ -13,8 +13,10 @@ class MissingSamplesSerializer
   # Creates a serializer for the samples that are not in the project.
   #
   # @param missing [MissingSamples] the samples that are not in the project
-  def initialize(missing)
+  # @param machine [Boolean] whether the facts of the machine are written
+  def initialize(missing, machine: false)
     @missing = missing
+    @machine = machine
   end
 
   # Returns the collection as markdown.
@@ -35,10 +37,22 @@ class MissingSamplesSerializer
              'pack or from the Live core library. A set with such a sample is not ' \
              'self-contained: the file has to be found again.'
     lines << ''
+    lines << machine_line if @machine
     rows = @missing.sources.sort.map do |source, names|
       [source, names.map { |name| "`#{LiveMarkup.escape name}`" }.join(', ')]
     end
     lines << MarkdownTables.make_table(%w[Source Samples], rows, align: %w[l l], is_rows: true)
     lines.join("\n")
+  end
+
+  private
+
+  # The line that says how many of the samples are on this machine.
+  #
+  # @return [String] the line
+  def machine_line
+    here = @missing.count(&:there?)
+
+    "#{here} of them are on this machine.\n"
   end
 end

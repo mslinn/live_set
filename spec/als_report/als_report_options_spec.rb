@@ -71,4 +71,28 @@ RSpec.describe AlsReport, '.parse_options' do
       expect(options[:time_zone]).to eq('UTC')
     end
   end
+
+  it 'reports no machine when the option is not given' do
+    options, = described_class.parse_options(['/music/set.als'])
+
+    expect(options[:report_machine]).to be false
+  end
+
+  it 'reports the machine when the option is given' do
+    options, = described_class.parse_options(['--report_machine', '/music/set.als'])
+
+    expect(options[:report_machine]).to be true
+  end
+
+  it 'names no set of a project when no name is given' do
+    options, = described_class.parse_options(['/music/project'])
+
+    expect(options[:als]).to eq []
+  end
+
+  it 'collects the names of the sets of a project' do
+    options, = described_class.parse_options(['--als', 'a.als', '--als', 'b.als', '/music/project'])
+
+    expect(options[:als]).to eq ['a.als', 'b.als']
+  end
 end

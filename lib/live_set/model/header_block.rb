@@ -2,6 +2,7 @@ require 'socket'
 require 'time'
 require_relative '../../common/log'
 require_relative '../../common/xml'
+require_relative '../version'
 
 # The facts about a set: the version of Live that wrote it, the computer it is on, where it
 # is, and when it was made and last changed.
@@ -142,7 +143,7 @@ class HeaderBlock
   # @param time [Time] the time
   # @return [String, nil] the offset, or nil when it cannot be worked out
   def utc_offset_at(time)
-    local = @time_zone ? time.getlocal(@time_zone) : time
+    local = local_time time
     seconds = local.utc_offset
     return nil if seconds.zero? && @time_zone.nil?
 
@@ -150,6 +151,24 @@ class HeaderBlock
     hours = seconds.abs / 3600
     minutes = (seconds.abs % 3600) / 60
     minutes.zero? ? "#{sign}#{hours}" : "#{sign}#{hours}:#{format('%02d', minutes)}"
+  end
+
+  # The time in the time zone of the report.
+  #
+  # The time zone is given to the process, because Ruby takes the offset of a time from the
+  # environment and not from an argument: `Time#getlocal` takes the offset of a time, and
+  # not the name of a zone.
+  #
+  # @param time [Time] the time
+  # @return [Time] the time in the time zone of the report
+  def local_time(time)
+    return time if @time_zone.nil?
+
+    previous = ENV.fetch('TZ', nil)
+    ENV['TZ'] = @time_zone
+    time.getlocal
+  ensure
+    ENV['TZ'] = previous
   end
 
   # The time the set was created.

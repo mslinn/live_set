@@ -22,8 +22,10 @@ class LiveAssetsSerializer
   # Creates a serializer for the assets of a set.
   #
   # @param assets [LiveAssets] the assets of the set
-  def initialize(assets)
+  # @param machine [Boolean] whether the facts of the machine are written
+  def initialize(assets, machine: false)
     @assets = assets
+    @machine = machine
   end
 
   # Returns the section as markdown.
@@ -73,14 +75,14 @@ class LiveAssetsSerializer
 
   # The size of the sample.
   #
-  # The size on disk is the size of the file. When the file is not there, the size Live
-  # recorded for it is the size of the file as Live saw it.
+  # The size on disk is the size of the file, and it is a fact of the machine. The size Live
+  # recorded is the size of the file as Live saw it, and it is a fact of the set.
   #
   # @param asset [LiveAsset] the sample
   # @return [Integer, nil] the size in bytes, or nil when it is not known
   def size_of(asset)
     size = asset.size_on_disk
-    return size unless size.nil?
+    return size if @machine && !size.nil?
 
     recorded = asset.recorded_size
     recorded.zero? ? nil : recorded
@@ -88,22 +90,28 @@ class LiveAssetsSerializer
 
   # What is said about the sample.
   #
-  # A sample that is not in the set, or that is not on disk, is a warning, and it is written
-  # with the decoration of a warning.
+  # A sample that is not in the set is not compatible with the P3S Standalone: the file has to
+  # be in the set for the Push to play it. A sample that is in the set and is not on this
+  # machine is missing, and that is a fact of the machine.
   #
   # @param asset [LiveAsset] the sample
   # @return [String, nil] the marker, or nil when the sample is in the set and is there
   def marker_of(asset)
-    return asset.there? ? nil : LiveMarkup.warning_span(MISSING) if asset.in_project?
+    return LiveMarkup.warning_span(NOT_COMPATIBLE) unless asset.in_project?
+    return nil unless @machine
 
-    asset.there? ? LiveMarkup.warning_span(NOT_COMPATIBLE) : LiveMarkup.warning_span(MISSING)
+    asset.there? ? nil : LiveMarkup.warning_span(MISSING)
   end
 
   # When the file was last changed.
   #
+  # The date is a fact of the machine.
+  #
   # @param asset [LiveAsset] the sample
   # @return [String, nil] the date, or nil when it is not known
   def date_of(asset)
+    return nil unless @machine
+
     time = asset.last_modified_on_disk
     return nil if time.nil?
 

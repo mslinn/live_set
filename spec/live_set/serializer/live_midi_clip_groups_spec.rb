@@ -29,7 +29,7 @@ RSpec.describe LiveMidiClipGroups, '#to_markdown' do
 
   it 'writes the settings the copies differ in, on the next line' do
     expected = groups.to_markdown('1')
-    expect(expected).to include('        - References (×5): launch: trigger, warp: none')
+    expect(expected).to include('        - Copies (×5): launch: trigger, warp: none')
   end
 
   it 'hierarchically numbers the clips of the track they are on' do

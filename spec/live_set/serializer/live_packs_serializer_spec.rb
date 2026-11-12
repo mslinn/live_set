@@ -25,17 +25,10 @@ RSpec.describe LivePacksSerializer, '#to_markdown' do
   end
 
   it 'writes the heading of the section' do
-    expect(described_class.new(packs).to_markdown).to start_with "### Referenced Packs\n"
+    expect(described_class.new(packs).to_markdown).to start_with "## Referenced Packs\n"
   end
 
-  it 'writes the two subsections' do
-    markdown = described_class.new(packs).to_markdown
-
-    expect(markdown).to include('#### Located Packs')
-    expect(markdown).to include('#### Missing Packs')
-  end
-
-  it 'names the pack that is not on this machine' do
+  it 'names the pack that the set refers to' do
     expect(described_class.new(packs).to_markdown).to include('- **Drive and Glow**')
   end
 
@@ -45,7 +38,7 @@ RSpec.describe LivePacksSerializer, '#to_markdown' do
     expect(markdown).to include(described_class::NO_PACK_REFERENCES)
   end
 
-  it 'names the pack that is on this machine, and where it is' do
+  it 'names the pack, and where it is' do
     Dir.mktmpdir 'live_set_spec_' do |directory|
       pack = File.join directory, 'Drive and Glow'
       FileUtils.mkdir_p File.join(pack, 'Samples')
@@ -54,7 +47,6 @@ RSpec.describe LivePacksSerializer, '#to_markdown' do
       markdown = described_class.new(LivePacks.new([sample])).to_markdown
 
       expect(markdown).to include("- **Drive and Glow**: `#{pack.gsub('/', '/<wbr/>')}`")
-      expect(markdown).to include('Every pack the set refers to is on this machine.')
     end
   end
 end

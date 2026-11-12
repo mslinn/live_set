@@ -72,7 +72,10 @@ def analyse(sets_dir, reports_dir, label)
 
     # A set that cannot be read does not stop the reports of the other sets.
     begin
-      File.write report, AlsReport.new(set, loglevel: 'ERROR').show
+      # The reports of the reference sets hold the facts of the machine they were made on, so
+      # that they are the whole report.
+      context = ReportContext.new machine: true
+      File.write report, AlsReport.new(set, loglevel: 'ERROR', context: context).show
       puts "#{label}/#{File.basename report}: written"
     rescue StandardError => e
       puts "#{label}/#{File.basename set}: not reported: #{e.class}: #{e.message}"

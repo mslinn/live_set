@@ -68,7 +68,7 @@ class LiveMidiClipGroups
     groups = group.group_by { |clip| settings_of clip }
     groups.map { |settings, copies| [copies.length, settings] }
           .sort_by { |count, settings| [-count, settings] }
-          .map { |count, settings| "- References (#{count_of count}): #{settings}" }
+          .map { |count, settings| "- Copies (#{count_of count}): #{settings}" }
   end
 
   # The settings of a clip: how it is launched, and how its sample is warped.

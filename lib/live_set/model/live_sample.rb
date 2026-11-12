@@ -80,4 +80,27 @@ class LiveSample
   def collected?
     !@relative_path.nil? && @relative_path.start_with?('Samples/Imported/')
   end
+
+  # The path of the file on this machine.
+  #
+  # The relative path is the path of the file in the project, and the path Live wrote is the
+  # path of the file where it was when the set was saved.
+  #
+  # @return [String] the path
+  def resolved_path
+    return @path if @relative_path.nil? || @relative_path.empty?
+
+    File.expand_path File.join(@project_directory.to_s, @relative_path)
+  end
+
+  # Whether the file is on this machine.
+  #
+  # The path of a file of the user library, or of a file in a random place, is the path of
+  # the machine that saved the set. It is there when the report is made on that machine, and
+  # it is not there otherwise.
+  #
+  # @return [Boolean] true when the file is here
+  def there?
+    File.file? resolved_path
+  end
 end

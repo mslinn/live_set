@@ -26,6 +26,9 @@ class AlsReport
 
       Syntax: als_report OPTIONS PATH_TO_ALS_FILE
 
+      PATH_TO_ALS_FILE is the path of a set, or the path of a Live project directory. A
+      project holds one or more sets, and each of them is reported.
+
       Environment variables used in PATH_TO_ALS_FILE are expanded.
 
       Options are:
@@ -38,6 +41,14 @@ class AlsReport
         -s, --show_midi_and_audio_tracks_separately
               Report the audio tracks and the MIDI tracks separately. By default, every
               track is displayed in the order found in the ALS file.
+        --als NAME
+              Report only the named set of the project. The name is the name of a file in
+              the project, or a path relative to the project. The option may be given more
+              than once.
+        --report_machine
+              Report the facts of the machine the report was made on: the packs that are
+              installed, the folders around the set, and the files that are there. They are
+              true of the machine and not of the set.
 
 
       Example:
@@ -54,7 +65,8 @@ class AlsReport
   #
   # @return [Hash] the options
   def self.default_options
-    super.merge(version: false, time_zone: default_time_zone, show_midi_and_audio_tracks_separately: false)
+    super.merge(version: false, time_zone: default_time_zone, show_midi_and_audio_tracks_separately: false,
+                als: [], report_machine: false)
   end
 
   # The time zone the report is written in.
@@ -89,6 +101,14 @@ class AlsReport
       parser.on('-z', '--time_zone ZONE', String, 'The time zone the times in the report are written in')
       parser.on('-s', '--show_midi_and_audio_tracks_separately',
                 'Write the audio tracks and the MIDI tracks of the set in their own lists')
+      # The option may be given more than once, and the names are collected in the order the
+      # options were given.
+      names = []
+      parser.on('--als NAME', 'Report only the named set of the project') do |name|
+        names << name
+        names
+      end
+      parser.on('--report_machine', 'Report the facts of the machine the report was made on')
       add_common_options parser
 
       parser.on_tail('-h', '--help', 'Show this message') do

@@ -39,14 +39,20 @@ RSpec.describe LiveAssetsSerializer, '#to_markdown' do
     expect(markdown).to include('(4.13 MB)')
   end
 
-  it 'says that a file that is not in the project is missing from it' do
+  it 'says that a file that is not in the project is not compatible with the P3S' do
     markdown = described_class.new(assets).to_markdown
+
+    expect(markdown).to include('❌ not P3S compatible')
+  end
+
+  it 'says that a file that is not in the project is missing when the machine is asked for' do
+    markdown = described_class.new(assets, machine: true).to_markdown
 
     expect(markdown).to include('❌ missing')
   end
 
   it 'writes the marker of a file with the decoration of a warning' do
-    markdown = described_class.new(assets).to_markdown
+    markdown = described_class.new(assets, machine: true).to_markdown
 
     # The decoration is the one of the warning of a clip, and it is made in one place.
     expect(markdown).to include(

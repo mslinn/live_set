@@ -7,15 +7,15 @@ require_relative 'live_markup'
 # to the pack, and the pack has to be installed for the file to be found. A pack that is not
 # installed is not a fault of the set.
 #
+# The packs the set refers to are a fact of the set: the XML names them. The packs that are
+# installed are a fact of the machine, and they are written by the serializer of the machine.
+#
 # Sample usage:
 # markdown = LivePacksSerializer.new(packs).to_markdown
 
 class LivePacksSerializer
   # What the report says when the set refers to no pack.
   NO_PACK_REFERENCES = 'This set does not reference any packs.'.freeze
-
-  # What the report says when none of the packs of the set is on this machine.
-  LOST_PACK_REFERENCES = 'None'.freeze
 
   # Creates a serializer for the packs of a set.
   #
@@ -28,48 +28,17 @@ class LivePacksSerializer
   #
   # @return [String] the serialized markdown
   def to_markdown
-    lines = ['### Referenced Packs', '']
+    lines = ['## Referenced Packs', '']
     if @packs.empty?
       lines << NO_PACK_REFERENCES
       return lines.join("\n")
     end
 
-    lines.concat located_section
-    lines.concat missing_section
+    @packs.each { |pack| lines << "- **#{pack.name}**: `#{path_of pack}`" }
     lines.join("\n")
   end
 
   private
-
-  # The packs that are on this machine.
-  #
-  # @return [Array<String>] the lines of the section
-  def located_section
-    lines = ['#### Located Packs', '']
-    packs = @packs.located
-    if packs.empty?
-      lines << LOST_PACK_REFERENCES
-    else
-      packs.each { |pack| lines << "- **#{pack.name}**: `#{path_of pack}`" }
-    end
-    lines << ''
-    lines
-  end
-
-  # The packs that are not on this machine.
-  #
-  # @return [Array<String>] the lines of the section
-  def missing_section
-    lines = ['#### Missing Packs', '']
-    packs = @packs.missing
-    if packs.empty?
-      lines << 'Every pack the set refers to is on this machine.'
-    else
-      packs.each { |pack| lines << "- **#{pack.name}**" }
-    end
-    lines << ''
-    lines
-  end
 
   # The path of the folder of a pack, as the report breaks it.
   #

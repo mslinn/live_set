@@ -20,12 +20,15 @@ RSpec.describe AlsModelSerializer, '#to_markdown' do
   #
   # @param separately [Boolean] whether the audio tracks and the MIDI tracks are written in
   #   their own lists
+  # @param machine [Boolean] whether the facts of the machine are written
   # @return [AlsModel] the model
-  def model(separately: false)
+  def model(separately: false, machine: false)
     path = LiveSets.fascination
     document = LiveSets.document path
     header = HeaderBlock.new path, document, nil
-    AlsModel.new path, document, header, show_midi_and_audio_tracks_separately: separately
+    context = ReportContext.new machine: machine
+    separate = separately
+    AlsModel.new path, document, header, context: context, show_midi_and_audio_tracks_separately: separate
   end
 
   it 'writes the sections of the report, in order' do
@@ -40,7 +43,7 @@ RSpec.describe AlsModelSerializer, '#to_markdown' do
       '## Device/Track Cross-Reference',
       '## Track / Clip Cross Reference',
       '## Set Assets',
-      '## Test Environment'
+      '## Referenced Packs'
     ]
   end
 
@@ -50,12 +53,18 @@ RSpec.describe AlsModelSerializer, '#to_markdown' do
     expect(markdown.scan(/^### .*$/)).to include '### Set Sizes', '### Set Checksums'
   end
 
-  it 'writes the state of the machine the report was made on at the bottom' do
+  it 'does not write the state of the machine when it is not asked for' do
     markdown = described_class.new(model).to_markdown
 
+    expect(markdown).not_to include('## Test Environment')
+  end
+
+  it 'writes the state of the machine the report was made on at the bottom' do
+    markdown = described_class.new(model(machine: true)).to_markdown
+
     expect(markdown).to include('### The Ableton Project Info Folder')
-    expect(markdown).to include('### Referenced Packs')
-    expect(markdown).to end_with "- **Drive and Glow**\n\n"
+    expect(markdown).to include('### Installed Packs')
+    expect(markdown).to include('### Missing Packs')
   end
 
   it 'writes the name of the set at the top of the report' do

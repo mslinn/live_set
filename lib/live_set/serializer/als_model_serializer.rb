@@ -10,6 +10,7 @@ require_relative 'live_group_serializer'
 require_relative 'live_groups_serializer'
 require_relative 'live_master_track_serializer'
 require_relative 'live_midi_tracks_serializer'
+require_relative 'live_machine_packs_serializer'
 require_relative 'live_packs_serializer'
 require_relative 'live_project_info_serializer'
 require_relative 'live_return_tracks_serializer'
@@ -72,6 +73,8 @@ class AlsModelSerializer
 
       #{assets_section}
 
+      #{packs_section}
+
       #{test_environment_section}
     REPORT_END
   end
@@ -80,7 +83,7 @@ class AlsModelSerializer
   #
   # @return [String] the section
   def header_block_section
-    LiveHeaderSerializer.new(@als_model.header_block).to_markdown
+    LiveHeaderSerializer.new(@als_model.header_block, @als_model.context).to_markdown
   end
 
   # The metadata of the set: its sizes and its checksums.
@@ -92,11 +95,23 @@ class AlsModelSerializer
 
   # The state of the machine the report was made on.
   #
-  # The 'Ableton Project Info' folders around the set, and the packs the set refers to.
+  # The 'Ableton Project Info' folders around the set, and the packs that are installed.
+  #
+  # The section is written only when the report was asked for the facts of the machine:
+  # they are true of the machine, and not of the set.
   #
   # @return [String] the section
   def test_environment_section
-    ['## Test Environment', '', project_info_section, '', packs_section].join("\n")
+    return '' unless machine?
+
+    ['## Test Environment', '', project_info_section, '', machine_packs_section].join("\n")
+  end
+
+  # Whether the facts of the machine are written.
+  #
+  # @return [Boolean] true when the machine's facts are written
+  def machine?
+    @als_model.context.machine?
   end
 
   # The 'Ableton Project Info' folders around the set.
@@ -111,6 +126,13 @@ class AlsModelSerializer
   # @return [String] the section
   def packs_section
     LivePacksSerializer.new(@als_model.packs).to_markdown
+  end
+
+  # The packs that are on this machine, and the ones that are not.
+  #
+  # @return [String] the sections
+  def machine_packs_section
+    LiveMachinePacksSerializer.new(@als_model.packs).to_markdown
   end
 
   # The sizes of the set.
@@ -138,7 +160,7 @@ class AlsModelSerializer
   #
   # @return [String] the section
   def missing_samples
-    MissingSamplesSerializer.new(@als_model.samples.missing).to_markdown
+    MissingSamplesSerializer.new(@als_model.samples.missing, machine: machine?).to_markdown
   end
 
   # The samples of the set.
@@ -166,7 +188,7 @@ class AlsModelSerializer
   #
   # @return [String] the section
   def assets_section
-    LiveAssetsSerializer.new(@als_model.assets).to_markdown
+    LiveAssetsSerializer.new(@als_model.assets, machine: machine?).to_markdown
   end
 
   # The groups and the tracks at the top of the set, and the things under them.

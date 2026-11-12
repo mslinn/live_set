@@ -1,9 +1,11 @@
+require_relative '../report_context'
 require_relative 'header_block'
 require_relative 'live_assets'
 require_relative 'live_checksums'
 require_relative 'live_master_track'
 require_relative 'live_packs'
 require_relative 'live_project_info'
+require_relative 'live_samples'
 require_relative 'live_sizes'
 require_relative 'live_tracks'
 
@@ -16,17 +18,24 @@ class AlsModel
   # @param path [String] the path of the file
   # @param xml [Nokogiri::XML::Document] the XML of the file
   # @param header_block [HeaderBlock] the facts about the set, which hold the times of it
+  # @param context [ReportContext] what the report is about, and what it may say
   # @param show_midi_and_audio_tracks_separately [Boolean] whether the audio tracks and the
   #   MIDI tracks of the set are written in their own lists
-  def initialize(path, xml, header_block, show_midi_and_audio_tracks_separately: false)
+  def initialize(path, xml, header_block, context: ReportContext.new, show_midi_and_audio_tracks_separately: false)
     @path = path
     @xml = xml
     @header_block = header_block
     @file_created = header_block.set_created_at
     @file_last_modified = header_block.set_last_modified_at
     @time_zone = header_block.time_zone
+    @context = context
     @show_midi_and_audio_tracks_separately = show_midi_and_audio_tracks_separately
   end
+
+  # What the report is about, and what it may say.
+  #
+  # @return [ReportContext] the context of the report
+  attr_reader :context
 
   # Whether the audio tracks and the MIDI tracks of the set are written in their own lists.
   #

@@ -62,7 +62,13 @@ class AlsNodes
     OptionParser.new do |parser|
       parser.program_name = 'als_nodes'
 
-      parser.on('--attribute NAME', Array, 'Print the value of an attribute of each node')
+      # The option may be given more than once, and the attributes are collected in the order
+      # the options were given.
+      attributes = []
+      parser.on('--attribute NAME', 'Print the value of an attribute of each node') do |name|
+        attributes << name
+        attributes
+      end
       parser.on('--attributes', 'Print every attribute of each node')
       parser.on('--name', 'Print the name of each node')
       parser.on('--children', 'Print the names of the children of each node')

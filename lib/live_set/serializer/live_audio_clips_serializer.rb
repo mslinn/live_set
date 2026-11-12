@@ -65,7 +65,7 @@ class LiveAudioClipsSerializer
     the_groups = group.group_by { |clip| settings_of clip }
     the_groups.map { |settings, copies| [copies.length, settings] }
               .sort_by { |count, settings| [-count, settings] }
-              .map { |count, settings| "- References (×#{count}): #{settings}" }
+              .map { |count, settings| "- Copies (×#{count}): #{settings}" }
   end
 
   # The settings of a clip: how it is launched, and how its sample is warped.

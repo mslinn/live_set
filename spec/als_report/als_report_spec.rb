@@ -13,9 +13,11 @@ RSpec.describe AlsReport, '#show' do
   # The report of a set.
   #
   # @param path [String] the path of the set
+  # @param machine [Boolean] whether the facts of the machine are written
   # @return [String] the report
-  def report(path)
-    silence_output { described_class.new(path, loglevel: 'ERROR').show }
+  def report(path, machine: false)
+    context = ReportContext.new machine: machine
+    silence_output { described_class.new(path, loglevel: 'ERROR', context: context).show }
   end
 
   it 'names the set in monospaced type' do
@@ -33,13 +35,18 @@ RSpec.describe AlsReport, '#show' do
     expect(markdown).to match(%r{^\|Directory\|<code>/.*projects_and_als</code>\|$})
   end
 
-  it 'gives the times of the set and of the folder it is in' do
+  it 'gives the times of the set' do
     markdown = report(LiveSets.fascination)
 
     expect(markdown).to match(/^\|Set created\|\d{4}-\d{2}-\d{2} /)
     expect(markdown).to match(/^\|Set last modified\|\d{4}-\d{2}-\d{2} /)
-    expect(markdown).to match(/^\|Project created\|\d{4}-\d{2}-\d{2} /)
-    expect(markdown).to match(%r{^\|Project last modified\|<code>.*</code><br>\d{4}-\d{2}-\d{2} })
+  end
+
+  it 'gives no times of a project, because a lone set is in none' do
+    markdown = report(LiveSets.fascination)
+
+    expect(markdown).not_to include('|Project created|')
+    expect(markdown).not_to include('|Project last modified|')
   end
 
   it 'numbers the tracks of the set, and names each of them' do
@@ -90,7 +97,7 @@ RSpec.describe AlsReport, '#show' do
   end
 
   it 'gives the settings of a reference on the reference' do
-    expect(report(LiveSets.fascination)).to match(/^\s*- References \(×\d+\): launch: /)
+    expect(report(LiveSets.fascination)).to match(/^\s*- Copies \(×\d+\): launch: /)
   end
 
   it 'gives the file of a clip' do
@@ -206,12 +213,24 @@ RSpec.describe AlsReport, '#show' do
     expect(markdown).to match(%r{^1\. <code>Samples/})
   end
 
-  it 'writes the state of the machine the report was made on at the bottom' do
+  it 'writes the state of the machine the report was made on only when it is asked for' do
     markdown = report(LiveSets.fascination)
+
+    expect(markdown).not_to include('## Test Environment')
+  end
+
+  it 'writes the state of the machine the report was made on at the bottom' do
+    markdown = report(LiveSets.fascination, machine: true)
 
     expect(markdown).to include('## Test Environment')
     expect(markdown).to include('### The Ableton Project Info Folder')
-    expect(markdown).to include('### Referenced Packs')
+    expect(markdown).to include('### Installed Packs')
+  end
+
+  it 'writes the packs the set refers to' do
+    markdown = report(LiveSets.fascination)
+
+    expect(markdown).to include('## Referenced Packs')
   end
 
   it 'names the pack of the set that is not on this machine' do

@@ -442,6 +442,9 @@ if the directory should be renamed.
 
 Syntax: als_report OPTIONS PATH_TO_ALS_FILE
 
+PATH_TO_ALS_FILE is the path of a set, or the path of a Live project directory. A
+project holds one or more sets, and each of them is reported.
+
 Environment variables used in PATH_TO_ALS_FILE are expanded.
 
 Options are:
@@ -454,6 +457,14 @@ Options are:
   -s, --show_midi_and_audio_tracks_separately
         Report the audio tracks and the MIDI tracks separately. By default, every
         track is displayed in the order found in the ALS file.
+  --als NAME
+        Report only the named set of the project. The name is the name of a file in
+        the project, or a path relative to the project. The option may be given more
+        than once.
+  --report_machine
+        Report the facts of the machine the report was made on: the packs that are
+        installed, the folders around the set, and the files that are there. They are
+        true of the machine and not of the set.
 
 
 Example:
@@ -471,6 +482,13 @@ the samples that are not in the project and the samples that are, the metadata
 of the set, the assets the set ships, the packs it refers to, and a
 cross-reference of the tracks and the clips.
 
+The path given to the command decides what the report is about: a path to a set
+is a report of the XML in that file, and a path to a Live project directory is a
+report of the project. See
+[docs/report_context.md](docs/report_context.md) for what the command is given,
+and [docs/dev/report_design.md](docs/dev/report_design.md) for the shape of the
+report.
+
 Every track of the set is written in the order Live saved it in. The
 `-s` / `--show_midi_and_audio_tracks_separately` option writes the audio tracks
 and the MIDI tracks in their own lists instead, which is easier to read when a
@@ -481,7 +499,7 @@ the colour of a track, a group or a clip can be seen at a glance:
 
 - the name is written in a `<code>` element, and the colors are applied as a
   style attribute;
-- colors are defined in class [`LivePalette`](../lib/live_set/model/live_palette.rb);
+- colors are defined in class [`LivePalette`](lib/live_set/model/live_palette.rb);
 - Every node displayed in the markdown output of an ALS report is colored
   according to the value for the corresponding node in the XML of the ALS. The
   default Live colour palette is assumed.
@@ -651,7 +669,7 @@ TODO One of the experimental options that might be in effect when saving a Live
 set is the ability to save a frozen group track. The all of the group-related
 data should be converted when upgrading between versions to maintain the
 integrity of the data, unless we learn about a problem from doing that. Also see
-[docs/als_notes.md](docs/als_notes.md#the-optionstxt-hidden-option).
+[docs/als_notes.md](docs/dev/als_notes.md#the-optionstxt-hidden-option).
 
 
 ## Development
@@ -668,7 +686,7 @@ $ code .  # Run Visual Studio Code
 
 ### The File Format
 
-[docs/als_notes.md](docs/als_notes.md) documents the parts of the Ableton Live
+[docs/als_notes.md](docs/dev/als_notes.md) documents the parts of the Ableton Live
 `.als` format that this project reads, based on a survey of 460 real sets and
 on the official Ableton demo sets. `bin/als_files` re-runs the survey. The terms
 the documents use are defined in
