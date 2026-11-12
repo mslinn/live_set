@@ -20,8 +20,9 @@ class AlsDelta
     options, remaining = parse_options(args)
 
     abort help('An Ableton Live set name must be provided.') if remaining.empty?
+    check_extra_parameters remaining, 1
 
-    set_name = remaining.join(' ').expand_env
+    set_name = remaining.first.expand_env
     abort "Error: #{set_name} does not exist" unless File.exist? set_name
     abort "Error: #{set_name} is a directory" if File.directory? set_name
 

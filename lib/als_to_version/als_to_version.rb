@@ -25,6 +25,7 @@ class AlsToVersion
       warn help
       return 1
     end
+    check_extra_parameters remaining, 3
 
     version = remaining.shift.to_i
     source = DemoSets.path_of remaining.shift

@@ -34,6 +34,7 @@ class AlsNodes
       warn help
       return 1
     end
+    check_extra_parameters remaining, 2
 
     path = DemoSets.path_of(remaining.shift)
     xpath = remaining.shift

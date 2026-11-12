@@ -89,6 +89,20 @@ module Command
     abort help(e.message)
   end
 
+  # Checks that a command was not given more positional parameters than it takes.
+  #
+  # A command that is given more says so, prints its help, and exits. A path with a space
+  # in it is one parameter, and has to be quoted.
+  #
+  # @param remaining [Array<String>] the positional parameters
+  # @param count [Integer] the number of parameters the command takes
+  # @return [void]
+  def check_extra_parameters(remaining, count)
+    return if remaining.length <= count
+
+    abort help("Extra positional parameter(s): only #{count} expected.")
+  end
+
   # The options the command starts with.
   #
   # @return [Hash] the options

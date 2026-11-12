@@ -24,6 +24,7 @@ class AlsDiff
       warn help
       return 1
     end
+    check_extra_parameters remaining, 2
 
     ours_path = DemoSets.path_of(remaining.shift)
     theirs_path = DemoSets.path_of(remaining.shift)

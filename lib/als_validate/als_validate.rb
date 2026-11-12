@@ -44,7 +44,7 @@ class AlsValidate
   # @return [Array(String, String)] the path of the set and the path of the schema
   def self.check_arguments(remaining)
     abort help('An ALS file name and an XSD file name must be provided.') if remaining.length < 2
-    abort help('Too many arguments. Only an ALS file name and an XSD file name are expected.') if remaining.length > 2
+    check_extra_parameters remaining, 2
 
     set_name = remaining.shift&.expand_env
     xsd_name = remaining.shift&.expand_env

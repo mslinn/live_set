@@ -39,6 +39,8 @@ class AlsReleaseNotes
   def self.run(args)
     found, remaining = parse_options(args)
 
+    check_extra_parameters remaining, 1
+
     version = remaining.shift
     if version.nil?
       warn help

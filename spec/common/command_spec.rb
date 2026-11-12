@@ -73,4 +73,26 @@ RSpec.describe Command do
       .to raise_error(SystemExit)
       .and output(/Syntax: example_command OPTIONS FILE/).to_stderr
   end
+
+  describe '.check_extra_parameters' do
+    it 'says nothing when the command is given the parameters it takes' do
+      expect { ExampleCommand.check_extra_parameters(['set.als'], 1) }.not_to raise_error
+    end
+
+    it 'says nothing when the command is given fewer parameters than it takes' do
+      expect { ExampleCommand.check_extra_parameters([], 1) }.not_to raise_error
+    end
+
+    it 'says so when the command is given more parameters than it takes' do
+      expect { ExampleCommand.check_extra_parameters(['set.als', 'extra'], 1) }
+        .to raise_error(SystemExit)
+        .and output(/Extra positional parameter\(s\): only 1 expected/).to_stderr
+    end
+
+    it 'prints the help of the command with the error' do
+      expect { ExampleCommand.check_extra_parameters(['set.als', 'extra'], 1) }
+        .to raise_error(SystemExit)
+        .and output(/Syntax: example_command OPTIONS FILE/).to_stderr
+    end
+  end
 end
