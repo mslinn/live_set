@@ -8,18 +8,15 @@ class LiveTrackCollectionSerializer
   #
   # @param tracks [Enumerable] the tracks of the collection
   # @param track_serializer [Class] the serializer of a track of the collection
-  # @param hierarchical_number [String, nil] the number of the collection in the report, or
-  #   nil when the tracks are at the top of the set
-  # @param start [Integer] the number of the first track of the collection
-  def initialize(tracks, track_serializer, hierarchical_number = nil, start = 1)
+  # @param first_number [HierarchicalNumber] the number of the first track of the collection
+  def initialize(tracks, track_serializer, first_number)
     if instance_of? LiveTrackCollectionSerializer
       raise NotImplementedError, "#{self.class} is an abstract base class and cannot be instantiated directly."
     end
 
     @tracks = tracks
     @track_serializer = track_serializer
-    @hierarchical_number = hierarchical_number
-    @start = start
+    @first_number = first_number
   end
 
   # Returns the collection as markdown.
@@ -35,21 +32,11 @@ class LiveTrackCollectionSerializer
   #
   # @return [Array<Array>] the number and the track
   def numbered_tracks
-    @tracks.each_with_index.map do |track, index|
-      [number_of(index), track]
+    @numbered_tracks ||= begin
+      number = @first_number.dup
+      @tracks.map do |track|
+        [number.dup, track].tap { number.increment }
+      end
     end
-  end
-
-  private
-
-  # The number of a track of the collection.
-  #
-  # @param index [Integer] the number of the track, counting from zero
-  # @return [String] the number
-  def number_of(index)
-    number = @start + index
-    return number.to_s if @hierarchical_number.nil?
-
-    "#{@hierarchical_number}.#{number}"
   end
 end

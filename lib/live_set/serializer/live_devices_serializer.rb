@@ -15,7 +15,7 @@ class LiveDevicesSerializer
   # Creates a serializer for a collection of devices.
   #
   # @param devices [Array<LiveDevice>] the devices of the collection
-  # @param hierarchical_number [String] the number of the collection in the report
+  # @param hierarchical_number [HierarchicalNumber] the number of the collection in the report
   # @param slot_label [String] the name of the devices of a kind of track: `Track Device` or
   #   `Group Track Device`
   # @param track_frozen [Boolean] true when the track the devices are on is frozen
@@ -30,20 +30,21 @@ class LiveDevicesSerializer
   #
   # @return [String] the serialized markdown
   def to_markdown
-    @devices.each_with_index.map do |device, index|
-      number = "#{@hierarchical_number}#{letter_of index}"
+    numbered_devices.map do |number, device|
       serializer = LiveDeviceSerializer.new device, number, track_frozen: @track_frozen
-      "#{LiveMarkup.indent_for(number)}- #{@slot_label} #{number}  #{serializer.to_markdown}"
+      "#{number.indent_for}- #{@slot_label} #{number}  #{serializer.to_markdown}"
     end.join("\n")
   end
 
-  private
-
-  # The letter of a device, from the number of it in the collection.
+  # The devices of the collection, with the numbers they have in the report.
   #
-  # @param index [Integer] the number of the device, counting from zero
-  # @return [String] the letter
-  def letter_of(index)
-    ('a'.ord + index).chr
+  # @return [Array<Array>] the number and the device
+  def numbered_devices
+    @numbered_devices ||= begin
+      number = @hierarchical_number.dup.indent
+      @devices.map do |device|
+        [number.dup, device].tap { number.increment }
+      end
+    end
   end
 end

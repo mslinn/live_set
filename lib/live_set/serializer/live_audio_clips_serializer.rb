@@ -15,7 +15,7 @@ class LiveAudioClipsSerializer
   # Creates a serializer for a collection of audio clips.
   #
   # @param clips [LiveAudioClips] the clips of the collection
-  # @param hierarchical_number [String] the number of the track the clips are on
+  # @param hierarchical_number [HierarchicalNumber] the number of the track the clips are on
   def initialize(clips, hierarchical_number)
     @clips = clips
     @hierarchical_number = hierarchical_number
@@ -48,11 +48,11 @@ class LiveAudioClipsSerializer
   # @param index [Integer] the number of the first copy among the clips
   # @return [Array<String>] the lines
   def lines_of(group, index)
-    number = "#{@hierarchical_number}.#{index + 1}"
-    indent = LiveMarkup.indent_for number
+    number = @hierarchical_number.dup.indent.increment(index)
+    indent = number.indent_for
     detail = LiveAudioClipSerializer.new(group.first, number).to_markdown
     header = "#{indent}- Audio Clip #{number} (×#{group.length})  #{detail}"
-    [header, *settings_lines(group).map { |line| "#{indent}#{LiveMarkup::INDENT}#{line}" }]
+    [header, *settings_lines(group).map { |line| "#{indent}#{HierarchicalNumber::INDENT}#{line}" }]
   end
 
   # The lines of the settings the copies differ in.

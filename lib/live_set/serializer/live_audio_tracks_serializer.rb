@@ -12,10 +12,8 @@ class LiveAudioTracksSerializer < LiveTrackCollectionSerializer
   # Creates a serializer for a collection of audio tracks.
   #
   # @param tracks [LiveAudioTracks] the tracks of the collection
-  # @param hierarchical_number [String, nil] the number of the collection in the report, or
-  #   nil when the tracks are at the top of the set
-  # @param start [Integer] the number of the first track of the collection
-  def initialize(tracks, hierarchical_number = nil, start = 1)
-    super(tracks, LiveAudioTrackSerializer, hierarchical_number, start)
+  # @param first_number [HierarchicalNumber] the number of the first track of the collection
+  def initialize(tracks, first_number)
+    super(tracks, LiveAudioTrackSerializer, first_number)
   end
 end

@@ -20,10 +20,10 @@
 
 ||Bytes|Describes|How Computed|
 |:-|-:|:-|:-|
-|The set file|3,942,571 bytes|the size of the .als|the file on disk|
-|Expected Project Size|49,961,231 bytes|what the project should be, according to the .als: the set file, and every sample the set refers to that is in the project, counted once|the sizes Live recorded, and the size on disk where Live recorded zero|
-|Actual Project Size|16,340,151 bytes|what the project is, on disk|the files in the project folder|
 |Fully Resolved Size|49,961,231 bytes|everything the set draws on: the project, and the assets outside it|the expected size, with the assets outside the project added|
+|The set file|3,942,571 bytes|the size of the .als|the file on disk|
+|Actual Project Size|16,340,151 bytes|what the project is, on disk|the files in the project folder|
+|Expected Project Size|49,961,231 bytes|what the project should be, according to the .als: the set file, and every sample the set refers to that is in the project, counted once|the sizes Live recorded, and the size on disk where Live recorded zero|
 
 ### Set Checksums
 

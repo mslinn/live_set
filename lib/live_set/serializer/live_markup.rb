@@ -46,30 +46,6 @@ module LiveMarkup
       '💣'
     end
 
-    # TODO: this belongs in a HierarchicalNumber class
-    # The indentation of a thing with the given number in the report.
-    #
-    # The number of a thing says how deep it is: "1" is a track at the top of the set, "1.1"
-    # is a child of it, and "1a" — a device of the track "1" — is a child of it too. The
-    # indent is derived from the number, so that the number of a thing and the place of it in
-    # the outline can never disagree.
-    #
-    # @param number [String] the number of the thing in the report
-    # @return [String] the indentation
-    def indent_for(number)
-      INDENT * (levels_of(number) - 1)
-    end
-
-    # TODO: this belongs in a HierarchicalNumber class
-    # The number of levels of a thing with the given number in the report.
-    #
-    # @param number [String] the number of the thing in the report
-    # @return [Integer] the number of levels
-    def levels_of(number)
-      parts = number.to_s.split('.')
-      parts.last.match?(/[a-z]\z/) ? parts.length + 1 : parts.length
-    end
-
     # Return a string containing colored HTML code tags with embedded text.
     #
     # The style is applied to the <code> element and not on a <span around the element>.
@@ -221,14 +197,14 @@ module LiveMarkup
     # the place of the track in the outline always agree.
     #
     # @param track [LiveMidiTrack, LiveAudioTrack, LiveReturnTrack, LiveMasterTrack] the track
-    # @param number [String] the number of the track in the report
+    # @param number [HierarchicalNumber] the number of the track in the report
     # @return [String] the line
     def track_detail(track, number)
       states = states_of(track)
       name = track.display_name
       states_suffix = states.empty? ? '' : "  #{states.join(', ')}"
 
-      "#{indent_for(number)}- Track #{number}  #{icon_for(track.kind)} #{track.kind}  " \
+      "#{number.indent_for}- Track #{number}  #{icon_for(track.kind)} #{track.kind}  " \
         "#{track_name_markdown(track, name)}#{states_suffix}"
     end
 

@@ -1,3 +1,4 @@
+require_relative '../model/hierarchical_number'
 require_relative 'live_group_serializer'
 
 # Writes a collection of groups.
@@ -8,6 +9,9 @@ require_relative 'live_group_serializer'
 # Sample usage:
 # markdown = LiveGroupsSerializer.new(groups).to_markdown
 class LiveGroupsSerializer
+  # The prefix of the numbers of the groups.
+  PREFIX = 'G'.freeze
+
   # Creates a serializer for a collection of groups.
   #
   # @param groups [LiveGroups] the groups of the collection
@@ -28,8 +32,11 @@ class LiveGroupsSerializer
   #
   # @return [Array<Array>] the number and the group
   def numbered_groups
-    @groups.each_with_index.map do |group, index|
-      [(index + 1).to_s, group]
+    @numbered_groups ||= begin
+      number = HierarchicalNumber.new PREFIX
+      @groups.map do |group|
+        [number.dup, group].tap { number.increment }
+      end
     end
   end
 

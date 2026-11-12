@@ -16,7 +16,7 @@ class LiveGroupSerializer
   # Creates a serializer for the given group.
   #
   # @param group [LiveGroup] the group to be serialized
-  # @param hierarchical_number [String] the number of the group in the report
+  # @param hierarchical_number [HierarchicalNumber] the number of the group in the report
   def initialize(group, hierarchical_number)
     @group = group
     @hierarchical_number = hierarchical_number
@@ -50,7 +50,7 @@ class LiveGroupSerializer
   # @return [String] the line
   def group_line
     name = @group.display_name
-    "#{LiveMarkup.indent_for(@hierarchical_number)}- Group track #{@hierarchical_number}  " \
+    "#{@hierarchical_number.indent_for}- Group track #{@hierarchical_number}  " \
       "👥 Group  #{name_markdown(name)}"
   end
 

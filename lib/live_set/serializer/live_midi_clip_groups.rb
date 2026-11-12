@@ -22,7 +22,7 @@ class LiveMidiClipGroups
 
   # The lines of the groups: a line for each group, and the settings under it.
   #
-  # @param number [String] the number of the track the clips are on
+  # @param number [HierarchicalNumber] the number of the track the clips are on
   # @return [Array<String>] the lines
   def to_markdown(number)
     groups.flat_map { |group, index| lines_of(group, index, number) }
@@ -46,15 +46,15 @@ class LiveMidiClipGroups
   #
   # @param group [Array<LiveMidiClip>] copies
   # @param index [Integer] the number of the first copy among the clips
-  # @param number [String] the number of the track the clips are on
+  # @param number [HierarchicalNumber] the number of the track the clips are on
   # @return [Array<String>] the lines
   def lines_of(group, index, number)
     first = group.first
-    clip_number = "#{number}.#{index + 1}"
-    indent = LiveMarkup.indent_for clip_number
+    clip_number = number.dup.indent.increment(index)
+    indent = clip_number.indent_for
     lines = ["#{indent}- Clip #{clip_number} (#{count_of group.length})  " \
              "#{LiveMidiClipSerializer.new(first, clip_number).to_markdown}"]
-    settings_lines(group).each { |line| lines << "#{indent}#{LiveMarkup::INDENT}#{line}" }
+    settings_lines(group).each { |line| lines << "#{indent}#{HierarchicalNumber::INDENT}#{line}" }
     lines
   end
 
