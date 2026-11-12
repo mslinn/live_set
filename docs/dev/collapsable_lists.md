@@ -143,14 +143,33 @@ No markup works in every viewer. This HTML degrades without losing content:
 `lib/live_set/serializer/` contains classes for serializing
 `lib/live_set/model/` classes. Each serializer class has a `to_markdown` method.
 
-To support collapsible lists, we should implement `to_html` methods for the
+To support collapsible lists, we shall implement `to_html` methods for the
 portions of the report that feature hierarchical numbers. Because HTML is passed
 through unchanged by markdown processors, if a serializer's `to_html` method is
 called, then all serialization classes that are invoked after that also must
-have `to_html` methods.
+have `to_html` methods, and they must be called instead of `to_markown`.
+
+To say this another way: Although `to_markdown` and `to_html` methods may call
+`to_html` methods, no `to_html` method may call a `to_markdown` method.
+
+As with `to_markdown` methods, each new `to_html` leaf serialization class
+renders the leaf model class instance passed to it. Serialization classes that
+receive collections of model classes shall delegate the rendering of their
+colleciton items to a corresponding leaf renderer.
 
 In summary, every serialization class that outputs a hierarchical number must be
-collapsible, which means it must have a `to_html` method.
+collapsible, which means it must have a `to_html` method. At least the following
+serialization classes require a `to_html` method:
+DeviceCrossReferenceSerializer, LiveAssetsSerializer, LiveAudioClipsSerializer,
+LiveAudioClipsSerializer, LiveAudioTrackSerializer, LiveAudioTracksSerializer,
+LiveDeviceSerializer, LiveDevicesSerializer, LiveGroupSerializer,
+LiveGroupsSerializer, LiveHeaderSerializer, LiveMasterTrackSerializer,
+LiveMidiClipGroups, LiveMidiClipSerializer, LiveMidiTrackSerializer,
+LiveMidiTracksSerializer, LivePacksSerializer LiveProjectInfoSerializer,
+LiveReturnTrackSerializer, LiveReturnTracksSerializer, LiveSampleSerializer,
+LiveSamplesSerializer, LiveSizesSerializer, LiveTakeLaneSerializer,
+LiveTakeLanesSerializer, LiveTrackCollectionSerializer, LiveTracksSerializer,
+MissingSamplesSerializer, P3SCompatibility, TrackClipCrossReferenceSerializer
 
 ![portion of als_report output](hierarchy.png)
 
