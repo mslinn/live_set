@@ -21,7 +21,7 @@ RSpec.describe LiveTakeLanes do
 
   subject(:lanes) { described_class.new track('Kontakt 7') }
 
-  it 'holds the lanes of the track, in the order Live wrote them' do
+  it 'holds the lanes of the track, in the order they appear in the file' do
     expect(lanes.size).to eq 1
     expect(lanes.map(&:name)).to eq ['3-Kontakt 7 1']
   end

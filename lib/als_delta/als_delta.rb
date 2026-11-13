@@ -32,10 +32,11 @@ class AlsDelta
     catch :ctrl_c do
       als_delta.show
       als_delta.cleanup
-      0
-    rescue Exception # rubocop:disable Lint/RescueException
+      4
+    rescue Exception => e # rubocop:disable Lint/RescueException
       als_delta.cleanup
-      1
+      warn e.full_message
+      2
     end
   end
 
@@ -94,7 +95,7 @@ class AlsDelta
   def show
     backup_set
     loop do
-      puts 'Press any key to display the changes to the Live set XML file, or press Esc to exit.'
+      puts 'Press any key to display the changes to the Live set XML file, or press Esc to exit.\n'
       character = $stdin.getch
       break if character.ord == 27
 
@@ -106,7 +107,8 @@ class AlsDelta
         backup_set
       end
     rescue StandardError => e
-      puts e
+      warn e.full_message
+      exit 1
     end
   end
 end

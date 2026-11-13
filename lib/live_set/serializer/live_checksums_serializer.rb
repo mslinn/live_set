@@ -2,7 +2,7 @@ require_relative '../model/live_checksums'
 
 # Writes the checksums of a set.
 #
-# The two checksums are of different things: the file, and the content the file holds. The
+# The two checksums are of different nodes: the file, and the content the file holds. The
 # report says which is which.
 #
 # Sample usage:
@@ -11,7 +11,7 @@ class LiveChecksumsSerializer
   # Creates a serializer for the checksums of a set.
   #
   # @param checksums [LiveChecksums] the checksums of the set
-  def initialize(checksums)
+  def initialize((checksums))
     @checksums = checksums
   end
 
@@ -31,6 +31,7 @@ class LiveChecksumsSerializer
       '',
       'Checksum of the XML within the .als file:<br>',
       "`#{@checksums.content_hash}`"
-    ].join("\n")
+    ]
+      .join("\n")
   end
 end

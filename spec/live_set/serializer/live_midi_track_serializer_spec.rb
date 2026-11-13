@@ -2,6 +2,7 @@ require 'spec_helper'
 require 'live_set/model/live_midi_track'
 require 'live_set/serializer/live_midi_track_serializer'
 require 'support/live_sets'
+require 'support/numbers'
 
 # A MIDI track of a set.
 #
@@ -20,41 +21,58 @@ RSpec.describe LiveMidiTrackSerializer, '#to_markdown' do
   end
 
   it 'writes the line of the track: its number, its icon, its kind and its name' do
-    markdown = described_class.new(track('Beat That Bass'), '1.2').to_markdown
+    markdown = described_class.new(track('Beat That Bass'), ReportNumbers.number('G', 1, 2)).to_markdown
 
     expect(markdown.lines.first.chomp).to eq(
-      '    - Track 1.2  🎹 MIDI  <code style="color: #FFFFFF; background-color: #007DC0; ' \
+      '  - Track G1.2  🎹 MIDI  <code style="color: #FFFFFF; background-color: #007DC0; ' \
       'vertical-align: middle;" title="Live color #23">Beat That Bass</code>'
     )
   end
 
   it 'writes the devices of the track under it' do
-    markdown = described_class.new(track('Kontakt 7'), '1.1').to_markdown
+    markdown = described_class.new(track('Kontakt 7'), ReportNumbers.number('G', 1, 1)).to_markdown
 
     expect(markdown).to include(
-      '    - Track Device 1.1a  <code style="color: #FFFFFF; background-color: #212121; ' \
+      '    - Track Device G1.1.1  <code style="color: #FFFFFF; background-color: #212121; ' \
       'vertical-align: middle;">Kontakt 7</code>  VST3  ⚠ not usable on P3S'
     )
   end
 
   it 'writes the name of a track P3S cannot use on the dark background' do
-    markdown = described_class.new(track('Kontakt 7'), '1.1').to_markdown
+    markdown = described_class.new(track('Kontakt 7'), ReportNumbers.number('G', 1, 1)).to_markdown
 
     expect(markdown.lines.first.chomp).to eq(
-      '    - Track 1.1  🎹 MIDI  <code style="color: #FFFFFF; background-color: #212121; ' \
+      '  - Track G1.1  🎹 MIDI  <code style="color: #FFFFFF; background-color: #212121; ' \
       'vertical-align: middle;">Kontakt 7</code>'
     )
   end
 
   it 'writes the MIDI clips of the track under it' do
-    markdown = described_class.new(track('Kontakt 7'), '1.1').to_markdown
+    markdown = described_class.new(track('Kontakt 7'), ReportNumbers.number('G', 1, 1)).to_markdown
 
-    expect(markdown).to include('    - Clip 1.1.1 (×5) ')
+    expect(markdown).to include('    - Clip G1.1.2 (×5) ')
   end
 
   it 'writes the take lanes of the track under it' do
-    markdown = described_class.new(track('Kontakt 7'), '1.1').to_markdown
+    markdown = described_class.new(track('Kontakt 7'), ReportNumbers.number('G', 1, 1)).to_markdown
 
-    expect(markdown).to include('    - Take lane 1.1.1  3-Kontakt 7 1')
+    expect(markdown).to include('    - Take lane G1.1.3  3-Kontakt 7 1')
+  end
+
+  describe '#to_html' do
+    it 'writes the track as a thing that can be folded' do
+      html = described_class.new(track('Kontakt 7'), ReportNumbers.number('G', 1, 1)).to_html
+
+      expect(html).to include '<li style="list-style: none;">'
+      expect(html).to include '<details open>'
+      expect(html).to include '<summary>Track G1.1  🎹 MIDI  '
+    end
+
+    it 'writes the things under the track in a list' do
+      html = described_class.new(track('Kontakt 7'), ReportNumbers.number('G', 1, 1)).to_html
+
+      expect(html).to include '<ul style="list-style: none;">'
+      expect(html).to include '<li>Track Device G1.1.1  '
+    end
   end
 end

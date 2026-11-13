@@ -1,6 +1,6 @@
 # `als_nodes`
 
-This is the help message:
+## Help Message
 
 ```text
 Als_nodes prints the nodes of an XML document that an XPath expression finds.

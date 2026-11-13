@@ -1,8 +1,5 @@
 require_relative 'live_audio_clips_serializer'
-require_relative 'live_devices_serializer'
-require_relative 'live_markup'
-require_relative 'live_midi_clip_groups'
-require_relative 'live_take_lanes_serializer'
+require_relative 'live_track_serializer'
 
 # Serializes a `LiveAudioTrack` model as markdown.
 #
@@ -12,69 +9,31 @@ require_relative 'live_take_lanes_serializer'
 #
 # Sample usage:
 # track = LiveAudioTrack.new(...)
-# markdown = LiveAudioTrackSerializer.new(track, '1.1').to_markdown
-class LiveAudioTrackSerializer
-  # Creates a serializer for the given track.
-  #
-  # @param track [LiveAudioTrack] the track to be serialized
-  # @param hierarchical_number [String] the number of the track in the report
-  def initialize(track, hierarchical_number)
-    @track = track
-    @hierarchical_number = hierarchical_number
-  end
-
-  # Returns the track as markdown.
-  #
-  # @return [String] the serialized markdown
-  def to_markdown
-    parts = [track_detail, device_lines, clip_lines.join("\n"), take_lane_lines.join("\n")]
-    parts.reject(&:empty?).join "\n"
-  end
-
+# markdown = LiveAudioTrackSerializer.new(track, number).to_markdown
+class LiveAudioTrackSerializer < LiveTrackSerializer
   private
 
-  # The line of the track: its number, its icon, its kind, its name and its state.
+  # The collections of the nodes under the track that are neither its devices, nor its MIDI
+  # clips, nor its take lanes.
   #
-  # @return [String] the line
-  def track_detail
-    LiveMarkup.track_detail @track, @hierarchical_number
+  # The clips of the audio side of the track come after the MIDI clips of the track.
+  #
+  # @return [Array<Object>] the collections
+  def extra_children
+    [audio_clips]
   end
 
-  # The lines of the devices of the track.
+  # The serializer of the clips of the audio side of the track.
   #
-  # @return [String] the devices
-  def device_lines
-    LiveDevicesSerializer.new(@track.devices, @hierarchical_number, slot_label:   'Track Device',
-                                                                    track_frozen: @track.frozen?).to_markdown
+  # @return [LiveAudioClipsSerializer] the audio clips
+  def audio_clips
+    @audio_clips ||= LiveAudioClipsSerializer.new @track.audio_clips, first_audio_clip_number
   end
 
-  # The lines of the clips of the track.
+  # The number of the first clip of the audio side of the track.
   #
-  # A track that plays audio can hold MIDI clips as well, and both are written.
-  #
-  # @return [Array<String>] the lines
-  def clip_lines
-    lines = LiveMidiClipGroups.new(@track.clips).to_markdown(@hierarchical_number)
-    lines += audio_clip_lines
-    lines
-  end
-
-  # The lines of the clips of the audio side of the track.
-  #
-  # @return [Array<String>] the lines
-  def audio_clip_lines
-    return [] if @track.audio_clips.empty?
-
-    LiveAudioClipsSerializer.new(@track.audio_clips, @hierarchical_number).to_markdown.split("\n")
-  end
-
-  # The lines of the take lanes of the track.
-  #
-  # @return [Array<String>] the lines
-  def take_lane_lines
-    return [] if @track.take_lanes.empty?
-
-    serializer = LiveTakeLanesSerializer.new @track.take_lanes, @hierarchical_number
-    serializer.to_markdown.split("\n")
+  # @return [HierarchicalNumber] the number
+  def first_audio_clip_number
+    first_clip_number.dup.increment @track.different_clip_count
   end
 end

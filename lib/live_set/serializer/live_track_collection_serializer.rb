@@ -1,9 +1,11 @@
+require_relative 'live_collection_serializer'
+
 # Base class for writing collections of various types of tracks.
 #
 # The tracks of a group are numbered after the group, as 1.1. The tracks at the top of the
 # set are numbered from one in their own company, and the number of the first of them is
 # given, so that the numbers of the tracks of the set are unique.
-class LiveTrackCollectionSerializer
+class LiveTrackCollectionSerializer < LiveCollectionSerializer
   # Creates a serializer for a collection of tracks.
   #
   # @param tracks [Enumerable] the tracks of the collection
@@ -14,18 +16,10 @@ class LiveTrackCollectionSerializer
       raise NotImplementedError, "#{self.class} is an abstract base class and cannot be instantiated directly."
     end
 
+    super()
     @tracks = tracks
     @track_serializer = track_serializer
     @first_number = first_number
-  end
-
-  # Returns the collection as markdown.
-  #
-  # @return [String] the serialized markdown
-  def to_markdown
-    numbered_tracks.map do |number, track|
-      @track_serializer.new(track, number).to_markdown
-    end.join("\n")
   end
 
   # The tracks of the collection, with the numbers they have in the report.
@@ -38,5 +32,23 @@ class LiveTrackCollectionSerializer
         [number.dup, track].tap { number.increment }
       end
     end
+  end
+
+  private
+
+  # The tracks of the collection, with the numbers they have in the report.
+  #
+  # @return [Array<Array>] the number and the track
+  def items
+    numbered_tracks
+  end
+
+  # The serializer of a track.
+  #
+  # @param number [HierarchicalNumber] the number of the track
+  # @param track [LiveTrack] the track
+  # @return [Object] the serializer of the track
+  def serializer_for(number, track)
+    @track_serializer.new track, number
   end
 end

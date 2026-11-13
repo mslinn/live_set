@@ -1,7 +1,6 @@
 # `als_release_notes`
 
-This is the help message:
-
+## Help Message
 
 ```text
 Als_release_notes prints the release notes of a version of Live as markdown.

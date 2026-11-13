@@ -1,4 +1,5 @@
 require_relative '../model/live_palette'
+require_relative 'hierarchical_number_serializer'
 require_relative 'live_markup'
 
 # Serializes a `LiveMidiClip` model as markdown.
@@ -24,6 +25,20 @@ class LiveMidiClipSerializer
   #
   # @return [String] the serialized markdown
   def to_markdown
+    name_markdown
+  end
+
+  # Returns the clip as HTML.
+  #
+  # @return [String] the serialized HTML
+  def to_html
+    HierarchicalNumberSerializer.new(@hierarchical_number, name_markdown).to_html
+  end
+
+  # The text of the clip: its name, on the colour Live gave it.
+  #
+  # @return [String] the name of the clip
+  def text
     name_markdown
   end
 

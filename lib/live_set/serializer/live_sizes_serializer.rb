@@ -1,6 +1,6 @@
 require 'markdown-tables'
+require 'twitter_cldr'
 require_relative '../model/live_sizes'
-require_relative 'live_markup'
 
 # Writes the sizes of a set.
 #
@@ -26,7 +26,7 @@ class LiveSizesSerializer
       what: 'what the project is, on disk',
       how:  'the files in the project folder' },
     { name: 'Fully Resolved Size', key: :resolved_size,
-      what: 'everything the set draws on: the project, and the assets outside it',
+      what: 'everynode the set draws on: the project, and the assets outside it',
       how:  'the expected size, with the assets outside the project added' }
   ].freeze
 
@@ -61,6 +61,6 @@ class LiveSizesSerializer
     value = @sizes.public_send key
     return 'not computed' if value.nil?
 
-    "#{LiveMarkup.number value} bytes"
+    "#{value.localize} bytes"
   end
 end

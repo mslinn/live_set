@@ -1,4 +1,5 @@
 require_relative '../../common/util'
+require_relative '../model/hierarchical_number'
 require_relative '../model/live_device_cross_reference'
 require_relative '../model/live_devices'
 require_relative '../model/live_track_clip_cross_reference'
@@ -46,7 +47,7 @@ class AlsModelSerializer
   #
   # The model of a set is the report of the set: the title, the facts about the file, the
   # metadata of the set, the verdict for a transfer to P3S Standalone, the outline of the
-  # tracks and the things under them, the samples that are not in the project, the samples of
+  # tracks and the nodes under them, the samples that are not in the project, the samples of
   # the set, the two cross-references, the assets of the set, and the state of the machine
   # the report was made on.
   #
@@ -61,7 +62,7 @@ class AlsModelSerializer
 
       #{p3s_compatibility_section}
 
-      #{hierarchy_markdown}
+      #{hierarchy_html}
 
       #{missing_samples}
 
@@ -191,60 +192,96 @@ class AlsModelSerializer
     LiveAssetsSerializer.new(@als_model.assets, machine: machine?).to_markdown
   end
 
-  # The groups and the tracks at the top of the set, and the things under them.
+  # The groups and the tracks at the top of the set, and the nodes under them.
   #
-  # The tracks of the set are written in the order Live wrote them. When they are to be
-  # shown separately, the audio tracks and the MIDI tracks are written in their own
+  # The tracks of the set are written in the order they appear in the file. When they are to
+  # be shown separately, the audio tracks and the MIDI tracks are written in their own
   # sections, and the return tracks and the master track have sections of their own.
   #
+  # @param format [Symbol] the format the outline is written in
   # @return [String] the outline of the set
-  def hierarchy_markdown
+  def hierarchy(format)
     lines = ['## Groups/Tracks/Clips/Devices', '', LEGEND, '']
 
-    lines.concat master_section
+    lines.concat master_section(format)
 
-    groups = LiveGroupsSerializer.new(@als_model.live_set.groups_of_the_set).to_markdown
+    groups = LiveGroupsSerializer.new(@als_model.live_set.groups_of_the_set).public_send(format)
     unless groups.empty?
       lines << '### Groups'
       lines << ''
-      lines << groups
+      lines << list(format, groups)
       lines << ''
     end
 
-    lines.concat track_sections
+    lines.concat track_sections(format)
 
     lines.join("\n")
   end
 
+  # The outline of the set, as markdown.
+  #
+  # @return [String] the outline of the set
+  def hierarchy_markdown
+    hierarchy :to_markdown
+  end
+
+  # The outline of the set, as HTML.
+  #
+  # The outline is a list of nodes that can be folded, so it is written as HTML: the
+  # `<details>` and `<summary>` elements fold the nodes under a node.
+  #
+  # @return [String] the outline of the set
+  def hierarchy_html
+    hierarchy :to_html
+  end
+
+  # A list of nodes.
+  #
+  # The HTML of a list is a `<ul>` element; the markdown of a list is the lines of the
+  # nodes.
+  #
+  # @param format [Symbol] the format the list is written in
+  # @param content [String] the nodes of the list
+  # @return [String] the list
+  def list(format, content)
+    return content unless format == :to_html
+
+    "<ul style=\"list-style: none;\">\n#{content}\n</ul>"
+  end
+
   # The sections of the tracks of the set.
   #
+  # @param format [Symbol] the format the tracks are written in
   # @return [Array<String>] the lines of the sections
-  def track_sections
-    return [section('### Ungrouped Tracks', tracks_serializer.to_markdown)] unless separate_tracks?
+  def track_sections(format)
+    return [section('### Ungrouped Tracks', list(format, tracks_serializer.public_send(format)))] unless separate_tracks?
 
     [
-      section('### Audio Tracks', LiveAudioTracksSerializer.new(@als_model.live_set.audio_tracks).to_markdown),
-      section('### MIDI Tracks', LiveMidiTracksSerializer.new(@als_model.live_set.midi_tracks).to_markdown),
-      section('### Return Tracks', LiveReturnTracksSerializer.new(@als_model.live_set.return_tracks).to_markdown)
+      section('### Audio Tracks', list(format, tracks_serializer.tracks_of_kind('Audio', format))),
+      section('### MIDI Tracks', list(format, tracks_serializer.tracks_of_kind('MIDI', format))),
+      section('### Return Tracks', list(format, tracks_serializer.tracks_of_kind('Return', format)))
     ].flatten
   end
 
   # The section of the master track of the set.
   #
+  # @param format [Symbol] the format the track is written in
   # @return [Array<String>] the lines of the section
-  def master_section
+  def master_section(format)
     track = @als_model.master_track
-    heading = "### #{LiveMarkup.icon_for track.kind} Master Track"
-    section(heading, LiveMasterTrackSerializer.new(track, master_track_number).to_markdown)
+    heading = "### #{track.icon} Master Track"
+    content = LiveMasterTrackSerializer.new(track, master_track_number).public_send(format)
+    section(heading, list(format, content))
   end
 
   # The number the master track has in the report.
   #
   # The master track is numbered after the tracks at the top of the set.
   #
-  # @return [String] the number
+  # @return [HierarchicalNumber] the number
   def master_track_number
-    (@als_model.live_set.top_level_tracks.length + 1).to_s
+    number = HierarchicalNumber.new LiveTracksSerializer::PREFIX
+    number.increment @als_model.live_set.top_level_tracks.length
   end
 
   # Whether the two kinds of track are written in their own sections.

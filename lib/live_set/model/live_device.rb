@@ -100,7 +100,7 @@ class LiveDevice
   # Whether the device stops the track from being transferred to P3S Standalone.
   #
   # A plug-in stops the transfer: the P3S Standalone cannot run one. A Max for Live device
-  # is supported by the P3S Standalone, but with less CPU headroom, so it is a matter of
+  # is supported by the P3S Standalone, but because the P3S has a weak CPU, demanding M4L devices may not work properly., so it is a matter of
   # advice rather than of transfer. See README.md, "Push 3 Standalone (P3S)".
   #
   # @return true if the device is a plug-in

@@ -1,5 +1,6 @@
 require 'bytesize'
 require_relative '../model/live_palette'
+require_relative 'hierarchical_number_serializer'
 require_relative 'live_markup'
 
 # Serializes a `LiveAudioClip` model as markdown.
@@ -26,6 +27,22 @@ class LiveAudioClipSerializer
   #
   # @return [String] the serialized markdown
   def to_markdown
+    text
+  end
+
+  # Returns the clip as HTML.
+  #
+  # @return [String] the serialized HTML
+  def to_html
+    HierarchicalNumberSerializer.new(@hierarchical_number, text).to_html
+  end
+
+  private
+
+  # The text of the clip: its name, its warnings, the file it plays, its place and its size.
+  #
+  # @return [String] the text
+  def text
     text = name_markdown
     text += "  #{warning_markdown}" unless @clip.messages.empty?
     text += "<br>`#{@clip.file}`" if @clip.file
@@ -33,8 +50,6 @@ class LiveAudioClipSerializer
     text += "  #{size_markdown}" if @clip.file_size.positive?
     text
   end
-
-  private
 
   # The warnings for a clip.
   #

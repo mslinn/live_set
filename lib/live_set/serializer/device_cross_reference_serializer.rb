@@ -1,6 +1,7 @@
 require 'markdown-tables'
 require_relative '../model/live_palette'
 require_relative 'live_markup'
+require_relative 'live_track_markup'
 
 # Writes the section of the report that crosses the devices of the set with the tracks they
 # are on.
@@ -8,6 +9,8 @@ require_relative 'live_markup'
 # Sample usage:
 # markdown = DeviceCrossReferenceSerializer.new(cross_reference).to_markdown
 class DeviceCrossReferenceSerializer
+  include LiveTrackMarkup
+
   # Creates a serializer for the cross-reference of the devices and the tracks.
   #
   # @param cross_reference [LiveDeviceCrossReference] the devices and the tracks they are on
@@ -56,6 +59,6 @@ class DeviceCrossReferenceSerializer
   # @param track [LiveTrack, LiveGroup] the track
   # @return [String] the name of the track
   def track_label(track)
-    LiveMarkup.track_name_markdown track, track.display_name, in_a_cell: true
+    track_name_markdown track, track.display_name, in_a_cell: true
   end
 end

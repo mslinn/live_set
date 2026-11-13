@@ -1,6 +1,6 @@
 # `als_delta`
 
-This is the help message:
+## Help Message
 
 ```html
 $ als_delta -h

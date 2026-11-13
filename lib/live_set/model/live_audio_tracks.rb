@@ -2,7 +2,7 @@ require_relative 'live_audio_track'
 
 # The audio tracks of a set, and the audio tracks of a group.
 #
-# A collection of the tracks, in the order Live wrote them.
+# A collection of the tracks, in the order they appear in the file.
 class LiveAudioTracks
   include Enumerable
 
@@ -10,7 +10,7 @@ class LiveAudioTracks
 
   # @param set_directory [String] the directory of the set
   # @param elements [Array<Nokogiri::XML::Element>] the `<AudioTrack>` elements, in the order
-  #   Live wrote them
+  #   they appear in the file
   def initialize(set_directory, elements)
     @tracks = elements.map { |element| LiveAudioTrack.new set_directory, element }
   end

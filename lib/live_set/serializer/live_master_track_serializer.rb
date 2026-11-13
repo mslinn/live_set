@@ -1,3 +1,4 @@
+require_relative 'hierarchical_number_serializer'
 require_relative 'live_devices_serializer'
 require_relative 'live_markup'
 
@@ -8,12 +9,12 @@ require_relative 'live_markup'
 #
 # Sample usage:
 # track = LiveMasterTrack.new(...)
-# markdown = LiveMasterTrackSerializer.new(track, '1.1').to_markdown
+# markdown = LiveMasterTrackSerializer.new(track, number).to_markdown
 class LiveMasterTrackSerializer
   # Creates a serializer for the given track.
   #
   # @param track [LiveMasterTrack] the track to be serialized
-  # @param hierarchical_number [String] the number of the track in the report
+  # @param hierarchical_number [HierarchicalNumber] the number of the track in the report
   def initialize(track, hierarchical_number)
     @track = track
     @hierarchical_number = hierarchical_number
@@ -27,24 +28,44 @@ class LiveMasterTrackSerializer
   #
   # @return [String] the serialized markdown
   def to_markdown
-    parts = [track_detail, device_lines]
-    parts.reject(&:empty?).join "\n"
+    item.to_markdown markdown_children
+  end
+
+  # Returns the track as HTML.
+  #
+  # @return [String] the serialized HTML
+  def to_html
+    item.to_html html_children
   end
 
   private
 
-  # The line of the track: its number.
+  # The item of the track: its number.
   #
-  # @return [String] the line
-  def track_detail
-    "#{LiveMarkup.indent_for @hierarchical_number}- Track #{@hierarchical_number}"
+  # @return [HierarchicalNumberSerializer] the item
+  def item
+    @item ||= HierarchicalNumberSerializer.new @hierarchical_number, "Track #{@hierarchical_number}"
   end
 
-  # The lines of the devices of the track.
+  # The nodes under the track, as markdown.
   #
-  # @return [String] the devices
-  def device_lines
-    LiveDevicesSerializer.new(@track.devices, @hierarchical_number, slot_label:   'Track Device',
-                                                                    track_frozen: @track.frozen?).to_markdown
+  # @return [Array<String>] the nodes under the track
+  def markdown_children
+    [devices.to_markdown].reject(&:empty?)
+  end
+
+  # The nodes under the track, as HTML.
+  #
+  # @return [Array<String>] the nodes under the track
+  def html_children
+    [devices.to_html].reject(&:empty?)
+  end
+
+  # The serializer of the devices of the track.
+  #
+  # @return [LiveDevicesSerializer] the devices
+  def devices
+    @devices ||= LiveDevicesSerializer.new(@track.devices, @hierarchical_number, slot_label:   'Track Device',
+                                                                                 track_frozen: @track.frozen?)
   end
 end

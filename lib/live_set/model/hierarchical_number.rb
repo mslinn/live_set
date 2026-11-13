@@ -12,9 +12,6 @@
 # methods that change a number replace its components with a new array instead of changing
 # the one they are in.
 class HierarchicalNumber
-  # The indentation of a level.
-  INDENT = '  '.freeze
-
   attr_reader :prefix
 
   # @param prefix [String] the letter that says what kind of thing it is: "G", "T", …
@@ -74,9 +71,12 @@ class HierarchicalNumber
 
   # The indentation of the thing with this number.
   #
+  # The number knows how deep the thing is. How wide a level is belongs to the writer, so
+  # the caller says how wide a level is.
+  #
   # @param indent [String] the indentation of one level
   # @return [String] the indentation
-  def indent_for(indent = INDENT)
-    indent * level
+  def indent_for(indent)
+    indent * (level - 1)
   end
 end

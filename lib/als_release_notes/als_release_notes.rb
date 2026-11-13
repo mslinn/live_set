@@ -52,6 +52,9 @@ class AlsReleaseNotes
 
     print_notes notes, version, found[:pattern]
     0
+  rescue StandardError => e
+    warn e.full_message
+    1
   end
 
   # The HTML of the notes of a version.

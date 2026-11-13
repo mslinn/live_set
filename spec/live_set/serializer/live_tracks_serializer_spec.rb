@@ -28,22 +28,22 @@ RSpec.describe LiveTracksSerializer, '#to_markdown' do
 
   it 'writes a line for every track at the top of the set' do
     markdown = serializer.to_markdown
-    lines = markdown.lines.grep(/\A- Track \d+  /)
+    lines = markdown.lines.grep(/\A- Track T\d+  /)
 
     expect(lines.length).to eq tracks.top_level_tracks.length
   end
 
-  it 'numbers the tracks at the top of the set from one, in the order Live wrote them' do
-    numbers = serializer.numbered_tracks_of_the_set.map(&:first)
+  it 'numbers the tracks at the top of the set from one, in the order they appear in the file' do
+    numbers = serializer.numbered_tracks_of_the_set.map { |number, _track| number.to_s }
 
-    expect(numbers).to eq (1..tracks.top_level_tracks.length).map(&:to_s)
+    expect(numbers).to eq((1..tracks.top_level_tracks.length).map { |number| "T#{number}" })
   end
 
   it 'numbers the members of a group after the group' do
     members = serializer.numbered_members
 
     expect(members).not_to be_empty
-    expect(members.map(&:first)).to all(match(/\A\d+\.\d+\z/))
+    expect(members.map { |number, _track| number.to_s }).to all(match(/\AG\d+\.\d+\z/))
   end
 
   it 'numbers every track of the set: the tracks at the top of it, and the members of the groups' do

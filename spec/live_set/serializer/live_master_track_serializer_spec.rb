@@ -2,6 +2,7 @@ require 'spec_helper'
 require 'live_set/model/live_master_track'
 require 'live_set/serializer/live_master_track_serializer'
 require 'support/live_sets'
+require 'support/numbers'
 
 # The master track of a set.
 #
@@ -19,9 +20,9 @@ RSpec.describe LiveMasterTrackSerializer, '#to_markdown' do
   end
 
   it 'writes the line of the track: its number' do
-    markdown = described_class.new(track, '7').to_markdown
+    markdown = described_class.new(track, ReportNumbers.number('T', 7)).to_markdown
 
     # The word "Master" is in the heading of the section, and it is not repeated here.
-    expect(markdown.lines.first.chomp).to eq('- Track 7')
+    expect(markdown.lines.first.chomp).to eq('- Track T7')
   end
 end

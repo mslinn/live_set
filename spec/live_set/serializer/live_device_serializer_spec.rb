@@ -1,6 +1,7 @@
 require 'spec_helper'
 require 'live_set/serializer/live_device_serializer'
 require 'support/live_sets'
+require 'support/numbers'
 
 # A device of a track.
 #
@@ -26,15 +27,21 @@ RSpec.describe LiveDeviceSerializer, '#to_markdown' do
   end
 
   it 'writes the name of a device and the kind of device it is' do
-    expect(described_class.new(device('DrumBuss'), '1.1b').to_markdown).to eq(
-      '<code>DrumBuss</code>  Live'
+    number = ReportNumbers.number 'G', 1, 1, 2
+    markdown = described_class.new(device('DrumBuss'), number, slot_label: 'Track Device').to_markdown
+
+    expect(markdown).to eq(
+      '    - Track Device G1.1.2  <code>DrumBuss</code>  Live'
     )
   end
 
   it 'writes the name of a device P3S cannot run on the dark background, and warns of it' do
-    expect(described_class.new(device('Kontakt 7'), '1.1a').to_markdown).to eq(
-      '<code style="color: #FFFFFF; background-color: #212121; vertical-align: middle;">Kontakt 7</code>  ' \
-      'VST3  ⚠ not usable on P3S'
+    number = ReportNumbers.number 'G', 1, 1, 1
+    markdown = described_class.new(device('Kontakt 7'), number, slot_label: 'Track Device').to_markdown
+
+    expect(markdown).to eq(
+      '    - Track Device G1.1.1  <code style="color: #FFFFFF; background-color: #212121; ' \
+      'vertical-align: middle;">Kontakt 7</code>  VST3  ⚠ not usable on P3S'
     )
   end
 end

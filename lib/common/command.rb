@@ -30,6 +30,9 @@ require_relative 'log'
 #     def self.run(args)
 #       options, remaining = parse_options(args)
 #       ...
+#     rescue StandardError => e
+#       warn e.full_message
+#       exit 1
 #     end
 #
 #     def initialize(whatever, **options)
@@ -86,7 +89,7 @@ module Command
 
     [options, remaining]
   rescue OptionParser::ParseError => e
-    abort help(e.message)
+    abort help(e.full_message)
   end
 
   # Checks that a command was not given more positional parameters than it takes.

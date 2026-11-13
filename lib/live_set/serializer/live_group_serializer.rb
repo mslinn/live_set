@@ -1,3 +1,4 @@
+require_relative 'hierarchical_number_serializer'
 require_relative 'live_audio_tracks_serializer'
 require_relative 'live_device_serializer'
 require_relative 'live_devices_serializer'
@@ -26,8 +27,14 @@ class LiveGroupSerializer
   #
   # @return [String] the serialized markdown
   def to_markdown
-    parts = [group_line, device_lines, track_details]
-    parts.reject(&:empty?).join "\n"
+    item.to_markdown markdown_children
+  end
+
+  # Returns the group and its member tracks as HTML.
+  #
+  # @return [String] the serialized HTML
+  def to_html
+    item.to_html html_children
   end
 
   # The tracks in the group, with the numbers they have in the report.
@@ -42,22 +49,38 @@ class LiveGroupSerializer
 
   private
 
-  # The line of the group: its number, its icon, its kind and its name.
+  # The item of the group: its number, its icon, its kind and its name.
   #
-  # The indentation of the line comes from the number of the group, so that the number and the
-  # place of the group in the outline always agree.
+  # @return [HierarchicalNumberSerializer] the item
+  def item
+    @item ||= HierarchicalNumberSerializer.new @hierarchical_number, group_text
+  end
+
+  # The text of the group: its number, its icon, its kind and its name.
   #
-  # @return [String] the line
-  def group_line
-    name = @group.display_name
-    "#{@hierarchical_number.indent_for}- Group track #{@hierarchical_number}  " \
-      "👥 Group  #{name_markdown(name)}"
+  # @return [String] the text
+  def group_text
+    "Group track #{@hierarchical_number}  #{@group.icon} Group  #{name_markdown(@group.display_name)}"
+  end
+
+  # The nodes under the group, as markdown.
+  #
+  # @return [Array<String>] the nodes under the group
+  def markdown_children
+    [devices.to_markdown, *track_serializers.map(&:to_markdown)].reject(&:empty?)
+  end
+
+  # The nodes under the group, as HTML.
+  #
+  # @return [Array<String>] the nodes under the group
+  def html_children
+    [devices.to_html, *track_serializers.map(&:to_html)].reject(&:empty?)
   end
 
   # The name of the group, on the colour Live gave it.
   #
   # A group that P3S Standalone cannot use is written on the dark background of those
-  # things, and the name of it is in light text.
+  # nodes, and the name of it is in light text.
   #
   # @return [String] the name of the group
   def name_markdown(name)
@@ -86,35 +109,26 @@ class LiveGroupSerializer
     @group.blocking_devices.any?
   end
 
-  # The lines of the devices of the group.
+  # The serializer of the devices of the group.
   #
-  # @return [String] the devices
-  def device_lines
-    LiveDevicesSerializer.new(@group.devices, @hierarchical_number,
-                              slot_label: 'Group Track Device').to_markdown
-  end
-
-  # The lines of the tracks in the group.
-  #
-  # The MIDI members of the group come first, and the audio members after them, and the
-  # numbers of the members follow the number of the group.
-  #
-  # @return [String] the tracks
-  def track_details
-    track_serializers.map(&:to_markdown).reject(&:empty?).join("\n")
+  # @return [LiveDevicesSerializer] the devices
+  def devices
+    @devices ||= LiveDevicesSerializer.new(@group.devices, @hierarchical_number,
+                                           slot_label: 'Group Track Device')
   end
 
   # The serializers of the tracks in the group.
   #
   # The MIDI members of the group come first, and the audio members after them, and the
-  # numbers of the members follow the number of the group.
+  # numbers of the members follow the number of the group. The devices of the group come
+  # before the members, and the members are numbered after them.
   #
   # @return [Array<LiveTrackCollectionSerializer>] the serializers
   def track_serializers
+    number = @hierarchical_number.dup.indent.increment @group.devices.size
     [
-      LiveMidiTracksSerializer.new(@group.midi_tracks, @hierarchical_number, 1),
-      LiveAudioTracksSerializer.new(@group.audio_tracks, @hierarchical_number,
-                                    @group.midi_tracks.size + 1)
+      LiveMidiTracksSerializer.new(@group.midi_tracks, number),
+      LiveAudioTracksSerializer.new(@group.audio_tracks, number.dup.increment(@group.midi_tracks.size))
     ]
   end
 end

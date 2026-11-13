@@ -2,14 +2,14 @@ require_relative 'live_midi_track'
 
 # The MIDI tracks of a set, and the MIDI tracks of a group.
 #
-# A collection of the tracks, in the order Live wrote them.
+# A collection of the tracks, in the order they appear in the file.
 class LiveMidiTracks
   include Enumerable
 
   attr_reader :tracks
 
   # @param elements [Array<Nokogiri::XML::Element>] the `<MidiTrack>` elements, in the order
-  #   Live wrote them
+  #   they appear in the file
   def initialize(elements)
     @tracks = elements.map { |element| LiveMidiTrack.new element }
   end

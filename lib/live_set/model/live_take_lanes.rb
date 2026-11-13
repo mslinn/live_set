@@ -2,7 +2,7 @@ require_relative 'live_take_lane'
 
 # The take lanes of a track.
 #
-# A collection of the lanes of a track, in the order Live wrote them.
+# A collection of the lanes of a track, in the order they appear in the file.
 class LiveTakeLanes
   include Enumerable
 

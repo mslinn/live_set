@@ -22,7 +22,7 @@ class LiveTrackClipCrossReference
   # marked with the lane they are in.
   #
   # @param track [LiveTrack] the track
-  # @param number [String] the number of the track
+  # @param number [HierarchicalNumber] the number of the track
   # @return [Hash] each clip, the places it is in, and the number of them in each
   def places_of(track, number)
     return {} if track.group?
@@ -30,9 +30,9 @@ class LiveTrackClipCrossReference
     places = Hash.new { |hash, key| hash[key] = Hash.new(0) }
 
     track.clips.each { |clip| places[label_of(clip)][clip.place] += 1 }
-    track.audio_clips.each { |clip| places[label_of(clip)][place_of(clip, number)] += 1 }
+    track.audio_clips.each { |clip| places[label_of(clip)][place_of(clip, number, track)] += 1 }
     track.take_lanes.each_with_index do |lane, index|
-      lane_number = "#{number}.#{index + 1}"
+      lane_number = number_of_lane number, track, index + 1
       lane.clips.each { |clip| places[label_of(clip)]["take lane #{lane_number}"] += 1 }
     end
 
@@ -53,7 +53,7 @@ class LiveTrackClipCrossReference
 
       name = track.display_name
       track.clips.each { |clip| holds_of uses, label_of(clip), number, name }
-      track.audio_clips.each { |clip| holds_of uses, label_of(clip), number, name, lane_of(clip, number) }
+      track.audio_clips.each { |clip| holds_of uses, label_of(clip), number, name, lane_of(clip, number, track) }
       holds_of_lanes uses, track, number, name
     end
 
@@ -76,28 +76,43 @@ class LiveTrackClipCrossReference
   # The place a clip is in, as the cross-reference names it.
   #
   # The clip of the audio side of a track says which lane of the track it is in, and the
-  # number of the track is added to it here.
+  # number of the lane in the report is added to it here.
   #
   # @param clip [LiveMidiClip, LiveAudioClip] the clip
-  # @param number [String] the number of the track
+  # @param number [HierarchicalNumber] the number of the track
+  # @param track [LiveTrack] the track
   # @return [String] the place
-  def place_of(clip, number)
+  def place_of(clip, number, track)
     place = clip.place
     return place unless place&.start_with? 'take lane '
 
-    "take lane #{number}.#{place.split.last}"
+    "take lane #{number_of_lane(number, track, place.split.last.to_i)}"
   end
 
   # The number of the lane a clip is in, as the cross-reference names it.
   #
   # @param clip [LiveMidiClip, LiveAudioClip] the clip
-  # @param number [String] the number of the track
-  # @return [String, nil] the number of the lane, or nil when the clip is in no lane
-  def lane_of(clip, number)
+  # @param number [HierarchicalNumber] the number of the track
+  # @param track [LiveTrack] the track
+  # @return [HierarchicalNumber, nil] the number of the lane, or nil when the clip is in no lane
+  def lane_of(clip, number, track)
     place = clip.place
     return nil unless place&.start_with? 'take lane '
 
-    "#{number}.#{place.split.last}"
+    number_of_lane number, track, place.split.last.to_i
+  end
+
+  # The number of a take lane of a track, as the report numbers it.
+  #
+  # The devices of the track come first, then its clips, and then its take lanes, and the
+  # lanes are numbered among the other children of the track.
+  #
+  # @param number [HierarchicalNumber] the number of the track
+  # @param track [LiveTrack] the track
+  # @param lane_number [Integer] the number of the lane among the lanes of the track, from one
+  # @return [HierarchicalNumber] the number of the lane
+  def number_of_lane(number, track, lane_number)
+    number.dup.indent.increment(track.children_before_the_take_lanes + lane_number - 1)
   end
 
   private
@@ -106,13 +121,13 @@ class LiveTrackClipCrossReference
   #
   # @param uses [Hash] the clips and the tracks that hold them
   # @param label [String] the name of the clip
-  # @param number [String] the number of the track
+  # @param number [HierarchicalNumber] the number of the track
   # @param name [String] the name of the track
-  # @param lane [String, nil] the number of the lane the clip is in, or nil
+  # @param lane [HierarchicalNumber, nil] the number of the lane the clip is in, or nil
   # @return [Hash] the record of the track
   def holds_of(uses, label, number, name, lane = nil)
-    hold = uses[label][number] ||= { name: name, lanes: [] }
-    hold[:lanes] << lane unless lane.nil? || hold[:lanes].include?(lane)
+    hold = uses[label][number.to_s] ||= { name: name, lanes: [] }
+    hold[:lanes] << lane.to_s unless lane.nil? || hold[:lanes].include?(lane.to_s)
     hold
   end
 
@@ -120,15 +135,15 @@ class LiveTrackClipCrossReference
   #
   # @param uses [Hash] the clips and the tracks that hold them
   # @param track [LiveTrack] the track
-  # @param number [String] the number of the track
+  # @param number [HierarchicalNumber] the number of the track
   # @param name [String] the name of the track
   # @return [void]
   def holds_of_lanes(uses, track, number, name)
     track.take_lanes.each_with_index do |lane, index|
-      lane_number = "#{number}.#{index + 1}"
+      lane_number = number_of_lane number, track, index + 1
       lane.clips.each do |clip|
         hold = holds_of uses, label_of(clip), number, name
-        hold[:lanes] << lane_number unless hold[:lanes].include? lane_number
+        hold[:lanes] << lane_number.to_s unless hold[:lanes].include? lane_number.to_s
       end
     end
   end

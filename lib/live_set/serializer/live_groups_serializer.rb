@@ -1,4 +1,5 @@
 require_relative '../model/hierarchical_number'
+require_relative 'live_collection_serializer'
 require_relative 'live_group_serializer'
 
 # Writes a collection of groups.
@@ -8,7 +9,7 @@ require_relative 'live_group_serializer'
 #
 # Sample usage:
 # markdown = LiveGroupsSerializer.new(groups).to_markdown
-class LiveGroupsSerializer
+class LiveGroupsSerializer < LiveCollectionSerializer
   # The prefix of the numbers of the groups.
   PREFIX = 'G'.freeze
 
@@ -16,16 +17,8 @@ class LiveGroupsSerializer
   #
   # @param groups [LiveGroups] the groups of the collection
   def initialize(groups)
+    super()
     @groups = groups
-  end
-
-  # Returns the collection as markdown.
-  #
-  # @return [String] the serialized markdown
-  def to_markdown
-    numbered_groups.map do |number, group|
-      LiveGroupSerializer.new(group, number).to_markdown
-    end.join("\n")
   end
 
   # The groups of the collection, with the numbers they have in the report.
@@ -50,5 +43,23 @@ class LiveGroupsSerializer
     numbered_groups.flat_map do |number, group|
       LiveGroupSerializer.new(group, number).numbered_members
     end
+  end
+
+  private
+
+  # The groups of the collection, with the numbers they have in the report.
+  #
+  # @return [Array<Array>] the number and the group
+  def items
+    numbered_groups
+  end
+
+  # The serializer of a group.
+  #
+  # @param number [HierarchicalNumber] the number of the group
+  # @param group [LiveGroup] the group
+  # @return [LiveGroupSerializer] the serializer
+  def serializer_for(number, group)
+    LiveGroupSerializer.new group, number
   end
 end

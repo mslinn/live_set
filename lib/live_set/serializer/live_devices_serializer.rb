@@ -1,3 +1,4 @@
+require_relative 'live_collection_serializer'
 require_relative 'live_device_serializer'
 require_relative 'live_markup'
 
@@ -10,8 +11,8 @@ require_relative 'live_markup'
 # place of it in the outline always agree.
 #
 # Sample usage:
-# markdown = LiveDevicesSerializer.new(devices, '1.1', slot_label: 'Track Device').to_markdown
-class LiveDevicesSerializer
+# markdown = LiveDevicesSerializer.new(devices, number, slot_label: 'Track Device').to_markdown
+class LiveDevicesSerializer < LiveCollectionSerializer
   # Creates a serializer for a collection of devices.
   #
   # @param devices [Array<LiveDevice>] the devices of the collection
@@ -20,20 +21,11 @@ class LiveDevicesSerializer
   #   `Group Track Device`
   # @param track_frozen [Boolean] true when the track the devices are on is frozen
   def initialize(devices, hierarchical_number, slot_label:, track_frozen: false)
+    super()
     @devices = devices
     @hierarchical_number = hierarchical_number
     @slot_label = slot_label
     @track_frozen = track_frozen
-  end
-
-  # Returns the collection as markdown.
-  #
-  # @return [String] the serialized markdown
-  def to_markdown
-    numbered_devices.map do |number, device|
-      serializer = LiveDeviceSerializer.new device, number, track_frozen: @track_frozen
-      "#{number.indent_for}- #{@slot_label} #{number}  #{serializer.to_markdown}"
-    end.join("\n")
   end
 
   # The devices of the collection, with the numbers they have in the report.
@@ -46,5 +38,23 @@ class LiveDevicesSerializer
         [number.dup, device].tap { number.increment }
       end
     end
+  end
+
+  private
+
+  # The devices of the collection, with the numbers they have in the report.
+  #
+  # @return [Array<Array>] the number and the device
+  def items
+    numbered_devices
+  end
+
+  # The serializer of a device.
+  #
+  # @param number [HierarchicalNumber] the number of the device
+  # @param device [LiveDevice] the device
+  # @return [LiveDeviceSerializer] the serializer
+  def serializer_for(number, device)
+    LiveDeviceSerializer.new device, number, slot_label: @slot_label, track_frozen: @track_frozen
   end
 end

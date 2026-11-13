@@ -39,7 +39,7 @@ class AlsModel
 
   # Whether the audio tracks and the MIDI tracks of the set are written in their own lists.
   #
-  # By default, every track is written in the order Live saved it in.
+  # By default, every track is written in the order they appear in the file.
   #
   # @return [Boolean] true when the two kinds of track have their own lists
   attr_reader :show_midi_and_audio_tracks_separately
@@ -47,7 +47,7 @@ class AlsModel
   # The Live contents of the file.
   #
   # Every track of the set is in the model: the MIDI tracks, the audio tracks, the groups
-  # and the return tracks, in the order Live wrote them.
+  # and the return tracks, in the order they appear in the file.
   #
   # @return [LiveTracks] the tracks of the set
   def live_set
@@ -120,7 +120,7 @@ class AlsModel
 
   private
 
-  # The elements of the tracks of the set, in the order Live wrote them.
+  # The elements of the tracks of the set, in the order they appear in the file.
   #
   # @return [Array<Nokogiri::XML::Element>] the elements
   def track_elements

@@ -43,7 +43,7 @@ RSpec.describe TrackClipCrossReferenceSerializer, '#to_markdown' do
 
     expect(markdown).to include('|Track|Clips|')
     expect(markdown).to include('`Coffee Lead` session view ×3, arrangement ×3')
-    expect(markdown).to include('`Drift 3` take lane 1.3 ×2')
+    expect(markdown).to include('`Drift 3` take lane T1.6 ×2')
   end
 
   it 'writes the clips of the set, and the tracks that hold them' do
@@ -51,6 +51,6 @@ RSpec.describe TrackClipCrossReferenceSerializer, '#to_markdown' do
 
     expect(markdown).to include('|Clip|Tracks|')
     expect(markdown).to include('`Strum-o-Matic`|')
-    expect(markdown).to include('`Drift`|1 Coffee Leaf (take lane 1.1), 5 Mello (take lane 5.1)|')
+    expect(markdown).to include('`Drift`|T1 Coffee Leaf (take lane T1.4), T5 Mello (take lane T5.3)|')
   end
 end

@@ -2,6 +2,7 @@ require 'spec_helper'
 require 'live_set/model/live_midi_track'
 require 'live_set/serializer/live_midi_clip_groups'
 require 'support/live_sets'
+require 'support/numbers'
 
 # The copies of a MIDI clip that are alike, written as one line.
 #
@@ -20,20 +21,17 @@ RSpec.describe LiveMidiClipGroups, '#to_markdown' do
     LiveMidiTrack.new(element).clips
   end
 
-  let(:groups) { described_class.new clips_called('Kontakt 7') }
+  let(:groups) { described_class.new clips_called('Kontakt 7'), ReportNumbers.number('G', 1, 1, 2) }
 
   it 'writes the copies of a clip that are alike are presented once, with a count' do
-    expected = groups.to_markdown('1')
-    expect(expected).to include(a_string_matching(/- Clip 1\.1 \(×5\) /))
+    expect(groups.to_markdown).to include('- Clip G1.1.2 (×5) ')
   end
 
   it 'writes the settings the copies differ in, on the next line' do
-    expected = groups.to_markdown('1')
-    expect(expected).to include('        - Copies (×5): launch: trigger, warp: none')
+    expect(groups.to_markdown).to include('      - Copies (×5): launch: trigger, warp: none')
   end
 
   it 'hierarchically numbers the clips of the track they are on' do
-    expected = groups.to_markdown('1.1').first
-    expect(expected).to start_with '        - Clip 1.1.1 (×5) '
+    expect(groups.to_markdown).to start_with '    - Clip G1.1.2 (×5) '
   end
 end

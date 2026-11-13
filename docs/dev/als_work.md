@@ -428,8 +428,7 @@ The largest demo files for each Ableton Live version were selected for testing:
 ```bash
 export ableton_home='/mnt/c/ProgramData/Ableton'
 
-# The directory the Live versions are installed in. It is the same directory on every
-# machine, and it can be named on the command line:
+# The default directory for installing Live on Windows:
 #
 #   $ ABLETON_HOME="${1:-${ableton_home:-/mnt/c/ProgramData/Ableton}}"
 #   $ echo $ABLETON_HOME

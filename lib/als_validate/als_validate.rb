@@ -33,8 +33,8 @@ class AlsValidate
     errors.each { |error| puts "#{set_name}:#{error.line}: #{message error}" }
     puts "#{set_name} fails to validate".red
     1
-  rescue InvalidInput => e
-    puts "Error: #{e.message}".red
+  rescue StandardError => e
+    warn e.full_message
     1
   end
 

@@ -79,20 +79,36 @@ RSpec.describe AlsModelSerializer, '#to_markdown' do
     )
   end
 
-  it 'writes the tracks of the set under the legend, in the order Live wrote them' do
+  it 'writes the tracks of the set under the legend, in the order they appear in the file' do
     markdown = described_class.new(model).to_markdown
 
     expect(markdown).to include('### Groups')
     expect(markdown).to include('### Tracks')
-    expect(markdown).to include('- Group track 1  👥 Group  ')
-    expect(markdown).to include('- Track 1  🎵 Audio  ')
+    expect(markdown).to include('<summary>Group track G1  👥 Group  ')
+    expect(markdown).to include('<summary>Track T1  🎵 Audio  ')
+  end
+
+  it 'writes the outline of the set as a list that can be folded' do
+    markdown = described_class.new(model).to_markdown
+
+    expect(markdown).to include('<ul style="list-style: none;">')
+    expect(markdown).to include('<details open>')
+  end
+
+  it 'writes a blank line before and after the outline, so that a markdown processor does
+       not take the indented lines for a code block' do
+    markdown = described_class.new(model).to_markdown
+
+    expect(markdown).to include("\n\n<ul style=\"list-style: none;\">\n")
+    expect(markdown).to include("</ul>\n\n")
   end
 
   it 'writes the audio tracks and the MIDI tracks in their own lists when they are to be
        shown separately' do
     markdown = described_class.new(model(separately: true)).to_markdown
 
+    # The set has no MIDI track at the top of it, so there is no section of MIDI tracks.
     expect(markdown).to include('### Audio Tracks')
-    expect(markdown).to include('### MIDI Tracks')
+    expect(markdown).not_to include('### Ungrouped Tracks')
   end
 end

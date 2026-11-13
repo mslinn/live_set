@@ -17,34 +17,42 @@ class AlsDiff
   #
   # @param args [Array<String>] the command line arguments
   # @return [Integer] the exit status of the command
+  # Compares the two files, and prints the differences.
+  #
+  # @param args [Array<String>] the command line arguments
+  # @return [Integer] the exit status of the command
   def self.run(args)
-    found, remaining = parse_options(args)
+    options, remaining = parse_options(args)
 
-    if remaining.length < 2
-      warn help
-      return 1
-    end
-    check_extra_parameters remaining, 2
+    return warn(help) || 1 if remaining.length < 2
 
-    ours_path = DemoSets.path_of(remaining.shift)
-    theirs_path = DemoSets.path_of(remaining.shift)
+    check_extra_parameters(remaining, 2)
 
-    [ours_path, theirs_path].each do |path|
-      abort "No such file: #{path}" unless File.exist?(path)
+    ours_path, theirs_path = remaining.first(2).map do |arg|
+      path = DemoSets.path_of(arg)
+      raise "No such file: #{path}" unless File.exist?(path)
+
+      path
     end
 
-    differences = AlsDiff.new(AlsFile.read(ours_path).root, AlsFile.read(theirs_path).root, skip: found[:skip]).differences
+    differences = AlsDiff.new(
+      AlsFile.read(ours_path).root,
+      AlsFile.read(theirs_path).root,
+      skip: options[:skip]
+    ).differences
 
-    if found[:count]
+    if options[:count]
       puts differences.length
-      return (differences.empty? ? 0 : 1)
+    else
+      diffs = options[:max] ? differences.first(options[:max]) : differences
+      puts diffs
+      puts 'The documents are the same.' if diffs.empty?
     end
-
-    differences = differences.first(found[:max]) if found[:max]
-    puts differences
-    puts 'The documents are the same.' if differences.empty?
 
     differences.empty? ? 0 : 1
+  rescue StandardError => e
+    warn e.full_message
+    1
   end
 
   # @param ours [Nokogiri::XML::Node] the element of the first document

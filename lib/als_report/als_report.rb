@@ -52,6 +52,9 @@ class AlsReport
     return report_project(path, options) if File.directory? path
 
     report_set path, options
+  rescue StandardError => e
+    warn e.full_message
+    1
   end
 
   # Reports a set.
@@ -155,7 +158,7 @@ class AlsReport
   # The model of the set.
   #
   # Every XML element of the set shall be stored in the model: groups, MIDI tracks, audio tracks, return tracks, etc.,
-  # in the order Live wrote them.
+  # in the order they appear in the file.
   #
   # @return [AlsModel] the model
   def als_model

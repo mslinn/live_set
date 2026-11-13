@@ -7,8 +7,8 @@ require_relative 'live_return_tracks'
 # The tracks of a set, defined in the `<Tracks>` element of ALS XML.
 #
 # The element holds the MIDI tracks, the audio tracks, the return tracks and the group tracks of the set, and each of
-# them is a collection of its own.  This class also holds the ids of the tracks, in the order Live wrote them, so that
-# the tracks can be serialized in the same order by the associated serializer class.
+# them is a collection of its own.  This class also holds the ids of the tracks, in the order they appear in the file,
+# so that the tracks can be serialized in the same order by the associated serializer class.
 #
 # This class deviates from the usual pattern in that it has three kinds of children, each of which is a collection:
 #
@@ -38,7 +38,7 @@ class LiveTracks
 
   # @param set_directory [String] the directory of the set
   # @param elements [Array<Nokogiri::XML::Element>] the track elements of the set, in the
-  #   order Live wrote them
+  #   order they appear in the file
   def initialize(set_directory, elements)
     @elements = elements
     @track_ids = elements.map { |element| element['Id'] }
@@ -65,7 +65,7 @@ class LiveTracks
     LiveGroups.new(groups.to_a.select { |group| group.group_id.nil? })
   end
 
-  # The tracks at the top of the set, in the order Live wrote them.
+  # The tracks at the top of the set, in the order they appear in the file.
   #
   # The tracks of a group are written under their group, and not here.
   #
@@ -148,7 +148,7 @@ class LiveTracks
 
   # The tracks of the set that use a Max for Live device.
   #
-  # A Max for Live device is supported by the P3S Standalone, but with less CPU headroom,
+  # A Max for Live device is supported by the P3S Standalone, but because the P3S has a weak CPU, demanding M4L devices may not work properly.,
   # so it is advice and not an error. A frozen track has its devices rendered away, so it is
   # not among these.
   #
@@ -166,7 +166,7 @@ class LiveTracks
 
   # The groups of the set that use a Max for Live device.
   #
-  # A Max for Live device is supported by the P3S Standalone, but with less CPU headroom,
+  # A Max for Live device is supported by the P3S Standalone, but because the P3S has a weak CPU, demanding M4L devices may not work properly.,
   # so it is advice and not an error. A group cannot be frozen, so its devices cannot be
   # rendered away.
   #

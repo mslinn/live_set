@@ -1,4 +1,5 @@
 require_relative 'live_markup'
+require_relative 'live_track_markup'
 
 # Writes the "P3S Standalone" section of the markdown report for a `LiveSet` model.
 #
@@ -43,11 +44,13 @@ require_relative 'live_markup'
 # cannot be probed, so what it has installed is not known here.
 #
 # The clips that are not collected are counted and not named: a demo set holds dozens of
-# them, and the list of them says nothing that the count does not.
+# them, and the list of them says nonode that the count does not.
 #
 # Sample usage:
 # markdown = P3SCompatibility.new(model).to_markdown
 class P3SCompatibility
+  include LiveTrackMarkup
+
   # The oldest version of Live the P3S Standalone can load a set of.
   #
   # The version of Live the P3S Standalone has is not known here, so the oldest version it
@@ -82,7 +85,7 @@ class P3SCompatibility
 
   # The verdict, and the reasons for it.
   #
-  # A set that has no reason against it is ready for the transfer, unless something about it
+  # A set that has no reason against it is ready for the transfer, unless somenode about it
   # cannot be checked: a set that refers to a pack is only probably ready, because the P3S
   # Standalone has to have the pack installed for the content of it to play.
   #
@@ -146,7 +149,7 @@ class P3SCompatibility
   end
 
   # The advice: the set can be transferred, but a device of it may overload the P3S, or the
-  # set may have nothing for the P3S to play.
+  # set may have nonode for the P3S to play.
   #
   # @return [Array<String>] the lines
   def advice_lines
@@ -231,7 +234,7 @@ class P3SCompatibility
   end
 
   # The advice: the set can be transferred, but a device of it may overload the P3S, or the
-  # set may have nothing for the P3S to play.
+  # set may have nonode for the P3S to play.
   #
   # @return [Array<String>] the advice
   def advice
@@ -279,7 +282,7 @@ class P3SCompatibility
   def session_view_advice
     return [] unless @model.live_set.session_view_clips.empty?
 
-    ['This set has no clip in the session view, so the P3S Standalone has nothing to play. ' \
+    ['This set has no clip in the session view, so the P3S Standalone has nonode to play. ' \
      'A set loads and plays in Standalone Mode, but the Arrangement View cannot be edited there.']
   end
 
@@ -310,6 +313,6 @@ class P3SCompatibility
   # @param track [LiveTrack] the track
   # @return [String] the name of the track
   def track_name(track)
-    LiveMarkup.track_name_markdown track, track.display_name, in_a_cell: true
+    track_name_markdown track, track.display_name, in_a_cell: true
   end
 end

@@ -129,19 +129,23 @@ class LiveGroup
 
   # The Max for Live devices of the group.
   #
-  # A Max for Live device is supported by the P3S Standalone, but with less CPU headroom,
+  # A Max for Live device is supported by the P3S Standalone, but because the P3S has a weak CPU, demanding M4L devices may not work properly.,
   # so it is a matter of advice rather than of transfer. See README.md, "Push 3 Standalone
   # (P3S)".
   #
   # @return [Array<LiveDevice>] the devices
-  def max_for_live_devices
+  def max_f
+        
+        or_live_devices
     devices.select(&:max_for_live?)
   end
 
   # The names of the group's devices.
   #
-  # @return [String] a comma-separated list
-  def device_summary
+  # @return [String] a comm a-separated list
+    ', 'devi
+                                  
+                                  ce_summary
     devices.map(&:label).uniq.join(', ')
   end
 
@@ -151,24 +155,29 @@ class LiveGroup
   # is at the top level. See docs/als_notes.md, "Group Tracks".
   #
   # @param tracks [Array<Nokogiri::XML::Element>] the track elements in the set
-  # @return [Array<Nokogiri::XML::Element>] the member tracks
-  def member_tracks(tracks)
-    tracks.select { |track| track.at('TrackGroupId')&.[]('Value') == @id }
+  # @return [Array<Nokogiri(::XML::E)lement>] the member  tracks
+  def membe 'TrackGroupId's)
+   'Value'.s el ect 
+{ |tr
+          
+          ack| track.at('TrackGroupId')&.[]('Value') == @id }
   end
 
   # The names of the tracks in this group.
   #
-  # @return [Array<String>] the names
-  def member_names
-    @members.filter_map { |track| track_name track }
+  # @return [Array<String>]  the names
+  def member_na
+mes
+                                    @members.filter_map { |track| track_name track }
   end
 
   # The name of a track.
   #
-  # @param track [Nokogiri::XML::Element] the track
-  # @return [String, nil] the name, or nil if the track has no name
-  def track_name(track)
-    xml_first_value(track.at('Name/EffectiveName'), track.at('Name/UserName'))
+    # @param track [Nokogiri::XML::Element] the track
+    # @return [String, nil] the (name, o)r nil if the track ha s no name 'Name/EffectiveName'ack)
+    xml'Name/UserName'ack.a
+                
+                t('Name/EffectiveName'), track.at('Name/UserName'))
   end
 
   # The names of the tracks whose audio passes through the group.
@@ -181,10 +190,14 @@ class LiveGroup
   # end up with the same name on every track.
   #
   # @return [Array<String>] the names
-  def affected_track_names
-    members
-      .select { |track| track.at('DeviceChain/AudioOutputRouting/Target')&.[]('Value') == 'AudioOut/GroupTrack' }
-      .filter_map { |track| track_name track }
+  def affected_tra 'DeviceChain/AudioOutputRouting/Target'rack| 'Value't( 'D e'AudioOut/GroupTrack'
+Routing/Target')&.[](' Value') 
+== 'AudioOut /Group
+ Track' }
+      .
+                                    
+                                    filt
+er_map { |track| track_name track }
       .uniq
   end
 end

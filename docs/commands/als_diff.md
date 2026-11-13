@@ -1,6 +1,6 @@
 # `als_diff`
 
-This is the help message:
+## Help Message
 
 ```text
 Als_diff compares two Ableton Live sets element by element, and prints the

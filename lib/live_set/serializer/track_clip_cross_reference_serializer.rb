@@ -3,6 +3,7 @@ require_relative '../model/live_palette'
 require_relative 'live_midi_clip_groups'
 require_relative 'live_midi_clip_serializer'
 require_relative 'live_markup'
+require_relative 'live_track_markup'
 
 # Writes the section of the report that crosses the tracks of the set with the clips they
 # hold.
@@ -10,6 +11,8 @@ require_relative 'live_markup'
 # Sample usage:
 # markdown = TrackClipCrossReferenceSerializer.new(cross_reference).to_markdown
 class TrackClipCrossReferenceSerializer
+  include LiveTrackMarkup
+
   # Creates a serializer for the cross-reference of the tracks and the clips.
   #
   # @param cross_reference [LiveTrackClipCrossReference] the tracks and the clips
@@ -83,6 +86,6 @@ class TrackClipCrossReferenceSerializer
   # @param track [LiveTrack, LiveGroup] the track
   # @return [String] the name
   def track_label(track)
-    LiveMarkup.track_name_markdown track, track_name(track), in_a_cell: true
+    track_name_markdown track, track_name(track), in_a_cell: true
   end
 end

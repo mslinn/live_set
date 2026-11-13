@@ -1,29 +1,43 @@
+require_relative 'live_collection_serializer'
 require_relative 'live_take_lane_serializer'
 
-# Serializes a `LiveTakeLanes` model as markdown.
+# Writes a collection of take lanes.
+#
+# The collection is never written by itself: each lane is written by the serializer of a
+# lane, and the outputs are mapped together.
 #
 # The lanes of a track are under the track.
 #
 # Sample usage:
-# take_lanes = LiveTakeLanes.new(...)
-# markdown = LiveTakeLanesSerializer.new(take_lanes, '1.1').to_markdown
-class LiveTakeLanesSerializer
+# markdown = LiveTakeLanesSerializer.new(take_lanes, number).to_markdown
+class LiveTakeLanesSerializer < LiveCollectionSerializer
   # Creates a serializer for the given take lanes.
   #
   # @param take_lanes [LiveTakeLanes] the take lanes to be serialized
-  # @param hierarchical_number [HierarchicalNumber] the number of the track the lanes are on
+  # @param hierarchical_number [HierarchicalNumber] the number of the first lane
   def initialize(take_lanes, hierarchical_number)
+    super()
     @take_lanes = take_lanes
     @hierarchical_number = hierarchical_number
   end
 
-  # Returns the take lanes as markdown.
+  private
+
+  # The lanes of the collection, with the numbers they have in the report.
   #
-  # @return [String] the serialized markdown
-  def to_markdown
+  # @return [Array<Array>] the number and the lane
+  def items
     @take_lanes.map do |lane|
-      number = @hierarchical_number.dup.indent.increment(lane.index - 1)
-      LiveTakeLaneSerializer.new(lane, number).to_markdown
-    end.join("\n")
+      [@hierarchical_number.dup.increment(lane.index - 1), lane]
+    end
+  end
+
+  # The serializer of a lane.
+  #
+  # @param number [HierarchicalNumber] the number of the lane
+  # @param lane [LiveTakeLane] the lane
+  # @return [LiveTakeLaneSerializer] the serializer
+  def serializer_for(number, lane)
+    LiveTakeLaneSerializer.new lane, number
   end
 end

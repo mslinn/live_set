@@ -1,26 +1,34 @@
 #!/bin/bash
 
-# Regenerates the XSD schemas from the Ableton Live installations on this computer.
-#
-# Usage: dev/generate_xsds [ABLETON_HOME]
-#
-# The schemas are written to the xsd/ subdirectory of the repository of the reference sets,
-# which is found through the environment variable `live_reference_sets`. They are checked in
-# there, so that a new contributor and a new machine can work with the latest information
-# without having to install Live first; running this script again regenerates them.
-#
-# The name of a schema comes from the Creator attribute of the demo sets, which holds the version
-# of Live that wrote them: sets written by "Ableton Live 12.4d1" produce live_12.4d1.xsd.
-#
-# Every demo set of an installation is used. A schema inferred from a single set constrains the
-# schema more than Live does, and so rejects the other sets of the same version.
-#
-# The sets Live wrote by converting a set of an older version are used as well. The schema of a
-# version has to describe everything that version writes, and newer versions of Live write
-# constructs that older demo sets do not have: a schema inferred from the demo sets alone
-# rejects the file Live wrote.
+function help {
+  cat <<EOF
+$(basename "$0") - Regenerates the XSD schemas from the Ableton Live installations on this computer.
+
+Usage: dev/generate_xsds [ABLETON_HOME]
+
+The schemas are written to the xsd/ subdirectory of the repository of the reference sets,
+which is found through the environment variable live_reference_sets. They are checked in
+there, so that a new contributor and a new machine can work with the latest information
+without having to install Live first; running this script again regenerates them.
+
+The name of a schema comes from the Creator attribute of the demo sets, which holds the version
+of Live that wrote them: sets written by "Ableton Live 12.4d1" produce live_12.4d1.xsd.
+
+Every demo set of an installation is used. A schema inferred from a single set constrains the
+schema more than Live does, and so rejects the other sets of the same version.
+
+The sets Live wrote by converting a set of an older version are used as well. The schema of a
+version has to describe everything that version writes, and newer versions of Live write
+constructs that older demo sets do not have: a schema inferred from the demo sets alone
+rejects the file Live wrote.
+EOF
+  exit 5
+}
+
 
 set -euo pipefail
+
+if [ "${1:-}" = "-h" ]; then help; fi
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REFERENCE_SETS_DIR="${live_reference_sets:-$(cd "$PROJECT_DIR/../../../ableton/live_reference_sets" && pwd)}"
@@ -35,68 +43,83 @@ ABLETON_HOME="${1:-${ableton_home:-/mnt/c/ProgramData/Ableton}}"
 # Use the code in this repository, not an installed gem of the same name.
 export VO_DEBUGGING=1
 
-if [ ! -d "$ABLETON_HOME" ]; then
-  echo "No Ableton Live installations found in $ABLETON_HOME" >&2
-  exit 1
-fi
+function dump_env_vars {
+  echo "PROJECT_DIR='$PROJECT_DIR'"
+  echo "REFERENCE_SETS_DIR='$REFERENCE_SETS_DIR'"
+  echo "SCHEMA_DIR='$SCHEMA_DIR'"
+  echo "CONVERSIONS_DIR='$SCHEMA_DIR'"
+  echo "ABLETON_HOME='$ABLETON_HOME'"
+}
 
-mkdir -p "$SCHEMA_DIR"
-cd "$PROJECT_DIR"
-
-shopt -s nullglob
-shopt -s globstar
-
-generated=0
-for installation in "$ABLETON_HOME"/Live*/; do
-  installation="${installation%/}"
-  demo_dir="$installation/Resources/Core Library/Lessons/Demo Songs"
-  if [ ! -d "$demo_dir" ]; then
-    echo "Skipping $installation: no demo sets"
-    continue
+function check_live_installations {
+  if [ ! -d "$ABLETON_HOME" ]; then
+    echo "No Ableton Live installations found in $ABLETON_HOME" >&2
+    exit 6
   fi
+}
 
-  demo_sets=("$demo_dir"/*.als)
-  if [ ${#demo_sets[@]} -eq 0 ]; then
-    echo "Skipping $installation: no demo sets"
-    continue
-  fi
+function generate_xsds {
+  mkdir -p "$SCHEMA_DIR"
+  cd "$PROJECT_DIR"
 
-  demo_set="${demo_sets[0]}"
-  creator="$(zcat "$demo_set" | grep -m1 -o 'Creator="[^"]*"' | cut -d '"' -f2 || true)"
-  if [ -z "$creator" ]; then
-    echo "Skipping $demo_set: it has no Creator attribute"
-    continue
-  fi
+  shopt -s nullglob
+  shopt -s globstar
 
-  version="${creator#Ableton Live }"
-  schema="$SCHEMA_DIR/live_${version}.xsd"
-
-  samples=("${demo_sets[@]}")
-
-  # The sets of the repository of the reference sets: the sets Live wrote by converting a set
-  # of an older version, and the experimental sets. The repository was reorganized, and the
-  # sets of a version are in its own directory now, and the converted sets are in the
-  # experiments directory of the version they were made from.
-  for checked_in in "$CONVERSIONS_DIR"/**/*.als; do
-    [ -f "$checked_in" ] || continue
-    checked_in_creator="$(zcat "$checked_in" | grep -m1 -o 'Creator="[^"]*"' | cut -d '"' -f2 || true)"
-    [ -n "$checked_in_creator" ] || continue
-    checked_in_version="${checked_in_creator#Ableton Live }"
-    # The versions differ in their last part — "12.4d1" and "12.4.6" are the same Live — so the
-    # major version decides whether the set belongs to this schema.
-    if [ "${checked_in_version%%.*}" = "${version%%.*}" ]; then
-      samples+=("$checked_in")
+  generated=0
+  for installation in "$ABLETON_HOME"/Live*/; do
+    installation="${installation%/}"
+    demo_dir="$installation/Resources/Core Library/Lessons/Demo Songs"
+    if [ ! -d "$demo_dir" ]; then
+      echo "Skipping $installation: no demo sets"
+      continue
     fi
+
+    demo_sets=("$demo_dir"/*.als)
+    if [ ${#demo_sets[@]} -eq 0 ]; then
+      echo "Skipping $installation: no demo sets"
+      continue
+    fi
+
+    demo_set="${demo_sets[0]}"
+    creator="$(zcat "$demo_set" | grep -m1 -o 'Creator="[^"]*"' | cut -d '"' -f2 || true)"
+    if [ -z "$creator" ]; then
+      echo "Skipping $demo_set: it has no Creator attribute"
+      continue
+    fi
+
+    version="${creator#Ableton Live }"
+    schema="$SCHEMA_DIR/live_${version}.xsd"
+
+    samples=("${demo_sets[@]}")
+
+    # The sets of the repository of the reference sets: the sets Live wrote by converting a set
+    # of an older version, and the experimental sets. The repository was reorganized, and the
+    # sets of a version are in its own directory now, and the converted sets are in the
+    # experiments directory of the version they were made from.
+    for checked_in in "$CONVERSIONS_DIR"/**/*.als; do
+      [ -f "$checked_in" ] || continue
+      checked_in_creator="$(zcat "$checked_in" | grep -m1 -o 'Creator="[^"]*"' | cut -d '"' -f2 || true)"
+      [ -n "$checked_in_creator" ] || continue
+      checked_in_version="${checked_in_creator#Ableton Live }"
+      # The versions differ in their last part — "12.4d1" and "12.4.6" are the same Live — so the
+      # major version decides whether the set belongs to this schema.
+      if [ "${checked_in_version%%.*}" = "${version%%.*}" ]; then
+        samples+=("$checked_in")
+      fi
+    done
+
+    echo "Generating $schema from ${#samples[@]} sets"
+    bundle exec ruby exe/als_to_xsd -f "$schema" "${samples[@]}"
+    generated=$((generated + 1))
   done
 
-  echo "Generating $schema from ${#samples[@]} sets"
-  bundle exec ruby exe/als_to_xsd -f "$schema" "${samples[@]}"
-  generated=$((generated + 1))
-done
+  if [ "$generated" -eq 0 ]; then
+    echo "No schemas were generated" >&2
+    exit 7
+  fi
+  echo "Generated $generated schemas in $SCHEMA_DIR"
+}
 
-if [ "$generated" -eq 0 ]; then
-  echo "No schemas were generated" >&2
-  exit 1
-fi
-
-echo "Generated $generated schemas in $SCHEMA_DIR"
+# dump_env_vars
+check_live_installations
+generate_xsds

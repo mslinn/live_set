@@ -1,7 +1,7 @@
 # The clips of the audio side of a track.
 #
-# A collection of the clips, in the order Live wrote them. Each of them knows the place it
-# is in: the session view, the arrangement, or a take lane.
+# A collection of the clips, in the order they appear in the file. Each of them knows the
+# place it is in: the session view, the arrangement, or a take lane.
 class LiveAudioClips
   include Enumerable
 

@@ -55,6 +55,9 @@ class AlsNodes
 
     print_results results, found
     0
+  rescue StandardError => e
+    warn e.full_message
+    exit 1
   end
 
   # Prints what the command found.

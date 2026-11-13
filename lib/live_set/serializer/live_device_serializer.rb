@@ -1,3 +1,4 @@
+require_relative 'hierarchical_number_serializer'
 require_relative 'live_markup'
 
 # Serializes a `LiveDevice` model as markdown.
@@ -16,11 +17,14 @@ class LiveDeviceSerializer
   # Creates a serializer for the given device.
   #
   # @param device [LiveDevice] the device to be serialized
-  # @param hierarchical_number [String] the number of the device in the report
+  # @param hierarchical_number [HierarchicalNumber] the number of the device in the report
+  # @param slot_label [String] the name of the devices of a kind of track: `Track Device` or
+  #   `Group Track Device`
   # @param track_frozen [Boolean] true when the track the device is on is frozen
-  def initialize(device, hierarchical_number, track_frozen: false)
+  def initialize(device, hierarchical_number, slot_label:, track_frozen: false)
     @device = device
     @hierarchical_number = hierarchical_number
+    @slot_label = slot_label
     @track_frozen = track_frozen
   end
 
@@ -28,17 +32,31 @@ class LiveDeviceSerializer
   #
   # @return [String] the serialized markdown
   def to_markdown
-    parts = [name_markdown, @device.kind]
-    parts << NOT_USABLE if unusable?
-    parts.join '  '
+    HierarchicalNumberSerializer.new(@hierarchical_number, text).to_markdown
+  end
+
+  # Returns the device as HTML.
+  #
+  # @return [String] the serialized HTML
+  def to_html
+    HierarchicalNumberSerializer.new(@hierarchical_number, text).to_html
   end
 
   private
 
+  # The text of the device: the name of the slot it is in, its number, its name and its kind.
+  #
+  # @return [String] the text
+  def text
+    parts = ["#{@slot_label} #{@hierarchical_number}", name_markdown, @device.kind]
+    parts << NOT_USABLE if unusable?
+    parts.join '  '
+  end
+
   # The name of the device.
   #
   # A device that P3S Standalone cannot run is written on the dark background of the
-  # things it cannot run on, and the name of it is in light text.
+  # nodes it cannot run on, and the name of it is in light text.
   #
   # @return [String] the name of the device
   def name_markdown

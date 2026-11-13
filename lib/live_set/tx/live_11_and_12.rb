@@ -238,7 +238,7 @@ class Live11And12 < LiveVersionConverter
   # Live 11 writes the four curve control attributes of every note event, and Live 12 writes them
   # only when the curve is not the default.
   #
-  # The attributes are written in the order Live writes them in, so this list is in that order
+  # The attributes are written in in the order they appear in the file, so this list is in that order
   # and not in alphabetical order, even though the keys could be sorted.
   default_attribute( # sorted alphabetically by key
     'MidiNoteEvent' => {
@@ -449,7 +449,7 @@ class Live11And12 < LiveVersionConverter
   #
   # Live 12 writes the settings of the note layout of the track, and Live 11 does not.
   #
-  # The elements are written in the order Live writes them in, so this list is in that order and
+  # The elements are written in in the order they appear in the file, so this list is in that order and
   # not in alphabetical order, even though the names could be sorted.
   CONTROLLER_LAYOUT = [ # sorted alphabetically by name
     { name: 'PitchClassSource', attributes: { 'Value' => '0' } },

@@ -2,6 +2,7 @@ require 'spec_helper'
 require 'live_set/model/live_take_lanes'
 require 'live_set/serializer/live_take_lane_serializer'
 require 'support/live_sets'
+require 'support/numbers'
 
 # A take lane of a track.
 #
@@ -20,15 +21,15 @@ RSpec.describe LiveTakeLaneSerializer, '#to_markdown' do
   end
 
   it 'writes the line of the lane: its number and its name' do
-    markdown = described_class.new(take_lane('Pink Noise - EDMtips.com'), '1.1').to_markdown
-    expected = markdown.first.chomp
+    markdown = described_class.new(take_lane('Pink Noise - EDMtips.com'),
+                                   ReportNumbers.number('G', 1, 1)).to_markdown
 
-    expect(expected).to eq '    - Take lane 1.1  Pink Noise - EDMtips.com'
+    expect(markdown.lines.first.chomp).to eq '  - Take lane G1.1  Pink Noise - EDMtips.com'
   end
 
   it 'writes the MIDI clips of the lane under it' do
-    expected = described_class.new(take_lane('Kontakt 7'), '1.1').to_markdown.join("\n")
+    expected = described_class.new(take_lane('Kontakt 7'), ReportNumbers.number('G', 1, 1)).to_markdown
 
-    expect(expected).to include('- Clip 1.1.1 (×3) ')
+    expect(expected).to include('- Clip G1.1.1 (×3) ')
   end
 end

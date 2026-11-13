@@ -43,7 +43,10 @@ class AlsToVersion
     puts "Writing #{result.path}"
     0
   rescue LiveSetConverter::AlreadyExists => e
-    puts e.message.red
+    warn e.message
+    3
+  rescue StandardError => e
+    warn e.full_message
     1
   end
 

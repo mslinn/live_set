@@ -76,26 +76,26 @@ RSpec.describe HierarchicalNumber do
   end
 
   describe '#indent_for' do
-    it 'is two spaces at the top' do
-      expect(number.indent_for).to eq '  '
+    it 'is nothing at the top' do
+      expect(number.indent_for('  ')).to eq ''
     end
 
-    it 'is two spaces for each level' do
+    it 'is one level of indentation for a level below the top' do
       number.indent
 
-      expect(number.indent_for).to eq '    '
+      expect(number.indent_for('  ')).to eq '  '
     end
 
-    it 'is two spaces for each level of two levels' do
+    it 'is two levels of indentation for two levels below the top' do
       number.indent.indent
 
-      expect(number.indent_for).to eq '      '
+      expect(number.indent_for('  ')).to eq '    '
     end
 
     it 'takes the indentation of a level' do
       number.indent
 
-      expect(number.indent_for('.')).to eq '..'
+      expect(number.indent_for('.')).to eq '.'
     end
   end
 end

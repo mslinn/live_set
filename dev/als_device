@@ -2,11 +2,21 @@
 
 function help {
   cat <<EOF
-  $1
+$1
 
-  $(basename $0) - Find all devices or a specific device from its ID.
+$(basename $0) - Find all devices or a specific device from its ID.
 
-  Usage: $(basename $0) ALS_FILE ID
+Usage: $(basename $0) als_device ALS_FILE ID
+
+Examples:
+live_11_demos="$live_reference_sets/sets/live_11/demo/projects_and_als/"
+live11set="$live_11_demos/Ninajirachi - In The Rain (Live 11 Suite Demo).als"
+dev/$(basename $0) "$live11set" 1
+
+
+live_12_demos="$live_reference_sets/sets/live_12/demo/projects_and_als/"
+live12set="$live_12_demos/Chuck Sutton - Patience (Live 12 Suite Demo).als"
+dev/$(basename $0) "$live12set" 1
 EOF
   exit 1
 }
@@ -20,10 +30,55 @@ ID="$2"
 if [[ ! "$ALS_FILE" ]]; then help "Error: No ALS file was specified"; fi
 if [[ ! "$ID" ]]; then help "Error: No device ID was specified"; fi
 
-echo "XPath to device with ID=10:"
-# This does not show the name of the device
-als_nodes "$ALS_FILE" \
-  "//DeviceChain/DeviceChain/Devices/*[@Id=$ID]/ancestor::*/self::*" --name | \
-    jq -r '"//" + join("/")'
-als_nodes "$ALS_FILE" \
-  "//DeviceChain/DeviceChain/Devices/*[@Id=$ID]"
+# Unique selector for the specific target device node itself
+TARGET_NODE="(//DeviceChain/DeviceChain/Devices/*[@Id=$ID])[1]"
+
+# Unique selector for the target device instance
+CONTAINER_XPATH="($TARGET_NODE/ancestor::Devices)[last()]"
+
+# Verify that the device ID actually exists
+if [[ -z "$(als_nodes "$ALS_FILE" "$TARGET_NODE" 2>/dev/null)" ]]; then
+  MAX_ID=$(als_nodes "$ALS_FILE" "//DeviceChain/DeviceChain/Devices/*[@Id]" --attribute Id | jq -r '[.[] | tonumber] | max')
+  cat <<EOF >&2
+Error: Device ID $ID not found.
+Valid IDs range from 1 to $MAX_ID.
+EOF
+  exit 1
+fi
+
+# Display XPath for the header
+XPATH="$(
+  als_nodes "$ALS_FILE" "$CONTAINER_XPATH/ancestor::*/self::*" --name | \
+    jq -r '"//" + ([.[]] | reduce .[] as $x ([]; if .[-1] == $x then . else . + [$x] end) | join("/"))'
+)"
+
+# Count devices specifically within this exact parent container
+COUNT="$(
+  als_nodes "$ALS_FILE" "$CONTAINER_XPATH" --count
+)"
+
+# Get child names and IDs
+DEVICE_NAMES="$(als_nodes "$ALS_FILE" "$CONTAINER_XPATH/*" --name | jq -r '.[]')"
+
+DEVICE_IDS="$(als_nodes "$ALS_FILE" "$CONTAINER_XPATH/*" --attribute Id | jq -r '.[]')"
+
+NUMBERED_DEVICES="$(
+  paste <(echo "$DEVICE_IDS") <(echo "$DEVICE_NAMES") | \
+    awk '{print "  ID " $1 ": " $2}'
+)"
+
+NODE="$(
+  als_nodes "$ALS_FILE" "$TARGET_NODE"
+)"
+
+cat <<EOF
+XPath to parent of device with ID=${ID}:
+$XPATH
+
+The parent has $COUNT devices:
+$NUMBERED_DEVICES
+
+This is device #${ID}:
+
+$NODE
+EOF

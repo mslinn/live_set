@@ -1,3 +1,4 @@
+require_relative '../../common/log'
 require_relative '../../common/xml'
 require_relative 'live_device'
 require_relative 'live_take_lanes'
@@ -14,11 +15,36 @@ require_relative 'live_take_lanes'
 # What is left to the classes themselves is what makes the kinds different: the kind of the track, and the clips it
 # holds.
 module LiveTrackFacts
+  # The icon of each kind of track.
+  #
+  # Live 12 renamed the master track to the main track, and it is the same thing, so it has
+  # the same icon.
+  TRACK_TYPE_ICONS = {
+    'Audio'  => '🎵',
+    'Group'  => '👥',
+    'Main'   => '🎚️',
+    'Master' => '🎚️',
+    'MIDI'   => '🎹',
+    'Return' => '↩️',
+  }.freeze
+
   # The id Live gave the track.
   #
   # @return [String, nil] the id
   def id
     @element['Id']
+  end
+
+  # The icon of this kind of track.
+  #
+  # A kind of track that is not in the map is a programming error, and it is reported.
+  #
+  # @return [String] the icon, or a bomb for a kind of track that is not in the map
+  def icon
+    return TRACK_TYPE_ICONS[kind] if TRACK_TYPE_ICONS.key?(kind)
+
+    Log.warn("Unexpected track type: #{kind.inspect}")
+    '💣'
   end
 
   # Whether the track is a group track.
@@ -117,6 +143,34 @@ module LiveTrackFacts
     @take_lanes ||= LiveTakeLanes.new @element
   end
 
+  # The number of the things of the track that come before its take lanes.
+  #
+  # The devices of the track come first, then its clips, and then its take lanes, and the
+  # report numbers the lanes among the other children of the track.
+  #
+  # @return [Integer] the number of the things
+  def children_before_the_take_lanes
+    devices.size + different_clip_count + different_audio_clip_count
+  end
+
+  # The number of the different MIDI clips of the track.
+  #
+  # The copies of a clip that are alike are one clip.
+  #
+  # @return [Integer] the number of the clips
+  def different_clip_count
+    clips.group_by(&:key).length
+  end
+
+  # The number of the different clips of the audio side of the track.
+  #
+  # The copies of a clip that are alike are one clip.
+  #
+  # @return [Integer] the number of the clips
+  def different_audio_clip_count
+    audio_clips.group_by(&:key).length
+  end
+
   # Whether the track is frozen.
   #
   # @return [Boolean] true when the track is frozen
@@ -192,7 +246,7 @@ module LiveTrackFacts
 
   # The Max for Live devices of the track.
   #
-  # A Max for Live device is supported by the P3S Standalone, but with less CPU headroom,
+  # A Max for Live device is supported by the P3S Standalone, but because the P3S has a weak CPU, demanding M4L devices may not work properly.,
   # so it is a matter of advice rather than of transfer. See README.md, "Push 3 Standalone
   # (P3S)".
   #

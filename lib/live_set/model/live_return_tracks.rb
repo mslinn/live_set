@@ -2,7 +2,7 @@ require_relative 'live_return_track'
 
 # The return tracks of a set.
 #
-# A collection of the tracks, in the order Live wrote them.
+# A collection of the tracks, in the order they appear in the file.
 class LiveReturnTracks
   include Enumerable
 
@@ -10,7 +10,7 @@ class LiveReturnTracks
 
   # @param set_directory [String] the directory of the set
   # @param elements [Array<Nokogiri::XML::Element>] the `<ReturnTrack>` elements, in the order
-  #   Live wrote them
+  #   they appear in the file
   def initialize(set_directory, elements)
     @tracks = elements.map { |element| LiveReturnTrack.new set_directory, element }
   end
