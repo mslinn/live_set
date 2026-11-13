@@ -118,16 +118,16 @@ to generate markdown.
 The `LiveTracks` class models the ALS XLM `<Tracks>` element. It deviates from
 the usual pattern in that it has several types of child classes, including
 `LiveMidiTracks` and `LiveAudioTracks`. `LiveTracks` also holds a list of track ids in
-the order Live wrote them.
+the order they appear in the file.
 
 |                    |                                                                             |
 | ------------------ | --------------------------------------------------------------------------- |
-| `track_ids`        | the ids of the tracks of the set, in the order Live wrote them              |
+| `track_ids`        | the ids of the tracks of the set, in the order they appear in the file      |
 | `midi_tracks`      | the MIDI tracks of the set, and the MIDI tracks of a group                  |
 | `audio_tracks`     | the audio tracks of the set, and the audio tracks of a group                |
 | `return_tracks`    | the return tracks of the set                                                |
 | `groups`           | the groups of the set                                                       |
-| `top_level_tracks` | the tracks that are in no group, in the order Live wrote them               |
+| `top_level_tracks` | the tracks that are in no group, in the order they appear in the file       |
 | `audio_clips`      | the clips of the audio side of every track of the set                       |
 | `blocking_tracks`  | the tracks that stop the set from being transferred, and the devices that do |
 | `blocking_groups`  | the groups that stop the set from being transferred, and the devices that do |

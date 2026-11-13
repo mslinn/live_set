@@ -633,7 +633,7 @@ A program, in this repository, with a stable API. **Nothing to install.**
 
 ```text
 spec/support/live_harness/
-├── live_installations.rb   # where Live is, and where its log and preferences are
+├── als_find_live   # where Live is, and where its log and preferences are
 ├── live_log.rb            # read the log: what was loaded, did it finish, did it crash
 ├── live_recovery.rb       # read the crash-recovery state
 ├── live_keys.rb           # send a keypress to Live

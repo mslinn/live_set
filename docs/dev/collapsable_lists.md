@@ -202,6 +202,12 @@ LiveAudioClipsSerializer, LiveAudioTracksSerializer, LiveDevicesSerializer,
 LiveGroupsSerializer, LiveMidiTracksSerializer, LiveReturnTracksSerializer,
 LiveTakeLanesSerializer, LiveTrackCollectionSerializer, LiveTracksSerializer.
 
+The base classes of the collections and of the tracks:
+LiveCollectionSerializer, LiveTrackSerializer.
+
+The class that writes an item of the list, with its number and the things under it:
+HierarchicalNumberSerializer.
+
 The composers, each of which writes the report that holds the list:
 AlsModelSerializer, LiveProjectSerializer.
 

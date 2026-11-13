@@ -10,6 +10,20 @@ The workflow is described in [als_work.md](als_work.md).
 
 The terms these documents use are defined in [glossary.md](../glossary.md).
 
+## Live Sets Examined and Generated
+
+This document is based on the official Ableton demo sets and experimental sets
+created for reverse engineering.
+
+### Demo Sets
+
+See [$live_reference_sets/docs/demo_sets.md](https://github.com/mslinn/live_reference_sets/tree/master/docs/demo_sets.md).
+
+### Experimental Sets
+
+See [$live_reference_sets/docs/experimental_sets.md](https://github.com/mslinn/live_reference_sets/tree/master/docs/experimental_sets.md).
+
+
 ## ALS Files Are XML, Probably GZipped
 
 An `.als` file is an XML document. Most are gzip-compressed, but uncompressed
@@ -110,12 +124,17 @@ within a collection have attributes that provide their positions on the timeline
 </Ableton>
 ```
 
+## Device IDs Are Not Unique
+
+Ableton assigns device `Id` numbers sequentially for each track rather than
+globally across the project.
 
 ## ALS Schemas
 
 TODO We have found that standard XML schemas (`.xsd` filetype) have limited use
 in this project. Ableton Live is shipped with proprietary and undocumented
-schemas that we should reverse engineer. See `C:\ProgramData\Ableton\Live 12 Suite\Resources\Schema`.
+schemas that we should reverse engineer. See `C:\ProgramData\Ableton\Live 12
+Suite\Resources\Schema`.
 
 ### Ableton Schemas
 
@@ -172,10 +191,6 @@ This is the top-level element since the Ableton schema does not contain the
  </LiveSet>
 ```
 
-
-#### `AudioClip` Element
-
-TODO write me.
 
 ### Standard XML Schemas
 
@@ -236,8 +251,10 @@ $ zcat -S .als '/mnt/e/media/songs/jamdance/daw/live/fu Project/fu.als' | less -
      35           <TakeLanes />
 ```
 
+Use `als_nodes` and other commands provided by this project to explore Live
+sets. Instead of writing code like this:
 
-```text
+```ruby
 @audiotrack = LiveSet.Tracks.AudioTrack.
   DeviceChain.MainSequencer.ClipSlotList.ClipSlot.children.
     ClipSlot.Value.children. # Passed to LiveAudioClip
@@ -247,18 +264,79 @@ $ zcat -S .als '/mnt/e/media/songs/jamdance/daw/live/fu Project/fu.als' | less -
         OriginalFileSize['Value'] # Bytes
 ```
 
+And instead of using `zcat` like this:
+
+```shell
+$ zcat "$demo_12_suite" | less -x2
+```
+
+Use `als_nodes`:
+
+```shell
+$ CLIPSLOT="//AudioTrack/DeviceChain/MainSequencer/ClipSlotList/ClipSlot"
+$ als_nodes "$demo_12_suite" "$CLIPSLOT" \
+  --max 1 \
+  --children | \
+    jq -r '.[]' | \
+    sort -u
+ArrangementClipsListWrapper
+AutomationEnvelopes
+ClipSlotsListWrapper
+Color
+DeviceChain
+DevicesListWrapper
+Freeze
+IsContentSelectedInDocument
+IsTuned
+LinkedTrackGroupId
+LomId
+LomIdView
+Name
+PostProcessFreezeClips
+PreferredContentViewMode
+SavedPlayingOffset
+SavedPlayingSlot
+TakeLanes
+TakeLanesListWrapper
+TrackDelay
+TrackGroupId
+TrackUnfolded
+ViewData
+
+$ als_nodes "$demo_12_suite" "$CLIPSLOT/ClipSlot/Value/AudioClip/SampleRef/FileRef/Path" | sort -u
+<Path Value="/Volumes/data/tmp/trunk/Core Library/Samples/Loops/Tonal/Vocal/Vocal Patience Adlib.wav"/>
+<Path Value="/Volumes/data/tmp/trunk/Core Library/Samples/Loops/Tonal/Vocal/Vocal Patience Harmony.wav"/>
+<Path Value="/Volumes/data/tmp/trunk/Core Library/Samples/Loops/Tonal/Vocal/Vocal Patience Hum.wav"/>
+<Path Value="/Volumes/data/tmp/trunk/Core Library/Samples/Loops/Tonal/Vocal/Vocal Patience Main.wav"/>
+
+$ als_nodes "$demo_12_suite" "//PostProcessFreezeClips/parent::*"  --max 1 | less
+
+$ als_nodes "$demo_12_suite" "//PostProcessFreezeClips/ancestor::*" --max 1 | less
+
+# Find the XPath to the parent of the Drift device with ID 10:
+$ als_nodes "$demo_12_suite" \
+  "//DeviceChain/DeviceChain/Devices/Drift[@Id="10"]/ancestor::*" --name | \
+    jq -r '"//" + join("/")'
+//Ableton/LiveSet/Tracks/MidiTrack/DeviceChain/DeviceChain/Devices
+```
+
 
 Clip paths can look like this:
 
+```ruby
+@audio_track.DeviceChain.FreezeSequencer.ClipSlotList.ClipSlot
+@audio_track.DeviceChain.Mixer.ClipSlotList.ClipSlot
+@audio_track.xpath('//Path').map{|x| x['Value']}.uniq
+```
+
+Results:
+
 ```text
-    # @audio_track.DeviceChain.FreezeSequencer.ClipSlotList.ClipSlot
-    # @audio_track.DeviceChain.Mixer.ClipSlotList.ClipSlot
-    # @audio_track.xpath('//Path').map{|x| x['Value']}.uniq # Gives results like:
-    #   "E:/media/Ableton/Projects/fu Project/Samples/Processed/Freeze/Freeze Guitar [2024-03-12 133812].wav"
-    #   "E:/media/Ableton/Projects/fu Project/Samples/Imported/smooth_operator_horns.mp3"
-    #   "/Reverb Default.adv"
-    #   "/Users/nsh/Library/Application Support/Ableton/Live 11 Core Library/Devices/Audio Effects/Simple Delay/Dotted Eighth Note.adv"
-    #   "E:/media/Ableton/Projects/fu Project/Audio Effects/Color Limiter/Ableton Folder Info/Color Limiter.amxd"
+"E:/media/Ableton/Projects/fu Project/Samples/Processed/Freeze/Freeze Guitar [2024-03-12 133812].wav"
+"E:/media/Ableton/Projects/fu Project/Samples/Imported/smooth_operator_horns.mp3"
+"/Reverb Default.adv"
+"/Users/nsh/Library/Application Support/Ableton/Live 11 Core Library/Devices/Audio Effects/Simple Delay/Dotted Eighth Note.adv"
+"E:/media/Ableton/Projects/fu Project/Audio Effects/Color Limiter/Ableton Folder Info/Color Limiter.amxd"
 ```
 
 
@@ -689,7 +767,7 @@ ViewData
 ## Track Kinds
 
 The `<Tracks>` element can hold four kinds of track elements, and it holds them
-in the order Live they were created.
+in the order they appear in the file.
 
 ```shell
 $ als_nodes "$pinkblanket" //Tracks --children | \

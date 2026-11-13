@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 require 'open3'
 
 # Finds the Ableton Live installations on this machine.

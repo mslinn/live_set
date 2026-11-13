@@ -459,7 +459,7 @@ written before the serializer that writes it.
 
 **The report as a whole has a spec of its own.** One spec asserts that the report of a set
 is the report that is checked in, so that a change to any part of it cannot slip through
-the specs of the parts. The checked-in reports are the ones `dev/generate_reference_als_reports`
+the specs of the parts. The checked-in reports are the ones `dev/als_generate_reference_reports`
 writes, and the spec reads them from the repository of the reference sets.
 
 **The fixture.** The model of a set is inflated from the XML of a real set, and the XML of

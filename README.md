@@ -1,11 +1,11 @@
 # `Live_set` [![Gem Version](https://badge.fury.io/rb/live_set.svg)](https://badge.fury.io/rb/live_set)
 
 <blockquote style="border: 1px solid currentColor; padding: 12px; border-radius: 4px;">
-This project is in a state of flux.
-The published gem was a proof of concept.
-All code and comments are aspirational until this message is deleted.
-The current code probably does not work and the docs are a mess.
-Come back real soon now, and things should be much better!
+  This project is in a state of flux.
+  The published gem was a proof of concept.
+  All code and comments are aspirational until this message is deleted.
+  The current code probably does not work and the docs are a mess.
+  Come back real soon now, and things should be much better!
 </blockquote>
 
 
@@ -24,178 +24,55 @@ This software can:
 
 5. Show changes that are made to a Live set.
 
-6. Show changes persisted to file storage each time a Live session is saved in real time.
+6. Show changes persisted to file storage each time a Live session is saved in
+   real time.
 
-7. Clearly show if a Live set is ready to be transferred to a P3S,
-   and what needs to be changed if not.
+7. Clearly show if a Live set is ready to be transferred to a P3S, and what
+   needs to be changed if not.
 
    a. Detect sets that are too large to be frozen, which means they are too
    large to transfer to P3S.
 
    b. Detect tracks that have non-Ableton plugins are not frozen, which means
-   they are not ready to be transferred to P3S.
+   they are not ready to be transferred to
+   P3S.
 
    c. Detect group tracks that have non-Ableton plugins. A group track cannot be
-   frozen unless Options.txt allows it. The plugin has to be
-   removed from the group&rsquo;s chain, or the group has to be bounced to
-   another track and then be disabled.
+   frozen unless Options.txt allows it.  The plugin has to be removed from the
+   group&rsquo;s chain, or the group has to be bounced to another track and then
+   be disabled.
 
-   d. Show clips that are have not been collected within the set&rsquo;s
-   project directory.
+   d. Show clips that are have not been collected within the set&rsquo;s project
+   directory.
 
 8. Report the samples in frozen tracks. During playback, a frozen track
-   *shadows* the track with the editable material. Both tracks are reported.
+   *shadows* the track with the editable material.  Both tracks are reported.
 
 
 ## Current Project Status
 
-The published gem converted the Ableton Live 12 demo project to Live 11. Other
-functionality has been tested with Live 8.6 session files.
-
-The conversion the published gem performed was a selective removal: it wrote the
-Live 11 version strings, removed the three elements that Live 11 does not have,
-and copied everything else through unchanged. Two elements that Live 11 *does*
-have were translated rather than removed, because Live 12 names them
-differently — see
-[docs/dev/live_11_12_diff.md](docs/dev/live_11_12_diff.md#the-elements-the-two-versions-name-differently).
-
-The conversion in this repository is not yet known to produce a set that Live 11
-opens: the lane types are the open risk (See `TODO.md` N42).
-
 The demo programs provided with each version of Ableton Live are an important
 source of information.
+
+The published gem converted the Ableton Live 12 demo project to Live 11, with
+known errors. Other functionality has been tested with Live 8.6 session files.
+
+The up-conversion the published gem performed was a selective removal: it wrote the
+Live 11 version strings, removed the three elements that Live 11 does not have,
+and copied everything else through unchanged. Two elements that Live 11 does
+have were translated rather than removed, because Live 12 names them differently
+— see
+[docs/dev/live_11_12_diff.md](docs/dev/live_11_12_diff.md#the-elements-the-two-versions-name-differently).
+
+The down-conversion in this repository does not produce a set that Live 11
+opens: the lane types are one of the problems (see
+[`docs/TODO.md`](docs/TODO.md) N42).
 
 
 ## Push 3 Standalone (P3S)
 
-Importing Ableton Live project files to the P3S is a painful process. Debugging
-can be frustrating. You sometimes feel like you are spending more time
-struggling with the technology than you are getting useful work done.
-
-The `als_report` command from `Live_set` reports on the status of an Ableton
-Live set and gives a go/no go signal for transmission to a P3S.
-
-P3S runs an embedded version of Live internally. The earliest compatible version
-of a Live set that can be transferred to a P3S is Live 11. Live 12 sets can also
-be transferred; the latest supported version is Live 12.4.
-
-### Reported Problems
-
-A Live Set may fail to open, open with missing content, or open but behave
-differently on Push 3 Standalone for several reasons. The `als_report` command
-reports the ones it can see, and says what to do about each of them.
-
-1. Third-Party Plugins (VST / VST3 / AU)
-
-    An unfrozen track will cause a error (or fail to produce sound) on a P3S if
-    it relies on an unsupported device or routing that the P3S does not support.
-
-    The P3S runs a customized version of Ableton Live that does not support
-    non-Ableton devices, such as VST2, VST3, Audio Units (AU), or CLAP plugins.
-
-    If an unfrozen track uses any of these non-Ableton plugins, the P3S will
-    throw a "Missing Plugin" or "Plugin not available" error when loading the
-    set. The track will either be completely silent or replaced by a blank
-    placeholder device.
-
-    Freezing a track renders the it to an audio file, making a permanent
-    recording of the plugin's sound processing. Frozen tracks are easily played
-    back by the P3S, so the plugin can be ignored while the track is frozen.
-
-    If any non-Ableton plugin is not on a frozen track then the `als_report`
-    command includes a clear explanation of the problem in its generated report.
-    A MIDI track has the same devices as an audio track, and the same problems:
-    a plug-in on a MIDI track has to be frozen as well.
-
-2. Missing Samples or Media
-
-    Transferring just the .als leaves the files it refers to behind. The whole
-    project has to be transferred, or the set has to be saved with Collect All
-    and Save. The report counts the clips of the set that have not been
-    collected.
-
-3. Packs
-
-    A set that plays a file of a pack refers to the pack, and the pack has to be
-    installed for the file to be found. Samples from packs require those packs
-    to be installed on the Push as well.
-
-    A pack that is not installed does not stop the set from loading, and the set
-    plays: the content of the pack does not play. There is no way to probe the P3S,
-    so what is installed on it is not known here, and a set that refers to a pack
-    can only be classified as *probably* ready. The report says what could not be
-    checked, and it names the packs the set refers to that are not installed on
-    the computer the report was made on.
-
-4. Incompatible or Overloaded Max for Live (M4L) Devices
-
-    While the P3S does support Max for Live, the P3S has less CPU headroom than a
-    modern desktop computer.
-
-    Complex M4L devices might fail to load, throw DSP overload errors, or cause the
-    entire set to crash on the standalone unit.
-
-    Freezing an M4L device renders its output to audio, removing the CPU load and
-    the need for the Max runtime to process it in real-time.
-
-    The report treats a Max for Live device as advice and not as an error: the
-    device is supported by the P3S, and the report names the devices of the set
-    that use one, so that they can be frozen if they overload the P3S.
-
-    You do not need to freeze tracks that only use:
-
-    - Native Ableton Instruments: Simpler, Sampler, Drum Rack, Wavetable, Operator,
-      etc. (These are built into the Push 3 OS).
-    - Native Ableton Effects: EQ Eight, Compressor, Reverb, Delay, etc.
-    - External MIDI Hardware: If a track is set to "MIDI To" an external hardware
-      synth connected to the Push 3's MIDI out ports, it will work perfectly. The
-      Push 3 will just send the MIDI notes out to your gear.
-
-5. Live Version Mismatch
-
-    The oldest version of Live the P3S Standalone can load a set of is Live 11.3.
-    The P3S Standalone runs a version of Live of its own, and it loads a set only
-    when the set was made with that version of Live or with a later one: a P3S
-    Standalone that has Live 12.3 in it cannot load a set that was made with
-    Live 12.4. The version of Live the P3S Standalone has is not known to the
-    report, so the oldest version it supports is the one that is checked.
-
-6. The Arrangement View
-
-    Sets can load and play, but Arrangement View editing is not supported in
-    Standalone Mode; the Push is optimized for the Session View. A set that has
-    no clip in the session view is an empty set as far as the P3S is concerned.
-
-7. Capacity
-
-    A set may exceed the available CPU, memory, or track capacity for the Live
-    edition running on the Push. A set of more than 2 GB is incompatible with the
-    P3S Standalone.
-
-### Known Problems the Report Does Not Check
-
-The Licence of the Content
-
-    Whether the sound or the device of a set is available under the Live licence
-    that the P3S Standalone is authorized with cannot be checked here. A set that
-    uses content the licence does not cover loads and plays, but the content does
-    not play. The report does not check this.
-
-Desktop-Specific External Audio Routing
-
-    If a track's Audio From is set to "Ext. In" and routed to a specific channel of
-    a desktop audio interface (e.g., "Ext. In: 3/4" from a Focusrite Scarlett), that
-    routing will not exist on the P3S.
-
-    The track will load, but it will be silent because the expected input hardware
-    isn't there.
-
-    Freezing the track makes the Live set compatible with the P3S. Recording the
-    external audio into a clip, then freezing the track converts an external input
-    dependency into a self-contained audio clip and makes the Live set compatible
-    with the P3S.
-
-    The report does not check this yet.
+See [Push 3 Standalone (P3S)](docs/p3s.md) for features provided by this Ruby
+gem for supporting the P3S.
 
 
 ## Installation
@@ -206,8 +83,8 @@ Type:
 $ gem install live_set
 ```
 
-If the above does not work because you need to install Ruby, please
-[follow these instructions](https://www.mslinn.com/ruby/1000-ruby-setup.html).
+If the above does not work because you need to install Ruby, please [follow these
+instructions](https://www.mslinn.com/ruby/1000-ruby-setup.html).
 
 
 ## Upgrading
@@ -223,9 +100,10 @@ $ gem upgrade live_set
 
 The following commands are provided:
 
-- `als_delta` (used when Live is running) shows changes to a session file each
-  time the session is saved.
-- `als_diff` compares two sets element by element, and prints the differences.
+- [`als_delta`](docs/commands/als_delta.md) (used when Live is running) shows
+  changes to a session file each time the session is saved.
+- [`als_diff`](docs/commands/als_diff.md) compares two sets element by element,
+  and prints the differences.
 - `als_nodes` prints the nodes of an XML document that an XPath expression finds.
 - `als_release_notes` prints the release notes of a version of Live as markdown.
 - `als_report` writes a report of a Live set in markdown.
@@ -233,469 +111,22 @@ The following commands are provided:
 - `als_to_xsd` reads one or more Ableton Live sets and generates an XSD.
 - `als_validate` checks that a session file conforms to an XSD schema.
 
-The examples of how to use each command assume the `$live_set` environment
-variable points to an ALS file, for example:
+The examples of how to use each command assume the `$live_set` environment variable points to an ALS file, for example:
 
 ```shell
 live_12_demos="$live_reference_sets/sets/live_12/demo/projects_and_als/"
 live_set="$live_12_demos/Chuck Sutton - Patience (Live 12 Suite Demo).als"
-```
 
-
-### `als_delta`
-
-```text
-$ als_delta -h
-als_delta: Shows changes to an .als file each time a session file is saved.
-Press any key to make a backup of the current version of the `als` file and
-compare it with previous version.
-
-Backups can be kept by using the -k option. By default, only one backup is
-used, and it is deleted when the process exits.
-
-Syntax: als_delta [OPTIONS] PATH_TO_ALS_FILE
-
-Environment variables used in PATH_TO_ALS_FILE are expanded.
-
-OPTIONS can be specified anywhere on the command line:
-  -h, --help
-          Display this help message.
-  -k      Keep each backup and timestamp it, instead of overwriting the previous backup.
-  -l LOGLEVEL, --log LOGLEVEL
-          Set the log level. Allowable values are:
-          DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN.
-
-Example (references an environment variable called "path"):
-  $ als_delta "$path/to/my_set.als"
-```
-
-#### Example
-
-```shell
-$ als_delta "$live_set"
-Backing up Live set to '/mnt/c/ProgramData/Ableton/Live 12 Suite/Resources/Core Library/Lessons/Demo Songs/Chuck Sutton - Patience (Live 12 Suite Demo)_backup.als'
-Press any key to display the changes to the Live set XML file, or press Esc to exit.
-There were no changes to the saved live set.
-Press any key to display the changes to the Live set XML file, or press Esc to exit.
-Deleting '/mnt/c/ProgramData/Ableton/Live 12 Suite/Resources/Core Library/Lessons/Demo Songs/Chuck Sutton - Patience (Live 12 Suite Demo)_backup.als'
-```
-
-
-### `als_diff`
-
-```text
-Als_diff compares two Ableton Live sets element by element, and prints the
-differences.
-
-A Live set is XML, usually gzip-compressed, so the documents can be .als files
-or files containing XML extracted from an ALS file. The two documents are
-first promoted to the newer of the two ALS versions, and are then walked in
-parallel: the children of two elements are matched by their names, and the
-children that one of the elements has and the other does not are reported as
-differences. The attributes of two elements are compared as well.
-
-Syntax: als_diff [OPTIONS] FILE1 FILE2
-
-Where: FILE1 and FILE2 are paths
-
-OPTIONS can be specified anywhere on the command line:
-  -c, --count
-          Only return the number of differences. This is the highest priority option.
-  -h, --help
-          Display this help message.
-  -l LOGLEVEL, --log LOGLEVEL
-          Set the log level. Allowable values are:
-          DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN.
-  -m N, --max N
-          Return at most N differences
-  -s NAME, --skip NAME
-          Do not compare elements with this name, or any children.
-          This option may be specified more than once.
-
-The exit status is 0 when the documents are the same, and 1 when they are not.
-
-Examples:
-  als_diff live11.als live12.als
-  als_diff live11.als live12.als --skip Devices --skip DeviceChain
-  als_diff live11.als live12.als --count
-  als_diff --skip Devices --skip DeviceChain live11.als live12.als
-```
-
-
-### `als_nodes`
-
-```text
-Als_nodes prints the nodes of an XML document that an XPath expression finds.
-
-A Live set is XML, usually gzip-compressed, so the document can be a .als file or any XML
-file. The XPath expression is the only thing that has to change from one question to the
-next, which makes this the tool to reach for instead of writing a program for each
-element.
-
-Some options return XML results, some return plaintext, while others return JSON.
-
-Syntax: als_nodes [OPTIONS] FILE XPATH
-
-FILE is the path of the file, or a selector of a demo set, e.g. demo:12:suite.
-XPATH is an XPATH selector
-OPTIONS may be placed anywhere on the command line. They are:
-  --attribute NAME
-          Return the value of an attribute of each node as plaintext. The
-          option may be given more than once. The values of the attributes
-          are returned in the order the options were given.
-  --attributes
-          Return every attribute of each node, as a JSON dictionary (name/value pairs).
-          Has priority over the --attribute, --children and --name options.
-  --children
-          Return the names of the children of each node as a JSON array of text strings.
-          Has priority over the --attribute option.
-  --count Return the number of nodes that were found, and nothing else.
-  -h, --help
-          Display this help message.
-  -l LOGLEVEL, --log LOGLEVEL
-          Set the log level. Allowable values are:
-          DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN.
-  --max N Return at most N nodes. This is the highest priority option.
-  --name  Return the name of each node, not the node itself.
-  --unique
-          Remove duplicate results.
-
-Examples:
-  als_nodes set.als '//MidiTrack/IsTuned' --attribute Value
-  als_nodes set.als '//MidiTrack' --attribute Id --attribute SelectedToolPanel
-  als_nodes set.als '//MidiTrack' --attributes
-  als_nodes set.als '//LiveSet/Scenes/Scene/FollowAction' --children
-  als_nodes set.als '//LiveSet/MainTrack' --children | jq -r '.[]' | sort -u
-  als_nodes set.als '//MidiTrack' --count
-  als_nodes set.als '//MidiTrack' --count
-```
-
-#### What the command prints
-
-| The command | What it prints |
-| --- | --- |
-| `als_nodes FILE XPATH` | the XML of the nodes, one after another |
-| `--attribute NAME` | the value of the attribute, as plaintext |
-| `--attributes` | every attribute of the node, as a JSON dictionary of name/value pairs |
-| `--name` | the name of each node, as plaintext |
-| `--children` | the names of the children of each node, as a JSON array of text strings |
-| `--count` | the number of nodes that were found, and nothing else |
-
-`--attributes` has priority over `--children`, `--attribute` and `--name`, and `--children`
-has priority over `--attribute`.
-
-The XML is indented: every level of nesting is indented by two spaces, and the outermost
-element is at the start of a line.
-
-```shell
-$ als_nodes "$live_set" //FileRef --max 1
-<FileRef>
-  <RelativePathType Value="6"/>
-  <RelativePath Value="Samples/Pink Noise - EDMtips.com.wav"/>
-  <Path Value="/Users/owen/Music/Ableton/User Library/Samples/Pink Noise - EDMtips.com.wav"/>
-  <Type Value="2"/>
-  <LivePackName Value=""/>
-  <LivePackId Value=""/>
-  <OriginalFileSize Value="4130387"/>
-  <OriginalCrc Value="513"/>
-</FileRef>
-```
-
-
-### `als_release_notes`
-
-```text
-Als_release_notes prints the release notes of a version of Live as markdown.
-
-The release notes are the evidence the version_diff documents are built from.
-They say the changes to expect between version formats, and which version
-introduced each change. Release notes are written for the musicians who use
-Live, so they never give an element name or an attribute name, thus they are
-only a guide to the differences rather than a detailed source of information.
-
-Ableton provides the notes at https://www.ableton.com/en/release-notes/live-XX/,
-where XX is the version of Live. The fetched notes are cached in HTML at
-docs/release_notes/, one file per version. The cache allows the notes to be
-accessed easily. The release notes are fetched when there is a cache miss.
-
-The cache is found beside the command: the notes are packaged with the gem, so the
-command reads them wherever the gem is installed.
-
-Syntax: als_release_notes [OPTIONS] VERSION
-
-VERSION is the version of Live
-  Specifying just the major release (e.g. 12) returns the release notes for all
-  versions of that major release. Specifying the minor release (e.g. 12.0)
-  returns just the release notes for that minor release.
-
-OPTIONS can be specified anywhere on the command line:
-  -p PATTERN, --pattern PATTERN
-          Return the lines of the notes that match PATTERN with the release it belongs to.
-          PATTERN is case-insensitive.
-  -h, --help
-          Display this help message.
-  -l LOGLEVEL, --log LOGLEVEL
-          Set the log level. Allowable values are:
-          DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN.
-
-Examples:
-  als_release_notes 12          # output the release notes for all Live 12 versions
-  als_release_notes 12.0        # output the release notes for 12.0 only
-  als_release_notes 12.1        # output the release notes for 12.1 only
-  als_release_notes 12 --pattern "scale awareness"
-  diff <(als_release_notes 12.0) <(als_release_notes 12.1) # Show what changed between 12.0 and 12.1
-```
-
-
-
-### `als_report`
-
-```text
-$ als_report -h
-Als_report writes a report of an Ableton Live set in markdown, including but not
-limited to the groups, tracks, the devices, clips, take lanes, missing samples,
-and several cross-references.
-
-The report is written to stdout as markdown. Log output is written in plaintext
-to stderr.
-
-If the special folder called 'Ableton Project Info' is not present in the same
-folder as the .als file, a warning is generated. Similarly, if 'Ableton Project
-Info' is present in any parent folder, a warning is issued and the user is asked
-if the directory should be renamed.
-
-Syntax: als_report OPTIONS PATH_TO_ALS_FILE
-
-PATH_TO_ALS_FILE is the path of a set, or the path of a Live project directory. A
-project holds one or more sets, and each of them is reported.
-
-Environment variables used in PATH_TO_ALS_FILE are expanded.
-
-OPTIONS may be specified anywhere on the command line:
-  -a, --als NAME
-          Report only the `.als` file specifed by NAME and ignore all other `.als` files
-          in the project. This option may be provided more than once.
-  -c, --computer
-          Report the facts of the computer the report was made on: the packs that are
-          installed, the folders around the set, and the files that are there. They are
-          true of the machine and not of the set.
-  -h, --help
-          Display this help message.
-  -l LOGLEVEL, --log LOGLEVEL
-          Set the log level. Allowable values are:
-          DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN.
-  -s, --show_midi_and_audio_tracks_separately
-          Report the audio tracks and the MIDI tracks separately. By default, every
-          track is displayed in the order found in the ALS file.
-  -v      Show the version of this program and exit. This is the highest priority option.
-  -z      The time zone to use in the report in, e.g. America/Chicago. The default
-          is America/Toronto, unless the TZ environment variable is set. This option
-          overrides the TZ environment variable.
-
-Examples:
-  als_report \
-    -z Europe/Berlin \
-    --show_midi_and_audio_tracks_separately \
-    "$path_to_my_set/demo.als"
-
-   TZ=Europe/Berlin als_report \
-    --show_midi_and_audio_tracks_separately \
-    "$path_to_my_set/demo.als"
-```
-
-#### The Report
-
-`als_report` writes a report of a set in markdown: the tracks of the set and the
-groups they are in, the devices of each of them, the clips and the take lanes,
-the samples that are not in the project and the samples that are, the metadata
-of the set, the assets the set ships, the packs it refers to, and a
-cross-reference of the tracks and the clips.
-
-The path given to the command decides what the report is about: a path to a set
-is a report of the XML in that file, and a path to a Live project directory is a
-report of the project. See
-[docs/report_context.md](docs/report_context.md) for what the command is given,
-and [docs/dev/report_design.md](docs/dev/report_design.md) for the shape of the
-report.
-
-Every track of the set is written in the order Live saved it in. The
-`-s` / `--show_midi_and_audio_tracks_separately` option writes the audio tracks
-and the MIDI tracks in their own lists instead, which is easier to read when a
-set has many tracks of one kind.
-
-The names in the report are written on the colour Live gave the thing, so that
-the colour of a track, a group or a clip can be seen at a glance:
-
-- the name is written in a `<code>` element, and the colors are applied as a
-  style attribute;
-- colors are defined in class [`LivePalette`](lib/live_set/model/live_palette.rb);
-- Every node displayed in the markdown output of an ALS report is colored
-  according to the value for the corresponding node in the XML of the ALS. The
-  default Live colour palette is assumed.
-- a track, a group or a device that P3S cannot use is highlighted, and a sample
-  that is not in the project folder is highlighted differently.
-
-The styles are inline, because Mike is unaware of a widely accepted way to use
-stylesheets with markdown. (TODO is this possible?) The reports of the reference
-sets are in the associated repository of reference Live sets, and
-[sets/ANALYSIS.md](https://github.com/mslinn/live_reference_sets/blob/main/sets/ANALYSIS.md)
-describes what they hold.
-
-#### Sample Usage
-
-Report an ALS file this way:
-
-```shell
-live_home="/mnt/c/ProgramData/Ableton"
-live_12_home="$live_home/Live 12 Suite/Resources/Core Library/Lessons/Demo Songs"
-live_set="$live_12_home/Chuck Sutton - Patience (Live 12 Suite Demo).als"
-zcat "$live_set" | less -x2
-als_report "$live_set"
-```
-
-
-#### Sizes and Checksums
-
-A report is intended to be used in a courtroom as reliable evidence. It must
-display all relevant metadata (dates, size, permissions, owner, etc.), and it
-must prove that the set has not been tampered with.
-
-**Checksums:** A set is a gzipped XML document, and two files with the same
-content need not have the same bytes. The report carries both SHA-256 checksums
-of the set that was read:
-
-- the hash of the **file**, of the `.als` as it is on disk. It changes when
-  anything in the file changes, including the compression.
-- the hash of the **content**, of the XML the `.als` holds when it is inflated.
-  It says the material of the set did not change, however it was compressed.
-
-**Sizes:** Four of them, and the report says what each was computed from:
-
-| The size | What it is | How it was computed |
-| --- | --- | --- |
-| The set file | the size of the `.als` | the file on disk |
-| Expected Project Size | what the project should be, according to the `.als`: the set file, and every sample the set refers to that is in the project, counted once | the sizes Live recorded, and the size on disk where Live recorded zero |
-| Actual Project Size | what the project is, on disk | the files in the project folder |
-| Fully Resolved Size | everything the set draws on: the project, and the assets outside it | the expected size, with the assets outside the project added |
-
-A size that could not be computed says so: a project folder that is not there has no actual
-size, and the report says that instead of the expected one.
-
-The report contains a list of the assets of the set — the samples it ships — that explains
-the sizes: the path as the set writes it, the size of the file, and when it was last
-changed. A sample that is outside the set is marked as one that P3S cannot
-play, and a sample that is not on disk is marked as one that is missing from the project.
-The devices of Ableton are not in the list: they have no location, and they come with Live.
-
-The report ends with the state of the machine the report was made on: the
-'Ableton Project Info' folders around the set, and the packs the set refers to. A pack
-that is not installed is not a fault of the set — the set names the file, and the pack holds
-it — so the packs that are missing are reported on their own.
-
-The report says what made it — the version of `live_set`, and where the tool is
-documented: <https://www.mslinn.com/av_studio/ableton_live_set.html>.
-
-
-### `als_to_version`
-
-Convert a set to another version of the Live format, and write it out:
-
-```shell
-$ als_to_version 11 path/to/my_set_12.als path/to/my_set_11.als
-```
-
-The set is written to the same directory as the original set to be converted,
-unless another destination is named. The `-f` option overwrites any pre-existing
-destination set.
-
-```text
-$ als_to_version -h
-als_to_version converts a Live set to another version of the Live format.
-If SRC is already at the version it is converted to, the program says so and stops.
-
-Syntax: als_to_version [OPTIONS] VERSION SRC [DST]
-
-Where:
-  VERSION  is the Ableton Live version to be converted to, e.g. 11.
-  SRC      is the path of of the set to be converted, or a selector of a demo set,
-           e.g. demo:11:suite
-  DST      is the optional path to write the converted set to. Without it, the
-           converted set is written to the same directory as SRC, with the version
-           as a suffix. For example, if SRC is set.als, and VERSION is 11, the default
-           destination path would be set_11.als.
-
-OPTIONS can be specified anywhere on the command line:
-  -f      Overwrite the destination if it already exists.
-  -h, --help
-          Display this help message.
-  -l LOGLEVEL, --log LOGLEVEL
-          Set the log level. Allowable values are:
-          DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN.
-
-Example:
-  als_to_version 11 "$path/to/sample_set.als"  # writes to "$path/to/sample_set_11.als"
-  als_to_version 12 "$path/to/sample_set.als" "live_12_test_conversion.als" -f
-```
-
-When converting to Live 11 format, the converted set uses the Live 11.3.21
-schema. The sub-version is not configurable. For more infomation, see
-[docs/dev/live_11_12_diff.md](docs/dev/live_11_12_diff.md#converting-a-set-to-live-11-uses-a-fixed-schema).
-
-
-### `als_to_xsd`
-
-```text
-als_to_xsd reads one or more Ableton Live sets and generates an XSD with the given name.
-
-Syntax: als_to_xsd [OPTIONS] XSD_FILE_NAME PATH_TO_ALS_FILE...
-
-Environment variables used in XSD_FILE_NAME and PATH_TO_ALS_FILE are expanded by the operating system.
-
-A PATH_TO_ALS_FILE that holds a glob pattern is expanded by the command, and a pattern
-that holds ** matches the files in the directories below the one that is named.
-
-OPTIONS may be specified anywhere on the command line:
-  -f      Overwrite any existing xsd.
-  -h, --help
-          Display this help message.
-  -l LOGLEVEL, --log LOGLEVEL
-          Set the log level. Allowable values are:
-          DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN.
-
-Example:
-  $ als_to_xsd -f "$live_reference_sets/xsd/demo11.xsd"     "$live_reference_sets/sets/live_11/demo/projects_and_als"/**/*.als
-  Wrote '/mnt/f/work/ableton/live_reference_sets/xsd/demo11.xsd'
-```
-
-
-### `als_validate`
-
-```text
-als_validate checks that the XML in an Ableton Live .als file conforms to an XSD schema.
-Returns rcode 0 if no errors are found.
-
-Syntax: als_validate [OPTIONS] PATH_TO_ALS_FILE SCHEMA.xsd
-
-Environment variables used in PATH_TO_ALS_FILE are expanded by the operating system.
-
-OPTIONS may be specified anywhere on the command line:
-  -h, --help
-          Display this help message.
-  -l LOGLEVEL, --log LOGLEVEL
-          Set the log level. Allowable values are:
-          DEBUG, INFO, WARN, ERROR, FATAL, UNKNOWN.
-
-Example:
-  $ als_validate     "$live_reference_sets/sets/live_11/experiments/projects_and_als/one_midi_track_only_11 Project/factory_default_11.als"     "$live_reference_sets/xsd/demo11.xsd"
-  /mnt/f/work/ableton/live_reference_sets/sets/live_11/experiments/projects_and_als/one_midi_track_only_11 Project/factory_default_11.als is valid
+als_sample_command "$live_set"
 ```
 
 
 ## Live Experimental Features
 
-Ableton Live can be configured to enable experimental and unsupported features through an
-`Options.txt` file in its Preferences folder. For example, `-_GroupTrackFreeze` allows a group
-track to be bounced as though it were a track.
+Ableton Live can be configured to enable experimental and unsupported features
+through an `Options.txt` file in its Preferences folder. For example,
+`-_GroupTrackFreeze` allows a group track to be bounced as though it were a
+track.
 
 `als_report` does not search for a file called `Options.txt`.
 
@@ -723,47 +154,6 @@ $ code .  # Run Visual Studio Code
 ```
 
 
-### The File Format
-
-[docs/dev/als_notes.md](docs/dev/als_notes.md) documents the parts of the Ableton Live
-`.als` format that this project reads, based on a survey of 460 real sets and
-on the official Ableton demo sets. `bin/als_files` re-runs the survey. The terms
-the documents use are defined in
-[docs/glossary.md](docs/glossary.md).
-
-The demo sets are the better evidence when the question is "what does Live 11
-do?", because there is one for each version. Ableton installs them with Live:
-
-```shell
-$ bin/als_files "/mnt/c/ProgramData/Ableton/Live 11 Suite/Resources/Core Library/Lessons/Demo Songs"
-$ bin/als_files "/mnt/c/ProgramData/Ableton/Live 12 Suite/Resources/Core Library/Lessons/Demo Songs"
-```
-
-Ableton documents the location in
-[Location of the default Demo Set](https://help.ableton.com/hc/en-us/articles/209774005-Location-of-the-default-Demo-Set).
-`locate -i "Demo Songs|Live 9 Demo"` finds them.
-
-One extra Live 11 set is checked in, because no demo set of Live 11 has a return
-track: `sets/live_11/projects_and_als/Fascination.als`. It comes from
-[owenbush/ableton-inspector](https://github.com/owenbush/ableton-inspector),
-which is under the MIT license.
-
-Live 8 and 9 did not store demo sets according to the above instructions. Live 9 demo sets can be found via:
-
-```shell
-$ pwd
-/mnt/c/ProgramData/Ableton/Live 9 Suite
-
-$ find . -iname *.als | grep 'Live 9 Demo'
-./Resources/Core Library/Lessons/Sets/Live 9 Demo_Intro.als
-./Resources/Core Library/Lessons/Sets/Live 9 Demo_Lite.als
-./Resources/Core Library/Lessons/Sets/Live 9 Demo_Standard.als
-./Resources/Core Library/Lessons/Sets/Live 9 Demo_Suite.als
-```
-
-We have not got Live 8 demo sets figured out yet.
-
-
 ### Run the Tests
 
 ```text
@@ -773,8 +163,8 @@ $ bundle exec rake test
 
 ### Debug run
 
-Define the `VO_DEBUGGING` environment variable so the code is loaded from the project
-instead of attempting to load the `live_set` gem.
+Define the `VO_DEBUGGING` environment variable so the code is loaded from the project instead of attempting to load the
+`live_set` gem.
 
 ```shell
 $ VO_DEBUGGING=true ruby exe/als_report /path/to/my_set.als
@@ -800,8 +190,8 @@ $ bundle exec rake install
 
 ### To Release A New Version
 
-To create a git tag for the new version, push git commits and tags,
-and push the new version of the gem to https://rubygems.org, type:
+To create a git tag for the new version, push git commits and tags, and push the new version of the gem to
+https://rubygems.org, type:
 
 ```shell
 $ bundle exec rake release
@@ -815,6 +205,5 @@ Bug reports and pull requests are welcome at https://github.com/mslinn/live_set.
 
 ## License
 
-The gem is provided as [source-available, noncommercial license](LICENSE.md).
-Commercial use, and use in court-case investigations, require paid
-licenses.
+The gem is provided as [source-available, noncommercial license](LICENSE.md).  Commercial use, and use in court-case
+investigations, require paid licenses.

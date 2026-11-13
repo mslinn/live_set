@@ -66,7 +66,7 @@ sets are regenerated.
 
 ### 2. The reports of the reference sets are regenerated
 
-The reports of the reference sets are written by `dev/generate_reference_als_reports` and
+The reports of the reference sets are written by `dev/als_generate_reference_reports` and
 are checked in to the repository of the reference sets. Every change to the report is in
 them, so they are regenerated and diffed, and the diff is what says what the change was.
 
@@ -89,7 +89,7 @@ These are questions, not work, and they are in `TODO.md`:
   passes: `bundle exec rspec spec/live_set spec/als_report`.
 - `bundle exec rubocop` is clean.
 - The reports of the reference sets are regenerated and diffed:
-  `ruby dev/generate_reference_als_reports`. The report must not change, except for what
+  `ruby dev/als_generate_reference_reports`. The report must not change, except for what
   the work asks for.
 - Every TODO and FIXME that is done is deleted, and every item of `TODO.md` that is done is
   deleted from it, in the manner `TODO.md` describes.

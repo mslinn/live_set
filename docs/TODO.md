@@ -138,6 +138,58 @@ Nokogiri document.
 The fix: The class should read its values with `at(...)`, like every other class
 in this gem.
 
+#### X2. als_nodes multiple responses
+
+The first command below shows 13 matching elements. However, the second command
+combines all the paths so the result is meaningless.
+
+```shell
+$ als_nodes "$demo_12_suite" "//DeviceChain/DeviceChain/Devices/*[@Id=\"$ID\"]/ancestor-or-self::*" --name --count
+13
+
+$ als_nodes "$demo_12_suite" "//DeviceChain/DeviceChain/Devices/*[@Id=\"$ID\"]/ancestor-or-self::*" --name
+[
+  "Ableton",
+  "LiveSet",
+  "Tracks",
+  "MidiTrack",
+  "DeviceChain",
+  "DeviceChain",
+  "Devices",
+  "Drift",
+  "MidiTrack",
+  "DeviceChain",
+  "DeviceChain",
+  "Devices",
+  "AudioEffectGroupDevice"
+]
+```
+
+A better response would be nested arrays, something like:
+
+```text
+[
+  [
+    "Ableton",
+    "LiveSet",
+    "Tracks",
+    "MidiTrack",
+    "DeviceChain",
+    "Devices",
+    "Drift"
+  ],
+  [
+    "Ableton",
+    "LiveSet",
+    "Tracks",
+    "AudioEffectGroupDevice",
+    "DeviceChain",
+    "Devices",
+    "Drift"
+  ], ...
+]
+```
+
 
 #### X1. New Command to Copy
 
