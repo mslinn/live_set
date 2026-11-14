@@ -197,18 +197,18 @@ similar structure.
 
 ## Surveying Corpuses
 
-The [`als_files`](../../bin/als_files) script re-runs the survey. To survey the
+The [`als_files`](../../dev/als_files) script re-runs the survey. To survey the
 Live sets in the `$songs` directory, type:
 
 ```shell
-$ bin/als_files "$songs"
+$ dev/als_files "$songs"
 ```
 
 `als_files` surveys 25 files by default, because surveying all of Mike&apos;s
 sets takes about four minutes. To read them all instead of just the first 25, type:
 
 ```shell
-$ bin/als_files "$songs" 0
+$ dev/als_files "$songs" 0
 ```
 
 ### XSD Schemas

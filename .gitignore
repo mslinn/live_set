@@ -1,19 +1,14 @@
+!/schemas/*.xsd
+!sets/**/*.als
+*.als
+*.xsd
+/_yardoc/
 /.bundle/
 /.yardoc
 /binstub/
-/Gemfile.lock
-/_yardoc/
-/coverage/
 /conversions/
-/test/coverage/
-/test/reports/
 /doc/
+/Gemfile.lock
 /pkg/
 /tmp/
-*.xsd
-!/schemas/*.xsd
-*.als
-!sets/**/*.als
-# What Live writes around a set, in a project folder.
 Desktop.ini
-Ableton Project Info/
