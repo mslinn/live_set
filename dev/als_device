@@ -3,19 +3,37 @@
 
 require 'zlib'
 require 'nokogiri'
+require 'optparse'
 
-def help(msg)
+def help(msg, parser = nil)
   warn msg
-  warn "Usage: #{File.basename($0)} ALS_FILE ID"
+  warn parser.help if parser
   exit 1
+end
+
+options = { short: false, item: nil }
+parser = OptionParser.new do |opts|
+  opts.banner = "Find and inspect Ableton Live device instances by ID.\n\nUsage: #{File.basename($0)} [options] ALS_FILE ID"
+  opts.on('--short', 'Abbreviate device output to top-level elided elements') do
+    options[:short] = true
+  end
+  opts.on('--item N', Integer, 'Display only the specified instance N (1-based)') do |n|
+    options[:item] = n
+  end
+end
+
+begin
+  parser.parse!
+rescue OptionParser::InvalidOption => e
+  help(e.message, parser)
 end
 
 als_file = ARGV[0]
 target_id = ARGV[1]
 
-help("Error: No ALS file was specified") unless als_file
-help("Error: No device ID was specified") unless target_id
-help("Error: File not found: #{als_file}") unless File.exist?(als_file)
+help("Error: No ALS file was specified", parser) unless als_file
+help("Error: No device ID was specified", parser) unless target_id
+help("Error: File not found: #{als_file}", parser) unless File.exist?(als_file)
 
 xml_content = begin
   Zlib::GzipReader.open(als_file, &:read)
@@ -36,9 +54,22 @@ if target_nodes.empty?
   exit 1
 end
 
-puts "Found #{target_nodes.length} instance(s) of Device ID #{target_id}:"
+total_instances = target_nodes.length
 
-target_nodes.each_with_index do |node, idx|
+if options[:item]
+  if options[:item] < 1 || options[:item] > total_instances
+    warn "Error: Item instance #{options[:item]} out of range (1..#{total_instances})"
+    exit 1
+  end
+  selected_indices = [options[:item] - 1]
+else
+  selected_indices = (0...total_instances).to_a
+end
+
+puts "Found #{total_instances} instance(s) of Device ID #{target_id}:"
+
+selected_indices.each do |idx|
+  node = target_nodes[idx]
   instance_num = idx + 1
 
   # Scope to the immediate parent <Devices> container and format XPath to start with //
@@ -52,16 +83,26 @@ target_nodes.each_with_index do |node, idx|
   # Enumerate actual child devices with IDs inside this specific container
   child_devices = container ? container.xpath('./*[@Id]') : []
 
-  # Cleanly format XML by duplicating the node, stripping whitespace-only text nodes,
-  # and applying Nokogiri's FORMAT serializer option.
+  # Cleanly format XML by duplicating the node, stripping whitespace-only text nodes
   clean_node = node.dup
   clean_node.xpath('.//text()[normalize-space(.)=""]').remove
+
+  # Abbreviate children if --short is enabled by clearing inner content and setting elided attribute
+  if options[:short]
+    clean_node.element_children.each do |child|
+      if child.children.any?
+        child.inner_html = ''
+        child['elided'] = 'true'
+      end
+    end
+  end
+
   formatted_xml = clean_node.to_xml(
     indent: 2,
     save_with: Nokogiri::XML::Node::SaveOptions::NO_DECLARATION | Nokogiri::XML::Node::SaveOptions::FORMAT
   )
 
-  puts "\n--- Instance #{instance_num} of #{target_nodes.length} ---"
+  puts "\n--- Instance #{instance_num} of #{total_instances} ---"
   puts "XPath to parent of device with ID=#{target_id}:"
   puts container_xpath
 
