@@ -4,41 +4,85 @@
 require 'zlib'
 require 'nokogiri'
 require 'optparse'
+require 'colorator'
 
 HELP_TEXT = <<~HELP
-  als_find: Find and inspect Ableton Live elements by ID.
+  als_find: Find and inspect Ableton Live elements by ID, or inspect all instances of a given type.
 
-  Usage: als_find [OPTIONS] TYPE ID ALS_FILE
+  Usage: als_find [OPTIONS] [TYPE [ID]] ALS_FILE
 
   OPTIONS can be placed anywhere on the command line.
-      --short                            Abbreviate output to top-level elided elements
-      --item N                           Display only the specified instance N (1-based)
+      --short         Abbreviate output to top-level elided elements
+      --list          Print a compact summary list of matching elements without XML output
+      --name PATTERN  Filter elements by name using a regex (e.g. 'kick' or '/kick|snare/i')
+      --sortby KEY    Sort results by: id, name (display name), tag (XML tag), xpath, or none
+                      (default: none, i.e. order read from file)
+      --item N        Display only the specified instance N (1-based)
+      --no-color      Disable colored terminal output (also respects NO_COLOR env var)
 
-  TYPE must be one of: device, track, clip (case insensitive)
+  TYPE must be one of: device, track, clip (case insensitive). If TYPE is not specified,
+  all instances of all supported types are reported.
 
-  ID must be an integer
+  ID must be an integer if specified. If TYPE is not specified, then ID is not permitted.
 
   ALS_FILE is only read and is not modified.
 HELP
 
-XPATH_TEMPLATES = {
-  'device' => "//Devices/*[@Id='%<id>s']",
-  'track'  => "//Tracks/*[@Id='%<id>s'] | " \
+XPATH_PATTERNS = {
+  'device' => '//Devices/*[%<pred>s]',
+  'track'  => '//Tracks/*[%<pred>s] | ' \
               '//*[self::MidiTrack or self::AudioTrack or self::ReturnTrack or ' \
-              "self::MasterTrack][@Id='%<id>s']",
+              'self::MasterTrack][%<pred>s]',
   'clip'   => '//*[self::MidiClip or self::AudioClip or self::MidiArrangementClip or ' \
-              "self::AudioArrangementClip][@Id='%<id>s']",
+              'self::AudioArrangementClip][%<pred>s]',
 }.freeze
+
+VALID_SORT_KEYS = %w[id name tag xpath none].freeze
 
 def abort_with_help(message)
   warn "Error: #{message}\n\n#{HELP_TEXT}"
   exit 1
 end
 
-options = { short: false, item: nil }
+def build_name_regex(pattern)
+  if (match = pattern.match(%r{\A/(.*)/([ixm]*)\z}m))
+    body, flag_str = match.captures
+    flags = 0
+    flags |= Regexp::IGNORECASE if flag_str.include?('i')
+    flags |= Regexp::EXTENDED   if flag_str.include?('x')
+    flags |= Regexp::MULTILINE  if flag_str.include?('m')
+    Regexp.new(body, flags)
+  else
+    Regexp.new(pattern, Regexp::IGNORECASE)
+  end
+rescue RegexpError => e
+  abort_with_help("Invalid regular expression in --name: #{e.message}")
+end
+
+no_color_env = ENV.key?('NO_COLOR') && !ENV['NO_COLOR'].empty?
+options = {
+  short:      false,
+  list:       false,
+  name_regex: nil,
+  name_raw:   nil,
+  sortby:     'none',
+  item:       nil,
+  color:      $stdout.tty? && !no_color_env,
+}
 
 parser = OptionParser.new do |opts|
-  opts.on('--short') { options[:short] = true }
+  opts.on('--short')    { options[:short] = true }
+  opts.on('--list')     { options[:list]  = true }
+  opts.on('--no-color') { options[:color] = false }
+  opts.on('--name PATTERN') do |pat|
+    options[:name_raw]   = pat
+    options[:name_regex] = build_name_regex(pat)
+  end
+  opts.on('--sortby KEY') do |key|
+    normalized = key.downcase
+    abort_with_help("Invalid --sortby '#{key}'. Valid keys: #{VALID_SORT_KEYS.join(', ')}.") unless VALID_SORT_KEYS.include?(normalized)
+    options[:sortby] = normalized
+  end
   opts.on('--item N', Integer) do |n|
     abort_with_help('--item must be a positive integer.') if n < 1
     options[:item] = n
@@ -55,14 +99,27 @@ rescue OptionParser::ParseError => e
   abort_with_help(e.message)
 end
 
-abort_with_help('Expected exactly 3 arguments: TYPE ID ALS_FILE.') unless ARGV.size == 3
+case ARGV.size
+when 1
+  element_type = nil
+  target_id    = nil
+  als_file     = ARGV.at(0)
+when 2
+  element_type = ARGV.at(0).downcase
+  target_id    = nil
+  als_file     = ARGV.at(1)
+when 3
+  element_type = ARGV.at(0).downcase
+  target_id    = ARGV.at(1)
+  als_file     = ARGV.at(2)
+else
+  abort_with_help('Expected [TYPE [ID]] ALS_FILE (1 to 3 positional arguments).')
+end
 
-element_type = ARGV[0].downcase
-target_id    = ARGV[1]
-als_file     = ARGV[2]
+abort_with_help("Invalid TYPE '#{ARGV.at(0)}'.") if element_type && !XPATH_PATTERNS.key?(element_type)
 
-abort_with_help("Invalid TYPE '#{ARGV[0]}'.") unless XPATH_TEMPLATES.key?(element_type)
-abort_with_help('ID must be a non-negative integer.') unless target_id.match?(/\A\d+\z/)
+abort_with_help('ID must be a non-negative integer.') if target_id && !target_id.match?(/\A\d+\z/)
+
 abort_with_help("ALS_FILE '#{als_file}' not found.") unless File.file?(als_file)
 
 xml_content = begin
@@ -77,12 +134,68 @@ doc = Nokogiri::XML(xml_content) do |config|
   config.noblanks.huge
 end
 
-target_nodes = doc.xpath(format(XPATH_TEMPLATES[element_type], id: target_id))
+def explicit_display_name(node)
+  paths = %w[./Name/EffectiveName ./Name/UserName ./Name ./UserName ./PluginDesc/Name]
+  paths.each do |path|
+    val = node.at_xpath(path)&.attr('Value')
+    return val if val && !val.empty?
+  end
+  nil
+end
+
+def raw_display_name(node)
+  explicit_display_name(node) || node.name
+end
+
+def node_xpath(node)
+  "//#{node.path.sub(%r{\A/+}, '')}"
+end
+
+def sort_nodes(nodes, sortby)
+  case sortby
+  when 'id'
+    nodes.sort_by { |n| n['Id'].to_i }
+  when 'name'
+    nodes.sort_by { |n| [(explicit_display_name(n) || '').downcase, n.name.downcase, n['Id'].to_i] }
+  when 'tag'
+    nodes.sort_by { |n| [n.name.downcase, n['Id'].to_i] }
+  when 'xpath'
+    nodes.sort_by { |n| node_xpath(n) }
+  else
+    nodes
+  end
+end
+
+predicate = target_id ? "@Id='#{target_id}'" : '@Id'
+patterns  = element_type ? [XPATH_PATTERNS[element_type]] : XPATH_PATTERNS.values
+query     = patterns.map { |pat| format(pat, pred: predicate) }.join(' | ')
+
+target_nodes = doc.xpath(query).to_a
+
+if options[:name_regex]
+  regex = options[:name_regex]
+  target_nodes.select! { |node| raw_display_name(node).match?(regex) }
+end
+
+target_nodes = sort_nodes(target_nodes, options[:sortby])
+
+scope_desc = if element_type && target_id
+               "#{element_type} ID #{target_id}"
+             elsif element_type
+               "type '#{element_type}'"
+             else
+               'all supported types'
+             end
+scope_desc += " matching '#{options[:name_raw]}'" if options[:name_raw]
 
 if target_nodes.empty?
-  min_id, max_id = doc.xpath('//@Id').lazy.map { |attr| attr.value.to_i }.minmax
-  warn "Error: ID #{target_id} not found for type '#{element_type}' in #{als_file} " \
-       "(Valid IDs range from #{min_id || 0} to #{max_id || 0})"
+  range_hint = if target_id && !options[:name_raw]
+                 min_id, max_id = doc.xpath('//@Id').lazy.map { |a| a.value.to_i }.minmax
+                 " (Valid IDs range from #{min_id || 0} to #{max_id || 0})"
+               else
+                 ''
+               end
+  warn "Error: No elements found for #{scope_desc} in #{als_file}#{range_hint}"
   exit 1
 end
 
@@ -118,10 +231,21 @@ def format_display_node(node, short)
   display_node.to_xml(indent: 2, save_with: save_opts)
 end
 
-def render_instance(node, instance_num, total_instances, target_id, short: false)
+def render_list_item(node, instance_num)
   container = node.parent
-  container_xpath = container ? "//#{container.path.sub(%r{\A/+}, '')}" : 'Unknown Container'
+  container_xpath = container ? node_xpath(container) : 'Unknown Container'
+  explicit = explicit_display_name(node)
+  name_col = explicit ? "\"#{explicit}\"" : '-'
+
+  puts format('  %3d. %-24s (ID: %-5s) %-24s [%s]',
+              instance_num, node.name, node['Id'], name_col, container_xpath)
+end
+
+def render_instance(node, instance_num, total_instances, short: false, color: false)
+  container = node.parent
+  container_xpath = container ? node_xpath(container) : 'Unknown Container'
   child_elements = container ? container.xpath('./*[@Id]') : []
+  sibling_count = [child_elements.length - 1, 0].max
   formatted_xml = format_display_node(node, short)
 
   puts <<~OUTPUT
@@ -130,18 +254,25 @@ def render_instance(node, instance_num, total_instances, target_id, short: false
     XPath to parent container:
     #{container_xpath}
 
-    The parent has #{child_elements.length} sibling elements with IDs:
+    This #{node.name} (ID: #{node['Id']}) has #{sibling_count} sibling elements:
   OUTPUT
 
   child_elements.each.with_index(1) do |child, idx|
-    puts "  #{idx}. #{child.name} (ID: #{child['Id']})"
+    line = "#{idx}. #{child.name} (ID: #{child['Id']})"
+    line = line.white.on_green if color && child == node
+    puts "  #{line}"
   end
 
-  puts "\nThis is #{node.name} (ID: #{target_id}):\n#{formatted_xml}"
+  puts "\n#{formatted_xml}"
 end
 
-puts "Found #{total_instances} instance(s) of #{element_type} ID #{target_id}:"
+puts "Found #{total_instances} instance(s) of #{scope_desc}:"
 
 selected_indices.each do |idx|
-  render_instance(target_nodes[idx], idx + 1, total_instances, target_id, short: options[:short])
+  node = target_nodes.at(idx)
+  if options[:list]
+    render_list_item(node, idx + 1)
+  else
+    render_instance(node, idx + 1, total_instances, short: options[:short], color: options[:color])
+  end
 end
