@@ -60,6 +60,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'bigdecimal'
   spec.add_dependency 'bytesize'
   spec.add_dependency 'colorator'
+  spec.add_dependency 'colorize'
   spec.add_dependency 'highline'
   spec.add_dependency 'markdown-tables'
   spec.add_dependency 'nokogiri'

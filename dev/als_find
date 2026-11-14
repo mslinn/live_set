@@ -4,7 +4,8 @@
 require 'zlib'
 require 'nokogiri'
 require 'optparse'
-require 'colorator'
+require 'colorize'
+require 'io/console'
 
 HELP_TEXT = <<~HELP
   als_find: Find and inspect Ableton Live elements by ID, or inspect all instances of a given type.
@@ -12,13 +13,13 @@ HELP_TEXT = <<~HELP
   Usage: als_find [OPTIONS] [TYPE [ID]] ALS_FILE
 
   OPTIONS can be placed anywhere on the command line.
-      --short         Abbreviate output to top-level elided elements
+      --item N        Display only the specified instance N (1-based)
       --list          Print a compact summary list of matching elements without XML output
       --name PATTERN  Filter elements by name using a regex (e.g. 'kick' or '/kick|snare/i')
+      --no-color      Disable colored terminal output (also respects NO_COLOR env var)
+      --short         Abbreviate output to top-level elided elements
       --sortby KEY    Sort results by: id, name (display name), tag (XML tag), xpath, or none
                       (default: none, i.e. order read from file)
-      --item N        Display only the specified instance N (1-based)
-      --no-color      Disable colored terminal output (also respects NO_COLOR env var)
 
   TYPE must be one of: device, track, clip (case insensitive). If TYPE is not specified,
   all instances of all supported types are reported.
@@ -98,6 +99,8 @@ begin
 rescue OptionParser::ParseError => e
   abort_with_help(e.message)
 end
+
+String.disable_colorization = !options[:color]
 
 case ARGV.size
 when 1
@@ -231,17 +234,37 @@ def format_display_node(node, short)
   display_node.to_xml(indent: 2, save_with: save_opts)
 end
 
-def render_list_item(node, instance_num)
+def terminal_width
+  cols = $stdout.tty? ? IO.console&.winsize&.last : nil
+  cols&.positive? ? cols : 120
+end
+
+def build_list_row(node, instance_num)
   container = node.parent
   container_xpath = container ? node_xpath(container) : 'Unknown Container'
   explicit = explicit_display_name(node)
-  name_col = explicit ? "\"#{explicit}\"" : '-'
+  name_col = explicit ? "\"#{explicit}\"" : ''
 
-  puts format('  %3d. %-24s (ID: %-5s) %-24s [%s]',
-              instance_num, node.name, node['Id'], name_col, container_xpath)
+  plain = format('  %3d %-24s %-5s %-24s %s',
+                 instance_num, node.name, node['Id'], name_col, container_xpath)
+  num_str = format('%3d', instance_num).cyan
+  colored = format('  %s %-24s %-5s %-24s %s',
+                   num_str, node.name, node['Id'], name_col, container_xpath)
+
+  [plain.length, colored]
 end
 
-def render_instance(node, instance_num, total_instances, short: false, color: false)
+def render_list(target_nodes, selected_indices)
+  rows = selected_indices.map { |idx| build_list_row(target_nodes.at(idx), idx + 1) }
+  raw_header = format('  %3s %-24s %-5s %-24s %s', '#', 'tag', 'id', 'name', 'xpath')
+  max_row_width = rows.map(&:first).max || raw_header.length
+  target_width = [[max_row_width, raw_header.length].max, terminal_width].min
+
+  puts raw_header.ljust(target_width).colorize(color: :black, background: :yellow)
+  rows.each { |(_, colored)| puts colored }
+end
+
+def render_instance(node, instance_num, total_instances, short: false)
   container = node.parent
   container_xpath = container ? node_xpath(container) : 'Unknown Container'
   child_elements = container ? container.xpath('./*[@Id]') : []
@@ -258,8 +281,8 @@ def render_instance(node, instance_num, total_instances, short: false, color: fa
   OUTPUT
 
   child_elements.each.with_index(1) do |child, idx|
-    line = "#{idx}. #{child.name} (ID: #{child['Id']})"
-    line = line.white.on_green if color && child == node
+    line = "#{idx}. #{child.name} ID: #{child['Id']}"
+    line = line.colorize(color: :light_white, background: :green) if child == node
     puts "  #{line}"
   end
 
@@ -268,11 +291,10 @@ end
 
 puts "Found #{total_instances} instance(s) of #{scope_desc}:"
 
-selected_indices.each do |idx|
-  node = target_nodes.at(idx)
-  if options[:list]
-    render_list_item(node, idx + 1)
-  else
-    render_instance(node, idx + 1, total_instances, short: options[:short], color: options[:color])
+if options[:list]
+  render_list(target_nodes, selected_indices)
+else
+  selected_indices.each do |idx|
+    render_instance(target_nodes.at(idx), idx + 1, total_instances, short: options[:short])
   end
 end
