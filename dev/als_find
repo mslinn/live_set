@@ -85,6 +85,8 @@ HELP_TEXT = <<~HELP.freeze
       echo "$macros"
     fi
   done
+
+  # See als_macros for examples of how to process the JSONL output of this als_find command
 HELP
 
 XPATH_PATTERNS = {
