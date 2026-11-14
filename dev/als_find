@@ -1,0 +1,169 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'zlib'
+require 'nokogiri'
+require 'optparse'
+
+def custom_help
+  <<~HELP
+    als_find: Find and inspect Ableton Live elements by ID.
+
+    Usage: als_find [OPTIONS] TYPE ID ALS_FILE
+
+    OPTIONS can be placed anywhere on the command line.
+        --short                            Abbreviate output to top-level elided elements
+        --item N                           Display only the specified instance N (1-based)
+
+    TYPE must be one of: device, track, clip (case insensitive)
+
+    ID Must be an integer
+
+    ALS_FILE is only read and is not modified.
+  HELP
+end
+
+options = { short: false, item: nil }
+
+# Configure OptionParser without generating its own banner/help text
+parser = OptionParser.new do |opts|
+  opts.on('--short') { options[:short] = true }
+  opts.on('--item N', Integer) { |n| options[:item] = n }
+  opts.on('-h', '--help') do
+    puts custom_help
+    exit 0
+  end
+end
+
+begin
+  parser.parse!
+rescue OptionParser::InvalidOption, OptionParser::MissingArgument => e
+  warn "Error: #{e.message}\n"
+  warn custom_help
+  exit 1
+end
+
+type_arg = ARGV[0]
+target_id_arg = ARGV[1]
+als_file = ARGV[2]
+
+valid_types = %w[device track clip]
+
+unless type_arg && valid_types.include?(type_arg.downcase)
+  warn "Error: Invalid or missing TYPE.\n"
+  warn custom_help
+  exit 1
+end
+
+unless target_id_arg && target_id_arg.match?(/^\d+$/)
+  warn "Error: ID must be an integer.\n"
+  warn custom_help
+  exit 1
+end
+
+unless als_file && File.exist?(als_file)
+  warn "Error: ALS_FILE is missing or not found.\n"
+  warn custom_help
+  exit 1
+end
+
+element_type = type_arg.downcase
+target_id = target_id_arg
+
+xml_content = begin
+  Zlib::GzipReader.open(als_file, &:read)
+rescue Zlib::GzipFile::Error
+  File.read(als_file)
+end
+
+doc = Nokogiri::XML(xml_content)
+
+# Determine XPath search strategy based on positional element type
+target_nodes = case element_type
+               when 'device'
+                 doc.xpath("//Devices/*[@Id='#{target_id}']")
+               when 'track'
+                 doc.xpath(
+                   "//Tracks/*[@Id='#{target_id}'] | " \
+                   "//MidiTrack[@Id='#{target_id}'] | " \
+                   "//AudioTrack[@Id='#{target_id}'] | " \
+                   "//ReturnTrack[@Id='#{target_id}'] | " \
+                   "//MasterTrack[@Id='#{target_id}']"
+                 )
+               when 'clip'
+                 doc.xpath(
+                   "//MidiClip[@Id='#{target_id}'] | " \
+                   "//AudioClip[@Id='#{target_id}'] | " \
+                   "//MidiArrangementClip[@Id='#{target_id}'] | " \
+                   "//AudioArrangementClip[@Id='#{target_id}']"
+                 )
+               end
+
+if target_nodes.empty?
+  all_ids = doc.xpath('//*[@Id]').map { |n| n['Id'].to_i }
+  min_id = all_ids.min || 0
+  max_id = all_ids.max || 0
+  warn "Error: ID #{target_id} not found for type '#{element_type}' in #{als_file} (Valid IDs range from #{min_id} to #{max_id})"
+  exit 1
+end
+
+total_instances = target_nodes.length
+
+if options[:item]
+  if options[:item] < 1 || options[:item] > total_instances
+    warn "Error: Item instance #{options[:item]} out of range (1..#{total_instances})"
+    exit 1
+  end
+  selected_indices = [options[:item] - 1]
+else
+  selected_indices = (0...total_instances).to_a
+end
+
+puts "Found #{total_instances} instance(s) of #{element_type} ID #{target_id}:"
+
+selected_indices.each do |idx|
+  node = target_nodes[idx]
+  instance_num = idx + 1
+
+  # Scope to parent container and format XPath starting with //
+  container = node.parent
+  container_xpath = if container
+                      '//' + container.path.sub(%r{^/+}, '')
+                    else
+                      'Unknown Container'
+                    end
+
+  # Enumerate sibling elements with IDs in the same container
+  child_elements = container ? container.xpath('./*[@Id]') : []
+
+  # Clean format by duplicating node and removing whitespace-only text nodes
+  clean_node = node.dup
+  clean_node.xpath('.//text()[normalize-space(.)=""]').remove
+
+  # Abbreviate children if --short is enabled
+  if options[:short]
+    clean_node.element_children.each do |child|
+      if child.children.any?
+        child.inner_html = ''
+        child['elided'] = 'true'
+      end
+    end
+  end
+
+  formatted_xml = clean_node.to_xml(
+    indent:    2,
+    save_with: Nokogiri::XML::Node::SaveOptions::NO_DECLARATION | Nokogiri::XML::Node::SaveOptions::FORMAT
+  )
+
+  puts "\n--- Instance #{instance_num} of #{total_instances} ---"
+  puts 'XPath to parent container:'
+  puts container_xpath
+
+  puts "\nThe parent has #{child_elements.length} sibling elements with IDs:"
+  child_elements.each.with_index(1) do |child, child_idx|
+    puts "  #{child_idx}. #{child.name} (ID: #{child['Id']})"
+  end
+
+  puts "\nThis is #{node.name} (ID: #{target_id}):"
+  puts formatted_xml
+end
