@@ -154,6 +154,10 @@ def node_xpath(node)
   "//#{node.path.sub(%r{\A/+}, '')}"
 end
 
+def natural_xpath_key(xpath)
+  xpath.split(/(\d+)/).map { |part| part.match?(/\A\d+\z/) ? part.to_i : part }
+end
+
 def sort_nodes(nodes, sortby)
   case sortby
   when 'id'
@@ -163,7 +167,10 @@ def sort_nodes(nodes, sortby)
   when 'tag'
     nodes.sort_by { |n| [n.name.downcase, n['Id'].to_i] }
   when 'xpath'
-    nodes.sort_by { |n| node_xpath(n) }
+    nodes.sort_by.with_index do |n, idx|
+      parent_xpath = n.parent ? node_xpath(n.parent) : ''
+      [natural_xpath_key(parent_xpath), idx]
+    end
   else
     nodes
   end
