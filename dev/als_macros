@@ -1,0 +1,112 @@
+#!/usr/bin/env ruby
+
+require 'json'
+require 'nokogiri'
+require 'optparse'
+
+HELP_TEXT = <<~HELP.freeze
+  als_macros: Extract active macro knob settings and parameter mappings from als_find --jsonl.
+
+  Syntax: dev/als_macros [OPTIONS]
+
+  OPTIONS:
+    --jsonl      Output each rack's active macros as a JSON Lines record
+    -h, --help   Show this help message
+
+  Example use:
+
+    dev/als_find device "$live12set" --name 'GroupDevice$' --jsonl | \
+      dev/als_macros
+
+    dev/als_find device "$live12set" --name 'GroupDevice$' --jsonl | \
+      dev/als_macros --jsonl | \
+      jq .
+HELP
+
+options = { jsonl: false }
+
+OptionParser.new do |opts|
+  opts.on('--jsonl') { options[:jsonl] = true }
+  opts.on('-h', '--help') do
+    puts HELP_TEXT
+    exit 0
+  end
+end.parse!
+
+def device_label(device)
+  return 'Unknown' unless device
+
+  user_name = device.at_xpath('./UserName/@Value')&.value
+  user_name && !user_name.empty? ? user_name : device.name
+end
+
+def parse_macros(root)
+  (0..15).each_with_object({}) do |i, map|
+    ctrl = root.at_xpath("./MacroControls.#{i}")
+    next unless ctrl
+
+    map[i] = {
+      'index'   => i + 1,
+      'label'   => root.at_xpath("./MacroDisplayNames.#{i}/@Value")&.value || "Macro #{i + 1}",
+      'targets' => [],
+      'value'   => ctrl.at_xpath('./Manual/@Value')&.value&.to_f,
+    }
+  end
+end
+
+def collect_targets(root, macros)
+  root.xpath('.//Branches//*[MacroControl]').each do |param|
+    idx = param.at_xpath('./MacroControl/@Value')&.value&.to_i
+    next unless idx && macros.key?(idx)
+
+    device = param.ancestors.find { |a| a.parent&.name == 'Devices' }
+    min_v  = param.at_xpath('./MidiControllerRange/Min/@Value')&.value
+    max_v  = param.at_xpath('./MidiControllerRange/Max/@Value')&.value
+
+    macros[idx]['targets'] << {
+      'device'    => device_label(device),
+      'max'       => max_v&.to_f,
+      'min'       => min_v&.to_f,
+      'parameter' => param.name,
+    }.sort.to_h
+  end
+end
+
+def render_text(row, active)
+  puts "=== #{row['name'] || row['tag']} (#{row['xpath']}) ==="
+  active.each_value do |m|
+    puts "  Macro #{m['index']} (#{m['label']}) = #{m['value']}"
+    m['targets'].each do |t|
+      range = t['min'] && t['max'] ? " [#{t['min']} .. #{t['max']}]" : ''
+      puts "    -> #{t['device']} -> #{t['parameter']}#{range}"
+    end
+  end
+end
+
+def render_jsonl(row, active)
+  record = {
+    'file'   => row['file'],
+    'id'     => row['id'],
+    'macros' => active.values.map { |m| m.sort.to_h },
+    'name'   => row['name'],
+    'tag'    => row['tag'],
+    'xpath'  => row['xpath'],
+  }
+  puts JSON.generate(record.sort.to_h)
+end
+
+ARGF.each_line do |line|
+  row  = JSON.parse(line)
+  root = Nokogiri::XML(row['xml']).root
+  next unless root
+
+  macros = parse_macros(root)
+  collect_targets(root, macros)
+
+  active = macros.select do |i, m|
+    m['targets'].any? || m['label'] != "Macro #{i + 1}" || m['value'].to_f != 0.0
+  end
+  next if active.empty?
+
+  options[:jsonl] ? render_jsonl(row, active) : render_text(row, active)
+end

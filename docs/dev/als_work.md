@@ -1,6 +1,6 @@
 # Working With The Ableton Live ALS File Format
 
-Last Revision: 2026-10-27<br>
+Last Revision: 2026-11-14<br>
 Author: Mike Slinn<br>
 Status: For Discussion
 
@@ -21,264 +21,6 @@ is designed to handle structural differences in ALS files, such as an element
 name that was renamed, or elements that exist in one version but not in another.
 
 
-## Guidelines
-
-- Simple operations, such as changing a set’s displayed name or copying a MIDI
-  map between sets, should modify the relevant XML directly rather than require
-  parsing the entire file into an object model.
-- Reporting is expected to provide substantially more value than converting.
-  Convert only the entities needed to make reports efficient; converting the
-  complete set is not a priority.
-- An end-user command should open Live 12, gather required content, ensure
-  anything that needs freezing is frozen, save the set, and send it to Push 3.
-- The next major commands should show real-time changes and compare two or more
-  sets. Organize contributions by party in separate subdirectories, with support
-  for a generic number of parties rather than only two. Show differences in
-  timeline order, and report only changes—not the full report—to keep output
-  readable.
-- Detect possible changes made to audio files outside Live by comparing file
-  sizes and dates with their recorded
-  values. Verify whether Live updates sample parameters when a changed file is
-  next opened.
-
-
-## Reading and Writing ALS Files
-
-Class `AlsFile` in `lib/live_set/als_file.rb` contains the following methods:
-
-| Method           | Description                                                      |
-|------------------|------------------------------------------------------------------|
-| `read`           | Reads the XML document of a live set.                            |
-| `read_text`      | Reads the XML of a live set, as text.                            |
-| `read_gzip_text` | Reads the XML of a live set as text; the set must be compressed. |
-| `write`          | Writes a live set.
-
-
-## XML Tools
-
-The following subsections are presented here because this information will be
-required in the next section (Current Work).
-
-
-### XML Transformation with XSLT (Nokogiri)
-
-
-#### XSLT Templates
-
-XSLT templates are used for transforming XML files from one format to another.
-They perform structural transformations (for example, converting between Ableton
-Live v11 and v12 formats).
-
-We need to generate XSLT stylesheets that map one version’s structure to the other.
-The XSLT stylesheets perform the bidirectional reorganization work.
-
-To transform an XML document using an XSLT template, Nokogiri is the standard
-and most performant choice.
-
-```ruby
-require 'live_set'
-
-# The identity template: copies everything, so the transformation changes nothing
-# until a transformation is added. See "XSLT Identity Template".
-IDENTITY_STYLESHEET = <<~XSLT.freeze
-  <?xml version="1.0" encoding="UTF-8"?>
-  <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-    <xsl:output method="xml" indent="yes" encoding="UTF-8"/>
-    <xsl:template match="node() | @*">
-      <xsl:copy>
-        <xsl:apply-templates select="node() | @*"/>
-      </xsl:copy>
-    </xsl:template>
-  </xsl:stylesheet>
-XSLT
-
-# Read the live set, which is an XML document
-document = AlsFile.read('input.als')
-template = Nokogiri::XSLT(IDENTITY_STYLESHEET)
-
-# Perform the transformation
-transformed_document = template.transform(document)
-
-# Write the transformed live set, carrying the source file's timestamp into the
-# gzip header
-AlsFile.write('output.als', transformed_document, File.mtime('input.als'))
-```
-
-Reading and writing live sets is done by `AlsFile`
-(`lib/live_set/als_file.rb`). Reading gives the XML document; writing takes
-the XML document, writes it in Live's own format, and compresses it. The XML is
-written by `LiveXmlWriter` (`lib/live_set/live_xml_writer.rb`), because libxml2
-does not write XML the way Live does. The writer, not the stylesheet, decides
-the format, so the stylesheet's `xsl:output` settings do not apply to it.
-
-The gzip header's mtime is stored inside the set. Live writes 0 there; this code
-writes the timestamp of the file the set was read from, so that a converted set
-keeps the timestamp of the one it came from. The output file's filesystem
-`mtime` is the time the file was created.
-
-A round trip through this code produces byte-identical XML. The compressed
-file is not byte-identical: Live writes a gzip header with an mtime of 0 and
-with the byte identifying the platform that wrote the file, and the deflate
-stream itself differs.
-
-TODO `als_delta` must compare XML trees, not XML strings. It reads the sets
-with `AlsFile`, and the trees have to be brought to a common version before
-they are compared. See docs/dev/cpfir.md, "Comparing Two Live Sets".
-
-
-#### XSLT Identity Template
-
-The standard way to copy an XML file with minor changes in XSLT is to use the
-identity template, which copies everything as-is, and override it with specific
-templates for the elements or attributes you want to change.
-
-See
-[StackOverflow](https://stackoverflow.com/questions/3436212/xslt-copy-with-modifications)
-and [identity](https://dh.obdurodon.org/identity.xhtml).
-
-Here is an example of an identity transform:
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-  <xsl:output method="xml" indent="yes" encoding="UTF-8"/>
-
-  <xsl:template match="node() | @*">
-    <xsl:copy>
-      <xsl:apply-templates select="node() | @*"/>
-    </xsl:copy>
-  </xsl:template>
-
-  <!-- Minor Change 1: Rename a specific element (e.g., change <oldTag> to <newTag>) -->
-  <xsl:template match="oldTag">
-    <newTag>
-      <xsl:apply-templates select="node() | @*"/>
-    </newTag>
-  </xsl:template>
-
-  <!-- Minor Change 2: Modify the text content of a specific element -->
-  <xsl:template match="status">
-    <status>
-      <xsl:text>APPROVED</xsl:text>
-    </status>
-  </xsl:template>
-
-  <!-- Minor Change 3: Modify a specific attribute -->
-  <xsl:template match="@version">
-    <xsl:attribute name="version">2.0</xsl:attribute>
-  </xsl:template>
-
-  <!-- Minor Change 4: Remove a specific element or attribute by matching it and doing nothing -->
-  <xsl:template match="tempData"/>
-</xsl:stylesheet>
-```
-
-How it works:
-
-1. The Identity Template (`node() | @*`): Matches all nodes and attributes and
-    outputs an exact copy via `<xsl:copy>` and `<xsl:apply-templates>`.
-2. Overrides: Any more specific `xsl:template` match you add (like matching a
-    specific tag, text node, or attribute) takes precedence over the identity
-    template, allowing you to alter, replace, or drop it selectively.
-
-
-#### Transform Implementation
-
-The transform is Ruby, and it lives in `lib/live_set/tx/`: the base class is
-`live_version_converter.rb`, and each version_diff has a bridge whose lists
-and special transformations hold the differences of that version_diff. The 11↔12 version_diff is
-`live_11_and_12.rb`.
-
-The architecture is in [cpfir.md](cpfir.md). The transformations of the 11↔12 version_diff are
-`lib/live_set/tx/live_11_and_12.rb`, and the evidence behind each of them is in
-[live_11_12_diff.md](live_11_12_diff.md).
-
-The differences between two versions are found by diffing their schemas. See
-"Mapping XSD to Ruby Classes", below.
-
-
-### XSD  (XML Schema)
-
-The schemas are used. The schema of a version is the index of that version's
-format, and it is what the transformations are written from and what a converted set is
-checked against. `dev/als_generate_xsds` generates them, and
-`spec/live_set/tx/live_conversion_spec.rb` validates a converted set against the
-schema of the version it was converted to.
-
-These schemas are inferred from the demo sets of a version, so they are as
-incomplete as those sets. Live ships a description of the format of its own,
-which is complete for the version; it is described in
-[live_schemas.md](live_schemas.md), and the open questions are tracked as
-**TODO L1**.
-
-
-#### Generating XSD
-
-Every Ableton Live file contains XML. From the XML structure present in a given
-Live file (or from a collection of them), you can generate an XML Schema (XSD)
-that describes the allowed structure, elements, attributes, and types for that
-version of the format. XSD files are used for XML validation.
-
-By combining XSDs together we can assemble a more complete XSD.
-Once a "good enough" stylesheet exists for two Ableton Live versions (e.g. v11
-and v12), we can use the stylesheets to do much of the reorganizational work of
-transforming bidirectionally between v11 and v12 formats.
-
-#### Mapping XSD to Ruby Classes (RXSD)
-
-RXSD (<https://github.com/movitto/RXSD>) was considered for mapping the generated
-XSD to Ruby classes, and rejected. RXSD compiles a schema into Ruby classes on the
-fly, at run time. The classes in this project are written by hand and live in
-`lib/live_set/`, so a run-time generator is the wrong shape for the job. The gem
-is also unmaintained: the last release, 0.5.3, was in May 2016, it depends on
-`libxml-ruby ~> 2.8.0`, a second libxml2 binding alongside the Nokogiri this
-project already uses, and RFC 8134 section 7.1 reports that it could not parse a
-complex schema at all.
-
-Rejecting it costs nothing. The schema `exe/als_to_xsd` produces is already an
-index of the format: it lists every element and every attribute of that Live
-version. The format's vocabulary can be read from the schema, and the differences
-between two versions can be found by diffing one schema against another. Neither
-the inventory nor the diff needs the ALS files scanned by hand.
-
-**This is how the transformations of a version_diff are found.** The names one schema
-has and the other does not are the candidates, and each transformation is then written
-by hand in the bridge for that version_diff. See `docs/dev/conversion.md`, "The kinds of
-difference", for the kinds of difference and "The differences must be sorted by kind, and the
-non-obvious ones hand-written" for how a transformation is written, and
-`lib/live_set/tx/live_11_and_12.rb` for the transformations of the 11↔12 version_diff.
-
-
-## Current Work
-
-This document is part of an effort to create the next version of `live_set`. The
-work being added right now is:
-
-1. Perform a proper translation of XML elements between different Live versions.
-   Renaming XML elements, moving XML elements, deleting XML elements, and so on.
-
-   The code base is organized this way now: the transform is in
-   `lib/live_set/tx/`, and each version_diff has a bridge whose lists and
-   special transformations hold the differences of that version_diff. The transform is Ruby rather
-   than XSLT: a transformation is an entry in a list, and the list is read the other way for
-   the down direction.
-
-2. Develop high-level methods that detect and describe the differences between
-   two Live sets. Do not assume that the XML schemas are identical for both Live
-   set. Translate the older format into the newer format.
-
-
-### Fixed Output Schemas
-
-A converted set is written to a fixed schema of the target version, not to a
-schema inferred from the XML stored in the sets of that version.
-
-Ableton Live has a constantly changing XML structure. `als_to_version` outputs a
-well-defined constant set of metadata  in the `Ableton` element.  See
-[live_11_12_diff.md](live_11_12_diff.md), "Converting a set to Live 11 uses a
-fixed schema".
-
-
 ## Gui_harness
 
 To make the required reverse-engineering possible, the
@@ -290,28 +32,6 @@ Gui_harness can answer GUI dialogs, provide values in forms, press buttons, and
 read text from the dialog. It can also shut down the GUI program, and it takes
 note of the return code and STDOUT and STDERR in case any warnings or errors
 were emitted.
-
-Gui_harness is a new program, and this is the first projec to use it. The tests
-should verify that a recent version of gui_harness is used. Also bugs may be
-found in gui_harness, so don't assume it works perfectly. If a bug is found in
-gui_harness, fix it instead of moving on to something else.
-
-
-## Comparing XML Contents
-
-We can now iterate, using knowledge gained from reverse engineering the file
-format changes between Ableton Live versions.
-
-This document was written before the `live_set` code was updated; however, the
-code is often incorrect, and this document also has many fundamental errors. TODO
-and FIXME comments have been added to this document and in the code to assist
-reconciliation.
-
-<blockquote style="border: 1px solid currentColor; padding: 12px; border-radius: 4px;">
-Important: when this document was last edited, both the code and the documentation
-were in heavy flux and neither was authorative. Ask the user for clarification
-whenever conflicting information is discovered.
-</blockquote>
 
 
 ## Two Corpuses
@@ -339,24 +59,30 @@ This corpus spans these versions:
 | 11.3.21 – 11.3.22 |   32 |
 | 12.0.1 – 12.4.6   |  407 |
 
-**Caution:** 29 of the 32 Live 11 sets in `$songs` were written by `als_to_version 11` itself, which hard-codes certain
-attributes:
+**Caution:** 29 of the 32 Live 11 sets in `$songs` were written by
+`als_to_version 11` itself, which hard-codes certain attributes:
 
 * Filename ends with `_11.als`
 * `MinorVersion` is `11.0_11300`
 * `Revision` is a hard-coded value written by `live_set`.
 
-This corpus's Live 11 sets mostly reflect what `live_set` produces, not what Live 11 produces.
+This corpus's Live 11 sets mostly reflect what `live_set` produces, not what
+Live 11 produces.
 
 Only 3 Live 11 sets in this corpus were actually created by Ableton 11.
 
 
 ### Corpus of Demo Sets
 
-From Live 10 onwards, the demo sets have been provided in five versions: Intro, Lite, Push, Standard, and Suite.
+From Live 8 to 10, demo sets have been provided in five versions: Intro, Lite,
+Standard, and Suite.
 
-Different demo sets are provided for each Ableton Live version. For example, Live 11&apos;s demo song is "Ninajirachi -
-In The Rain", and Live 12&apos;s demo song is "Chuck Sutton - Patience", so a diff between them confounds version
+From Live 11 onwards, demo sets have been provided in five versions: Intro,
+Lite, Push, Standard, and Suite.
+
+Different demo sets are provided for each Ableton Live version. For example,
+Live 11&apos;s demo song is "Ninajirachi - In The Rain", and Live 12&apos;s demo
+song is "Chuck Sutton - Patience", so a diff between them confounds version
 differences with content differences.
 
 The demo sets are installed with Ableton Live, and the
