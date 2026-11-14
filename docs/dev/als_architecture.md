@@ -1,7 +1,8 @@
 # ALS Architecture
 
 This document describes how this project uses Ruby classes to model ALS XML
-entities, and a high-level description of how serializers generate markdown.
+entities, and a high-level description of how serializers generate HTML and
+markdown.
 
 The ALS format changes with every Ableton Live release. The `live_set` project
 is designed to handle structural differences in ALS files, such as an element
