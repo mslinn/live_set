@@ -5,7 +5,7 @@ require 'zlib'
 require 'nokogiri'
 require 'optparse'
 
-def custom_help
+def help
   <<~HELP
     als_find: Find and inspect Ableton Live elements by ID.
 
@@ -30,7 +30,7 @@ parser = OptionParser.new do |opts|
   opts.on('--short') { options[:short] = true }
   opts.on('--item N', Integer) { |n| options[:item] = n }
   opts.on('-h', '--help') do
-    puts custom_help
+    puts help
     exit 0
   end
 end
@@ -39,7 +39,7 @@ begin
   parser.parse!
 rescue OptionParser::InvalidOption, OptionParser::MissingArgument => e
   warn "Error: #{e.message}\n"
-  warn custom_help
+  warn help
   exit 1
 end
 
@@ -51,19 +51,19 @@ valid_types = %w[device track clip]
 
 unless type_arg && valid_types.include?(type_arg.downcase)
   warn "Error: Invalid or missing TYPE.\n"
-  warn custom_help
+  warn help
   exit 1
 end
 
-unless target_id_arg && target_id_arg.match?(/^\d+$/)
+unless target_id_arg&.match?(/^\d+$/)
   warn "Error: ID must be an integer.\n"
-  warn custom_help
+  warn help
   exit 1
 end
 
-unless als_file && File.exist?(als_file)
+unless als_file&.then { |path| File.exist?(path) }
   warn "Error: ALS_FILE is missing or not found.\n"
-  warn custom_help
+  warn help
   exit 1
 end
 
@@ -119,34 +119,26 @@ else
   selected_indices = (0...total_instances).to_a
 end
 
-puts "Found #{total_instances} instance(s) of #{element_type} ID #{target_id}:"
-
-selected_indices.each do |idx|
-  node = target_nodes[idx]
-  instance_num = idx + 1
-
-  # Scope to parent container and format XPath starting with //
+def render_instance(node, instance_num, total_instances, target_id, short: false)
   container = node.parent
-  container_xpath = if container
-                      '//' + container.path.sub(%r{^/+}, '')
+  container_path = container&.path&.sub(%r{^/+}, '')
+  container_xpath = if container_path
+                      "//#{container_path}"
                     else
                       'Unknown Container'
                     end
 
-  # Enumerate sibling elements with IDs in the same container
   child_elements = container ? container.xpath('./*[@Id]') : []
 
-  # Clean format by duplicating node and removing whitespace-only text nodes
   clean_node = node.dup
   clean_node.xpath('.//text()[normalize-space(.)=""]').remove
 
-  # Abbreviate children if --short is enabled
-  if options[:short]
+  if short
     clean_node.element_children.each do |child|
-      if child.children.any?
-        child.inner_html = ''
-        child['elided'] = 'true'
-      end
+      next unless child.children.any?
+
+      child.inner_html = ''
+      child['elided'] = 'true'
     end
   end
 
@@ -166,4 +158,12 @@ selected_indices.each do |idx|
 
   puts "\nThis is #{node.name} (ID: #{target_id}):"
   puts formatted_xml
+end
+
+puts "Found #{total_instances} instance(s) of #{element_type} ID #{target_id}:"
+
+selected_indices.each do |idx|
+  node = target_nodes[idx]
+  instance_num = idx + 1
+  render_instance(node, instance_num, total_instances, target_id, short: options[:short])
 end
