@@ -1,84 +1,75 @@
-#!/bin/bash
+#!/usr/bin/env ruby
+# frozen_string_literal: true
 
-function help {
-  cat <<EOF
-$1
+require 'zlib'
+require 'nokogiri'
 
-$(basename $0) - Find all devices or a specific device from its ID.
-
-Usage: $(basename $0) als_device ALS_FILE ID
-
-Examples:
-live_11_demos="$live_reference_sets/sets/live_11/demo/projects_and_als/"
-live11set="$live_11_demos/Ninajirachi - In The Rain (Live 11 Suite Demo).als"
-dev/$(basename $0) "$live11set" 1
-
-
-live_12_demos="$live_reference_sets/sets/live_12/demo/projects_and_als/"
-live12set="$live_12_demos/Chuck Sutton - Patience (Live 12 Suite Demo).als"
-dev/$(basename $0) "$live12set" 1
-EOF
+def help(msg)
+  warn msg
+  warn "Usage: #{File.basename($0)} ALS_FILE ID"
   exit 1
-}
+end
 
-ALS_FILE="$1"
-ID="$2"
+als_file = ARGV[0]
+target_id = ARGV[1]
 
-# Device Id is NOT globally unique in an Ableton .als XML file.
-# Ableton reuses Ids inside every track's Devices list!
+help("Error: No ALS file was specified") unless als_file
+help("Error: No device ID was specified") unless target_id
+help("Error: File not found: #{als_file}") unless File.exist?(als_file)
 
-if [[ ! "$ALS_FILE" ]]; then help "Error: No ALS file was specified"; fi
-if [[ ! "$ID" ]]; then help "Error: No device ID was specified"; fi
+xml_content = begin
+  Zlib::GzipReader.open(als_file, &:read)
+rescue Zlib::GzipFile::Error
+  File.read(als_file)
+end
 
-# Unique selector for the specific target device node itself
-TARGET_NODE="(//DeviceChain/DeviceChain/Devices/*[@Id=$ID])[1]"
+doc = Nokogiri::XML(xml_content)
 
-# Unique selector for the target device instance
-CONTAINER_XPATH="($TARGET_NODE/ancestor::Devices)[last()]"
+# Search globally across all <Devices> containers to catch top-level and nested rack devices
+target_nodes = doc.xpath("//Devices/*[@Id='#{target_id}']")
 
-# Verify that the device ID actually exists
-if [[ -z "$(als_nodes "$ALS_FILE" "$TARGET_NODE" 2>/dev/null)" ]]; then
-  MAX_ID=$(als_nodes "$ALS_FILE" "//DeviceChain/DeviceChain/Devices/*[@Id]" --attribute Id | jq -r '[.[] | tonumber] | max')
-  cat <<EOF >&2
-Error: Device ID $ID not found.
-Valid IDs range from 1 to $MAX_ID.
-EOF
+if target_nodes.empty?
+  all_ids = doc.xpath("//Devices/*[@Id]").map { |n| n['Id'].to_i }
+  min_id = all_ids.min || 0
+  max_id = all_ids.max || 0
+  warn "Error: Device ID #{target_id} not found in #{als_file} (Valid device IDs range from #{min_id} to #{max_id})"
   exit 1
-fi
+end
 
-# Display XPath for the header
-XPATH="$(
-  als_nodes "$ALS_FILE" "$CONTAINER_XPATH/ancestor::*/self::*" --name | \
-    jq -r '"//" + ([.[]] | reduce .[] as $x ([]; if .[-1] == $x then . else . + [$x] end) | join("/"))'
-)"
+puts "Found #{target_nodes.length} instance(s) of Device ID #{target_id}:"
 
-# Count devices specifically within this exact parent container
-COUNT="$(
-  als_nodes "$ALS_FILE" "$CONTAINER_XPATH" --count
-)"
+target_nodes.each_with_index do |node, idx|
+  instance_num = idx + 1
 
-# Get child names and IDs
-DEVICE_NAMES="$(als_nodes "$ALS_FILE" "$CONTAINER_XPATH/*" --name | jq -r '.[]')"
+  # Scope to the immediate parent <Devices> container and format XPath to start with //
+  container = node.parent
+  container_xpath = if container
+    "//" + container.path.sub(/^\/+/, '')
+  else
+    "Unknown Container"
+  end
 
-DEVICE_IDS="$(als_nodes "$ALS_FILE" "$CONTAINER_XPATH/*" --attribute Id | jq -r '.[]')"
+  # Enumerate actual child devices with IDs inside this specific container
+  child_devices = container ? container.xpath('./*[@Id]') : []
 
-NUMBERED_DEVICES="$(
-  paste <(echo "$DEVICE_IDS") <(echo "$DEVICE_NAMES") | \
-    awk '{print "  ID " $1 ": " $2}'
-)"
+  # Cleanly format XML by duplicating the node, stripping whitespace-only text nodes,
+  # and applying Nokogiri's FORMAT serializer option.
+  clean_node = node.dup
+  clean_node.xpath('.//text()[normalize-space(.)=""]').remove
+  formatted_xml = clean_node.to_xml(
+    indent: 2,
+    save_with: Nokogiri::XML::Node::SaveOptions::NO_DECLARATION | Nokogiri::XML::Node::SaveOptions::FORMAT
+  )
 
-NODE="$(
-  als_nodes "$ALS_FILE" "$TARGET_NODE"
-)"
+  puts "\n--- Instance #{instance_num} of #{target_nodes.length} ---"
+  puts "XPath to parent of device with ID=#{target_id}:"
+  puts container_xpath
 
-cat <<EOF
-XPath to parent of device with ID=${ID}:
-$XPATH
+  puts "\nThe parent has #{child_devices.length} devices:"
+  child_devices.each.with_index(1) do |child, child_idx|
+    puts "  #{child_idx}. #{child.name} (ID: #{child['Id']})"
+  end
 
-The parent has $COUNT devices:
-$NUMBERED_DEVICES
-
-This is device #${ID}:
-
-$NODE
-EOF
+  puts "\nThis is device #{node.name} (ID: #{target_id}):"
+  puts formatted_xml
+end
