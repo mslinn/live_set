@@ -5,70 +5,65 @@ require 'zlib'
 require 'nokogiri'
 require 'optparse'
 
-def help
-  <<~HELP
-    als_find: Find and inspect Ableton Live elements by ID.
+HELP_TEXT = <<~HELP
+  als_find: Find and inspect Ableton Live elements by ID.
 
-    Usage: als_find [OPTIONS] TYPE ID ALS_FILE
+  Usage: als_find [OPTIONS] TYPE ID ALS_FILE
 
-    OPTIONS can be placed anywhere on the command line.
-        --short                            Abbreviate output to top-level elided elements
-        --item N                           Display only the specified instance N (1-based)
+  OPTIONS can be placed anywhere on the command line.
+      --short                            Abbreviate output to top-level elided elements
+      --item N                           Display only the specified instance N (1-based)
 
-    TYPE must be one of: device, track, clip (case insensitive)
+  TYPE must be one of: device, track, clip (case insensitive)
 
-    ID Must be an integer
+  ID must be an integer
 
-    ALS_FILE is only read and is not modified.
-  HELP
+  ALS_FILE is only read and is not modified.
+HELP
+
+XPATH_TEMPLATES = {
+  'device' => "//Devices/*[@Id='%<id>s']",
+  'track'  => "//Tracks/*[@Id='%<id>s'] | " \
+              '//*[self::MidiTrack or self::AudioTrack or self::ReturnTrack or ' \
+              "self::MasterTrack][@Id='%<id>s']",
+  'clip'   => '//*[self::MidiClip or self::AudioClip or self::MidiArrangementClip or ' \
+              "self::AudioArrangementClip][@Id='%<id>s']",
+}.freeze
+
+def abort_with_help(message)
+  warn "Error: #{message}\n\n#{HELP_TEXT}"
+  exit 1
 end
 
 options = { short: false, item: nil }
 
-# Configure OptionParser without generating its own banner/help text
 parser = OptionParser.new do |opts|
   opts.on('--short') { options[:short] = true }
-  opts.on('--item N', Integer) { |n| options[:item] = n }
+  opts.on('--item N', Integer) do |n|
+    abort_with_help('--item must be a positive integer.') if n < 1
+    options[:item] = n
+  end
   opts.on('-h', '--help') do
-    puts help
+    puts HELP_TEXT
     exit 0
   end
 end
 
 begin
   parser.parse!
-rescue OptionParser::InvalidOption, OptionParser::MissingArgument => e
-  warn "Error: #{e.message}\n"
-  warn help
-  exit 1
+rescue OptionParser::ParseError => e
+  abort_with_help(e.message)
 end
 
-type_arg = ARGV[0]
-target_id_arg = ARGV[1]
-als_file = ARGV[2]
+abort_with_help('Expected exactly 3 arguments: TYPE ID ALS_FILE.') unless ARGV.size == 3
 
-valid_types = %w[device track clip]
+element_type = ARGV[0].downcase
+target_id    = ARGV[1]
+als_file     = ARGV[2]
 
-unless type_arg && valid_types.include?(type_arg.downcase)
-  warn "Error: Invalid or missing TYPE.\n"
-  warn help
-  exit 1
-end
-
-unless target_id_arg&.match?(/^\d+$/)
-  warn "Error: ID must be an integer.\n"
-  warn help
-  exit 1
-end
-
-unless als_file&.then { |path| File.exist?(path) }
-  warn "Error: ALS_FILE is missing or not found.\n"
-  warn help
-  exit 1
-end
-
-element_type = type_arg.downcase
-target_id = target_id_arg
+abort_with_help("Invalid TYPE '#{ARGV[0]}'.") unless XPATH_TEMPLATES.key?(element_type)
+abort_with_help('ID must be a non-negative integer.') unless target_id.match?(/\A\d+\z/)
+abort_with_help("ALS_FILE '#{als_file}' not found.") unless File.file?(als_file)
 
 xml_content = begin
   Zlib::GzipReader.open(als_file, &:read)
@@ -76,94 +71,77 @@ rescue Zlib::GzipFile::Error
   File.read(als_file)
 end
 
-doc = Nokogiri::XML(xml_content)
+# NOBLANKS strips formatting whitespace at the C-parser level, saving memory and cleanup time.
+# HUGE prevents libxml2 from aborting on large Ableton Live sets (>10MB uncompressed).
+doc = Nokogiri::XML(xml_content) do |config|
+  config.noblanks.huge
+end
 
-# Determine XPath search strategy based on positional element type
-target_nodes = case element_type
-               when 'device'
-                 doc.xpath("//Devices/*[@Id='#{target_id}']")
-               when 'track'
-                 doc.xpath(
-                   "//Tracks/*[@Id='#{target_id}'] | " \
-                   "//MidiTrack[@Id='#{target_id}'] | " \
-                   "//AudioTrack[@Id='#{target_id}'] | " \
-                   "//ReturnTrack[@Id='#{target_id}'] | " \
-                   "//MasterTrack[@Id='#{target_id}']"
-                 )
-               when 'clip'
-                 doc.xpath(
-                   "//MidiClip[@Id='#{target_id}'] | " \
-                   "//AudioClip[@Id='#{target_id}'] | " \
-                   "//MidiArrangementClip[@Id='#{target_id}'] | " \
-                   "//AudioArrangementClip[@Id='#{target_id}']"
-                 )
-               end
+target_nodes = doc.xpath(format(XPATH_TEMPLATES[element_type], id: target_id))
 
 if target_nodes.empty?
-  all_ids = doc.xpath('//*[@Id]').map { |n| n['Id'].to_i }
-  min_id = all_ids.min || 0
-  max_id = all_ids.max || 0
-  warn "Error: ID #{target_id} not found for type '#{element_type}' in #{als_file} (Valid IDs range from #{min_id} to #{max_id})"
+  min_id, max_id = doc.xpath('//@Id').lazy.map { |attr| attr.value.to_i }.minmax
+  warn "Error: ID #{target_id} not found for type '#{element_type}' in #{als_file} " \
+       "(Valid IDs range from #{min_id || 0} to #{max_id || 0})"
   exit 1
 end
 
 total_instances = target_nodes.length
 
-if options[:item]
-  if options[:item] < 1 || options[:item] > total_instances
-    warn "Error: Item instance #{options[:item]} out of range (1..#{total_instances})"
-    exit 1
-  end
-  selected_indices = [options[:item] - 1]
-else
-  selected_indices = (0...total_instances).to_a
+selected_indices = if options[:item]
+                     if options[:item] > total_instances
+                       warn "Error: Item instance #{options[:item]} out of range " \
+                            "(1..#{total_instances})"
+                       exit 1
+                     end
+                     [options[:item] - 1]
+                   else
+                     (0...total_instances)
+                   end
+
+def format_display_node(node, short)
+  display_node = if short
+                   node.dup.tap do |copy|
+                     copy.element_children.each do |child|
+                       next if child.children.empty?
+
+                       child.children.remove
+                       child['elided'] = 'true'
+                     end
+                   end
+                 else
+                   node
+                 end
+
+  save_opts = Nokogiri::XML::Node::SaveOptions::NO_DECLARATION |
+              Nokogiri::XML::Node::SaveOptions::FORMAT
+  display_node.to_xml(indent: 2, save_with: save_opts)
 end
 
 def render_instance(node, instance_num, total_instances, target_id, short: false)
   container = node.parent
-  container_path = container&.path&.sub(%r{^/+}, '')
-  container_xpath = if container_path
-                      "//#{container_path}"
-                    else
-                      'Unknown Container'
-                    end
-
+  container_xpath = container ? "//#{container.path.sub(%r{\A/+}, '')}" : 'Unknown Container'
   child_elements = container ? container.xpath('./*[@Id]') : []
+  formatted_xml = format_display_node(node, short)
 
-  clean_node = node.dup
-  clean_node.xpath('.//text()[normalize-space(.)=""]').remove
+  puts <<~OUTPUT
 
-  if short
-    clean_node.element_children.each do |child|
-      next unless child.children.any?
+    --- Instance #{instance_num} of #{total_instances} ---
+    XPath to parent container:
+    #{container_xpath}
 
-      child.inner_html = ''
-      child['elided'] = 'true'
-    end
+    The parent has #{child_elements.length} sibling elements with IDs:
+  OUTPUT
+
+  child_elements.each.with_index(1) do |child, idx|
+    puts "  #{idx}. #{child.name} (ID: #{child['Id']})"
   end
 
-  formatted_xml = clean_node.to_xml(
-    indent:    2,
-    save_with: Nokogiri::XML::Node::SaveOptions::NO_DECLARATION | Nokogiri::XML::Node::SaveOptions::FORMAT
-  )
-
-  puts "\n--- Instance #{instance_num} of #{total_instances} ---"
-  puts 'XPath to parent container:'
-  puts container_xpath
-
-  puts "\nThe parent has #{child_elements.length} sibling elements with IDs:"
-  child_elements.each.with_index(1) do |child, child_idx|
-    puts "  #{child_idx}. #{child.name} (ID: #{child['Id']})"
-  end
-
-  puts "\nThis is #{node.name} (ID: #{target_id}):"
-  puts formatted_xml
+  puts "\nThis is #{node.name} (ID: #{target_id}):\n#{formatted_xml}"
 end
 
 puts "Found #{total_instances} instance(s) of #{element_type} ID #{target_id}:"
 
 selected_indices.each do |idx|
-  node = target_nodes[idx]
-  instance_num = idx + 1
-  render_instance(node, instance_num, total_instances, target_id, short: options[:short])
+  render_instance(target_nodes[idx], idx + 1, total_instances, target_id, short: options[:short])
 end
