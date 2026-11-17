@@ -3,6 +3,11 @@
 ## 0.2.3
 
 * Improved warning messages.
+* Merged pull request from @uones regarding:
+
+  * Handling MidiTrack
+  * Ignoring missing sample paths
+  * logging changes
 
 
 ## 0.2.2

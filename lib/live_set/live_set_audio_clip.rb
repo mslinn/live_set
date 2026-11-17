@@ -1,5 +1,6 @@
 require 'colorator'
 require 'date'
+require 'pathname'
 
 class LiveAudioClip
   attr_reader :absolute_path, :file_ref, :file_size, :file_type, :id, :last_modified, :live_pack_name, :need_refreeze, :relative_path,
@@ -14,14 +15,11 @@ class LiveAudioClip
     @file_ref           = @audio_clip.SampleRef.FileRef
     @last_modified      = Time.at(@audio_clip.SampleRef.LastModDate['Value'].to_i).utc.to_datetime
 
-    @absolute_path      = @file_ref.Path['Value']
     @file_size          = @file_ref.OriginalFileSize['Value'].to_i
     @file_type          = @file_ref.Type['Value'] # What do these values mean?
     @live_pack_name     = @file_ref.LivePackName['Value']
     @relative_path      = @file_ref.RelativePath['Value']
     @relative_path_type = @file_ref.RelativePathType['Value'] # What do these values mean?
-<<<<<<< HEAD
-=======
 
     # Resolve absolute path, handling cases where file doesn't exist (e.g., from different system)
     constructed_path = Pathname.new(set_directory).join(@relative_path)
@@ -32,7 +30,6 @@ class LiveAudioClip
                        puts "Warning: File path does not exist (from source system): #{constructed_path}".yellow
                        constructed_path.to_s
                      end
->>>>>>> 6b293b9 (processing MidiTrack and not existing paths fixes)
   end
 
   def collected?
