@@ -31,8 +31,15 @@ def parse_options
   opts = do_parse
   opts.order!(into: options)
 
+  # Normalize loglevel to lowercase string
+  options[:loglevel] = options[:loglevel].to_s.downcase if options[:loglevel]
+
   live_set "Invalid verbosity value (#{options[:verbose]}), must be one of one of: #{VERBOSITY.join ', '}." \
     if options[:verbose] && !options[:verbose] in VERBOSITY
+
+  if options[:loglevel] && !VERBOSITY.include?(options[:loglevel].to_s)
+    live_set "Invalid loglevel value (#{options[:loglevel]}), must be one of: #{VERBOSITY.join ', '}."
+  end
 
   options
 end
@@ -47,7 +54,7 @@ def do_parse
     parser.on('-11', '--convert11', 'Make a copy of the set that is compatible with Live 11')
     parser.on('-f', '--force', 'Overwrite the output set if it already exists')
     parser.on('-s', '--show', 'Display information about the Ableton Live set')
-    parser.on('-l', '--loglevel LOGLEVEL', Integer, "Logging level (#{VERBOSITY.join ', '})")
+    parser.on('-l', '--loglevel LOGLEVEL', String, "Logging level (#{VERBOSITY.join ', '})")
     parser.on('-v', '--verbose VERBOSE', 'Verbosity')
 
     parser.on_tail('-h', '--help', 'Show this message') do
