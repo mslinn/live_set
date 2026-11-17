@@ -1,5 +1,17 @@
 # `Live_set` [![Gem Version](https://badge.fury.io/rb/live_set.svg)](https://badge.fury.io/rb/live_set)
 
+> **This repository is the last free release of the tool.** The report of a set,
+> the conversion of a set to the Live 11 format, and the comparison of two sets
+> are commercial software now. The source of the commercial software is not here,
+> and the code here is not maintained.
+>
+> The free tool is version 0.2.3, under the MIT licence, and it is what is
+> published on [RubyGems](https://rubygems.org/gems/live_set). It reads sets of
+> Ableton Live 11 to 12, and it has known deficiencies and bugs.
+>
+> The commercial tool is described at
+> [mslinn.com](https://mslinn.com/av_studio/ableton_live_set.html).
+
 This program can:
 
 1. Report the version compatibility of an Ableton Live set.
